@@ -3,11 +3,10 @@
 // to; it never holds permissions, which live in studio.config.json.
 import { existsSync, lstatSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
+import { isResourceId } from '../identity/resource-id.ts'
 
 export const CONTRIBUTORS_FOLDER = 'contributors'
 export const KEY = /^[a-z0-9][a-z0-9-]*$/
-/** A permanent studio ID: 16 lowercase Crockford base32 characters. */
-export const STUDIO_ID = /^[0-9abcdefghjkmnpqrstvwxyz]{16}$/
 export const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 export const GITHUB = /^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i
 
@@ -112,7 +111,7 @@ export function profileProblems(entry: unknown, file: string): string[] {
   const problems: string[] = []
   if (profile.formatVersion !== 1)
     problems.push(`${file}: formatVersion must be 1.`)
-  if (typeof profile.studioId !== 'string' || !STUDIO_ID.test(profile.studioId))
+  if (!isResourceId(profile.studioId))
     problems.push(
       `${file}: studioId must be 16 lowercase letters and digits (Crockford base32).`,
     )

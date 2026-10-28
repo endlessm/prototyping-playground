@@ -3,6 +3,7 @@
 import { existsSync, lstatSync, readFileSync, realpathSync } from 'node:fs'
 import path from 'node:path'
 import { identityHint, resolveIdentity } from '../contributors/identity.ts'
+import { isResourceId } from '../identity/resource-id.ts'
 import {
   readContributors,
   type Contributors,
@@ -24,8 +25,6 @@ import { actorOf, studioModules } from './contributors.ts'
 import { Refusal, say, type Flags } from './output.ts'
 import { CONFIG_FILE } from './permissions.ts'
 import { registeredSystems, type SystemFacts } from './systems.ts'
-
-const STUDIO_ID = /^[0-9abcdefghjkmnpqrstvwxyz]{16}$/
 
 /** What is wrong with the configuration and the profiles, as sentences. */
 function configProblems(
@@ -160,7 +159,7 @@ function assignment(
     )
   const facts = (id: unknown, field: string) => {
     if (id === null) return null
-    if (typeof id !== 'string' || !STUDIO_ID.test(id))
+    if (!isResourceId(id))
       throw new Refusal(`${where}: ${field} must be a studio ID or null.`)
     return (
       systems.find(({ studioId }) => studioId === id) ?? {
@@ -177,10 +176,7 @@ function assignment(
     const request = meta.rebuild as Record<string, unknown> | null
     if (!request || typeof request !== 'object' || Array.isArray(request))
       throw new Refusal(`${where}: rebuild must be an object.`)
-    if (
-      typeof request.sourcePrototypeId !== 'string' ||
-      !STUDIO_ID.test(request.sourcePrototypeId)
-    )
+    if (!isResourceId(request.sourcePrototypeId))
       throw new Refusal(
         `${where}: rebuild.sourcePrototypeId must be a studio ID.`,
       )

@@ -57,6 +57,7 @@ const KEYS = new Set([
   'palette',
   'skills',
   'content',
+  'fileTypes',
   'data',
   'preferences',
 ])
@@ -101,6 +102,34 @@ export function moduleProblems(spec: unknown, folderName: string): string[] {
       problems.push(`${where}: the rail position is top, bottom or none.`)
     else if (rail.position !== 'none' && !rail.to && !pages.length)
       problems.push(`${where}: a rail button needs a page or a "to" address.`)
+  }
+  const fileTypes = module.fileTypes
+  if (fileTypes !== undefined) {
+    if (!Array.isArray(fileTypes))
+      problems.push(`${where}: file types must be a list.`)
+    else
+      for (const type of fileTypes) {
+        const { id, label, extensions, identity, page } = (type ??
+          {}) as Record<string, unknown>
+        if (
+          typeof id !== 'string' ||
+          !ID.test(id) ||
+          typeof label !== 'string' ||
+          !PLAIN_TEXT.test(label) ||
+          !Array.isArray(extensions) ||
+          !extensions.length ||
+          extensions.some(
+            (extension) =>
+              typeof extension !== 'string' || !/^\.[a-z0-9]+$/.test(extension),
+          ) ||
+          typeof identity !== 'string' ||
+          typeof page !== 'string' ||
+          !page.endsWith('.vue')
+        )
+          problems.push(
+            `${where}: file type "${String(id)}" needs a lowercase id, a plain-text label, lowercase extensions such as ".vue", an identity reader file and a .vue page.`,
+          )
+      }
   }
   const data = module.data
   if (data !== undefined) {

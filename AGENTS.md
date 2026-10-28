@@ -5,10 +5,11 @@ A prototyping sandbox for the Endless team, rewritten in Nuxt and Vue (ADR 0003,
 ## Layout
 
 - `app/`: the Nuxt 4 app (client-rendered). `nuxt.config.ts` and `app/app.config.ts` configure it; interface strings live in `i18n/locales/en.json`.
-- `tooling/`: Node scripts in TypeScript, run directly by Node 22.18+ (type stripping): the `studio` command (`tooling/studio/`), the module registry and the Nuxt module that builds modules into the app (`tooling/modules/`), contributors, identity and roles (`tooling/contributors/`), the dev-server registry (`tooling/dev-server/`), build inspection, the static server behind `yarn preview`, the Node version check, deployment settings.
-- `src/modules/<id>/`: studio modules, all in one folder. `module.ts` declares the module (`tooling/modules/contract.ts` lists the fields): label, rail button (top, bottom or none), Vue pages under `/<id>`, command palette entries, agent skills, a content folder and named build data. `studio.config.json` turns each one on or off; the dev server reads both when it starts, so a switch takes a restart.
+- `tooling/`: Node scripts in TypeScript, run directly by Node 22.18+ (type stripping): the `studio` command (`tooling/studio/`), the module registry and the Nuxt module that builds modules into the app (`tooling/modules/`), the system registry (`tooling/systems/`), the manifest of prototypes and artifacts (`tooling/manifest/`), the preview documents views render in (`tooling/preview/`), contributors, identity and roles (`tooling/contributors/`), the dev-server registry (`tooling/dev-server/`), build inspection, the static server behind `yarn preview`, the Node version check, deployment settings.
+- `src/modules/<id>/`: studio modules, all in one folder. `module.ts` declares the module (`tooling/modules/contract.ts` lists the fields): label, rail button (top, bottom or none), Vue pages under `/<id>`, command palette entries, agent skills, a content folder, file types (such as views) and named build data. `studio.config.json` turns each one on or off; the dev server reads both when it starts, so a switch takes a restart.
 - `tests/unit`, `tests/integration`, `tests/e2e`: the Vitest projects. E2E scenarios drive Chromium through Playwright against the dev server and against the static build.
-- Content stays apart from the app: `src/prototypes/`, `src/systems/` (each system is a yarn workspace package), `contributors/` and `studio.config.json`.
+- Content stays apart from the app: `src/prototypes/`, `src/systems/` (each system is a yarn workspace package that declares its Vue app in `system.ts`), `contributors/` and `studio.config.json`.
+- Views render in their system's preview document, a same-origin iframe built by a Vite pipeline of its own beside the Nuxt app, so it holds only the system's app and never the studio's styles or Nuxt runtime. Prototype and system code is never compiled by the studio's Nuxt build.
 
 ## Commands
 

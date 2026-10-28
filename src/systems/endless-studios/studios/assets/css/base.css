@@ -1,9 +1,9 @@
-:host {
+html {
   scroll-behavior: smooth;
   overflow: visible !important;
 }
 
-.studios-body {
+body {
   background-color: white;
   font-weight: normal;
   color: #393946;

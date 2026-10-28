@@ -3273,10 +3273,8 @@ __metadata:
     "@iconify-json/lucide": "npm:^1.2.145"
     "@iconify/vue": "npm:^5.0.3"
     "@nuxt/ui": "npm:~4.8.2"
+    "@tailwindcss/typography": "npm:^0.5.16"
     vue: "npm:^3.5.44"
-  peerDependencies:
-    react: ^19.3.0
-    react-dom: ^19.3.0
   languageName: unknown
   linkType: soft
 
@@ -3466,6 +3464,17 @@ __metadata:
     postcss: "npm:^8.5.16"
     tailwindcss: "npm:4.3.3"
   checksum: 10c0/50b33643a4ba50c0d2ea0fd769d16072b0b3d2f31180df667fe5ad4ef60464b5f00931cfd5f2de2116a91219edb7a2dbd4c073b5c2f23393eab6ef1163db8dbf
+  languageName: node
+  linkType: hard
+
+"@tailwindcss/typography@npm:^0.5.16":
+  version: 0.5.20
+  resolution: "@tailwindcss/typography@npm:0.5.20"
+  dependencies:
+    postcss-selector-parser: "npm:6.0.10"
+  peerDependencies:
+    tailwindcss: "*"
+  checksum: 10c0/e42f9347a7802d620c56ea3379dc7986c0eece9af2d0ae170d530a8c8ef9815f6fdb6b23b2ae76c9832314dcca125e6a166bfec1c88326495896afeab64c1c2e
   languageName: node
   linkType: hard
 
@@ -5888,6 +5897,7 @@ __metadata:
     "@nuxtjs/i18n": "npm:^10.3.0"
     "@tailwindcss/vite": "npm:^4.1.11"
     "@types/node": "npm:^22.18.0"
+    "@vitejs/plugin-vue": "npm:^6.0.10"
     "@vueuse/core": "npm:^14.2.1"
     "@vueuse/nuxt": "npm:^14.2.1"
     eslint: "npm:^10.4.0"
@@ -5900,6 +5910,7 @@ __metadata:
     prettier: "npm:^3.5.3"
     tailwindcss: "npm:^4.1.11"
     typescript: "npm:^5.9.3"
+    vite: "npm:^8.3.5"
     vitest: "npm:^4.1.4"
     vue: "npm:^3.5.44"
     vue-tsc: "npm:^3.2.7"
@@ -9661,6 +9672,16 @@ __metadata:
   peerDependencies:
     postcss: ^8.5.29
   checksum: 10c0/f4ed2d48149fcc09d8ec81985fe066a3216cbfd4727c98e254731baf354b17e3da66d9d7e4c60df21cb99514203b5c4bfc347ffbafdd21a727fd814190c33fdb
+  languageName: node
+  linkType: hard
+
+"postcss-selector-parser@npm:6.0.10":
+  version: 6.0.10
+  resolution: "postcss-selector-parser@npm:6.0.10"
+  dependencies:
+    cssesc: "npm:^3.0.0"
+    util-deprecate: "npm:^1.0.2"
+  checksum: 10c0/a0b27c5e3f7604c8dc7cd83f145fdd7b21448e0d86072da99e0d78e536ba27aa9db2d42024c50aa530408ee517c4bdc0260529e1afb56608f9a82e839c207e82
   languageName: node
   linkType: hard
 

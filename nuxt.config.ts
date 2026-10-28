@@ -84,6 +84,7 @@ export default defineNuxtConfig({
     './tooling/modules/nuxt-module.ts',
     './tooling/dev-server/nuxt-module.ts',
     './tooling/contributors/nuxt-module.ts',
+    './tooling/manifest/nuxt-module.ts',
   ],
 
   runtimeConfig: {
@@ -118,6 +119,7 @@ export default defineNuxtConfig({
     tsConfig: {
       include: [
         '../src/modules/**/*.vue',
+        '../src/modules/*/composables/**/*.ts',
         '../tests/fixtures/modules/**/*.vue',
       ],
     },
@@ -126,6 +128,7 @@ export default defineNuxtConfig({
         '../tooling/**/*',
         '../tests/**/*.ts',
         '../src/modules/*/module.ts',
+        '../src/modules/*/types/*/identity.ts',
         '../vitest.config.ts',
       ],
     },

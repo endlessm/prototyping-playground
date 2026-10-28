@@ -2,7 +2,7 @@
 
 Copied unchanged from `Endless-Game-Making-Studio/studio` at `11517cbee`, under `frontend/app/`, keeping that folder layout so `~/` imports resolve here. The app's locale files, `frontend/i18n/locales/en.json` and `es.json`, are copied unchanged at the same revision to `../i18n/locales/`, mirroring `frontend/i18n/` beside `frontend/app/`. Every image under `assets/images/` is copied unchanged, except `bg-threadbare.png` (2.1 MB) and `banner-img.png` (1.1 MB), which are over the studio's 750 KB asset limit and used only by `Dashboard/LauncherBanner*.vue`.
 
-Adapted: `assets/css/base.css` targets `:host` for `html` and `.studios-body` (VueScreen's page) for `body`, so components placed alone in a React layout don't get the page's colour and background; `main.css` targets `:root, :host` for `:root`, drops the floating-vue stylesheet, scans only this system and the prototypes, and names the Fontsource variable fonts. `nuxt-shims.ts` is not an app file: it re-exports the stand-ins below for auto-import.
+Adapted: `assets/css/main.css` drops the floating-vue stylesheet, scans only this system's sources (the studio's preview build adds the prototypes' views), and names the Fontsource variable fonts. `nuxt-shims.ts` is not an app file: it re-exports the stand-ins below for auto-import.
 
 Stood in (implemented in `../runtime/`, installed by `createStudiosApp`, never copied):
 

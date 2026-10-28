@@ -1,19 +1,12 @@
 // `useNuxtApp()` and the composables copied components call without importing them. Each reads the runtime that
-// createStudiosApp provides to its Vue app, so screens on one page keep their own locale, user and sample data.
-import { inject, ref, type MaybeRefOrGetter, type Ref } from 'vue';
-import type { Auth } from './auth';
-import { sampleQuery, type GraphQL } from './graphql';
+// createStudiosApp provides to its Vue app, so screens keep their own locale and sample data.
+import { inject, ref, type Ref } from 'vue';
 import type { I18n } from './i18n';
-import type { Store } from './store';
 
 export type NuxtAppStandIn = {
-  $auth: Auth;
   $i18n: I18n;
-  $store: Store;
-  $graphqlRequest: GraphQL['request'];
   $dayjs: (date?: string | number | Date) => DayjsStandIn;
   $config: { public: Record<string, unknown> };
-  graphql: GraphQL;
 };
 
 export const NUXT_APP_KEY = Symbol.for('endless-studios:nuxt-app');
@@ -37,11 +30,6 @@ export function useState<T>(key: string, init?: () => T): Ref<T> {
   const map = states.get(app)!;
   if (!map.has(key)) map.set(key, ref(init?.()));
   return map.get(key) as Ref<T>;
-}
-
-export function useGraphQLQuery(query: MaybeRefOrGetter<unknown>, options?: Parameters<typeof sampleQuery>[2]) {
-  const app = useNuxtApp();
-  return sampleQuery({ graphql: app.graphql, loggedIn: () => app.$auth.loggedIn }, query, options);
 }
 
 // `$dayjs` (dayjs-nuxt): the format tokens the app uses, in the screen's locale.

@@ -8,5 +8,12 @@
   },
   "home": {
     "greeting": "Hi, {name}"
+  },
+  "prototypes": {
+    "system": "System · {name}",
+    "noSystem": "None",
+    "systemUnavailable": "System unavailable",
+    "notFound": "There's nothing at this address.",
+    "openInTab": "Open in a new tab"
   }
 }

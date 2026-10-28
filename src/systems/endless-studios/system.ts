@@ -1,6 +1,6 @@
-import type { SystemSpec } from '#studio/system';
+import type { SystemSpec } from '../../../tooling/systems/contract.ts';
 
-// Endless Studios: select source key endless-studios in creation controls. Prototype metadata stores this installation’s permanent studioId.
+// The Endless Studios frontend's own Vue code: Nuxt UI 4 with the app's `app.config` customization and stylesheet.
 export default {
   status: 'active',
   role: 'prototype',
@@ -10,15 +10,6 @@ export default {
   colorModes: ['light'],
   docs: 'warn',
   libraries: [
-    {
-      kind: 'package',
-      id: 'vue',
-      label: 'Vue',
-      package: 'vue',
-      description: 'Renders the Endless Studios screens, mounted in a shadow root by VueScreen',
-      entry: 'libraries/vue.tsx',
-      docs: 'https://vuejs.org/guide/introduction.html',
-    },
     {
       kind: 'package',
       id: 'nuxt-ui',
@@ -38,5 +29,21 @@ export default {
     },
   ],
   origin: null,
-  studioId: "8x5spen6xtvp96a9",
+  studioId: '8x5spen6xtvp96a9',
+  app: {
+    factory: { from: 'libraries/vue-app.ts', name: 'createStudiosApp' },
+    stylesheet: 'styles/studios.css',
+    nuxtUi: {
+      config: 'nuxt-ui.config.ts',
+      colors: ['primary', 'secondary', 'kids', 'info', 'success', 'warning', 'error', 'neutral'],
+    },
+    standIns: {
+      from: 'studios/nuxt-shims.ts',
+      imports: ['useRouter', 'useRoute', 'navigateTo', 'useNuxtApp', 'useI18n', 'useState'],
+    },
+    source: 'studios',
+    aliases: {
+      'vue-i18n': 'runtime/nuxt-app.ts',
+    },
+  },
 } satisfies SystemSpec;
