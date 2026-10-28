@@ -126,3 +126,34 @@ describe('protected places', () => {
     expect(studio.exists('src/modules')).toBe(true)
   })
 })
+
+describe('team use', () => {
+  test('[CL-63] Contributors & Permissions is always on', () => {
+    studio.addModule('contributors', 'src/modules/contributors')
+    const off = studio.studio('disable', 'contributors')
+    expect(off.status).toBe(1)
+    expect(off.stderr).toContain("required, so it can't be turned off")
+    const removed = studio.studio('remove', 'contributors', '--yes')
+    expect(removed.status).toBe(1)
+    expect(studio.exists('src/modules/contributors/module.ts')).toBe(true)
+    expect(studio.studio('list').stdout).toMatch(/contributors\s+on\s+required/)
+  })
+})
+
+describe('module items with maintainers', () => {
+  test('[CL-65] no module has items with a maintainers policy: sections are gone (SH-21)', () => {
+    const declaration = 'src/modules/sample/module.ts'
+    studio.write(
+      declaration,
+      studio
+        .read(declaration)
+        .replace(
+          "label: 'Sample',",
+          "label: 'Sample',\n  section: { key: 'examples', policy: 'maintainers' },",
+        ),
+    )
+    const result = studio.studio('list')
+    expect(result.status).toBe(1)
+    expect(result.stderr).toContain(`modules don't declare "section"`)
+  })
+})
