@@ -1,0 +1,5 @@
+/* The Endless Studios app's stylesheet (frontend/app/assets/css) and fonts. The preview build compiles it with
+   Tailwind for the preview document only, adding the prototypes' views as sources. */
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/figtree';
+@import '../studios/assets/css/main.css';

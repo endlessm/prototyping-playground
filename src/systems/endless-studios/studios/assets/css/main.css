@@ -3,12 +3,9 @@
 
 @import 'tailwindcss' source(none);
 @import '@nuxt/ui';
-@source '../../../../../prototypes/**/*.vue';
 @source '../../components';
-@source '../../../libraries';
+@source '../../../runtime';
 @source '../../../nuxt-ui.config.ts';
-@source '../../../components';
-@source '../../../../../prototypes/**/*.tsx';
 @plugin "@tailwindcss/typography";
 
 @theme static {
@@ -560,8 +557,7 @@
   --drop-shadow-hard: 0 9px 0 rgba(0, 0, 0, 0.15);
 }
 
-:root,
-:host {
+:root {
   /* Tweak Nuxt UI neutral text colors for readability */
   --ui-text: var(--ui-color-neutral-800);
   --ui-text-dimmed: var(--ui-color-neutral-500);

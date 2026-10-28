@@ -1,2 +1,8 @@
-@import 'tailwindcss';
+@import 'tailwindcss' source(none);
 @import '@nuxt/ui';
+
+/* The studio's own sources only: systems and prototypes style themselves in
+   their preview documents. */
+@source '../..';
+@source '../../../src/modules';
+@source '../../../tests/fixtures/modules';

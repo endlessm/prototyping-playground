@@ -92,7 +92,9 @@ declare module '${DATA_MODULE}' {
   },
 })
 
-function sameOrigin(headers: Record<string, string | string[] | undefined>) {
+export function sameOrigin(
+  headers: Record<string, string | string[] | undefined>,
+) {
   const site = headers['sec-fetch-site']
   if (site) return site === 'same-origin'
   const origin = headers.origin

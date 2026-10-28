@@ -37,6 +37,28 @@ export interface ModuleSkill {
   when: string
 }
 
+/** Reads a file's permanent identity; throws on a malformed declaration. */
+export interface IdentityReader {
+  read: (source: string) => string | null
+}
+
+/** A kind of artifact file in prototypes, such as views. */
+export interface ModuleFileType {
+  /** Lowercase letters, numbers and dashes. */
+  id: string
+  /** Plain text. */
+  label: string
+  /** Lowercase file extensions with the dot, such as `.vue`. */
+  extensions: string[]
+  /**
+   * A file whose `identity` export is the type's IdentityReader, relative
+   * to the module's folder. It runs on Node.
+   */
+  identity: string
+  /** The Vue component an artifact page renders, relative to the folder. */
+  page: string
+}
+
 export interface BuildDataContext {
   /** The studio's root folder. */
   root: string
@@ -71,5 +93,6 @@ export interface StudioModule {
   skills?: ModuleSkill[]
   /** A repository-relative folder of content `studio remove` keeps. */
   content?: string
+  fileTypes?: ModuleFileType[]
   data?: Record<string, ModuleBuildData>
 }
