@@ -2,6 +2,8 @@
 
 This studio's domain language. The Design Studio platform documents its own terms in `src/platform/context/`; don't repeat them here.
 
+**Endless Studios**: Endless Access's learning platform, whose real screens prototypes use. It is being renamed Workshop, and this glossary will follow the rename. _Avoid_: the Studio, studio ("Studio" is the Design Studio's own interface).
+
 **Vue system**: a team system whose screens are Vue code from a real app, rendered inside the studio. Endless Studios is the only one today. _Avoid_: Vue project (the app outside the studio), Nuxt system.
 
 **Vue declaration**: the part of a system's declaration that says it renders Vue and how: where its copied app source lives, its Nuxt UI configuration and colours, its stand-ins and its stylesheet. The platform finds Vue systems through it.

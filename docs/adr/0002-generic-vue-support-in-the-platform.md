@@ -1,6 +1,6 @@
 # Vue support is a generic platform extension; app specifics stay in the system
 
-Date: 2026-10-22. Status: accepted.
+Date: 2026-10-22. Status: superseded by [0003](0003-rewrite-in-vue-as-an-independent-studio.md).
 
 ## Context
 
