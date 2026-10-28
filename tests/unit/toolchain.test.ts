@@ -53,10 +53,10 @@ describe('toolchain', () => {
       expect(meta.built).toBe(true)
   })
 
-  test('[CL-139] the pre-commit hook lints and formats staged files', () => {
-    expect(readFileSync('.husky/pre-commit', 'utf8').trim()).toBe(
-      'yarn lint-staged',
-    )
+  test('[CL-139] [CL-132] the pre-commit hook checks your identity, then lints and formats staged files', () => {
+    expect(
+      readFileSync('.husky/pre-commit', 'utf8').trim().split(/\r?\n/),
+    ).toEqual(['node tooling/check-identity.ts', 'yarn lint-staged'])
     expect(pkg['lint-staged']['**/*.{js,mjs,ts,vue,css}']).toEqual([
       'eslint --fix',
       'prettier --write',

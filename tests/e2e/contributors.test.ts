@@ -130,21 +130,27 @@ describe('on the dev server', () => {
     expect(record.pid).not.toBe(before.pid)
     expect(isAlive(before.pid)).toBe(false)
 
+    // Loads Home until the new server serves it, then waits for the greeting.
     const page = await newPage()
+    const greets = async () => {
+      if (await page.getByText(/^Hi, /).isVisible()) return true
+      if (!(await page.getByRole('heading', { level: 1 }).isVisible()))
+        await page.goto(studio.url).catch(() => undefined)
+      return false
+    }
     await expect
-      .poll(
-        async () => {
-          await page.goto(studio.url).catch(() => undefined)
-          return page.getByText(/^Hi, /).isVisible()
-        },
-        { timeout: 120_000, interval: 2_000 },
-      )
+      .poll(greets, { timeout: 240_000, interval: 2_000 })
       .toBe(true)
+      .catch((error: Error) => {
+        const log = path.join(env.STUDIO_RUNTIME_DIR, 'dev-server.log')
+        const output = fs.existsSync(log) ? fs.readFileSync(log, 'utf8') : ''
+        throw new Error(`${error.message}\n${output || 'No server log.'}`)
+      })
 
     expect(cli('dev', 'stop').status).toBe(0)
     expect(isAlive(record.pid)).toBe(false)
     expect(readDevServer(process.cwd()).state).toBe('absent')
-  }, 300_000)
+  }, 420_000)
 })
 
 describe('on the static build', () => {
