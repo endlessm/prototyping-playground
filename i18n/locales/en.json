@@ -1,6 +1,7 @@
 {
   "rail": {
-    "label": "Studio sections"
+    "label": "Studio sections",
+    "more": "More studio sections"
   },
   "deployment": {
     "unavailable": "This viewing site could not load. Check your connection and refresh the page to try again."

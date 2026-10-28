@@ -56,11 +56,14 @@ async function waitFor(url: string, timeout: number) {
   throw new Error(`The studio did not answer at ${url}`)
 }
 
-export async function startDevServer(): Promise<RunningStudio> {
+export async function startDevServer(
+  env: Record<string, string> = {},
+): Promise<RunningStudio> {
   const port = await freePort()
   // Its own build directory, so a person's `yarn dev` in the same checkout
   // keeps running.
   const child = run(['dev', '--port', String(port), '--host', '127.0.0.1'], {
+    ...env,
     STUDIO_BUILD_DIR: '.nuxt-e2e',
   })
   let log = ''

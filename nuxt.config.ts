@@ -10,7 +10,10 @@ const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
 const warning = nodeVersionWarning(process.version, pkg.engines.node)
 if (warning) console.warn(`Warning: ${warning}`)
 
-const studio = JSON.parse(readFileSync('studio.config.json', 'utf8'))
+// The browser scenarios give the studio a configuration of their own.
+const studio = JSON.parse(
+  readFileSync(process.env.STUDIO_CONFIG || 'studio.config.json', 'utf8'),
+)
 const baseURL = basePathFromEnv(process.env)
 const publicUrl = publicUrlFromEnv(process.env)
 
@@ -73,7 +76,13 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
-  modules: ['@nuxtjs/i18n', '@nuxt/eslint', '@nuxt/ui', '@vueuse/nuxt'],
+  modules: [
+    '@nuxtjs/i18n',
+    '@nuxt/eslint',
+    '@nuxt/ui',
+    '@vueuse/nuxt',
+    './tooling/modules/nuxt-module.ts',
+  ],
 
   runtimeConfig: {
     public: {
@@ -103,8 +112,20 @@ export default defineNuxtConfig({
   },
 
   typescript: {
+    // Studio modules' pages are app code; their declarations run on Node.
+    tsConfig: {
+      include: [
+        '../src/modules/**/*.vue',
+        '../tests/fixtures/modules/**/*.vue',
+      ],
+    },
     nodeTsConfig: {
-      include: ['../tooling/**/*', '../tests/**/*', '../vitest.config.ts'],
+      include: [
+        '../tooling/**/*',
+        '../tests/**/*.ts',
+        '../src/modules/*/module.ts',
+        '../vitest.config.ts',
+      ],
     },
   },
 })

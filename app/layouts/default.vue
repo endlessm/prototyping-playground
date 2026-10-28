@@ -2,10 +2,19 @@
 import type { NavigationMenuItem } from '@nuxt/ui'
 
 const studio = useStudioConfig()
+const modules = useStudioModules()
 const { t } = useI18n()
 
-// Modules add their rail entries here (ticket 02).
-const rail: NavigationMenuItem[] = []
+function railItems(position: 'top' | 'bottom'): NavigationMenuItem[] {
+  return modules
+    .flatMap(({ label, rail }) =>
+      rail?.position === position ? [{ label, rail }] : [],
+    )
+    .sort((a, b) => a.rail.order - b.rail.order)
+    .map(({ label, rail }) => ({ label, icon: rail.icon, to: rail.to }))
+}
+const top = railItems('top')
+const bottom = railItems('bottom')
 </script>
 
 <template>
@@ -17,10 +26,18 @@ const rail: NavigationMenuItem[] = []
         </NuxtLink>
       </template>
       <UNavigationMenu
-        :items="rail"
+        :items="top"
         orientation="vertical"
         :aria-label="t('rail.label')"
       />
+      <template v-if="bottom.length" #footer>
+        <UNavigationMenu
+          :items="bottom"
+          orientation="vertical"
+          :aria-label="t('rail.more')"
+          class="w-full"
+        />
+      </template>
     </UDashboardSidebar>
     <slot />
   </UDashboardGroup>
