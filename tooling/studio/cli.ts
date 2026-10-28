@@ -18,6 +18,8 @@ import {
 } from './modules.ts'
 import { Refusal, type Flags } from './output.ts'
 import { requireAdmin } from './permissions.ts'
+import { preferences } from './preferences.ts'
+import { context, status } from './status.ts'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 
@@ -30,6 +32,18 @@ interface Command {
 }
 
 const COMMANDS: Record<string, Command> = {
+  status: {
+    usage: 'status [--json]',
+    summary:
+      'the studio, who you are, the default system, modules, systems and problems',
+    run: status,
+  },
+  context: {
+    usage: 'context src/prototypes/<contributor>/<prototype> [--json]',
+    summary:
+      'before editing a prototype: its owner, system, pending rebuild and whether you can edit it',
+    run: context,
+  },
   whoami: {
     usage: 'whoami [--json]',
     summary: 'the contributor your Git identity resolves to',
@@ -47,6 +61,13 @@ const COMMANDS: Record<string, Command> = {
       'profile [--name <name>] [--add-email <email>] [--remove-email <email>] [--primary-email <email>] [--github <user>] [--yes]',
     summary: 'show your profile, or change your name, emails or GitHub account',
     run: profile,
+  },
+  preferences: {
+    usage:
+      'preferences [--module <id>] --plan <file>  |  preferences --apply <file>',
+    summary:
+      "Admins: save a plan that adds modules' missing preference sections to every profile, then apply it",
+    run: preferences,
   },
   list: {
     usage: 'list',
@@ -89,6 +110,9 @@ const VALUES = new Set([
   '--link',
   '--primary-email',
   '--as',
+  '--plan',
+  '--apply',
+  '--module',
 ])
 const LISTS = new Set(['--add-email', '--remove-email'])
 

@@ -4,7 +4,6 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
-  rmSync,
   writeFileSync,
 } from 'node:fs'
 import path from 'node:path'
@@ -20,6 +19,7 @@ import {
   type StudioConfig,
 } from '../modules/registry.ts'
 import { NOTHING_CHANGED, Refusal, RESTART, say, type Flags } from './output.ts'
+import { removable, removeFolder } from './protected.ts'
 
 const TEMPLATE = fileURLToPath(new URL('./templates/module/', import.meta.url))
 
@@ -183,6 +183,7 @@ export async function removeModule(root: string, [id]: string[], flags: Flags) {
   notes.push(
     'npm packages it used stay installed; remove them with yarn remove if nothing else needs them.',
   )
+  for (const folder of deleted) removable(root, folder)
   say('This would delete:')
   for (const folder of deleted) say(`  ${folder}/`)
   say(`and take ${spec.id} out of studio.config.json.`)
@@ -192,8 +193,7 @@ export async function removeModule(root: string, [id]: string[], flags: Flags) {
     say(NOTHING_CHANGED)
     return
   }
-  for (const folder of deleted)
-    rmSync(path.join(root, folder), { recursive: true, force: true })
+  for (const folder of deleted) removeFolder(root, folder)
   writeConfig(studio, withModule(studio.config, spec.id, null))
   say(`Removed ${spec.label}.`)
   say(RESTART)

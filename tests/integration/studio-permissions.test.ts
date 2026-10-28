@@ -64,3 +64,65 @@ describe('shared changes', () => {
     expect(other.stderr).toContain('--as ada refused')
   })
 })
+
+describe('protected places', () => {
+  function contentAt(folder: string) {
+    const declaration = 'src/modules/sample/module.ts'
+    studio.write(
+      declaration,
+      studio
+        .read(declaration)
+        .replace(
+          "label: 'Sample',",
+          `label: 'Sample',\n  content: '${folder}',`,
+        ),
+    )
+  }
+
+  test('[CL-07] remove never deletes a protected place, whatever a module declares', () => {
+    studio.write('src/prototypes/ben/tour/meta.json', '{}')
+    for (const folder of [
+      'src/prototypes',
+      'src',
+      'src/modules',
+      'src/systems',
+    ]) {
+      contentAt(folder)
+      const result = studio.studio('remove', 'sample', '--content', '--yes')
+      expect(result.status, folder).toBe(1)
+      expect(result.stderr).toContain(`Refusing to delete ${folder}`)
+      expect(studio.exists('src/modules/sample/module.ts')).toBe(true)
+      expect(studio.exists('src/prototypes/ben/tour/meta.json')).toBe(true)
+      studio.write(
+        'src/modules/sample/module.ts',
+        studio
+          .read('src/modules/sample/module.ts')
+          .replace(`\n  content: '${folder}',`, ''),
+      )
+    }
+  })
+
+  test('[CL-07] content outside src is refused, and emptied parent folders are tidied', () => {
+    contentAt('contributors')
+    expect(
+      studio.studio('remove', 'sample', '--content', '--yes').stderr,
+    ).toContain('Refusing to delete contributors')
+    expect(studio.exists('contributors/ada.json')).toBe(true)
+
+    studio.write(
+      'src/modules/sample/module.ts',
+      studio
+        .read('src/modules/sample/module.ts')
+        .replace(
+          "content: 'contributors'",
+          "content: 'src/content/notes/sample'",
+        ),
+    )
+    studio.write('src/content/notes/sample/one.md', '# One\n')
+    const result = studio.studio('remove', 'sample', '--content', '--yes')
+    expect(result.status).toBe(0)
+    expect(studio.exists('src/content')).toBe(false)
+    expect(studio.exists('src/modules/sample')).toBe(false)
+    expect(studio.exists('src/modules')).toBe(true)
+  })
+})

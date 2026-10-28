@@ -7,7 +7,13 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
-const COPIED = ['tooling', 'studio.config.json', 'package.json', 'app/pages']
+const COPIED = [
+  'tooling',
+  'studio.config.json',
+  'package.json',
+  'app/pages',
+  'AGENTS.md',
+]
 
 export const ADA = {
   key: 'ada',
@@ -68,12 +74,13 @@ export function tempStudio(): TempStudio {
   )
   fs.mkdirSync(path.join(root, 'src/modules'), { recursive: true })
   fs.mkdirSync(path.join(root, 'src/prototypes'), { recursive: true })
-  // Only the declarations: commands read a system's permanent id there.
-  for (const system of fs.readdirSync('src/systems')) {
-    const declaration = `src/systems/${system}/system.ts`
-    if (fs.existsSync(declaration))
-      fs.cpSync(declaration, path.join(root, declaration))
-  }
+  // Only the declarations and guidance entries: commands read a system's
+  // permanent id there and point agents to its AGENTS.md.
+  for (const system of fs.readdirSync('src/systems'))
+    for (const name of ['system.ts', 'AGENTS.md']) {
+      const file = `src/systems/${system}/${name}`
+      if (fs.existsSync(file)) fs.cpSync(file, path.join(root, file))
+    }
   const file = (name: string) => path.join(root, name)
   let identity: Identity = { ...ADA }
   const run = (args: string[]): Result => {
