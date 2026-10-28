@@ -1,0 +1,110 @@
+import { readFileSync } from 'node:fs'
+import tailwindcss from '@tailwindcss/vite'
+import { defineNuxtConfig } from 'nuxt/config'
+import { nodeVersionWarning } from './tooling/check-node.ts'
+import { basePathFromEnv, publicUrlFromEnv } from './tooling/deployment.ts'
+import { deploymentRecoveryScript } from './tooling/deployment-recovery.ts'
+import en from './i18n/locales/en.json'
+
+const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
+const warning = nodeVersionWarning(process.version, pkg.engines.node)
+if (warning) console.warn(`Warning: ${warning}`)
+
+const studio = JSON.parse(readFileSync('studio.config.json', 'utf8'))
+const baseURL = basePathFromEnv(process.env)
+const publicUrl = publicUrlFromEnv(process.env)
+
+export default defineNuxtConfig({
+  compatibilityDate: '2025-07-15',
+
+  ssr: false,
+
+  // Separate directories let the browser scenarios build and serve the
+  // studio without touching a person's own `yarn dev` or build.
+  buildDir: process.env.STUDIO_BUILD_DIR || undefined,
+  nitro: {
+    output: process.env.STUDIO_OUTPUT_DIR
+      ? { dir: process.env.STUDIO_OUTPUT_DIR }
+      : undefined,
+  },
+
+  app: {
+    baseURL,
+    head: {
+      title: studio.name,
+      htmlAttrs: { lang: 'en' },
+      meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'description', content: studio.tagline },
+        ...(publicUrl
+          ? [{ property: 'og:url', content: `${publicUrl}/` }]
+          : []),
+      ],
+      link: [
+        { rel: 'icon', type: 'image/svg+xml', href: `${baseURL}favicon.svg` },
+      ],
+    },
+  },
+
+  $production: {
+    app: {
+      head: {
+        script: [
+          {
+            // Runs before the entry module, which may be the missing file.
+            innerHTML: deploymentRecoveryScript(
+              baseURL,
+              en.deployment.unavailable,
+            ),
+            tagPosition: 'head',
+            tagPriority: 'critical',
+          },
+        ],
+      },
+    },
+  },
+
+  // The deployment recovery script above owns reloading after a new
+  // deployment, with its own limits.
+  experimental: {
+    emitRouteChunkError: false,
+  },
+
+  css: ['~/assets/css/main.css'],
+
+  modules: ['@nuxtjs/i18n', '@nuxt/eslint', '@nuxt/ui', '@vueuse/nuxt'],
+
+  runtimeConfig: {
+    public: {
+      studio: {
+        name: studio.name,
+        tagline: studio.tagline,
+      },
+    },
+  },
+
+  // Components are imported explicitly, as in Endless Studios.
+  components: {
+    dirs: [],
+  },
+
+  vite: {
+    plugins: [tailwindcss()],
+  },
+
+  i18n: {
+    vueI18n: './i18n.config.ts',
+    locales: [
+      { name: 'English', code: 'en', language: 'en-US', file: 'en.json' },
+    ],
+    defaultLocale: 'en',
+    strategy: 'no_prefix',
+  },
+
+  typescript: {
+    nodeTsConfig: {
+      include: ['../tooling/**/*', '../tests/**/*', '../vitest.config.ts'],
+    },
+  },
+})

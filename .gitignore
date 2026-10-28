@@ -1,16 +1,23 @@
 node_modules/
+.yarn/*
+!.yarn/patches
+.nuxt/
+.nuxt-*/
+.output/
+.output-*/
+.data/
+.cache/
 dist/
-public/prototypes/manifest.json
-public/prototypes/artifacts/
-.trash/
+coverage/
+.eslintcache
 .DS_Store
 .env
 .env.*
 !.env.example
 !.env.*.example
 *.tsbuildinfo
+*.log
 
-.studio-system-operation
 .scratch/
 .notes/
 .files/

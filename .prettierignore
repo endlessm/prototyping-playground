@@ -1,0 +1,14 @@
+# Content keeps its authors' formatting: prototypes, systems, contributors and
+# the studio configuration. Generated and installed files are left alone too.
+src/prototypes/
+src/systems/
+contributors/
+studio.config.json
+CHANGELOG.md
+.yarn/
+yarn.lock
+.nuxt*/
+.output*/
+.data/
+node_modules/
+coverage/
