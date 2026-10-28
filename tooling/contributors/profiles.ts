@@ -156,8 +156,8 @@ export function profileProblems(entry: unknown, file: string): string[] {
 }
 
 /** Reads every profile, with what is wrong with them. */
-export function readContributors(root: string) {
-  const folder = path.join(root, CONTRIBUTORS_FOLDER)
+export function readContributors(root: string, relative = CONTRIBUTORS_FOLDER) {
+  const folder = path.resolve(root, relative)
   const contributors: Contributors = Object.create(null)
   const problems: string[] = []
   const files = existsSync(folder)
@@ -167,7 +167,7 @@ export function readContributors(root: string) {
     : []
   for (const name of files) {
     const key = name.slice(0, -'.json'.length)
-    const where = `${CONTRIBUTORS_FOLDER}/${name}`
+    const where = `${relative}/${name}`
     if (!KEY.test(key)) {
       problems.push(
         `${where}: a contributor's key is lowercase letters, numbers and dashes.`,

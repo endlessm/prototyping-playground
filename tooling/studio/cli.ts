@@ -9,6 +9,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { nodeVersionWarning } from '../check-node.ts'
 import { join, profile, whoami } from './contributors.ts'
+import { dev } from './dev.ts'
 import {
   createModule,
   disableModule,
@@ -68,6 +69,12 @@ const COMMANDS: Record<string, Command> = {
     summary:
       "Admins: save a plan that adds modules' missing preference sections to every profile, then apply it",
     run: preferences,
+  },
+  dev: {
+    usage: 'dev status [--json] | dev restart [--json] | dev stop',
+    summary:
+      "this studio's recorded dev server: see it, restart it on its port, stop it or clear a stale record",
+    run: dev,
   },
   list: {
     usage: 'list',

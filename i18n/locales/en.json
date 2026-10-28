@@ -5,5 +5,8 @@
   },
   "deployment": {
     "unavailable": "This viewing site could not load. Check your connection and refresh the page to try again."
+  },
+  "home": {
+    "greeting": "Hi, {name}"
   }
 }

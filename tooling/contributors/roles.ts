@@ -9,6 +9,7 @@ import type { Contributors } from './profiles.ts'
 export interface TeamConfig {
   admins?: unknown
   systemMaintainers?: unknown
+  [setting: string]: unknown
 }
 
 /** The roles with contributor keys instead of studio IDs. */
