@@ -4,7 +4,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import type { StudioModule } from './contract.ts'
+import type { ModulePreferences, StudioModule } from './contract.ts'
 
 export const MODULES_FOLDER = 'src/modules'
 export const CONFIG_FILE = 'studio.config.json'
@@ -58,6 +58,7 @@ const KEYS = new Set([
   'skills',
   'content',
   'data',
+  'preferences',
 ])
 const RAIL = new Set(['top', 'bottom', 'none'])
 
@@ -120,8 +121,64 @@ export function moduleProblems(spec: unknown, folderName: string): string[] {
           )
       }
   }
+  if (module.preferences !== undefined) {
+    const defaults = (module.preferences as Record<string, unknown> | null)
+      ?.defaults
+    if (
+      !defaults ||
+      typeof defaults !== 'object' ||
+      Array.isArray(defaults) ||
+      Object.values(defaults).some(
+        (value) =>
+          value !== null &&
+          !['string', 'number', 'boolean'].includes(typeof value),
+      )
+    )
+      problems.push(
+        `${where}: preferences need defaults: names with text, number, yes/no or null values.`,
+      )
+  }
   return problems
 }
+
+/**
+ * What is wrong with a contributor's section for a module, each a short
+ * phrase. A missing section is a problem; `preferences` initialises it.
+ */
+export function preferenceProblems(
+  value: unknown,
+  declaration: ModulePreferences,
+): string[] {
+  if (value === undefined) return ['missing']
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    return ['must be an object']
+  const problems: string[] = []
+  for (const [name, setting] of Object.entries(value)) {
+    if (!Object.hasOwn(declaration.defaults, name))
+      problems.push(`"${name}" isn't a preference`)
+    else {
+      const fallback = declaration.defaults[name]
+      if (
+        fallback !== null &&
+        setting !== null &&
+        typeof setting !== typeof fallback
+      )
+        problems.push(`"${name}" must be a ${typeof fallback}`)
+    }
+  }
+  return problems
+}
+
+/** Each enabled module's default preferences, as a new profile gets them. */
+export const preferenceDefaults = (modules: InstalledModule[]) =>
+  Object.fromEntries(
+    modules
+      .filter(({ spec }) => spec.preferences)
+      .map(({ spec }) => [
+        spec.id,
+        structuredClone(spec.preferences!.defaults),
+      ]),
+  )
 
 /** Repository-relative paths or globs, never outside the studio. */
 export function validWatch(pattern: unknown) {
@@ -133,6 +190,32 @@ export function validWatch(pattern: unknown) {
     !pattern.split('/').some((part) => part === '..' || part === '.') &&
     /^[a-zA-Z0-9_./*?{},@-]+$/.test(pattern)
   )
+}
+
+/**
+ * The first part of every page address: each module's pages and rail
+ * button, and the app's own pages. Contributor keys and module ids can't
+ * reuse them.
+ */
+export function pageAddresses(root: string, modules: InstalledModule[]) {
+  const addresses = new Set<string>()
+  for (const { spec } of modules)
+    for (const address of [
+      ...(spec.pages ?? []).map((page) => page.path),
+      ...(spec.rail?.to ? [spec.rail.to] : []),
+    ]) {
+      const first = address.split('/')[1]
+      if (first) addresses.add(first)
+    }
+  const pages = path.join(root, 'app/pages')
+  if (existsSync(pages))
+    for (const entry of readdirSync(pages, { withFileTypes: true })) {
+      const name = entry.isDirectory()
+        ? entry.name
+        : entry.name.replace(/\.vue$/, '')
+      if (!name.startsWith('[')) addresses.add(name)
+    }
+  return addresses
 }
 
 export function readConfig(file: string): StudioConfig {

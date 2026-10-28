@@ -13,6 +13,7 @@ import {
   ID,
   loadRegistry,
   MODULES_FOLDER,
+  pageAddresses,
   PLAIN_TEXT,
   type InstalledModule,
   type Registry,
@@ -217,16 +218,7 @@ function templateFiles(dir: string, prefix = ''): string[] {
 function taken(root: string, studio: Registry, id: string) {
   if (existsSync(path.join(root, MODULES_FOLDER, id)))
     return `There's already a module called "${id}".`
-  const addresses = studio.modules.flatMap(({ spec }) => [
-    ...(spec.pages ?? []).map((page) => page.path),
-    ...(spec.rail?.to ? [spec.rail.to] : []),
-  ])
-  const pages = path.join(root, 'app/pages')
-  if (
-    addresses.some((address) => address.split('/')[1] === id) ||
-    existsSync(path.join(pages, `${id}.vue`)) ||
-    existsSync(path.join(pages, id))
-  )
+  if (pageAddresses(root, studio.modules).has(id))
     return `/${id} is already the address of another page. Choose another id.`
   if (existsSync(path.join(root, 'contributors', `${id}.json`)))
     return `"${id}" is a contributor's key. Choose another id.`

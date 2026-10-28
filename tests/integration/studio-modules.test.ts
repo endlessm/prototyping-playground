@@ -218,7 +218,7 @@ describe('creating a module', () => {
     expect(studio.studio('create-module', 'sample').stderr).toMatch(
       /already a module called "sample"/,
     )
-    expect(studio.studio('create-module', 'bernardo').stderr).toMatch(
+    expect(studio.studio('create-module', 'ben').stderr).toMatch(
       /contributor's key/,
     )
     expect(studio.studio('create-module', 'somebody').stderr).toMatch(
