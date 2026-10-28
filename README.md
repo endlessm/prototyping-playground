@@ -1,12 +1,4 @@
-<a href="https://itspatmorgan.com/design-studio">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="public/images/design-studio-social-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="public/images/design-studio-social.png">
-    <img src="public/images/design-studio-social.png" alt="Design Studio — Design with intent. Build with an agent. Design Studio is an open source, AI prototype sandbox for designers and product managers who build.">
-  </picture>
-</a>
-
-# Design Studio
+# Endless Design Studio
 
 An open-source, local prototype sandbox for designers and product managers who build with coding agents. Turn ideas into interactive prototypes, keep the thinking behind them close, and shape an environment that fits your team.
 
