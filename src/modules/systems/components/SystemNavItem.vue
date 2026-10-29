@@ -35,14 +35,14 @@ const actions = computed<ContextMenuItem[][]>(() =>
             navigateTo({ path: props.item.to, query: { mode: 'source' } }),
         },
       {
-        label: t('systems.copyLink'),
+        label: t('actions.copyLink'),
         icon: 'i-lucide-link',
-        onSelect: () => copy.link(props.item.to),
+        onSelect: copy.link(props.item.to),
       },
       import.meta.dev && {
-        label: t('systems.copyPath'),
+        label: t('actions.copyPath'),
         icon: 'i-lucide-copy',
-        onSelect: () => copy.path(props.item.path),
+        onSelect: copy.path(props.item.path),
       },
     ],
   ]),

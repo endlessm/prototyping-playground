@@ -20,15 +20,15 @@ const items = computed<DropdownMenuItem[][]>(() =>
     : menuGroups<DropdownMenuItem>([
         [
           {
-            label: t('systems.copyLink'),
+            label: t('actions.copyLink'),
             icon: 'i-lucide-link',
-            onSelect: () => copy.link(systemAddress(props.system.id)),
+            onSelect: copy.link(systemAddress(props.system.id)),
           },
           import.meta.dev &&
             Boolean(me.value.key) && {
-              label: t('systems.copyPath'),
+              label: t('actions.copyPath'),
               icon: 'i-lucide-copy',
-              onSelect: () => copy.path(props.system.folder),
+              onSelect: copy.path(props.system.folder),
             },
         ],
       ]),

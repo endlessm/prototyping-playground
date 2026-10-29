@@ -2,15 +2,35 @@
 
 Prototypes and their artifacts. A prototype is a folder `src/prototypes/<contributor>/<folder>/` with a `meta.json`; its artifacts are the files in it that an enabled file type claims. This module is required.
 
-- `module.ts` declares the module, its pages and the view file type.
-- `pages/prototype.vue` is `/prototypes/<prototype-id>`. It replaces itself in the browser history with the prototype's first artifact, keeping the query and the `#anchor`.
+- `module.ts` declares the module, its rail button (first), its pages and the view file type.
+- `pages/gallery.vue` is `/prototypes`, the gallery (tab title "Prototypes — <studio name>"); see "The gallery".
+- `pages/prototype.vue` is `/prototypes/<prototype-id>`. It replaces itself in the browser history with the prototype's first artifact, keeping the query and the `#anchor`. A prototype with no artifacts stays at its address and shows "This prototype is empty" (`components/PrototypeEmpty.vue`) with, locally, a prompt to copy for the agent naming its folder; it moves on to the first artifact as soon as one appears.
 - `pages/artifact.vue` is `/prototypes/<prototype-id>/artifacts/<artifact-id>`. It shows the viewer (`components/PrototypeViewer.vue`): the prototype's title, its system and a list of its artifacts in file-tree order, each view's named states under it, in the section navigation (`AppSectionNav`: hidden and shown with ⌘;, resized from its edge, remembered in this browser), the open artifact beside it, and the tab title "<Prototype> — <Artifact> — <studio name>". A named state's address opens its view's page with the state, titled "<View> · <State>". Locally, right-clicking a view's row offers "Make lo-fi" or "Make hi-fi" in your own prototypes (any, for an Admin). An unknown prototype is "Page not found"; an unknown artifact is too, with the prototype's navigation kept around it. A file type's page that crashes shows its error with "Copy error" (`AppFileBoundary`) and leaves the rest of the viewer working.
 - `pages/artifact.vue` keeps its page while the person moves between artifacts of one prototype, so an open preview document stays in place. Locally it also opens the artifact's source (see "Source mode").
 - `components/ArtifactActions.vue` is the open artifact's file menu ("File actions", local only): "Edit source", or "View source" when you can't change the prototype. Ticket 11's file tree adds the rest of the file actions.
 - `components/ArtifactSource.vue` adapts the shared source editor (`app/components/source/`) to an artifact, through the file service's source route.
 - `components/ArtifactUnavailable.vue` stands in for an artifact that can't open, with its reason and, locally, "Open source".
-- `components/PrototypesHome.vue` is the module's Home block: the five newest prototypes by `created`, each opening its first artifact. It comes first locally and after what colleagues come for on the deployed site.
+- `components/PrototypesHome.vue` is the module's Home block, archived prototypes left out, each heading linking to the gallery. Locally, for a registered contributor: "Your prototypes" (your three newest, or the New prototype button) and "Latest from the team" (the three newest by others). On the deployed site, and locally for someone the studio doesn't recognise: "Latest prototypes" (the five newest), or "Prototypes" with "Nothing published yet." when there are none. It comes first locally and after what colleagues come for on the deployed site.
+- `components/PrototypeCard.vue` and `PrototypeRow.vue` draw a prototype in the gallery and on Home with the shared collection pieces (`app/components/Collection*.vue`, `ContributorAvatar.vue`). `PrototypeMenu.vue` is their "…" menu, from `composables/usePrototypeActions.ts`.
 - `types/view/` is the view file type: `.vue` files, with the identity adapter (reads and writes the leading comments, the view's and each named state's), its check and named states (`states.ts`), the lo-fi marker (`fidelity.ts`), the page that renders a view (`ViewPage.vue`), its preview frame and notices (`ViewPreview.vue`), and the error and empty states (`ViewError.vue`, `ViewEmpty.vue`), drawn in the studio's own style.
+
+## The gallery
+
+`/prototypes` lists every prototype, newest first by `created` (then by title), as cards or a list.
+
+- **Cards and rows.** A card shows the module's icon, the title, the maker's picture (their `avatar` image in `public/`, else their GitHub photo, else their initials, also when the image fails to load) and first name, and the creation date ("Oct 25, 2026"). A row shows the icon, title, first name and date. The whole card or row is the link, named by the title. Makers come from the manifest's `contributors` (name, GitHub account and avatar only).
+- **View as.** Cards or List (`CollectionViewToggle`), one choice for every collection, kept in this browser (`design-studio:collection-view`) and followed by other open tabs.
+- **Search.** "Search prototypes" matches the title, the maker's name or key, and the folder name. The text is `?q=`, and typing replaces the history entry. The box widens while focused or filled (no animation under reduced motion), with a clear button. Search and View as are hidden while there are no prototypes.
+- **Filters.** An icon button ("Filters", or "Filters, 1 active" with a dot) opens a popover with System: "All systems" and each installed system. The choice is `?system=<folder name>` (a permanent ID works too) and combines with the search; a system the address names that isn't installed is still offered.
+- **Archived.** Locally, archived prototypes (`"status": "archived"` in `meta.json`) sit below the rest under "Archived", faded, with "Archived items are excluded from the deployed site." The deployed site leaves them out of the gallery and Home. (Leaving them out of the build itself is ticket 13.)
+- **Empty and no matches.** With no prototypes: "No prototypes yet", then "A working sketch of an idea: real screens you can click through." locally for a contributor, or "Prototypes your team makes will show up here." With nothing matching: "No matches", "Try a different search or system." and "View all prototypes", which clears both.
+- **Actions.** Each card and row has a "…" menu ("Actions for <title>") shown on hover or focus (always on touch screens), and none when there is nothing you may do. Everyone gets Copy link; locally, Copy path too. Ticket 13 adds rename, duplicate, archive and delete to the same composable.
+
+### Creating a prototype
+
+"New prototype" (gallery header, and Home's "Your prototypes" when you have none) shows only locally and only for a registered contributor. Its dialog (`components/PrototypeNewModal.vue`, through `useOverlay`) asks for a Title (placeholder "Agent Config") and a System: each active system, with the studio's default preselected, or "No system — custom styling", with help text for each. "Create" becomes "Creating"; the service's refusals show in the dialog, and the new prototype opens at once.
+
+From the terminal: `yarn new "Prototype Name" [--system <folder name or ID> | --no-system]` (`yarn studio new`) creates it right away and prints the folder and the address. Both use `tooling/files/prototypes.ts`: the folder is `src/prototypes/<your key>/<slug>/` (`Agent Config` → `agent-config`) with `meta.json` (format version, new permanent ID, your contributor ID as owner, title, today's date, system ID or `null`) and one empty starting view, `Prototype.vue`, holding only its identity comment. It refuses, leaving nothing behind: an empty title ("Add a title."), one without letters or numbers, one that isn't plain text, someone who isn't a registered contributor ("Ask your agent to add you."), an unknown or archived system, and a title whose folder you already have ("You already have a prototype named “…”.").
 
 ## meta.json
 
@@ -22,6 +42,7 @@ Prototypes and their artifacts. A prototype is a folder `src/prototypes/<contrib
 | `studioId`           | The prototype's permanent ID: 16 lowercase Crockford base32 characters.                                                                 |
 | `ownerContributorId` | The owner's permanent contributor ID.                                                                                                   |
 | `systemId`           | The assigned system's permanent ID, or `null` for no system. A missing or unknown assignment is invalid, and the prototype is left out. |
+| `status`             | Optional. `"archived"` sets it apart in the gallery and leaves it off the deployed site's gallery and Home.                             |
 
 ## Artifacts
 
@@ -143,8 +164,9 @@ While `yarn dev` runs, `tooling/files/` adds Nitro routes the studio's own pages
 | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `GET <base>_studio/files/source?prototype=<id>&artifact=<id>`             | The artifact's text, its `version` (a hash of the text), its `path`, and `editable` with the `reason` when you may not save.                                                                                                                                                                      |
 | `PUT <base>_studio/files/source` `{ prototype, artifact, content, base }` | Saves over version `base`. 409 `changed` if the file changed on disk since; 403 with the reason (`identity`, `owner`, `archived`); 409 `identity` if the permanent ID was changed or removed; 413 over 750 KB; 404 for helpers, hidden files, links leading out of the prototype and unknown IDs. |
+| `POST <base>_studio/files/prototypes` `{ title, system }`                 | Creates a prototype in your own space (`system`: a system's ID, or `null`) and answers 201 with its `id`, `folder` and starting `artifact`. 400 for an invalid title or system, 403 `identity` if you aren't a registered contributor, 409 `exists` for a folder you already have.                |
 
-Changed content files reach open pages as `studio:source` with their paths, which is how an open editor hears of outside edits. Creating, renaming, moving and deleting files arrive with the file tree (ticket 11) and prototype management (tickets 10 and 13).
+Changed content files reach open pages as `studio:source` with their paths, which is how an open editor hears of outside edits. Creating, renaming, moving and deleting files arrive with the file tree (ticket 11); renaming, duplicating, archiving and deleting prototypes with ticket 13.
 
 ## The preview channel
 

@@ -2,11 +2,17 @@ import url from 'virtual:studio-manifest'
 import type {
   Manifest,
   ManifestArtifact,
+  ManifestContributor,
   ManifestPrototype,
 } from '../../tooling/manifest/build'
 import { createLiveManifest } from '../../tooling/live/live-manifest'
 
-export type { Manifest, ManifestArtifact, ManifestPrototype }
+export type {
+  Manifest,
+  ManifestArtifact,
+  ManifestContributor,
+  ManifestPrototype,
+}
 
 type ClientManifest = Manifest & {
   /** Changes whenever the content does. */
@@ -99,6 +105,15 @@ async function loadManifest() {
 export async function useManifest() {
   await loadManifest()
   return manifest as Ref<ClientManifest>
+}
+
+/**
+ * Fetches the manifest now, for a page that has just changed content (such
+ * as creating a prototype) and opens it before the dev server's push.
+ */
+export async function refreshManifest() {
+  await loadManifest()
+  receive(await fetchManifest())
 }
 
 /**

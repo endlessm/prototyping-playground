@@ -19,7 +19,8 @@ useHead({
 
 const prototypes = computed(() =>
   manifest.value.prototypes.filter(
-    ({ systemId }) => systemId === props.system.id,
+    ({ systemId, status }) =>
+      systemId === props.system.id && status !== 'archived',
   ),
 )
 const recent = computed(() => byNewest(prototypes.value).slice(0, 3))

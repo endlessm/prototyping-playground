@@ -51,8 +51,68 @@
     "openInTab": "Open in a new tab",
     "makeLofi": "Make lo-fi",
     "makeHifi": "Make hi-fi",
-    "recent": "Recent prototypes",
-    "none": "No prototypes yet."
+    "actionsFor": "Actions for {title}",
+    "gallery": {
+      "title": "Prototypes",
+      "subtitle": "Explore ideas, build interactive prototypes, and document your thinking.",
+      "search": "Search prototypes",
+      "searchPlaceholder": "Search",
+      "clear": "Clear search",
+      "filters": "Filters",
+      "filtersActive": "Filters, {count} active",
+      "system": "System",
+      "allSystems": "All systems",
+      "emptyTitle": "No prototypes yet",
+      "emptyLocal": "A working sketch of an idea: real screens you can click through.",
+      "emptyDeployed": "Prototypes your team makes will show up here.",
+      "noMatches": "No matches",
+      "noMatchesHint": "Try a different search or system.",
+      "viewAll": "View all prototypes"
+    },
+    "new": {
+      "button": "New prototype",
+      "title": "New prototype",
+      "description": "Give your idea a name and choose its design system.",
+      "titleLabel": "Title",
+      "placeholder": "Agent Config",
+      "system": "System",
+      "noSystem": "No system — custom styling",
+      "systemHelp": "Provides components, styles, and guidance for this prototype.",
+      "noSystemHelp": "Start with your own components and CSS. No existing system library or theme is assigned.",
+      "addTitle": "Add a title.",
+      "letters": "Use at least one letter or number in the title.",
+      "create": "Create",
+      "creating": "Creating",
+      "cancel": "Cancel"
+    },
+    "home": {
+      "yours": "Your prototypes",
+      "team": "Latest from the team",
+      "latest": "Latest prototypes",
+      "prototypes": "Prototypes",
+      "nothing": "Nothing published yet."
+    },
+    "empty": {
+      "title": "This prototype is empty",
+      "description": "Add a view to start. Ask your agent to build one, and describe what it’s for and who it’s for.",
+      "prompt": "In {path}, build a view "
+    }
+  },
+  "collection": {
+    "viewAs": "View as",
+    "cards": "Cards",
+    "list": "List",
+    "noDescription": "No description",
+    "archived": "Archived",
+    "aboutArchived": "About archived items",
+    "archivedHint": "Archived items are excluded from the deployed site."
+  },
+  "actions": {
+    "copyLink": "Copy link",
+    "copyPath": "Copy path",
+    "linkCopied": "Link copied",
+    "pathCopied": "Path copied",
+    "failed": "That didn’t work"
   },
   "view": {
     "error": "This page couldn't load. Copy the error and give it to your agent.",
@@ -99,14 +159,6 @@
       "discard": "Discard"
     }
   },
-  "collection": {
-    "viewAs": "View as",
-    "cards": "Cards",
-    "list": "List",
-    "archived": "Archived",
-    "archivedHint": "About archived items",
-    "archivedInfo": "Archived items are excluded from the deployed site."
-  },
   "systems": {
     "title": "Systems",
     "description": "Components, styles, assets, and guidance for your prototypes.",
@@ -123,10 +175,6 @@
     "noMatchesHint": "Try a different search.",
     "viewAll": "View all systems",
     "actions": "Actions for {name}",
-    "copyLink": "Copy link",
-    "copyPath": "Copy path",
-    "linkCopied": "Link copied",
-    "pathCopied": "Path copied",
     "home": {
       "title": "Systems",
       "none": "No systems yet."

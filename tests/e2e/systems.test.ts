@@ -150,7 +150,7 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     )
     expect(await lantern.innerText()).toContain('Used by 0 prototypes')
 
-    await visible(heading(page, 'Archived'))
+    await visible(region(page, 'Archived'))
     const archived = page.getByRole('list', { name: 'Archived systems' })
     expect(await archived.getByRole('listitem').count()).toBe(1)
     expect(await archived.innerText()).toContain('Attic')
@@ -158,7 +158,7 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     expect(await page.getByText('Platform', { exact: true }).count()).toBe(0)
     expect(await page.getByText('Studio', { exact: true }).count()).toBe(0)
 
-    await link(harbor, 'Harbor').click()
+    await harbor.click()
     await visible(heading(page, 'Harbor'))
     expect(new URL(page.url()).pathname).toBe(`/systems/${HARBOR}`)
   })
@@ -196,14 +196,14 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     await expect.poll(() => list.getByRole('listitem').count()).toBe(1)
     expect(await list.innerText()).toContain('Lantern')
     // Nothing archived matches, so the section goes.
-    await hidden(heading(page, 'Archived'))
+    await hidden(region(page, 'Archived'))
 
     await search.fill('default')
     await expect.poll(() => list.innerText()).toContain('Harbor')
     expect(await list.getByRole('listitem').count()).toBe(1)
 
     await search.fill('retired')
-    await visible(heading(page, 'Archived'))
+    await visible(region(page, 'Archived'))
 
     await page.goto(`${studio.url}systems?q=nothing-like-this`)
     await visible(page.getByText('No matching systems'))
@@ -717,7 +717,7 @@ describe('the deployed site', { timeout: 120_000 }, () => {
     const list = page.getByRole('list', { name: 'Systems', exact: true })
     await visible(list)
     await expect.poll(() => list.getByRole('listitem').count()).toBe(2)
-    expect(await heading(page, 'Archived').count()).toBe(0)
+    expect(await region(page, 'Archived').count()).toBe(0)
     expect(await page.getByText('Attic').count()).toBe(0)
     await page.goto(`${site.url}systems/${ATTIC}`)
     await visible(page.getByText('Page not found'))

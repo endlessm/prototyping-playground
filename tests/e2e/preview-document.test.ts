@@ -12,7 +12,16 @@ import {
 // its system's app. The fixture studio has a prototype assigned to Endless
 // Studios and one with no system.
 const { name } = JSON.parse(readFileSync('studio.config.json', 'utf8'))
-const env = { STUDIO_PROTOTYPES: 'tests/fixtures/prototypes' }
+// Run as nobody, whoever runs the tests: Home's blocks depend on who you are.
+const env = {
+  STUDIO_PROTOTYPES: 'tests/fixtures/prototypes',
+  STUDIO_GITHUB: '',
+  GIT_CONFIG_COUNT: '2',
+  GIT_CONFIG_KEY_0: 'user.name',
+  GIT_CONFIG_VALUE_0: '',
+  GIT_CONFIG_KEY_1: 'user.email',
+  GIT_CONFIG_VALUE_1: '',
+}
 
 const TRACER = 'tracer0000000001'
 const HOME = 'vhme000000000001'
@@ -224,14 +233,22 @@ function scenarios(
     expect(inside.nuxt).toBe(false)
   })
 
-  test('[SH-97] Home lists the newest prototypes, each opening its first artifact', async () => {
+  test('[SH-97] [PR-18] Home lists the newest prototypes, each opening its first artifact', async () => {
     const page = await newPage()
     await page.goto(studio.url)
-    const recent = page.getByRole('region', { name: 'Recent prototypes' })
+    // Nobody is recognised here, so these are everyone's newest.
+    const recent = page.getByRole('region', { name: 'Latest prototypes' })
     await expect
-      .poll(() => recent.getByRole('link').allTextContents(), {
-        timeout: 60_000,
-      })
+      .poll(
+        () =>
+          recent
+            .getByRole('listitem')
+            .getByRole('link')
+            .evaluateAll((links) =>
+              links.map((link) => link.getAttribute('aria-label')),
+            ),
+        { timeout: 60_000 },
+      )
       .toEqual(['Drafts', 'Tracer', 'Plain'])
     await recent.getByRole('link', { name: 'Tracer' }).click()
     await expect

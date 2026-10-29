@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import AppArchivedHeading from '../../../../app/components/AppArchivedHeading.vue'
-import AppViewToggle from '../../../../app/components/AppViewToggle.vue'
+import CollectionArchivedHeading from '../../../../app/components/CollectionArchivedHeading.vue'
+import CollectionViewToggle from '../../../../app/components/CollectionViewToggle.vue'
 import SystemsCollection from '../components/SystemsCollection.vue'
 import { useSystemCatalog } from '../composables/useSystemCatalog'
 
@@ -47,6 +47,7 @@ const matching = computed(() => {
 const active = computed(() =>
   matching.value.filter(({ status }) => status === 'active'),
 )
+const archivedId = useId()
 const archived = computed(() =>
   matching.value.filter(({ status }) => status === 'archived'),
 )
@@ -90,7 +91,7 @@ const archived = computed(() =>
                   </template>
                 </UInput>
               </form>
-              <AppViewToggle />
+              <CollectionViewToggle />
             </div>
           </div>
         </header>
@@ -102,9 +103,10 @@ const archived = computed(() =>
           />
           <section
             v-if="archived.length"
+            :aria-labelledby="archivedId"
             :class="{ 'mt-10': active.length > 0 }"
           >
-            <AppArchivedHeading />
+            <CollectionArchivedHeading :id="archivedId" />
             <SystemsCollection
               :systems="archived"
               :label="t('systems.archivedList')"

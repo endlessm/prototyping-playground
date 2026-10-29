@@ -19,6 +19,7 @@ import {
   removeModule,
 } from './modules.ts'
 import { Refusal, type Flags } from './output.ts'
+import { newPrototype } from './new.ts'
 import { requireAdmin } from './permissions.ts'
 import { preferences } from './preferences.ts'
 import { context, status } from './status.ts'
@@ -45,6 +46,12 @@ const COMMANDS: Record<string, Command> = {
     summary:
       'before editing a prototype: its owner, system, pending rebuild and whether you can edit it',
     run: context,
+  },
+  new: {
+    usage: 'new "Prototype Name" [--system <id> | --no-system] (also yarn new)',
+    summary:
+      'create a prototype in your own space, with the default system unless you choose another or none',
+    run: newPrototype,
   },
   whoami: {
     usage: 'whoami [--json]',
@@ -120,7 +127,13 @@ const COMMANDS: Record<string, Command> = {
   },
 }
 
-const SWITCHES = new Set(['--yes', '--content', '--force', '--json'])
+const SWITCHES = new Set([
+  '--yes',
+  '--content',
+  '--force',
+  '--json',
+  '--no-system',
+])
 const VALUES = new Set([
   '--label',
   '--key',
@@ -133,6 +146,7 @@ const VALUES = new Set([
   '--plan',
   '--apply',
   '--module',
+  '--system',
 ])
 const LISTS = new Set(['--add-email', '--remove-email'])
 
