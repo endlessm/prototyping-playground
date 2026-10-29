@@ -1,44 +1,31 @@
 <script setup lang="ts">
-import { PREVIEW_CHANNEL } from '../../../../../tooling/preview/constants'
+import { previewAddress } from '../../../../../tooling/preview/protocol'
 import type {
   ManifestArtifact,
   ManifestPrototype,
 } from '../../../../../app/composables/useManifest'
+import ViewPreview from './ViewPreview.vue'
 
-// A view renders in its system's preview document, a same-origin iframe
-// that holds only the system's app.
+// A view's page: its preview, and a link that opens the preview document on
+// its own in a new tab (a fresh runtime, for people and browser tools).
 const props = defineProps<{
   prototype: ManifestPrototype
   artifact: ManifestArtifact
 }>()
 
 const { t } = useI18n()
-const { previewUrl } = await useSystems()
-const src = computed(() =>
-  previewUrl(props.prototype.systemId, props.artifact.id),
+const { previewDocument } = await useSystems()
+const document = computed(() => previewDocument(props.prototype.systemId))
+const standalone = computed(() =>
+  previewAddress(document.value, props.artifact.id),
 )
-const frame = useTemplateRef('frame')
-const state = ref<'loading' | 'ready' | 'error'>('loading')
-watch(src, () => (state.value = 'loading'))
-
-useEventListener(window, 'message', (event: MessageEvent) => {
-  const data = event.data as { channel?: string; state?: typeof state.value }
-  if (
-    event.origin !== location.origin ||
-    event.source !== frame.value?.contentWindow ||
-    data?.channel !== PREVIEW_CHANNEL ||
-    !data.state
-  )
-    return
-  state.value = data.state
-})
 </script>
 
 <template>
   <div class="flex h-full min-h-0 flex-col gap-2">
     <div class="flex justify-end">
       <UButton
-        :to="src"
+        :to="standalone"
         external
         target="_blank"
         icon="i-lucide-external-link"
@@ -46,12 +33,11 @@ useEventListener(window, 'message', (event: MessageEvent) => {
         :label="t('prototypes.openInTab')"
       />
     </div>
-    <iframe
-      ref="frame"
-      :src="src"
-      :title="artifact.title"
-      :data-preview-state="state"
-      class="min-h-0 w-full flex-1 rounded-md border border-default bg-white"
+    <ViewPreview
+      :key="document"
+      :prototype="prototype"
+      :artifact="artifact"
+      :document="document"
     />
   </div>
 </template>

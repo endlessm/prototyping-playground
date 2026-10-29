@@ -11,6 +11,7 @@ export default withNuxt([
       'src/systems/**',
       '.nuxt*/**',
       '.output*/**',
+      '.e2e/**',
       '.yarn/**',
     ],
   },

@@ -12,5 +12,22 @@
     "systemUnavailable": "System unavailable",
     "notFound": "There's nothing at this address.",
     "openInTab": "Open in a new tab"
+  },
+  "view": {
+    "error": "This page couldn't load. Copy the error and give it to your agent.",
+    "copyError": "Copy error",
+    "copied": "Copied",
+    "loading": "Loading preview",
+    "opening": "Opening view",
+    "silent": "Preview has not responded.",
+    "outOfDate": "This preview is out of date.",
+    "couldNotRender": "The latest changes could not render. Give the error to your agent.",
+    "updating": "Updating preview",
+    "empty": {
+      "title": "This view is empty",
+      "description": "Ask your agent to build something here. Describe what it's for and who it's for.",
+      "prompt": "In {path}, build ",
+      "copy": "Copy prompt"
+    }
   }
 }

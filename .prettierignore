@@ -12,3 +12,4 @@ yarn.lock
 .data/
 node_modules/
 coverage/
+.e2e/
