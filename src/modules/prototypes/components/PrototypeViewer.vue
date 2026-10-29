@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import types from '#studio/file-types'
 import type { NavigationMenuItem } from '@nuxt/ui'
 import AppNotFound from '../../../../app/components/AppNotFound.vue'
 import AppSectionNav from '../../../../app/components/AppSectionNav.vue'
@@ -29,6 +30,7 @@ const system = computed(() => {
 const items = computed<NavigationMenuItem[]>(() =>
   props.artifacts.map((artifact) => ({
     label: artifact.title,
+    icon: types[artifact.type]?.icon ?? undefined,
     to: `/prototypes/${props.prototype!.id}/artifacts/${artifact.id}`,
   })),
 )

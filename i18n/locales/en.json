@@ -96,5 +96,22 @@
       "keep": "Keep editing",
       "discard": "Discard"
     }
+  },
+  "canvas": {
+    "opening": "Opening canvas",
+    "error": "This canvas couldn’t be opened. Ask your agent to fix the file.",
+    "empty": {
+      "title": "This canvas is empty",
+      "editable": "Drag a view or document from the navigation onto this canvas, press N for a sticky note, or ask your agent to lay it out for you.",
+      "readOnly": "Nothing has been put on it yet."
+    },
+    "menu": {
+      "undo": "Undo",
+      "redo": "Redo",
+      "grid": "Toggle grid",
+      "snap": "Snap to objects",
+      "hideControls": "Hide controls",
+      "showControls": "Show controls"
+    }
   }
 }

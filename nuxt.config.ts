@@ -151,12 +151,15 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
 
-  // The source editor loads on first use; bundled ahead, so opening it
-  // doesn't make Vite reload the page.
+  // The source editor and the canvas editor load on first use; bundled
+  // ahead, so opening them doesn't make Vite reload the page.
   $development: {
     vite: {
       optimizeDeps: {
         include: [
+          '@excalidraw/excalidraw',
+          'react',
+          'react-dom/client',
           '@codemirror/autocomplete',
           '@codemirror/commands',
           '@codemirror/lang-css',
@@ -199,7 +202,7 @@ export default defineNuxtConfig({
         '../tooling/**/*',
         '../tests/**/*.ts',
         '../src/modules/*/module.ts',
-        '../src/modules/*/types/*/identity.ts',
+        '../src/modules/*/types/*/*.ts',
         '../vitest.config.ts',
         '../vitest.parity.config.ts',
       ],

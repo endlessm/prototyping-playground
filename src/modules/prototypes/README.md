@@ -25,7 +25,9 @@ Prototypes and their artifacts. A prototype is a folder `src/prototypes/<contrib
 
 ## Artifacts
 
-The manifest (`tooling/manifest/build.ts`) lists each prototype's artifacts in file-tree order, folders first. Files and folders whose names start with `_` (a prototype's helpers) or `.` are not artifacts. Each artifact needs a permanent identity read from its leading comments; a missing, malformed or repeated one is reported and leaves the file out. The main manifest lists prototypes and systems; each prototype's artifact list is a separate file the viewer loads when the prototype opens.
+The manifest (`tooling/manifest/build.ts`) lists each prototype's artifacts in file-tree order, folders first. Files and folders whose names start with `_` (a prototype's helpers) or `.` are not artifacts. Each artifact needs a permanent identity, read by its file type's identity adapter (a view's leading comment, a canvas's top-level `"studioId"`); a missing, malformed or repeated one is reported and leaves the file out. The navigation shows each artifact with its file type's icon. The main manifest lists prototypes and systems; each prototype's artifact list is a separate file the viewer loads when the prototype opens.
+
+Besides its identity adapter and page, a file type may declare a `check` (problems with a file's text, each saying how to fix it), a `template` for new files and an `icon` (`ModuleFileType` in `tooling/modules/contract.ts`). The build runs every enabled type's check and stops on any problem, naming the file (`tooling/checks/file-types.ts`).
 
 Files of a type whose module is turned off stay listed, marked `unavailable` with the type's and the module's labels. Their page says "<Type> files can’t open here: the <Module> module is turned off." with "Open source" locally, so they can still be found and repaired.
 

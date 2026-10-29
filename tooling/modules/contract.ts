@@ -42,6 +42,11 @@ export interface ModuleSkill {
  * metadata, never in executable code (ADR 0001).
  */
 export interface IdentityAdapter {
+  /**
+   * Where a file of this type declares it, for messages: "a top-level
+   * \"studioId\"". A leading `<!-- @studio-id … -->` comment by default.
+   */
+  where?: string
   /** The declared identity, or null; throws on a malformed declaration. */
   read: (source: string) => string | null
   /** The source with `id` declared; throws if it already declares one. */
@@ -63,7 +68,29 @@ export interface ModuleFileType {
   identity: string
   /** The Vue component an artifact page renders, relative to the folder. */
   page: string
+  /**
+   * A file whose `check` export lists what is wrong with a file of this
+   * type (`FileCheck`), relative to the module's folder. It runs on Node;
+   * the build stops on any problem.
+   */
+  check?: string
+  /**
+   * A file whose `template` export gives a new file's text, relative to
+   * the module's folder. It runs on Node.
+   */
+  template?: string
+  /** An Iconify name for navigation and file lists. */
+  icon?: string
 }
+
+/**
+ * Problems with one file's text, each completing "<file>: …" and saying how
+ * to fix it.
+ */
+export type FileCheck = (
+  source: string,
+  context: { prototypeId: string },
+) => string[]
 
 export interface BuildDataContext {
   /** The studio's root folder. */

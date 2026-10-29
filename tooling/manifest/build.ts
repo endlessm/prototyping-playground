@@ -221,7 +221,7 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
         }
         if (!artifactId) {
           problems.push(
-            `${where}: the permanent identity is missing; it belongs in a leading <!-- @studio-id … --> comment.`,
+            `${where}: the permanent identity is missing; it belongs in ${type.identity.where ?? 'a leading <!-- @studio-id … --> comment'}.`,
           )
           continue
         }

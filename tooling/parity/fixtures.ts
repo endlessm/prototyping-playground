@@ -21,6 +21,7 @@ export const PARITY_FIXTURES: Record<Side, string> = {
 }
 
 const VIEW_EXTENSION: Record<Side, string> = { vue: '.vue', react: '.tsx' }
+const CANVAS = '.excalidraw'
 // `<!-- @studio-id x -->` in a `.vue` file, `/** @studio-id x */` in `.tsx`.
 const IDENTITY = /^\s*(?:<!--|\/\*\*)\s*@studio-id\s+(\S+)/
 
@@ -28,7 +29,10 @@ export interface FixturePrototype {
   /** `<contributor>/<prototype folder>` */
   folder: string
   meta: Record<string, unknown>
-  /** Views by path inside the prototype, without the extension. */
+  /**
+   * Views, then canvases (the same `.excalidraw` files on both sides), by
+   * path inside the prototype, without the extension.
+   */
   artifacts: { path: string; id: string | null }[]
 }
 
@@ -70,7 +74,17 @@ export function describeFixtureStudio(
             id:
               IDENTITY.exec(readFileSync(path.join(dir, file), 'utf8'))?.[1] ??
               null,
-          })),
+          }))
+          .concat(
+            files(dir)
+              .filter((file) => file.endsWith(CANVAS))
+              .map((file) => ({
+                path: file.slice(0, -CANVAS.length),
+                id:
+                  JSON.parse(readFileSync(path.join(dir, file), 'utf8'))
+                    .studioId ?? null,
+              })),
+          ),
       }
     }),
   )
