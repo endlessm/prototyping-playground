@@ -104,6 +104,8 @@ function revealed(file: string) {
   return { command: 'xdg-open', args: [path.dirname(full)] }
 }
 
+const NEW_ITEMS = ['New view', 'New canvas', 'New folder']
+
 const launched = () =>
   readFileSync(launchLog, 'utf8')
     .split('\n')
@@ -290,7 +292,8 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     reset()
     const page = await open()
     await button(page, 'New').click()
-    expect(await menuItems(page)).toEqual(['New view', 'New folder'])
+    // Each installed file type (here views and canvases), then Folder.
+    expect(await menuItems(page)).toEqual(NEW_ITEMS)
     await page.getByRole('menuitem', { name: 'New view' }).click()
     await visible(field(page))
     expect(await field(page).inputValue()).toBe('untitled')
@@ -321,10 +324,9 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
 
     // A folder's own menu makes things inside it.
     await row(page, 'Flows').click({ button: 'right' })
-    expect((await menuItems(page)).slice(0, 2)).toEqual([
-      'New view',
-      'New folder',
-    ])
+    expect((await menuItems(page)).slice(0, NEW_ITEMS.length)).toEqual(
+      NEW_ITEMS,
+    )
     await page.getByRole('menuitem', { name: 'New folder' }).click()
     await field(page).fill('steps')
     await field(page).press('Enter')
@@ -364,6 +366,8 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
 
   test('[SH-81] [SH-82] [PR-44] [PR-60] [SH-87] [PR-61] Delete asks first, moves to the trash and says so; the page leaves a deleted artifact', async () => {
     reset()
+    // Hidden from the tree; its folder's delete names it.
+    write('ben/demo/flows/notes.txt', 'notes')
     const page = await open(SIGN_IN)
     await link(page, 'Sign In').focus()
     await page.keyboard.press('Delete')
@@ -380,8 +384,9 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     await expect.poll(() => page.url()).not.toContain(SIGN_IN)
     await gone(link(page, 'Sign In'))
 
-    // A folder's delete names the hidden files that go with it.
-    write('ben/demo/flows/notes.txt', 'notes')
+    // A folder's delete names the hidden files that go with it, once the
+    // tree has its files again.
+    await expect.poll(() => nav(page).getAttribute('aria-busy')).toBeNull()
     await row(page, 'Flows').click({ button: 'right' })
     await page.getByRole('menuitem', { name: 'Delete' }).click()
     const folder = page.getByRole('dialog', { name: 'Delete “Flows”?' })

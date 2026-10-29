@@ -92,10 +92,14 @@ const nodes = computed(() => {
 })
 const showingAll = computed(() => local.value && showAll.value)
 
+// Views (this module's own type) first, then the other installed types.
+const typeOrder = Object.keys(types).sort(
+  (a, b) => Number(b === 'view') - Number(a === 'view'),
+)
 const newOptions = computed<NewFileOption[]>(() => [
-  ...Object.entries(types).map(([type, { label }]) => ({
+  ...typeOrder.map((type) => ({
     type,
-    label: t('files.newType', { type: label.toLowerCase() }),
+    label: t('files.newType', { type: types[type]!.label.toLowerCase() }),
     icon: types[type]!.icon,
   })),
   { type: 'folder', label: t('files.newFolder'), icon: 'i-lucide-folder-plus' },
