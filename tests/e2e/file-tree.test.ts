@@ -104,7 +104,7 @@ function revealed(file: string) {
   return { command: 'xdg-open', args: [path.dirname(full)] }
 }
 
-const NEW_ITEMS = ['New view', 'New canvas', 'New folder']
+const NEW_ITEMS = ['New view', 'New canvas', 'New document', 'New folder']
 
 const launched = () =>
   readFileSync(launchLog, 'utf8')
@@ -292,7 +292,7 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     reset()
     const page = await open()
     await button(page, 'New').click()
-    // Each installed file type (here views and canvases), then Folder.
+    // Each installed file type (views, canvases, documents), then Folder.
     expect(await menuItems(page)).toEqual(NEW_ITEMS)
     await page.getByRole('menuitem', { name: 'New view' }).click()
     await visible(field(page))

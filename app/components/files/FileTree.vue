@@ -475,19 +475,19 @@ const extension = (name: string) => {
               "
               @keydown="onRowKeydown(item, $event)"
             >
-              <UIcon
-                v-if="item.entry"
-                :name="item.entry.icon"
-                class="size-4 shrink-0 text-muted"
-              />
               <NuxtLink
                 :to="(item.entry ?? item.child)!.to"
                 tabindex="-1"
                 :title="item.node?.name"
                 :aria-current="isSelected ? 'page' : undefined"
-                class="min-w-0 flex-1 truncate outline-none after:absolute after:inset-0"
+                class="flex min-w-0 flex-1 items-center gap-1.5 outline-none after:absolute after:inset-0"
               >
-                {{ item.label }}
+                <UIcon
+                  v-if="item.entry"
+                  :name="item.entry.icon"
+                  class="size-4 shrink-0 text-muted"
+                />
+                <span class="min-w-0 truncate">{{ item.label }}</span>
               </NuxtLink>
             </div>
             <div
