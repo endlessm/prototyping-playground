@@ -70,5 +70,33 @@
       "prompt": "In {path}, build ",
       "copy": "Copy prompt"
     }
+  },
+  "artifact": {
+    "actions": "File actions",
+    "editSource": "Edit source",
+    "viewSource": "View source",
+    "openSource": "Open source",
+    "typeOff": "{type} files can’t open here: the {module} module is turned off."
+  },
+  "source": {
+    "label": "Source of {path}",
+    "loading": "Loading source",
+    "readOnly": "Read-only",
+    "unsaved": "Unsaved changes",
+    "save": "Save",
+    "saving": "Saving",
+    "saveHint": "Save ({shortcut})",
+    "done": "Done",
+    "doneHint": "Return to the rendered page ({shortcut})",
+    "saved": "Saved",
+    "changed": "This file changed on disk while you were editing it.",
+    "loadNew": "Load the new version",
+    "keepMine": "Keep mine",
+    "discard": {
+      "title": "Discard your changes?",
+      "description": "You have unsaved changes to {path}. They’ll be lost if you leave.",
+      "keep": "Keep editing",
+      "discard": "Discard"
+    }
   }
 }

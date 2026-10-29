@@ -74,7 +74,19 @@ export default defineNuxtModule({
     const fileTypes = registry.enabled.flatMap(({ spec, dir }) =>
       (spec.fileTypes ?? []).map((type) => ({ ...type, dir })),
     )
+    // A turned-off module's files stay listed, as unavailable, so they can
+    // still be found and their source opened.
     const readers: FileTypeReader[] = await identityFileTypes(registry.enabled)
+    for (const module of registry.modules.filter(({ state }) => state !== 'on'))
+      for (const type of await identityFileTypes([module]))
+        readers.push({
+          ...type,
+          off: {
+            type: module.spec.fileTypes!.find(({ id }) => id === type.id)!
+              .label,
+            module: module.spec.label,
+          },
+        })
     // The configuration is read again, so a new default system shows.
     const defaultSystem = () => {
       try {

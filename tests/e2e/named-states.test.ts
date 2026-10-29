@@ -273,6 +273,48 @@ describe('on the dev server', () => {
 
   sharedScenarios(() => studio, newPage)
 
+  test("[PR-82] [PR-130] ⌘' / Ctrl+' pressed in a view opens its source, but not while typing there", async () => {
+    const page = await newPage()
+    await page.goto(address(studio, HOME))
+    await ready(page)
+    const editor = page.getByRole('textbox', {
+      name: /^Source of .*Home\.vue$/,
+    })
+
+    await view(page).getByRole('textbox', { name: 'Notes' }).click()
+    await page.keyboard.press("Control+'")
+    await page.waitForTimeout(300)
+    expect(new URL(page.url()).search).toBe('')
+
+    await view(page)
+      .getByRole('heading', { name: 'Welcome back, Ana' })
+      .or(view(page).getByRole('heading', { name: 'Welcome' }))
+      .click()
+    await page.keyboard.press("Control+'")
+    await expect.poll(() => editor.isVisible(), { timeout: 30_000 }).toBe(true)
+    expect(new URL(page.url()).search).toBe('?mode=source')
+
+    await editor.click()
+    await page.keyboard.press("Control+'")
+    await expect.poll(() => editor.isVisible()).toBe(false)
+    expect(new URL(page.url()).search).toBe('')
+  })
+
+  test('[PR-89] [PR-125] a named state’s source is its view’s file', async () => {
+    const page = await newPage()
+    await page.goto(address(studio, MEMBER))
+    await ready(page)
+    await view(page).getByRole('heading', { name: 'Welcome back, Ana' }).click()
+    await page.keyboard.press("Control+'")
+    const editor = page.getByRole('textbox', {
+      name: /^Source of .*Home\.vue$/,
+    })
+    await expect
+      .poll(() => editor.textContent(), { timeout: 30_000 })
+      .toContain('export const states')
+    expect(await page.getByText('This file no longer exists.').count()).toBe(0)
+  })
+
   test('[SH-90] [PR-91] “Make lo-fi” draws a view in grayscale with the handwritten font; “Make hi-fi” switches back', async () => {
     const page = await newPage()
     await page.goto(address(studio, SKETCH))

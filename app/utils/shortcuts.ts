@@ -101,3 +101,27 @@ export function previewShortcut(event: Keystroke): PreviewShortcut | null {
   if (event.key === ';') return 'navigation'
   return null
 }
+
+/**
+ * Whether ⌘' or Ctrl+' switches the open page to its source or back: not
+ * while typing in a form field (the source editor itself excepted) or while
+ * a dialog or menu is open.
+ */
+export function sourceShortcut(
+  event: Keystroke,
+  { source, overlay }: { source: boolean; overlay: boolean },
+) {
+  if (artifactShortcut(event) !== 'source' || overlay) return false
+  const target = event.target as Target
+  const inSourceEditor = Boolean(target?.closest?.('.cm-editor'))
+  return !isTyping(target) || (source && inSourceEditor)
+}
+
+/** ⌘S or Ctrl+S, without Shift or Alt. */
+export function saveShortcut(event: Keystroke) {
+  return (
+    plainCommand(event) &&
+    !event.shiftKey &&
+    (event.code === 'KeyS' || event.key.toLowerCase() === 's')
+  )
+}

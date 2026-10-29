@@ -5,7 +5,10 @@ Prototypes and their artifacts. A prototype is a folder `src/prototypes/<contrib
 - `module.ts` declares the module, its pages and the view file type.
 - `pages/prototype.vue` is `/prototypes/<prototype-id>`. It replaces itself in the browser history with the prototype's first artifact, keeping the query and the `#anchor`.
 - `pages/artifact.vue` is `/prototypes/<prototype-id>/artifacts/<artifact-id>`. It shows the viewer (`components/PrototypeViewer.vue`): the prototype's title, its system and a list of its artifacts in file-tree order, each view's named states under it, in the section navigation (`AppSectionNav`: hidden and shown with ⌘;, resized from its edge, remembered in this browser), the open artifact beside it, and the tab title "<Prototype> — <Artifact> — <studio name>". A named state's address opens its view's page with the state, titled "<View> · <State>". Locally, right-clicking a view's row offers "Make lo-fi" or "Make hi-fi" in your own prototypes (any, for an Admin). An unknown prototype is "Page not found"; an unknown artifact is too, with the prototype's navigation kept around it. A file type's page that crashes shows its error with "Copy error" (`AppFileBoundary`) and leaves the rest of the viewer working.
-- `pages/artifact.vue` keeps its page while the person moves between artifacts of one prototype, so an open preview document stays in place.
+- `pages/artifact.vue` keeps its page while the person moves between artifacts of one prototype, so an open preview document stays in place. Locally it also opens the artifact's source (see "Source mode").
+- `components/ArtifactActions.vue` is the open artifact's file menu ("File actions", local only): "Edit source", or "View source" when you can't change the prototype. Ticket 11's file tree adds the rest of the file actions.
+- `components/ArtifactSource.vue` adapts the shared source editor (`app/components/source/`) to an artifact, through the file service's source route.
+- `components/ArtifactUnavailable.vue` stands in for an artifact that can't open, with its reason and, locally, "Open source".
 - `components/PrototypesHome.vue` is the module's Home block: the five newest prototypes by `created`, each opening its first artifact. It comes first locally and after what colleagues come for on the deployed site.
 - `types/view/` is the view file type: `.vue` files, with the identity adapter (reads and writes the leading comments, the view's and each named state's), its check and named states (`states.ts`), the lo-fi marker (`fidelity.ts`), the page that renders a view (`ViewPage.vue`), its preview frame and notices (`ViewPreview.vue`), and the error and empty states (`ViewError.vue`, `ViewEmpty.vue`), drawn in the studio's own style.
 
@@ -23,6 +26,8 @@ Prototypes and their artifacts. A prototype is a folder `src/prototypes/<contrib
 ## Artifacts
 
 The manifest (`tooling/manifest/build.ts`) lists each prototype's artifacts in file-tree order, folders first. Files and folders whose names start with `_` (a prototype's helpers) or `.` are not artifacts. Each artifact needs a permanent identity read from its leading comments; a missing, malformed or repeated one is reported and leaves the file out. A view's record also carries its named states (`states`: ID and title, in declaration order) and `lofi: true` when it is lo-fi. A file type may declare a `check` (problems in one file's source, as sentences), which the manifest reports in development and which stops the build. The main manifest lists prototypes and systems; each prototype's artifact list is a separate file the viewer loads when the prototype opens.
+
+Files of a type whose module is turned off stay listed, marked `unavailable` with the type's and the module's labels. Their page says "<Type> files can’t open here: the <Module> module is turned off." with "Open source" locally, so they can still be found and repaired.
 
 ## Permanent identities
 
@@ -111,9 +116,35 @@ In development the studio keeps up with files changing on disk, by an agent, an 
 - The dev server watches the prototypes folder and the studio configuration. A burst of changes (a folder move is many) becomes one refresh; a change during a refresh is picked up after it. When the manifest changes, it is pushed to every open tab over Vite's HMR channel (`studio:manifest`, with every artifact list), so lists and navigation follow within a second. Content carries a `revision`; the same content arriving twice applies once. A tab that was disconnected fetches the manifest again when it reconnects.
 - Each running preview document hears of the change too. Its views module (`virtual:studio-preview-views`) is reloaded in place when its views changed (a new, removed, renamed or emptied view), so a new view renders without a restart.
 - Editing a view updates it in its preview through Vue's hot reload, keeping its state where Vue can; style changes apply live. Opening another view or reloading resets it.
-- `tooling/live/live-manifest.ts` also holds the queue a tab's own changes go through: one at a time, in order, each reply's content applied once, with an `X-Studio-Tab` header. The file service (tickets 09 and 11) sends its changes through it.
+- `tooling/live/live-manifest.ts` also holds the queue a tab's own changes go through: one at a time, in order, each reply's content applied once, with an `X-Studio-Tab` header. File operations that change the manifest (ticket 11) send their changes through it; saving a file's source doesn't change the manifest and doesn't use it.
 
 On the deployed site there are no live updates: the manifest is built once, and a prototype's artifact list is fetched when the prototype first opens, then kept.
+
+## Source mode
+
+Locally, any artifact's source opens in place of its page: from "File actions" → "Edit source" (or "View source"), from "Open source" on an artifact that can't open, or with ⌘' / Ctrl+', also while a view has focus (not while typing in a form field or while a dialog or menu is open; inside the editor it works). The address gets `?mode=source`, so it can be shared and reloaded; the same shortcut, or "Done", returns to the rendered page and focuses it. The editor has focus when it opens. A named state's source is its view's file. Source opens even when the view is broken, so it can always be repaired.
+
+The rendered page stays alive while its source is open, hidden and inert: a view keeps its state and its hot updates, so returning shows the saved change in the running view.
+
+The editor (`app/components/source/`, CodeMirror 6 wrapped in `SourceCode.vue`) shows the file's path, "Read-only" or "Unsaved changes", Save (tooltip "Save (Ctrl+S)", ⌘S on Apple computers) and Done. It has line numbers, the active line, bracket matching and closing, folding, undo history, search (⌘F / Ctrl+F) and matching-selection highlights, in the studio's colours (Flexoki syntax colours, light and dark). Syntax comes from the extension: Vue for views, TypeScript and JavaScript, Markdown (wrapping, with YAML frontmatter and Mermaid fences), JSON, Mermaid, CSS and YAML. Screen readers hear it as "Source of <path>"; a read-only editor stays focusable for search and keyboard selection.
+
+- **Saving.** ⌘S / Ctrl+S or Save writes through the file service and confirms with "Saved"; the service's warnings show as error toasts, and a refused save shows its reason.
+- **Changes on disk.** A clean editor reloads by itself when the file changes elsewhere. With unsaved changes, a bar says "This file changed on disk while you were editing it." with "Load the new version" and "Keep mine" (the next save overwrites). A save over a version the editor hasn't seen is refused, and the bar shows.
+- **Leaving.** With unsaved changes, Done, another page, a reload or closing the tab asks first: "Discard your changes?" with "Keep editing" and "Discard" (closing and reloading use the browser's own prompt).
+- **Who may save.** Owners save their own prototypes and Admins all of them; anyone else, an archived prototype, or a Git identity that matches no profile reads the source read-only, and the editor says why. The server checks again on every save.
+
+The deployed site has no source mode: `?mode=source` and the shortcut show the rendered page, and the editor's code isn't in the build.
+
+### The file service
+
+While `yarn dev` runs, `tooling/files/` adds Nitro routes the studio's own pages call (same-origin only). They read the configuration, profiles and your Git identity again on every request. The static build has none of them.
+
+| Route                                                                     | Does                                                                                                                                                                                                                                                                                              |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET <base>_studio/files/source?prototype=<id>&artifact=<id>`             | The artifact's text, its `version` (a hash of the text), its `path`, and `editable` with the `reason` when you may not save.                                                                                                                                                                      |
+| `PUT <base>_studio/files/source` `{ prototype, artifact, content, base }` | Saves over version `base`. 409 `changed` if the file changed on disk since; 403 with the reason (`identity`, `owner`, `archived`); 409 `identity` if the permanent ID was changed or removed; 413 over 750 KB; 404 for helpers, hidden files, links leading out of the prototype and unknown IDs. |
+
+Changed content files reach open pages as `studio:source` with their paths, which is how an open editor hears of outside edits. Creating, renaming, moving and deleting files arrive with the file tree (ticket 11) and prototype management (tickets 10 and 13).
 
 ## The preview channel
 

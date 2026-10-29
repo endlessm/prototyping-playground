@@ -54,6 +54,17 @@ export interface ManifestArtifact {
   states?: ManifestState[]
   /** Drawn in grayscale with a handwritten font. */
   lofi?: true
+  /**
+   * Set when the artifact can't open: its type belongs to a module that is
+   * turned off. Its source can still be opened locally.
+   */
+  unavailable?: ArtifactUnavailable
+}
+
+/** A turned-off file type, by its label and its module's. */
+export interface ArtifactUnavailable {
+  type: string
+  module: string
 }
 
 /** A named state of a view: a child artifact with its own identity. */
@@ -69,6 +80,8 @@ export interface FileTypeReader {
   /** The problems of one file's source, as sentences. */
   check?: (source: string) => string[]
   fidelity?: FidelityAdapter
+  /** Set for a type whose module is turned off. */
+  off?: ArtifactUnavailable
 }
 
 export interface ManifestOptions {
@@ -249,6 +262,7 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
           path: inside,
           file: where,
           type: type.id,
+          ...(type.off ? { unavailable: type.off } : {}),
         }
         for (const problem of type.check?.(source) ?? [])
           problems.push(`${where}: ${problem}`)
