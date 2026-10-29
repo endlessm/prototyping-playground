@@ -96,7 +96,8 @@
       "title": "This prototype is empty",
       "description": "Add a view to start. Ask your agent to build one, and describe what it’s for and who it’s for.",
       "prompt": "In {path}, build a view "
-    }
+    },
+    "actions": "Prototype actions"
   },
   "collection": {
     "viewAs": "View as",
@@ -157,6 +158,51 @@
       "description": "You have unsaved changes to {path}. They’ll be lost if you leave.",
       "keep": "Keep editing",
       "discard": "Discard"
+    }
+  },
+  "files": {
+    "artifacts": "Artifacts",
+    "files": "Files",
+    "filter": "Filter",
+    "filterKind": {
+      "artifacts": "Filter artifacts",
+      "files": "Filter files"
+    },
+    "clearFilter": "Clear filter",
+    "noMatches": {
+      "artifacts": "No matching artifacts.",
+      "files": "No matching files."
+    },
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all",
+    "new": "New",
+    "newType": "New {type}",
+    "newFolder": "New folder",
+    "name": "Name",
+    "untitled": "untitled",
+    "newFolderName": "new-folder",
+    "rename": "Rename",
+    "showAll": "Show all files",
+    "openInEditor": "Open in editor",
+    "reveal": {
+      "windows": "Show in Explorer",
+      "apple": "Reveal in Finder",
+      "other": "Show in folder"
+    },
+    "hiddenHint": "It’s hidden: choose Show all files in the … menu.",
+    "trash": {
+      "recycle-bin": "the Recycle Bin",
+      "trash": "the Trash"
+    },
+    "deleted": "Moved “{name}” to {place}",
+    "delete": {
+      "action": "Delete",
+      "title": "Delete “{name}”?",
+      "file": "It moves to {place}, where you can restore it.",
+      "folder": "The folder and everything in it move to {place}, where you can restore them.",
+      "hidden": "This includes {count} file the tree isn’t showing: {names}. | This includes {count} files the tree isn’t showing: {names}.",
+      "cancel": "Cancel",
+      "confirm": "Delete"
     }
   }
 }
