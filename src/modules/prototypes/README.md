@@ -109,6 +109,26 @@ export const states = [
 - The view's check reports unreadable and repeated titles, and comments that name no state ("When renaming a state, change its title in the comment too…"). Renaming a state means changing its title in code and comment together; a rename in code alone is reported, not given a new link.
 - The preview renders a state with its props, kept reactive: editing them on disk updates the open state without reloading the document (Vue's hot reload decides whether the view keeps its own state). Moving between states remounts the view. A state whose title the running view no longer exports shows "<View>.vue has no state titled "<title>" in export const states."
 
+## System options
+
+A view may also export its system's options from the regular `<script>`, and each state may override them in its own `system`, option by option (an option the state doesn't name keeps the view's value):
+
+```vue
+<script lang="ts">
+export const system = {
+  user: 'admin',
+  sample: { queries: { UpcomingEventInstances: events } },
+}
+
+export const states = [
+  { title: 'Spanish learner', system: { locale: 'es', user: 'learner' } },
+  { title: 'Signed out', system: { user: null } },
+]
+</script>
+```
+
+The preview runtime (`tooling/preview/runtime/mount.ts`) merges them and passes the result to the system's app factory as `system`, beside `component` and `props`. What the options mean is the system's own (Endless Studios: `locale`, `user` and `sample`; see its README); a document with no system ignores them. In development, a hot update that changes the options, compared by value with functions by their source, builds the screen again with a new app in the same document; one that changes only props updates them in place.
+
 ## Links and navigation inside a view
 
 Views name other artifacts of their prototype by path, from `#studio/prototype` (`tooling/preview/runtime/navigation.ts`, an alias of the preview documents):

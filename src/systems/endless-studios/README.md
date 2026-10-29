@@ -21,15 +21,45 @@ Views of prototypes assigned to this system render in its preview document: a sa
 - `source`: `studios`, which `~/` points at, so copied components keep the app's import paths.
 - `aliases`: bare modules answered by stand-ins.
 
-`createStudiosApp({ component, props, locale })` installs:
+`createStudiosApp({ component, props, system })` installs:
 
 - Nuxt UI with the app's configuration, inside `UApp`, with a `Suspense` boundary for components that `await` in setup;
 - the Lucide icon collection;
-- navigation stand-ins: `useRouter`, `useRoute`, `navigateTo` and a `<NuxtLink>` that log instead of navigating;
-- `$t`, `$te`, `$tm` and `useI18n()`, reading the app's locale files in `i18n/locales/`. English is the default and fallback; a missing key renders as the key and is reported once in the console;
-- `useNuxtApp()`, with `$i18n`, `$dayjs` for the date formats the app uses, and `$config`;
-- `useState`.
+- navigation stand-ins: `useRouter`, `useRoute`, `navigateTo` and a `<NuxtLink>` that stay on the screen and log the destination to the console;
+- `$t`, `$te`, `$tm` and `useI18n()`, reading the app's locale files in `i18n/locales/` with the app's message syntax (`{name}` and `{0}` placeholders, `{'literal'}` text, `a | b` plurals, keys with dots in them). English is the default and fallback; a missing key renders as the key, and it and an unknown locale are reported once in the console;
+- `$auth` and `useNuxtApp().$auth` with a sample user and the app's role checks (admin, leader, editor, program admin and manager, institution admin, cohort admin, adult or minor); sign-in, sign-up and sign-out requests are logged and the chosen user stays;
+- `$store`, `useStore()` and the `vuex` module: the app's initial state merged with sample state; the sample's own getters, mutations and actions run, and an unknown commit or dispatch is reported once and ignored;
+- `useGraphQLQuery`, `QueryAuth`, `$graphqlRequest` and the `graphql-request` module, answering from sample responses by operation name and keeping the query's `auth`, `skip`, `default()`, `flattenData` and `transform`. An unmocked query is reported once and resolves to its `default()` or an empty list; subscriptions emit nothing and `GraphQLClient` resolves empty, each reported once;
+- `useStreamingGraphQLQuery`: one page of sample items, no further pages, empty when signed out;
+- `useNuxtApp()`, with `$dayjs` for the app's date formats and relative time in the screen's locale, `$i18n` and `$config`; `useState`, shared within one screen; `useNotificationsCount` (a `NOTIFICATIONS_COUNT` sample, 0 by default); `useBackendError`, whose error toast is logged; the mixin's `resolveProfilePic`; `InfiniteScroll`, which renders the given items and the empty slot; the app constants `DASHBOARD_PATH` and `SET_NOTIFICATION_SEEN`.
 
-The other stand-ins in `runtime/` (sample users, the store, GraphQL samples and the app shell) are not installed yet; they return with the Endless Studios screens.
+`studios/README.md` lists each stand-in beside the app API it replaces. Gaps fail softly: each one is reported once per page with the `[Endless Studios]` prefix, and the screen renders empty instead of crashing.
+
+## Choosing a screen's locale, user and samples
+
+A view declares the options in `export const system`, in its regular `<script>` beside `<script setup>`; a named state's `system` overrides them option by option (the [prototypes README](../../modules/prototypes/README.md#system-options) has the rules):
+
+| Option   | Default     | Meaning                                                                                                     |
+| -------- | ----------- | ----------------------------------------------------------------------------------------------------------- |
+| `locale` | `'en'`      | A locale code from `i18n/locales/` (`en`, `es`).                                                           |
+| `user`   | `'learner'` | `'learner'` (Ana), `'mentor'` (Marco), `'admin'` (Alex), a user object shaped like the app's `User`, or `null` for signed out. |
+| `sample` | `{}`        | `{ state, getters, mutations, actions, queries }`: store state merged over the app's initial state, store handlers by name, and GraphQL `data` objects (or functions of the variables) keyed by operation name. |
+
+```vue
+<script lang="ts">
+const events = { upcomingEventInstances: [{ id: 1, title: 'Game jam kickoff', start: '2026-11-04T15:00:00Z', event: { id: 9 } }] }
+
+export const system = { user: 'admin', sample: { queries: { UpcomingEventInstances: events } } }
+
+export const states = [
+  { title: 'Spanish learner', system: { locale: 'es', user: 'learner' } },
+  { title: 'No events', system: { sample: {} } },
+]
+</script>
+```
+
+An app is created for each screen with its own runtime, so screens never share a user, store or `useState`. A changed option creates the app again; changed props reach the same app. The app shell (the app's sidebar, top bar and footer around a screen, `runtime/AppShell.vue`) is not an option yet.
+
+`tests/integration/endless-studios-app.test.ts` renders copied components and test screens (`tests/fixtures/endless-studios/`) with Vue's server renderer through the factory, loaded by this system's own preview pipeline: `yarn vitest run tests/integration/endless-studios-app.test.ts`.
 
 Add context and skills only when needed.
