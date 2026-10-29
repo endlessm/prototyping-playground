@@ -37,9 +37,15 @@ export interface ModuleSkill {
   when: string
 }
 
-/** Reads a file's permanent identity; throws on a malformed declaration. */
-export interface IdentityReader {
+/**
+ * A file type's permanent identity in its files. It lives in a comment or
+ * metadata, never in executable code (ADR 0001).
+ */
+export interface IdentityAdapter {
+  /** The declared identity, or null; throws on a malformed declaration. */
   read: (source: string) => string | null
+  /** The source with `id` declared; throws if it already declares one. */
+  write: (source: string, id: string) => string
 }
 
 /** A kind of artifact file in prototypes, such as views. */
@@ -51,7 +57,7 @@ export interface ModuleFileType {
   /** Lowercase file extensions with the dot, such as `.vue`. */
   extensions: string[]
   /**
-   * A file whose `identity` export is the type's IdentityReader, relative
+   * A file whose `identity` export is the type's IdentityAdapter, relative
    * to the module's folder. It runs on Node.
    */
   identity: string

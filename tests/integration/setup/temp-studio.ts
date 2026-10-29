@@ -60,6 +60,8 @@ export interface TempStudio {
   config: () => { modules: Record<string, boolean> } & Record<string, unknown>
   setConfig: (changes: Record<string, unknown>) => void
   addModule: (id: string, source?: string) => void
+  /** Copies one of the studio's own modules, such as prototypes, as it is. */
+  withModule: (id: string) => void
   remove: () => void
 }
 
@@ -152,6 +154,10 @@ export function tempStudio(): TempStudio {
           .replaceAll('/sample', `/${id}`),
       )
     },
+    withModule: (id) =>
+      fs.cpSync(path.resolve('src/modules', id), file(`src/modules/${id}`), {
+        recursive: true,
+      }),
     remove: () => fs.rmSync(root, { recursive: true, force: true }),
   }
   studio.setConfig({ admins: [ADA.id], systemMaintainers: {} })

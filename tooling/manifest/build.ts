@@ -5,7 +5,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { isResourceId } from '../identity/resource-id.ts'
-import type { IdentityReader } from '../modules/contract.ts'
+import type { IdentityAdapter } from '../modules/contract.ts'
 import { PLAIN_TEXT } from '../modules/registry.ts'
 import type { InstalledSystem } from '../systems/registry.ts'
 
@@ -55,7 +55,7 @@ export interface ManifestArtifact {
 export interface FileTypeReader {
   id: string
   extensions: string[]
-  identity: IdentityReader
+  identity: IdentityAdapter
 }
 
 export interface ManifestOptions {
@@ -73,15 +73,15 @@ export interface BuiltManifest {
   problems: string[]
 }
 
-const posix = (file: string) => file.split(path.sep).join('/')
+export const posix = (file: string) => file.split(path.sep).join('/')
 const compare = (a: string, b: string) =>
   a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }) ||
   (a < b ? -1 : a > b ? 1 : 0)
 // Leading underscores mark a prototype's helpers; dot files are hidden.
-const listed = (name: string) =>
+export const listed = (name: string) =>
   !name.startsWith('_') && !name.startsWith('.') && name !== 'node_modules'
 
-function directories(dir: string) {
+export function directories(dir: string) {
   return existsSync(dir)
     ? readdirSync(dir, { withFileTypes: true })
         .filter((entry) => entry.isDirectory() && listed(entry.name))
@@ -91,7 +91,7 @@ function directories(dir: string) {
 }
 
 /** Files under `dir` in file-tree order: folders first, then files. */
-function treeFiles(dir: string, prefix = ''): string[] {
+export function treeFiles(dir: string, prefix = ''): string[] {
   const entries = readdirSync(dir, { withFileTypes: true }).filter((entry) =>
     listed(entry.name),
   )
