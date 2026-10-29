@@ -130,6 +130,7 @@ export default defineNuxtConfig({
     './tooling/contributors/nuxt-module.ts',
     './tooling/identity/nuxt-module.ts',
     './tooling/manifest/nuxt-module.ts',
+    './tooling/files/nuxt-module.ts',
   ],
 
   runtimeConfig: {
@@ -148,6 +149,31 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [tailwindcss()],
+  },
+
+  // The source editor loads on first use; bundled ahead, so opening it
+  // doesn't make Vite reload the page.
+  $development: {
+    vite: {
+      optimizeDeps: {
+        include: [
+          '@codemirror/autocomplete',
+          '@codemirror/commands',
+          '@codemirror/lang-css',
+          '@codemirror/lang-javascript',
+          '@codemirror/lang-json',
+          '@codemirror/lang-markdown',
+          '@codemirror/lang-vue',
+          '@codemirror/lang-yaml',
+          '@codemirror/language',
+          '@codemirror/search',
+          '@codemirror/state',
+          '@codemirror/view',
+          '@lezer/highlight',
+          'codemirror-lang-mermaid',
+        ],
+      },
+    },
   },
 
   i18n: {

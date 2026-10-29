@@ -111,6 +111,37 @@ describe('the manifest', () => {
     )
   })
 
+  test('[PR-28] files of a turned-off module’s type stay listed, marked unavailable with the type and module', () => {
+    prototype('bernardo/tracer', { studioId: 'tracer0000000001' })
+    write('bernardo/tracer/Home.vue', view('vhme000000000001'))
+    write('bernardo/tracer/plan.note', view('vn0t000000000001'))
+    const { artifacts, problems } = buildManifest({
+      root,
+      prototypesFolder: 'src/prototypes',
+      systems,
+      fileTypes: [
+        ...fileTypes,
+        {
+          id: 'note',
+          extensions: ['.note'],
+          identity: viewIdentity,
+          off: { type: 'Note', module: 'Notes' },
+        },
+      ],
+    })
+    expect(problems).toEqual([])
+    expect(
+      artifacts['tracer0000000001']!.map(({ id, type, unavailable }) => [
+        id,
+        type,
+        unavailable,
+      ]),
+    ).toEqual([
+      ['vhme000000000001', 'view', undefined],
+      ['vn0t000000000001', 'note', { type: 'Note', module: 'Notes' }],
+    ])
+  })
+
   test('[CL-103] reads identities only from leading comments, and reports missing and repeated ones', () => {
     prototype('bernardo/tracer', { studioId: 'tracer0000000001' })
     write(

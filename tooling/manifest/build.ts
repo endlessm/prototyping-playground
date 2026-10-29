@@ -50,12 +50,25 @@ export interface ManifestArtifact {
   file: string
   /** The file type's ID. */
   type: string
+  /**
+   * Set when the artifact can't open: its type belongs to a module that is
+   * turned off. Its source can still be opened locally.
+   */
+  unavailable?: ArtifactUnavailable
+}
+
+/** A turned-off file type, by its label and its module's. */
+export interface ArtifactUnavailable {
+  type: string
+  module: string
 }
 
 export interface FileTypeReader {
   id: string
   extensions: string[]
   identity: IdentityAdapter
+  /** Set for a type whose module is turned off. */
+  off?: ArtifactUnavailable
 }
 
 export interface ManifestOptions {
@@ -227,6 +240,7 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
           path: inside,
           file: where,
           type: type.id,
+          ...(type.off ? { unavailable: type.off } : {}),
         })
       }
     }
