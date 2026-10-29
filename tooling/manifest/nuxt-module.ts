@@ -9,7 +9,6 @@ import { readFile } from 'node:fs/promises'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { createServer as createNetServer } from 'node:net'
 import path from 'node:path'
-import { pathToFileURL } from 'node:url'
 import {
   addTemplate,
   addTypeTemplate,
@@ -22,7 +21,7 @@ import {
   type Plugin,
   type ViteDevServer,
 } from 'vite'
-import type { IdentityReader } from '../modules/contract.ts'
+import { identityFileTypes } from '../identity/file-types.ts'
 import { sameOrigin } from '../modules/nuxt-module.ts'
 import { loadRegistry } from '../modules/registry.ts'
 import {
@@ -63,14 +62,7 @@ export default defineNuxtModule({
     const fileTypes = registry.enabled.flatMap(({ spec, dir }) =>
       (spec.fileTypes ?? []).map((type) => ({ ...type, dir })),
     )
-    const readers: FileTypeReader[] = []
-    for (const type of fileTypes) {
-      const file = pathToFileURL(path.join(type.dir, type.identity))
-      const { identity } = (await import(file.href)) as {
-        identity: IdentityReader
-      }
-      readers.push({ id: type.id, extensions: type.extensions, identity })
-    }
+    const readers: FileTypeReader[] = await identityFileTypes(registry.enabled)
     const read = (): BuiltManifest =>
       buildManifest({
         root,
@@ -130,8 +122,8 @@ declare module '${MANIFEST_MODULE}' {
 
     // The static build serves the preview documents from `_preview/`,
     // built before the app so Nitro copies them with its public files.
-    // `nuxt prepare` (run on install) bundles nothing, and runs before the
-    // tsconfig files that a build reads exist.
+    // `nuxt prepare` also calls `build:before`, before it writes the
+    // tsconfigs a Vite build reads, and needs no documents.
     if (!nuxt.options.dev && !nuxt.options._prepare) {
       const dist = path.join(workDir, 'dist')
       mkdirSync(dist, { recursive: true })

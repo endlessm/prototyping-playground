@@ -1,4 +1,7 @@
 import { spawnSync } from 'node:child_process'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import { describe, expect, test } from 'vitest'
 
 function node(args: string[], input?: string) {
@@ -57,4 +60,43 @@ describe('toolchain commands', () => {
     )
     expect(result.status).toBe(0)
   })
+
+  // What `yarn install` runs after installing, on a checkout with no build
+  // folder yet, as in CI. The copy links this checkout's dependencies.
+  test('Nuxt prepares a checkout that has never been built', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'studio-prepare-'))
+    try {
+      const skipped = /^(.git|node_modules|.nuxt.*|.output.*|.scratch)$/
+      for (const entry of fs.readdirSync('.'))
+        if (!skipped.test(entry))
+          fs.cpSync(entry, path.join(root, entry), { recursive: true })
+      fs.symlinkSync(
+        path.resolve('node_modules'),
+        path.join(root, 'node_modules'),
+        'junction',
+      )
+      const result = spawnSync(
+        process.execPath,
+        ['node_modules/nuxt/bin/nuxt.mjs', 'prepare'],
+        {
+          cwd: root,
+          encoding: 'utf8',
+          env: Object.fromEntries(
+            Object.entries(process.env).filter(
+              ([key]) =>
+                !key.startsWith('VITEST') && key !== 'STUDIO_BUILD_DIR',
+            ),
+          ),
+        },
+      )
+      expect(result.stdout + result.stderr).not.toMatch(/Tsconfig not found/)
+      expect(result.status).toBe(0)
+      expect(fs.existsSync(path.join(root, '.nuxt/tsconfig.app.json'))).toBe(
+        true,
+      )
+    } finally {
+      // Removes the link, not the dependencies it points to.
+      fs.rmSync(root, { recursive: true, force: true })
+    }
+  }, 180_000)
 })

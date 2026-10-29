@@ -141,7 +141,7 @@ export async function status(root: string, _args: string[], flags: Flags) {
 }
 
 // Inside the studio, with no symbolic link on the way.
-function realFolder(root: string, folder: string) {
+export function realFolder(root: string, folder: string) {
   const absolute = path.resolve(root, folder)
   if (!existsSync(absolute) || !lstatSync(absolute).isDirectory()) return null
   const real = realpathSync(absolute)

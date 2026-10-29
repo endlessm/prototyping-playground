@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url'
 import { nodeVersionWarning } from '../check-node.ts'
 import { join, profile, whoami } from './contributors.ts'
 import { dev } from './dev.ts'
+import { identify, identityAudit } from './identity.ts'
 import {
   createModule,
   disableModule,
@@ -75,6 +76,18 @@ const COMMANDS: Record<string, Command> = {
     summary:
       "this studio's recorded dev server: see it, restart it on its port, stop it or clear a stale record",
     run: dev,
+  },
+  identify: {
+    usage: 'identify src/prototypes/<contributor>/<prototype> [--yes] [--json]',
+    summary:
+      'after writing files directly: give the files of your prototype the permanent IDs they are missing',
+    run: identify,
+  },
+  'identity-audit': {
+    usage: 'identity-audit [--json]',
+    summary:
+      'count every resource and report missing, malformed and duplicate permanent IDs',
+    run: identityAudit,
   },
   list: {
     usage: 'list',
