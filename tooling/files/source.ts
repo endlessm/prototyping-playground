@@ -251,7 +251,7 @@ function ordinaryFile(file: string) {
   }
 }
 
-function defaultIdentify(root: string) {
+export function defaultIdentify(root: string) {
   return (
     contributors: ReturnType<typeof readContributors>['contributors'],
   ) => {

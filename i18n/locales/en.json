@@ -96,5 +96,122 @@
       "keep": "Keep editing",
       "discard": "Discard"
     }
+  },
+  "collection": {
+    "viewAs": "View as",
+    "cards": "Cards",
+    "list": "List",
+    "archived": "Archived",
+    "archivedHint": "About archived items",
+    "archivedInfo": "Archived items are excluded from the deployed site."
+  },
+  "systems": {
+    "title": "Systems",
+    "description": "Components, styles, assets, and guidance for your prototypes.",
+    "genericDescription": "Components, theme, assets, and guidance for your prototypes.",
+    "search": "Search systems",
+    "searchPlaceholder": "Search",
+    "clearSearch": "Clear search",
+    "active": "Systems",
+    "archivedList": "Archived systems",
+    "default": "Default",
+    "defaultSystem": "Default system",
+    "usedBy": "Used by {count} prototypes | Used by {count} prototype | Used by {count} prototypes",
+    "noMatches": "No matching systems",
+    "noMatchesHint": "Try a different search.",
+    "viewAll": "View all systems",
+    "actions": "Actions for {name}",
+    "copyLink": "Copy link",
+    "copyPath": "Copy path",
+    "linkCopied": "Link copied",
+    "pathCopied": "Path copied",
+    "home": {
+      "title": "Systems",
+      "none": "No systems yet."
+    },
+    "nav": {
+      "resources": "Resources",
+      "search": "Search",
+      "searchField": "Search system",
+      "clear": "Clear search",
+      "expandAll": "Expand all",
+      "collapseAll": "Collapse all",
+      "noMatches": "No matching items.",
+      "noTokens": "No tokens yet",
+      "emptyFolder": "Empty folder",
+      "toggle": "Show or hide {name}"
+    },
+    "pages": {
+      "overview": "Overview",
+      "libraries": "Libraries",
+      "context": "Context",
+      "skills": "Skills",
+      "theme": "Theme",
+      "assets": "Assets",
+      "components": "Components",
+      "fonts": "Fonts",
+      "icons": "Icons",
+      "images": "Images",
+      "colors": "Colors",
+      "typography": "Typography",
+      "radius": "Radius",
+      "shadows": "Shadows",
+      "spacing": "Spacing",
+      "motion": "Motion",
+      "effects": "Effects",
+      "other": "Other tokens"
+    },
+    "fileActions": {
+      "editSource": "Edit source",
+      "viewSource": "View source"
+    },
+    "overview": {
+      "generic": "The guidance and code included in {name}.",
+      "instructions": "Instructions",
+      "contextDocuments": "Context documents",
+      "skills": "Skills",
+      "noInstructions": "No system instructions have been added yet.",
+      "toolkit": "Toolkit",
+      "components": "Components",
+      "tokens": "Theme tokens",
+      "assets": "Local assets",
+      "lightOnly": "Color modes: Light only. This system stays in light mode while Studio follows its global color mode.",
+      "darkOnly": "Color modes: Dark only. This system stays in dark mode while Studio follows its global color mode.",
+      "both": "Color modes: Light and dark. Follows Studio’s global color mode.",
+      "usage": "Where it’s used",
+      "prototypes": "Active prototypes",
+      "viewPrototypes": "View prototypes using this system",
+      "noUsage": "No active prototypes use this system yet. Choose {name} when creating a prototype.",
+      "archived": "This system is archived",
+      "archivedHint": "Files are kept locally and excluded from deployment. Restore it to use it again."
+    },
+    "libraries": {
+      "title": "Libraries",
+      "description": "The sources and tools behind {name}.",
+      "list": "System libraries",
+      "version": "v{version}",
+      "notInstalled": "Not installed",
+      "install": "Ask your agent to install this dependency.",
+      "docs": "Docs",
+      "docsLabel": "{name} documentation",
+      "empty": "No libraries added yet",
+      "emptyHint": "Ask your agent to add a library when your system needs more capabilities."
+    },
+    "section": {
+      "context": "Knowledge, principles, and standing requirements shared by people and agents.",
+      "skills": "Procedures for tasks owned by this system. Each skill describes when to use it and how to perform the task.",
+      "select": "Select a file in navigation to read or edit it.",
+      "empty": "No files yet. Ask your agent to add useful material.",
+      "loading": "Agent instructions must point to the relevant files. Being listed here does not automatically load them into a conversation."
+    },
+    "document": {
+      "loadFailed": "This document couldn’t load."
+    },
+    "source": {
+      "loadingEditor": "Loading editor…",
+      "skillFile": "Skill source file",
+      "binary": "This supporting file cannot be edited as text in Studio."
+    },
+    "loadFailed": "The systems couldn’t load."
   }
 }

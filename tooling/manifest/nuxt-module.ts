@@ -37,7 +37,8 @@ import {
   VIEWS_RESOLVED,
   viewsSignature,
 } from '../preview/pipeline.ts'
-import { loadSystems } from '../systems/registry.ts'
+import { systemContentProblems } from '../systems/catalog.ts'
+import { loadSystems, systemsFolder } from '../systems/registry.ts'
 import {
   buildManifest,
   PROTOTYPES_FOLDER,
@@ -68,6 +69,7 @@ export default defineNuxtModule({
     const { systems, problems: systemProblems } = await loadSystems(
       root,
       registry.config,
+      systemsFolder(),
     )
 
     const fileTypes = registry.enabled.flatMap(({ spec, dir }) =>
@@ -105,7 +107,11 @@ export default defineNuxtModule({
         fileTypes: readers,
         defaultSystem: defaultSystem(),
       })
-    const problems = [...systemProblems, ...read().problems]
+    const problems = [
+      ...systemProblems,
+      ...systems.flatMap((system) => systemContentProblems(system, root)),
+      ...read().problems,
+    ]
     for (const problem of problems) console.warn(`Warning: ${problem}`)
 
     // The page of each file type, loaded when an artifact of it opens.

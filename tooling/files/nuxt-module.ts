@@ -1,5 +1,6 @@
 // The file service: while the dev server runs, Nitro routes read and save
-// artifacts' source (`server/source.ts`), and open pages hear `studio:source`
+// artifacts' source (`server/source.ts`) and systems' own source files
+// (`server/system-source.ts`), and open pages hear `studio:source`
 // with the files that changed on disk, so an open editor can reload or offer
 // its conflict choice. The static build has none of it.
 import path from 'node:path'
@@ -12,13 +13,16 @@ import {
 import type { Plugin } from 'vite'
 import { posix, PROTOTYPES_FOLDER } from '../manifest/build.ts'
 import { loadRegistry } from '../modules/registry.ts'
+import { systemsFolder } from '../systems/registry.ts'
 
 export const SOURCE_ROUTE = '_studio/files/source'
+export const SYSTEM_SOURCE_ROUTE = '_studio/files/system-source'
 
 /** What the routes need, through the server's runtime configuration. */
 export interface FileServiceConfig {
   root: string
   prototypesFolder: string
+  systemsFolder: string
   contributorsFolder: string
   configFile: string
   /** The installed file types, with each identity adapter's file. */
@@ -41,6 +45,7 @@ export default defineNuxtModule({
       root,
       // The browser scenarios point the studio at fixture content.
       prototypesFolder: process.env.STUDIO_PROTOTYPES || PROTOTYPES_FOLDER,
+      systemsFolder: systemsFolder(),
       contributorsFolder: process.env.STUDIO_CONTRIBUTORS || 'contributors',
       configFile: registry.configFile,
       // Turned-off modules' files too: their source still opens.
@@ -57,15 +62,22 @@ export default defineNuxtModule({
       route: `/${SOURCE_ROUTE}`,
       handler: resolve('./server/source.ts'),
     })
+    addServerHandler({
+      route: `/${SYSTEM_SOURCE_ROUTE}`,
+      handler: resolve('./server/system-source.ts'),
+    })
     addVitePlugin(
-      sourceChanges(root, path.resolve(root, config.prototypesFolder)),
+      sourceChanges(root, [
+        path.resolve(root, config.prototypesFolder),
+        path.resolve(root, config.systemsFolder),
+      ]),
       { server: false },
     )
   },
 })
 
 /** Tells open pages which content files changed, as the service names them. */
-function sourceChanges(root: string, folder: string): Plugin {
+function sourceChanges(root: string, folders: string[]): Plugin {
   const named = (file: string) => {
     const relative = path.relative(root, file)
     return posix(relative.startsWith('..') ? file : relative)
@@ -77,7 +89,8 @@ function sourceChanges(root: string, folder: string): Plugin {
       let timer: ReturnType<typeof setTimeout> | undefined
       const changed = (file: string) => {
         const resolved = path.resolve(file)
-        if (!resolved.startsWith(folder + path.sep)) return
+        if (!folders.some((folder) => resolved.startsWith(folder + path.sep)))
+          return
         files.add(named(resolved))
         clearTimeout(timer)
         timer = setTimeout(() => {
@@ -91,7 +104,7 @@ function sourceChanges(root: string, folder: string): Plugin {
       }
       const events = ['add', 'change', 'unlink'] as const
       for (const event of events) server.watcher.on(event, changed)
-      server.watcher.add(folder)
+      server.watcher.add(folders)
       server.httpServer?.once('close', () => {
         clearTimeout(timer)
         for (const event of events) server.watcher.off(event, changed)

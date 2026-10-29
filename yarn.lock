@@ -6223,6 +6223,7 @@ __metadata:
     eslint-plugin-prettier: "npm:^5.4.1"
     husky: "npm:^9.1.7"
     lint-staged: "npm:^16.4.0"
+    marked: "npm:^17.0.1"
     nuxt: "npm:^4.4.8"
     playwright: "npm:^1.61.0"
     prettier: "npm:^3.5.3"

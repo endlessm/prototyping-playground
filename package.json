@@ -55,10 +55,12 @@
     "@vueuse/core": "^14.2.1",
     "@vueuse/nuxt": "^14.2.1",
     "codemirror-lang-mermaid": "^0.5.0",
+    "marked": "^17.0.1",
     "nuxt": "^4.4.8",
     "tailwindcss": "^4.1.11",
     "vite": "^8.3.5",
-    "vue": "^3.5.44"
+    "vue": "^3.5.44",
+    "yaml": "^2.8.0"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.4.1",
@@ -72,8 +74,7 @@
     "prettier": "^3.5.3",
     "typescript": "^5.9.3",
     "vitest": "^4.1.4",
-    "vue-tsc": "^3.2.7",
-    "yaml": "^2.8.0"
+    "vue-tsc": "^3.2.7"
   },
   "lint-staged": {
     "**/*.{js,mjs,ts,vue,css}": [

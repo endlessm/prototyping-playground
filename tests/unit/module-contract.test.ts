@@ -8,6 +8,46 @@ import {
 
 const base = { id: 'notes', label: 'Notes' }
 
+describe('a module’s pages', () => {
+  test('[SY-08] a page may hold child pages, which keep it on screen while they change', () => {
+    expect(
+      moduleProblems(
+        {
+          ...base,
+          pages: [
+            {
+              path: '/notes/:id',
+              file: 'pages/note.vue',
+              children: [
+                { path: '', file: 'pages/overview.vue' },
+                { path: 'history', file: 'pages/history.vue' },
+              ],
+            },
+          ],
+        },
+        'notes',
+      ),
+    ).toEqual([])
+    expect(
+      moduleProblems(
+        {
+          ...base,
+          pages: [
+            {
+              path: '/notes/:id',
+              file: 'pages/note.vue',
+              children: [{ path: '/elsewhere', file: 'pages/x.tsx' }],
+            },
+          ],
+        },
+        'notes',
+      ),
+    ).toEqual([
+      'notes/module.ts: a child page’s address continues its parent’s, without a leading slash, and names its .vue file.',
+    ])
+  })
+})
+
 describe('a module’s Home block', () => {
   test('[SH-97] a module declares its Home block as a Vue component, with an optional order here and on the deployed site', () => {
     expect(
