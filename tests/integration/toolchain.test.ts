@@ -66,7 +66,10 @@ describe('toolchain commands', () => {
   test('Nuxt prepares a checkout that has never been built', () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'studio-prepare-'))
     try {
-      const skipped = /^(.git|node_modules|.nuxt.*|.output.*|.scratch)$/
+      // `dist` is the build's link to its output: copying a symlink needs a
+      // privilege Windows doesn't grant by default.
+      const skipped =
+        /^(\.git|node_modules|\.nuxt.*|\.output.*|dist|\.scratch)$/
       for (const entry of fs.readdirSync('.'))
         if (!skipped.test(entry))
           fs.cpSync(entry, path.join(root, entry), { recursive: true })
