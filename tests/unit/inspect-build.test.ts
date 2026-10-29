@@ -80,11 +80,12 @@ describe('[CL-114] build inspection', () => {
     expect(() => inspectBuild(site, '/studio/')).toThrow(/escapes the build/)
   })
 
-  test('a bundled library’s module names are not references', () => {
-    // A CommonJS module inlined by its library's own bundler (Mermaid's).
+  test('module names a bundled dependency keeps from its own build are not references', () => {
+    // esbuild's CommonJS wrappers name each module by its source path, as
+    // Excalidraw's bundled Mermaid does.
     write(
       '_nuxt/lazy.js',
-      'p=c({"../../node_modules/.pnpm/x@1.0.0/node_modules/x/lib/is.js"(e){e.a=1}});',
+      'var m=s({"../../node_modules/.pnpm/a@1/node_modules/a/lib/main.js"(){}});',
     )
     expect(() => inspectBuild(site, '/studio/')).not.toThrow()
   })

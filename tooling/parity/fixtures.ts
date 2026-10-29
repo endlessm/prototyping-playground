@@ -21,6 +21,7 @@ export const PARITY_FIXTURES: Record<Side, string> = {
 }
 
 const VIEW_EXTENSION: Record<Side, string> = { vue: '.vue', react: '.tsx' }
+const CANVAS = '.excalidraw'
 // `<!-- @studio-id x -->` in a `.vue` file, `/** @studio-id x */` in `.tsx`.
 const IDENTITY = /^\s*(?:<!--|\/\*\*)\s*@studio-id\s+(\S+)/
 // Documents are the same `.md` files on both sides, with `studioId` in their
@@ -32,7 +33,10 @@ export interface FixturePrototype {
   /** `<contributor>/<prototype folder>` */
   folder: string
   meta: Record<string, unknown>
-  /** Views and documents by path inside the prototype, without the extension. */
+  /**
+   * Views and documents, then canvases (the same `.excalidraw` files on
+   * both sides), by path inside the prototype, without the extension.
+   */
   artifacts: { path: string; id: string | null }[]
 }
 
@@ -67,20 +71,32 @@ export function describeFixtureStudio(
       return {
         folder: `${contributor}/${name}`,
         meta: JSON.parse(readFileSync(path.join(dir, 'meta.json'), 'utf8')),
-        artifacts: files(dir).flatMap((file) => {
-          const extension = [VIEW_EXTENSION[side], DOCUMENT].find((end) =>
-            file.endsWith(end),
-          )
-          if (!extension) return []
-          const source = readFileSync(path.join(dir, file), 'utf8')
-          const identity = extension === DOCUMENT ? DOCUMENT_IDENTITY : IDENTITY
-          return [
-            {
-              path: file.slice(0, -extension.length),
-              id: identity.exec(source)?.[1] ?? null,
-            },
-          ]
-        }),
+        artifacts: files(dir)
+          .flatMap((file) => {
+            const extension = [VIEW_EXTENSION[side], DOCUMENT].find((end) =>
+              file.endsWith(end),
+            )
+            if (!extension) return []
+            const source = readFileSync(path.join(dir, file), 'utf8')
+            const identity =
+              extension === DOCUMENT ? DOCUMENT_IDENTITY : IDENTITY
+            return [
+              {
+                path: file.slice(0, -extension.length),
+                id: identity.exec(source)?.[1] ?? null,
+              },
+            ]
+          })
+          .concat(
+            files(dir)
+              .filter((file) => file.endsWith(CANVAS))
+              .map((file) => ({
+                path: file.slice(0, -CANVAS.length),
+                id:
+                  JSON.parse(readFileSync(path.join(dir, file), 'utf8'))
+                    .studioId ?? null,
+              })),
+          ),
       }
     }),
   )

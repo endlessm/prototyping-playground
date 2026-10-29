@@ -5,7 +5,11 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { isResourceId } from '../identity/resource-id.ts'
-import type { FidelityAdapter, IdentityAdapter } from '../modules/contract.ts'
+import type {
+  FidelityAdapter,
+  FileCheck,
+  IdentityAdapter,
+} from '../modules/contract.ts'
 import { PLAIN_TEXT } from '../modules/registry.ts'
 import type { InstalledSystem } from '../systems/registry.ts'
 
@@ -100,7 +104,7 @@ export interface FileTypeReader {
   extensions: string[]
   identity: IdentityAdapter
   /** The problems of one file's source, as sentences. */
-  check?: (source: string) => string[]
+  check?: FileCheck
   fidelity?: FidelityAdapter
   /** Set for a type whose module is turned off. */
   off?: ArtifactUnavailable
@@ -292,7 +296,7 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
           type: type.id,
           ...(type.off ? { unavailable: type.off } : {}),
         }
-        for (const problem of type.check?.(source) ?? [])
+        for (const problem of type.check?.(source, { prototypeId: id }) ?? [])
           problems.push(`${where}: ${problem}`)
         if (type.identity.children) {
           artifact.states = []

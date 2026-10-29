@@ -127,7 +127,7 @@ export default defineNuxtModule({
         `label: ${JSON.stringify(type.label)}`,
         `fidelity: ${Boolean(type.fidelity)}`,
         `extensions: ${JSON.stringify(type.extensions)}`,
-        `icon: ${JSON.stringify(type.icon ?? 'i-lucide-file')}`,
+        `icon: ${JSON.stringify(type.icon ?? null)}`,
         `page: ${load(type, type.page)}`,
         ...(type.embed ? [`embed: ${load(type, type.embed)}`] : []),
       ]
@@ -152,8 +152,8 @@ declare module '#studio/file-types' {
       /** Its artifacts can be made lo-fi and hi-fi again. */
       fidelity: boolean
       extensions: string[]
-      /** An Iconify name. */
-      icon: string
+      /** An Iconify name; none shows no icon in the navigation. */
+      icon: string | null
       page: Load
       /** Its preview embedded in a document; without one, a card. */
       embed?: Load

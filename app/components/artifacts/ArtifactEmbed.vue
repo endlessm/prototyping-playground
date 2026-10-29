@@ -54,7 +54,7 @@ const card = computed(() => {
     return {
       title: resolution.artifact.title,
       detail: type?.label ?? t('embed.file'),
-      icon: type?.icon,
+      icon: type?.icon ?? 'i-lucide-file',
     }
   }
   switch (resolution.code) {

@@ -38,6 +38,7 @@ const address = (id: string) =>
 const items = computed<NavigationMenuItem[]>(() =>
   props.artifacts.map((artifact) => ({
     label: artifact.title,
+    icon: types[artifact.type]?.icon ?? undefined,
     to: address(artifact.id),
     ...(artifact.states?.length && {
       defaultOpen: true,
