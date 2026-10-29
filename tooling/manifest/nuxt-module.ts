@@ -6,7 +6,7 @@
 // the build emits the manifest as files and builds the preview documents
 // beside the app.
 import { createHash } from 'node:crypto'
-import { mkdirSync, readFileSync, statSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, statSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { createServer as createNetServer } from 'node:net'
@@ -418,6 +418,12 @@ function previewPlugin(
         const views = server.moduleGraph.getModuleById(VIEWS_RESOLVED)
         if (views) await server.reloadModule(views)
       }
+      // A document's own watcher can lose a file that was removed and
+      // written again, and then keep serving its old compiled copy. The
+      // studio's watcher passes each change on, so the document's server
+      // drops that copy and sends the hot update itself.
+      for (const { file } of files)
+        server.watcher.emit(existsSync(file) ? 'change' : 'unlink', file)
       server.ws.send({ type: 'custom', event: 'studio:file', data: { files } })
     }
   }

@@ -335,6 +335,19 @@ describe('live updates on the dev server', { timeout: 120_000 }, () => {
     await expect
       .poll(() => host(page).getAttribute('data-preview-freshness'))
       .toBe('current')
+
+    // Later saves still arrive, in this page and in one opened afresh.
+    await new Promise((resolve) => setTimeout(resolve, 1_000))
+    write('Counter.vue', counter('Counter later'))
+    const later = (tab: Page) =>
+      frameOf(tab)
+        .getByRole('heading', { name: 'Counter later' })
+        .isVisible()
+        .catch(() => false)
+    await expect.poll(() => later(page), { timeout: 15_000 }).toBe(true)
+    const fresh = await newPage()
+    await opened(fresh, address(studio, COUNTER))
+    expect(await later(fresh)).toBe(true)
   })
 
   test('[PR-85] a view with nothing to show says what is missing, and recovers by itself', async () => {
