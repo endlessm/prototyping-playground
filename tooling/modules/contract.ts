@@ -48,6 +48,11 @@ export interface ModuleSkill {
  * metadata, never in executable code (ADR 0001).
  */
 export interface IdentityAdapter {
+  /**
+   * Where a file of this type declares it, for messages: "a top-level
+   * \"studioId\"". A leading `<!-- @studio-id … -->` comment by default.
+   */
+  where?: string
   /** The declared identity, or null; throws on a malformed declaration. */
   read: (source: string) => string | null
   /** The source with `id` declared; throws if it already declares one. */
@@ -86,9 +91,9 @@ export interface ModuleFileType {
    */
   identity: string
   /**
-   * A file whose `check` export lists the problems of one file's source as
-   * sentences, relative to the module's folder. It runs on Node, and the
-   * build fails on any problem.
+   * A file whose `check` export (`FileCheck`) lists the problems of one
+   * file's source as sentences, relative to the module's folder. It runs on
+   * Node, and the build fails on any problem.
    */
   check?: string
   /**
@@ -97,15 +102,26 @@ export interface ModuleFileType {
    */
   fidelity?: string
   /**
-   * A file whose `template` export gives a new file's source from its title,
-   * relative to the module's folder. The studio adds the identity.
+   * A file whose `template` export gives a new file's text, relative to the
+   * module's folder. It runs on Node and gets the new file's readable title;
+   * the studio adds the identity.
    */
   template?: string
   /** The Vue component an artifact page renders, relative to the folder. */
   page: string
-  /** An Iconify name for the type's cards, such as `i-lucide-file-text`. */
+  /** An Iconify name for navigation, file lists and the type's cards. */
   icon?: string
 }
+
+/**
+ * Problems with one file's source, each completing "<file>: …" and saying
+ * how to fix it. `prototypeId` is the permanent ID of the prototype the file
+ * is in, when it is known.
+ */
+export type FileCheck = (
+  source: string,
+  context?: { prototypeId?: string },
+) => string[]
 
 export interface BuildDataContext {
   /** The studio's root folder. */

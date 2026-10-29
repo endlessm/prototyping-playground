@@ -173,6 +173,18 @@ export function moduleProblems(spec: unknown, folderName: string): string[] {
           problems.push(
             `${where}: file type "${String(id)}" needs a lowercase id, a plain-text label, lowercase extensions such as ".vue", an identity reader file and a .vue page.`,
           )
+        const { check, template, icon } = (type ?? {}) as Record<
+          string,
+          unknown
+        >
+        if (
+          [check, template, icon].some(
+            (value) => value !== undefined && typeof value !== 'string',
+          )
+        )
+          problems.push(
+            `${where}: file type "${String(id)}" names its check and template files and its icon as text.`,
+          )
       }
   }
   const data = module.data

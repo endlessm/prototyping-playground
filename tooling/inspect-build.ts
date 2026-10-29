@@ -59,7 +59,12 @@ function scriptReferences(code: string) {
     ...code.matchAll(/\bimport\(\s*["'`]([^"'`]+)["'`]\s*\)/g),
     // Vite's preload dependency lists.
     ...code.matchAll(/["'`](\.\.?\/[^"'`\s]+\.(?:js|mjs|css))["'`]/g),
-  ].map((match) => match[1]!)
+  ]
+    .map((match) => match[1]!)
+    // A bundled dependency's module names from its own build, such as
+    // esbuild's CommonJS wrappers in Excalidraw, are paths into
+    // `node_modules`; a build never emits one.
+    .filter((reference) => !reference.includes('/node_modules/'))
   return { imports, lazy }
 }
 
