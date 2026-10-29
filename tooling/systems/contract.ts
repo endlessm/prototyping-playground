@@ -15,6 +15,20 @@ export interface SystemLibrary {
   docs?: string
   /** Documented components, by folder name under `components/`. */
   components?: string[]
+  /** The asset pages the library supplies, which its entry links to. */
+  assets?: SystemAssetKind[]
+}
+
+export type SystemAssetKind = 'fonts' | 'icons' | 'images'
+
+/** What the system's Overview says about it, in plain text. */
+export interface SystemOverview {
+  /** Its purpose and audience; the collection's cards show it too. */
+  summary?: string
+  /** How agents and designers should use its Context and Skills. */
+  guidance?: string
+  /** What its code is built from. */
+  code?: string
 }
 
 /** A named export of a file in the system's folder. */
@@ -64,6 +78,7 @@ export interface SystemSpec {
   colorModes: ColorMode[]
   docs: 'warn' | 'strict' | 'off'
   libraries: SystemLibrary[]
+  overview?: SystemOverview
   /** Where the system came from, if imported. */
   origin: string | null
   /** The permanent ID prototypes store as `systemId`. */
