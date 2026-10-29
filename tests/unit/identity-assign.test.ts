@@ -9,7 +9,9 @@ import { identity as view } from '../../src/modules/prototypes/types/view/identi
 import { auditIdentities } from '../../tooling/identity/audit'
 import { identityLock, watchNewArtifacts } from '../../tooling/identity/assign'
 
-const types = [{ id: 'view', extensions: ['.vue'], identity: view }]
+import { check } from '../../src/modules/prototypes/types/view/states'
+
+const types = [{ id: 'view', extensions: ['.vue'], identity: view, check }]
 const TEMPLATE = '<template>\n  <p>Hi</p>\n</template>\n'
 const HME = 'hme0000000000001'
 
@@ -172,5 +174,75 @@ describe('a view created while the dev server runs', () => {
     )
     expect(idOf('src/prototypes/ada/demo/Start.vue')).toBe(id)
     expect(second.log).toEqual([])
+  })
+})
+
+describe('a named state added while the dev server runs', () => {
+  const STATES = `<script lang="ts">
+export const states = [
+  { title: 'Member', props: { name: 'Ana' } },
+  { title: 'New user', props: { name: '' } },
+]
+</script>
+<template><p>{{ name }}</p></template>
+`
+  const children = (file: string) =>
+    view.children!.read(fs.readFileSync(at(file), 'utf8'))
+
+  test('[PR-89] gets its ID comment, in a new view and in one that had none', () => {
+    const { add, change, log } = serve()
+    add('src/prototypes/ada/demo/Home.vue', STATES)
+    const [member, newUser] = children('src/prototypes/ada/demo/Home.vue')
+    expect(member!.studioId).toMatch(/^[0-9a-hjkmnp-tv-z]{16}$/)
+    expect(newUser!.studioId).toMatch(/^[0-9a-hjkmnp-tv-z]{16}$/)
+    const id = idOf('src/prototypes/ada/demo/Home.vue')
+    expect(
+      fs.readFileSync(at('src/prototypes/ada/demo/Home.vue'), 'utf8'),
+    ).toBe(
+      `<!-- @studio-id ${id} -->\n<!-- @studio-state ${member!.studioId} Member -->\n<!-- @studio-state ${newUser!.studioId} New user -->\n${STATES}`,
+    )
+
+    // A third state, added to the view later.
+    const written = fs.readFileSync(
+      at('src/prototypes/ada/demo/Home.vue'),
+      'utf8',
+    )
+    change(
+      'src/prototypes/ada/demo/Home.vue',
+      written.replace(
+        "{ title: 'New user', props: { name: '' } },",
+        "{ title: 'New user', props: { name: '' } },\n  { title: 'Error', props: { name: '!' } },",
+      ),
+    )
+    const after = children('src/prototypes/ada/demo/Home.vue')
+    expect(after.slice(0, 2)).toEqual([member, newUser])
+    expect(after[2]!.key).toBe('Error')
+    expect(after[2]!.studioId).toMatch(/^[0-9a-hjkmnp-tv-z]{16}$/)
+    expect(log.map(([, message]) => message)).toContain(
+      `Assigned identity ${after[2]!.studioId} to state "Error" of src/prototypes/ada/demo/Home.vue`,
+    )
+    expect(auditIdentities(root, types).problems).toEqual([])
+  })
+
+  test('[PR-89] [PR-90] renamed in code alone gets no new ID: the stale comment is reported instead', () => {
+    const { add, change } = serve()
+    add('src/prototypes/ada/demo/Home.vue', STATES)
+    const before = fs.readFileSync(
+      at('src/prototypes/ada/demo/Home.vue'),
+      'utf8',
+    )
+    const renamed = before.replace("title: 'Member'", "title: 'Signed in'")
+    change('src/prototypes/ada/demo/Home.vue', renamed)
+    expect(
+      fs.readFileSync(at('src/prototypes/ada/demo/Home.vue'), 'utf8'),
+    ).toBe(renamed)
+  })
+
+  test('[PR-89] in someone else’s view is left for its owner', () => {
+    const source = `<!-- @studio-id ${HME} -->\n${STATES}`
+    serve().change('src/prototypes/ben/demo/Home.vue', source)
+    expect(
+      fs.readFileSync(at('src/prototypes/ben/demo/Home.vue'), 'utf8'),
+    ).toBe(source)
   })
 })

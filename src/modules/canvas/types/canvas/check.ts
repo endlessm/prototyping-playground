@@ -1,5 +1,6 @@
 // What the build accepts as a canvas, and what a new one holds. Runs on Node;
 // each problem completes "<file>: …" and says how to fix it.
+import type { FileCheck } from '../../../../../tooling/modules/contract.ts'
 import { DEFAULT_BACKGROUND, FORMAT_VERSION } from './format.ts'
 
 /** A new canvas: an empty scene with a white background. */
@@ -20,10 +21,7 @@ export const template = () =>
 // A canvas links to its items by their permanent addresses in the studio.
 const ARTIFACT_ADDRESS = /^\/prototypes\/([^/?#]+)\/artifacts\/[^/?#]+/
 
-export function check(
-  source: string,
-  { prototypeId }: { prototypeId: string },
-) {
+export const check: FileCheck = (source, { prototypeId } = {}) => {
   let canvas: { elements?: unknown; files?: unknown; studioVersion?: unknown }
   try {
     canvas = JSON.parse(source)
@@ -46,7 +44,7 @@ export function check(
     problems.push('"files" must be empty. Images aren’t stored in a canvas.')
   // A canvas shows only its own prototype's items.
   const elsewhere = new Set<string>()
-  for (const { link } of elements ?? [])
+  for (const { link } of prototypeId ? (elements ?? []) : [])
     if (
       typeof link === 'string' &&
       link.startsWith('/') &&
