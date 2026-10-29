@@ -21,7 +21,7 @@ import {
   PROTOTYPES_FOLDER,
   treeFiles,
 } from '../manifest/build.ts'
-import type { IdentityAdapter } from '../modules/contract.ts'
+import type { FidelityAdapter, IdentityAdapter } from '../modules/contract.ts'
 import { CONFIG_FILE } from '../modules/registry.ts'
 
 /** The same limit as any committed file. */
@@ -47,8 +47,15 @@ export interface FileServiceOptions {
   prototypesFolder?: string
   contributorsFolder?: string
   configFile?: string
-  /** The enabled file types: an artifact's type decides its identity. */
-  fileTypes: { id: string; extensions: string[]; identity: IdentityAdapter }[]
+  /** The installed file types: an artifact's type decides its identity. */
+  fileTypes: {
+    id: string
+    extensions: string[]
+    identity: IdentityAdapter
+    fidelity?: FidelityAdapter
+    /** A new file's source from its title, before its identity. */
+    template?: (title: string) => string
+  }[]
   /** Who is working; your Git identity by default. */
   identify?: (
     contributors: ReturnType<typeof readContributors>['contributors'],
@@ -80,7 +87,11 @@ const notFound = () =>
 
 const ARCHIVED = 'This prototype is archived. Restore it to change it.'
 
-export function createFileService(options: FileServiceOptions) {
+/**
+ * What every file service request starts from: finding a prototype and its
+ * artifacts by permanent ID, and whether the person working may change it.
+ */
+export function fileAccess(options: FileServiceOptions) {
   const { root, fileTypes } = options
   const prototypesDir = path.resolve(
     root,
@@ -178,6 +189,19 @@ export function createFileService(options: FileServiceOptions) {
   }
 
   return {
+    root,
+    prototypesDir,
+    typeOf,
+    display,
+    prototypeOf,
+    artifactOf,
+    refusalFor,
+  }
+}
+
+export function createFileService(options: FileServiceOptions) {
+  const { prototypeOf, artifactOf, refusalFor, display } = fileAccess(options)
+  return {
     async read(address: ArtifactAddress): Promise<ArtifactSource> {
       const { dir, contributor, meta } = prototypeOf(address.prototype)
       const { file } = artifactOf(dir, address.artifact)
@@ -236,6 +260,13 @@ export function createFileService(options: FileServiceOptions) {
           'identity',
           'Keep the artifact’s permanent studio ID when editing its source.',
         )
+      const lost = lostChild(type.identity, previous, content)
+      if (lost)
+        throw new FileServiceError(
+          409,
+          'identity',
+          `Keep the permanent studio ID of state “${lost}” when editing its source.`,
+        )
       writeFileSync(file, content)
       return { version: versionOf(content), warnings: [] }
     },
@@ -244,7 +275,36 @@ export function createFileService(options: FileServiceOptions) {
 
 export type FileService = ReturnType<typeof createFileService>
 
-function ordinaryFile(file: string) {
+/**
+ * The first child artifact (a view's named state) still declared in `next`
+ * whose permanent ID was dropped or changed, or null. A child that is gone,
+ * or renamed together with its ID's comment, is fine.
+ */
+function lostChild(identity: IdentityAdapter, previous: string, next: string) {
+  if (!identity.children) return null
+  let before: { key: string; studioId: string | null }[]
+  try {
+    before = identity.children.read(previous)
+  } catch {
+    return null
+  }
+  let after: Map<string, string | null>
+  try {
+    after = new Map(
+      identity.children.read(next).map(({ key, studioId }) => [key, studioId]),
+    )
+  } catch (error) {
+    throw new FileServiceError(400, 'identity', (error as Error).message)
+  }
+  return (
+    before.find(
+      ({ key, studioId }) =>
+        studioId && after.has(key) && after.get(key) !== studioId,
+    )?.key ?? null
+  )
+}
+
+export function ordinaryFile(file: string) {
   try {
     const stat = lstatSync(file)
     return stat.isFile() && !stat.isSymbolicLink()
