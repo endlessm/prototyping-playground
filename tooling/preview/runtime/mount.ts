@@ -23,7 +23,6 @@ import {
 } from '../protocol.ts'
 import { COMPILE_ROUTE, PREVIEW_ROUTE } from '../constants.ts'
 import { PROTOTYPE_SCOPE, type PrototypeScope } from './navigation.ts'
-import './lofi.css'
 
 interface ViewModule {
   default?: Component
@@ -44,6 +43,15 @@ interface View {
   /** None while the view is empty. */
   load: (() => Promise<ViewModule>) | null
 }
+
+// The lo-fi look loads with the first lo-fi view, so other documents carry
+// no stylesheet of the studio's.
+let lofiStyles: Promise<unknown> | undefined
+const lofiLook = () =>
+  (lofiStyles ??= import('./lofi.css').catch((error: unknown) => {
+    lofiStyles = undefined
+    throw error
+  }))
 
 /** The props of the state titled `title` in a view's `states`, if any. */
 function stateProps(states: unknown, title: string) {
@@ -250,6 +258,16 @@ export function mountPreview({ create, views }: MountOptions) {
       }
       Object.assign(props, found)
     }
+    if (view.lofi) {
+      try {
+        await lofiLook()
+      } catch (error) {
+        if (attempt !== render) return
+        unmount()
+        return status('error', attempt, describe(error))
+      }
+      if (attempt !== render) return
+    }
     const box = document.createElement('div')
     box.hidden = true
     box.classList.toggle('lofi-view', view.lofi)
@@ -323,7 +341,8 @@ export function mountPreview({ create, views }: MountOptions) {
       view.state !== current.state
     )
       void show(artifact)
-    else current.box.classList.toggle('lofi-view', view.lofi)
+    else if (!view.lofi) current.box.classList.remove('lofi-view')
+    else void lofiLook().then(() => current.box.classList.add('lofi-view'))
   })
 
   // A view's newest `states` after a hot update: the shown state takes its
