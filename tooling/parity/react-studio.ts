@@ -1,6 +1,7 @@
 // The React studio for parity runs: a copy of a Git commit (by default
 // `main`) outside this checkout, installed with its own toolchain (the Node
-// and pnpm its `mise.toml` names, through mise), with the parity fixtures as
+// and pnpm its `mise.toml` names, through mise or, where mise is missing,
+// the Node folder `STUDIO_PARITY_NODE` names), with the parity fixtures as
 // its prototypes. Its dev server starts with `pnpm dev` and stops with
 // `pnpm studio dev stop`, so the React studio's own dev-server registry,
 // kept inside the copy, decides what is stopped.
@@ -39,12 +40,17 @@ export const DEFAULT_CACHE =
   path.join(os.homedir(), '.cache', 'studio-parity')
 
 // Vitest's own environment would leak into the React studio's tools.
-function cleanEnv(extra: Record<string, string> = {}) {
+function cleanEnv(
+  env: Record<string, string | undefined> = process.env,
+  extra: Record<string, string> = {},
+) {
   return {
     ...Object.fromEntries(
-      Object.entries(process.env).filter(
-        ([key]) =>
-          !['NODE_ENV', 'TEST'].includes(key) && !key.startsWith('VITEST'),
+      Object.entries(env).filter(
+        ([key, value]) =>
+          value !== undefined &&
+          !['NODE_ENV', 'TEST'].includes(key) &&
+          !key.startsWith('VITEST'),
       ),
     ),
     ...extra,
@@ -54,28 +60,102 @@ function cleanEnv(extra: Record<string, string> = {}) {
 function git(args: string[], env: Record<string, string> = {}) {
   const result = spawnSync('git', args, {
     encoding: 'utf8',
-    env: cleanEnv(env),
+    env: cleanEnv(process.env, env),
   })
   if (result.status !== 0)
     throw new Error(`git ${args.join(' ')} failed:\n${result.stderr}`)
   return result.stdout.trim()
 }
 
-/** `mise exec node@24 pnpm@12 --`, from the copy's own `mise.toml`. */
-function toolchain(root: string) {
+export interface Toolchain {
+  command: string
+  /** The command's arguments for running `pnpm <args>`. */
+  args: (pnpmArgs: string[]) => string[]
+  env: Record<string, string>
+  /** `pnpm` from PATH is a `.cmd` shim on Windows. */
+  shell: boolean
+}
+
+// `24` matches 24.x.y, `24.1` matches 24.1.y.
+function satisfies(version: string, wanted: string) {
+  const bare = version.trim().replace(/^v/, '')
+  return bare === wanted || bare.startsWith(`${wanted}.`)
+}
+
+/**
+ * How to run the copy's pnpm with the Node and pnpm its own `mise.toml`
+ * names: `mise exec node@24 pnpm@12 -- pnpm …`, or, when
+ * `STUDIO_PARITY_NODE` names a folder holding that Node, `pnpm …` from PATH
+ * with that folder first, after checking both versions.
+ */
+export function reactToolchain(
+  root: string,
+  env: Record<string, string | undefined> = process.env,
+): Toolchain {
   const config = readFileSync(path.join(root, 'mise.toml'), 'utf8')
-  const tools = [...config.matchAll(/^(node|pnpm)\s*=\s*"([^"]+)"/gm)].map(
-    ([, tool, version]) => `${tool}@${version}`,
+  const tools = new Map(
+    [...config.matchAll(/^(node|pnpm)\s*=\s*"([^"]+)"/gm)].map(
+      ([, tool, version]) => [tool!, version!],
+    ),
   )
-  if (!tools.some((tool) => tool.startsWith('node@')))
-    throw new Error(`${root}/mise.toml names no Node version`)
-  return ['exec', ...tools, '--']
+  const node = tools.get('node')
+  if (!node) throw new Error(`${root}/mise.toml names no Node version`)
+  const base = cleanEnv(env)
+  const nodeFolder = env.STUDIO_PARITY_NODE
+  if (!nodeFolder) {
+    const pinned = [...tools].map(([tool, version]) => `${tool}@${version}`)
+    return {
+      command: 'mise',
+      args: (pnpmArgs) => ['exec', ...pinned, '--', 'pnpm', ...pnpmArgs],
+      env: base,
+      shell: false,
+    }
+  }
+
+  const pathKey =
+    Object.keys(base).find((key) => key.toUpperCase() === 'PATH') ?? 'PATH'
+  const toolchainEnv = {
+    ...base,
+    [pathKey]: [nodeFolder, base[pathKey]].filter(Boolean).join(path.delimiter),
+  }
+  const nodeVersion = spawnSync(
+    path.join(nodeFolder, process.platform === 'win32' ? 'node.exe' : 'node'),
+    ['--version'],
+    { encoding: 'utf8', windowsHide: true },
+  ).stdout?.trim()
+  if (!nodeVersion || !satisfies(nodeVersion, node))
+    throw new Error(
+      `The React studio needs Node ${node}, but ${nodeFolder} has ${nodeVersion || 'no node'} (STUDIO_PARITY_NODE)`,
+    )
+  const shell = process.platform === 'win32'
+  const pnpm = tools.get('pnpm')
+  if (pnpm) {
+    const pnpmVersion = spawnSync('pnpm', ['--version'], {
+      cwd: root,
+      encoding: 'utf8',
+      env: toolchainEnv,
+      shell,
+      windowsHide: true,
+    }).stdout?.trim()
+    if (!pnpmVersion || !satisfies(pnpmVersion, pnpm))
+      throw new Error(
+        `The React studio needs pnpm ${pnpm}, but PATH has ${pnpmVersion || 'no pnpm'}`,
+      )
+  }
+  return {
+    command: 'pnpm',
+    args: (pnpmArgs) => pnpmArgs,
+    env: toolchainEnv,
+    shell,
+  }
 }
 
 function pnpm(root: string, args: string[], options: SpawnOptions = {}) {
-  return spawn('mise', [...toolchain(root), 'pnpm', ...args], {
+  const toolchain = reactToolchain(root)
+  return spawn(toolchain.command, toolchain.args(args), {
     cwd: root,
-    env: cleanEnv({ STUDIO_DEV_STARTED_BY: 'the parity harness' }),
+    env: { ...toolchain.env, STUDIO_DEV_STARTED_BY: 'the parity harness' },
+    shell: toolchain.shell,
     windowsHide: true,
     ...options,
   })
@@ -211,7 +291,7 @@ export async function startReactStudio(
 
   const stop = async () => {
     await stopRecorded(root)
-    // The mise and pnpm processes around the server end with it; if they
+    // The mise (or shell) and pnpm processes around the server end with it; if they
     // linger, they are this run's own.
     if (exited !== undefined) return
     const ended = await Promise.race([
