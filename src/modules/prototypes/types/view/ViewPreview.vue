@@ -6,6 +6,7 @@ import {
   previewAddress,
   type HostMessage,
   type PreviewPhase,
+  type PreviewShortcut,
   type PreviewState,
 } from '../../../../../tooling/preview/protocol'
 import type {
@@ -20,7 +21,9 @@ import ViewError from './ViewError.vue'
 // between views of the prototype: the studio tells the document which view
 // to show, and the document keeps the outgoing one until the next is ready.
 // The document reports how rendering went and whether it shows the latest
-// saved source; this page says so in the studio's own words.
+// saved source; this page says so in the studio's own words. Links in the
+// view open through the studio, and the studio's shortcuts pressed in the
+// view reach it.
 const props = defineProps<{
   prototype: ManifestPrototype
   artifact: ManifestArtifact
@@ -29,8 +32,16 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
+const base = useRuntimeConfig().app.baseURL
 const SLOW_MS = 200
 const SILENT_MS = 15_000
+
+const SHORTCUT_KEYS = {
+  palette: { key: 'k', code: 'KeyK' },
+  navigation: { key: ';', code: 'Semicolon' },
+  source: { key: "'", code: 'Quote' },
+  grid: { key: '"', code: 'Quote', shiftKey: true },
+} satisfies Record<PreviewShortcut, KeyboardEventInit>
 
 const session =
   Math.random().toString(36).slice(2, 10) + Date.now().toString(36)
@@ -122,6 +133,21 @@ useEventListener(window, 'message', (event: MessageEvent) => {
     return
   const message = event.data
   silent.value = false
+  if (message.kind === 'navigate') {
+    if (message.href.startsWith(base))
+      void navigateTo(`/${message.href.slice(base.length)}`, {
+        replace: message.replace,
+      })
+    return
+  }
+  if (message.kind === 'shortcut') {
+    // The studio's own handlers decide, as if pressed here.
+    const key = SHORTCUT_KEYS[message.action as PreviewShortcut]
+    window.dispatchEvent(
+      new KeyboardEvent('keydown', { ...key, ctrlKey: true, bubbles: true }),
+    )
+    return
+  }
   if (message.kind === 'ready') {
     // A new load of the document, the first or after it reloaded.
     runtime = message.runtime

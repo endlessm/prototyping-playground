@@ -1316,6 +1316,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fontsource/comic-neue@npm:^5.2.7":
+  version: 5.3.0
+  resolution: "@fontsource/comic-neue@npm:5.3.0"
+  checksum: 10c0/368e63cebc81ba38ad9ffe56253a6bee30f4010ac44bc74ff9f6d426526d2b615798d66e837658c9a4d3b1a7f056eb32cec251a1b700bebd4adba96ab4255554
+  languageName: node
+  linkType: hard
+
 "@humanfs/core@npm:^0.19.2":
   version: 0.19.2
   resolution: "@humanfs/core@npm:0.19.2"
@@ -5891,6 +5898,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "design-studio@workspace:."
   dependencies:
+    "@fontsource/comic-neue": "npm:^5.2.7"
     "@iconify-json/lucide": "npm:^1.2.145"
     "@nuxt/eslint": "npm:^1.4.1"
     "@nuxt/ui": "npm:~4.8.2"

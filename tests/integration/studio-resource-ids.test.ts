@@ -42,7 +42,12 @@ const view = (id?: string) =>
   `${id ? `<!-- @studio-id ${id} -->\n` : ''}<template>\n  <p>Hi</p>\n</template>\n`
 
 interface Audit {
-  resources: { kind: string; path: string; studioId: string | null }[]
+  resources: {
+    kind: string
+    path: string
+    studioId: string | null
+    title?: string
+  }[]
   missing: string[]
   problems: string[]
 }
@@ -246,5 +251,83 @@ describe('identify', () => {
     expect(result.status).toBe(1)
     expect(result.stderr).toContain('systemId')
     expect(studio.read(`${folder}/Start.vue`)).toBe(view())
+  })
+})
+
+describe('named states', () => {
+  const folder = 'src/prototypes/ada/demo'
+  const STATES = `<script lang="ts">
+export const states = [
+  { title: 'Member', props: { name: 'Ana' } },
+  { title: 'New user', props: { name: '' } },
+]
+</script>
+
+<template>
+  <p>{{ name }}</p>
+</template>
+`
+
+  test('[PR-89] [PR-70] identify gives a view and each of its states an ID comment, once', () => {
+    prototype()
+    studio.write(`${folder}/Home.vue`, STATES)
+
+    const preview = JSON.parse(
+      studio.studio('identify', folder, '--json').stdout,
+    )
+    expect(preview.missingStates).toEqual([
+      { path: `${folder}/Home.vue`, title: 'Member' },
+      { path: `${folder}/Home.vue`, title: 'New user' },
+    ])
+    expect(studio.read(`${folder}/Home.vue`)).toBe(STATES)
+
+    const result = studio.studio('identify', folder, '--yes')
+    expect(result.status).toBe(0)
+    const written = studio.read(`${folder}/Home.vue`)
+    const [, view, member, newUser] =
+      /^<!-- @studio-id (\S+) -->\n<!-- @studio-state (\S+) Member -->\n<!-- @studio-state (\S+) New user -->\n/.exec(
+        written,
+      )!
+    expect(written.endsWith(STATES)).toBe(true)
+    expect(new Set([view, member, newUser]).size).toBe(3)
+    for (const id of [view, member, newUser]) expect(id).toMatch(ID)
+    expect(result.stdout).toContain(
+      'Assigned 3 identities in src/prototypes/ada/demo; existing identities were kept:',
+    )
+    expect(result.stdout).toContain(
+      `  ${folder}/Home.vue (state "Member") → ${member}`,
+    )
+
+    studio.studio('identify', folder, '--yes')
+    expect(studio.read(`${folder}/Home.vue`)).toBe(written)
+
+    // The audit counts each state with every other resource.
+    const audit: Audit = JSON.parse(
+      studio.studio('identity-audit', '--json').stdout,
+    )
+    expect(
+      audit.resources
+        .filter(({ kind }) => kind === 'state')
+        .map(({ path, studioId, title }) => [path, title, studioId]),
+    ).toEqual([
+      [`${folder}/Home.vue`, 'Member', member],
+      [`${folder}/Home.vue`, 'New user', newUser],
+    ])
+  })
+
+  test('[PR-89] the audit reports a state without its ID, and a state sharing another resource’s ID', () => {
+    prototype()
+    studio.write(
+      `${folder}/Home.vue`,
+      `<!-- @studio-id ${HOME} -->\n<!-- @studio-state ${HOME} Member -->\n${STATES}`,
+    )
+    const result = studio.studio('identity-audit')
+    expect(result.status).toBe(1)
+    expect(result.stdout).toContain(
+      `  Missing: ${folder}/Home.vue (state "New user")`,
+    )
+    expect(result.stdout).toContain(
+      `${folder}/Home.vue (state "Member"): the permanent identity ${HOME} is already used by ${folder}/Home.vue.`,
+    )
   })
 })

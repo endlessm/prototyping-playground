@@ -4,6 +4,8 @@ import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 import { buildManifest } from '../../tooling/manifest/build'
 import { identity as viewIdentity } from '../../src/modules/prototypes/types/view/identity'
+import { fidelity as viewFidelity } from '../../src/modules/prototypes/types/view/fidelity'
+import { check as viewCheck } from '../../src/modules/prototypes/types/view/states'
 import type { InstalledSystem } from '../../tooling/systems/registry'
 
 let root: string
@@ -18,7 +20,15 @@ const systems = [
     spec: { label: 'Harbor', status: 'active', colorModes: ['light'] },
   },
 ] as unknown as InstalledSystem[]
-const fileTypes = [{ id: 'view', extensions: ['.vue'], identity: viewIdentity }]
+const fileTypes = [
+  {
+    id: 'view',
+    extensions: ['.vue'],
+    identity: viewIdentity,
+    check: viewCheck,
+    fidelity: viewFidelity,
+  },
+]
 
 function write(file: string, content: string) {
   const full = path.join(root, 'src/prototypes', file)
@@ -168,6 +178,77 @@ describe('the manifest', () => {
       'src/prototypes/bernardo/no-id/meta.json: "studioId" must be 16 lowercase letters and digits (Crockford base32).',
       'src/prototypes/bernardo/untitled/meta.json: "title" must be plain text.',
     ])
+  })
+})
+
+describe('named states and lo-fi views', () => {
+  const STATES = `<script lang="ts">
+export const states = [
+  { title: 'Member', props: { name: 'Ana' } },
+  { title: 'New user', props: { name: '' } },
+]
+</script>
+<template><p>{{ name }}</p></template>`
+
+  test('[PR-89] [SH-72] a view carries its states, each with its own permanent identity, in declaration order', () => {
+    prototype('bernardo/tracer', { studioId: 'tracer0000000001' })
+    write(
+      'bernardo/tracer/Home.vue',
+      `<!-- @studio-id vhme000000000001 -->
+<!-- @studio-state stmb000000000001 Member -->
+<!-- @studio-state stnw000000000001 New user -->
+${STATES}`,
+    )
+    write('bernardo/tracer/Plain.vue', view('vp1n000000000001'))
+    const { artifacts, problems } = build()
+    expect(problems).toEqual([])
+    const [home, plain] = artifacts.tracer0000000001!
+    expect(home!.states).toEqual([
+      { id: 'stmb000000000001', title: 'Member' },
+      { id: 'stnw000000000001', title: 'New user' },
+    ])
+    expect(plain).not.toHaveProperty('states')
+  })
+
+  test('[PR-90] a state without its identity, a shared identity and a comment naming no state are reported with the file and title', () => {
+    prototype('bernardo/tracer', { studioId: 'tracer0000000001' })
+    write(
+      'bernardo/tracer/Home.vue',
+      `<!-- @studio-id vhme000000000001 -->
+<!-- @studio-state stmb000000000001 Member -->
+<!-- @studio-state stgn000000000001 Gone -->
+${STATES}`,
+    )
+    write(
+      'bernardo/tracer/Other.vue',
+      `<!-- @studio-id vthr000000000001 -->
+<!-- @studio-state stmb000000000001 Member -->
+${STATES.replace("{ title: 'New user', props: { name: '' } },", '')}`,
+    )
+    const { artifacts, problems } = build()
+    expect(problems).toEqual([
+      'src/prototypes/bernardo/tracer/Home.vue: @studio-state stgn000000000001 names no state titled "Gone". When renaming a state, change its title in the comment too, which keeps its permanent link; remove the comment only when removing the state.',
+      'src/prototypes/bernardo/tracer/Home.vue: state "New user" has no permanent identity yet.',
+      'src/prototypes/bernardo/tracer/Other.vue: state "Member": the permanent identity stmb000000000001 is already used by src/prototypes/bernardo/tracer/Home.vue (state "Member").',
+    ])
+    // The views stay; only their broken states are left out.
+    expect(artifacts.tracer0000000001!.map(({ states }) => states)).toEqual([
+      [{ id: 'stmb000000000001', title: 'Member' }],
+      [],
+    ])
+  })
+
+  test('[PR-91] a lo-fi view says so', () => {
+    prototype('bernardo/tracer', { studioId: 'tracer0000000001' })
+    write(
+      'bernardo/tracer/Sketch.vue',
+      `<!-- @lofi -->
+${view('vskt000000000001')}`,
+    )
+    write('bernardo/tracer/Final.vue', view('vfn1000000000001'))
+    const [final, sketch] = build().artifacts.tracer0000000001!
+    expect(sketch!.lofi).toBe(true)
+    expect(final).not.toHaveProperty('lofi')
   })
 })
 

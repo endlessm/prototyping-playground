@@ -3,6 +3,9 @@
 // same-origin repository code. The studio configures which artifact the
 // document shows; the document says it is ready, how rendering went
 // (status) and whether what it shows matches the saved source (lifecycle).
+// It asks the studio to open another studio address (navigate), so links in a
+// view go through the studio's history, and passes on the studio's keyboard
+// shortcuts pressed while it has focus (shortcut).
 // Imported by both sides, so it imports nothing of either.
 import { isResourceId } from '../identity/resource-id.ts'
 
@@ -30,6 +33,10 @@ export interface Envelope {
 
 export type HostMessage = Envelope & { kind: 'configure' }
 
+/** The studio commands a preview passes on while it has focus. */
+export type PreviewShortcut = 'source' | 'grid' | 'palette' | 'navigation'
+const SHORTCUTS: PreviewShortcut[] = ['source', 'grid', 'palette', 'navigation']
+
 export type PreviewMessage = Envelope &
   (
     | { kind: 'ready' }
@@ -46,6 +53,13 @@ export type PreviewMessage = Envelope &
         phase: PreviewPhase
         detail: string
       }
+    | {
+        kind: 'navigate'
+        /** A path on the studio's own origin, with the base path. */
+        href: string
+        replace: boolean
+      }
+    | { kind: 'shortcut'; action: PreviewShortcut }
   )
 
 const STATES: PreviewState[] = ['loading', 'ready', 'error', 'empty']
@@ -65,6 +79,14 @@ const count = (value: unknown) =>
   Number.isSafeInteger(value) && (value as number) >= 0
 const detail = (value: unknown) =>
   typeof value === 'string' && value.length <= MAX_DETAIL
+const MAX_HREF = 2048
+/** A path on this origin: `/…`, never `//host`. */
+export const isStudioHref = (value: unknown): value is string =>
+  typeof value === 'string' &&
+  value.length <= MAX_HREF &&
+  value.startsWith('/') &&
+  !value.startsWith('//') &&
+  !CONTROL.test(value)
 
 function isEnvelope(
   value: unknown,
@@ -102,6 +124,10 @@ export function isPreviewMessage(value: unknown): value is PreviewMessage {
         count(value.sequence) &&
         detail(value.detail)
       )
+    case 'navigate':
+      return isStudioHref(value.href) && typeof value.replace === 'boolean'
+    case 'shortcut':
+      return SHORTCUTS.includes(value.action as PreviewShortcut)
     default:
       return false
   }

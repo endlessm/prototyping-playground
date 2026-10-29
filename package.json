@@ -33,6 +33,7 @@
     "parity:coverage": "node tooling/parity/coverage.ts"
   },
   "dependencies": {
+    "@fontsource/comic-neue": "^5.2.7",
     "@iconify-json/lucide": "^1.2.145",
     "@nuxt/ui": "~4.8.2",
     "@nuxtjs/i18n": "^10.3.0",

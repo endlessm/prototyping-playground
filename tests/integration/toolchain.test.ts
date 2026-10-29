@@ -66,7 +66,9 @@ describe('toolchain commands', () => {
   test('Nuxt prepares a checkout that has never been built', () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'studio-prepare-'))
     try {
-      const skipped = /^(.git|node_modules|.nuxt.*|.output.*|.scratch)$/
+      // Build output (`dist` links to it) and scenario content stay behind.
+      const skipped =
+        /^(.git|node_modules|.nuxt.*|.output.*|dist|.scratch|.e2e)$/
       for (const entry of fs.readdirSync('.'))
         if (!skipped.test(entry))
           fs.cpSync(entry, path.join(root, entry), { recursive: true })
