@@ -21,6 +21,7 @@ yarn format:check
 yarn typecheck
 yarn test        # unit and integration tests
 yarn test:full   # every test, including the browser scenarios
+yarn parity      # the parity scenarios against this studio and the React studio on main
 yarn build       # the static site, in .output/public
 yarn preview     # serve the static site locally
 yarn build:inspect
