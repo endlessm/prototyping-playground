@@ -26,7 +26,6 @@ import {
 import { readContributors } from '../contributors/profiles.ts'
 import { identityFileTypes } from '../identity/file-types.ts'
 import { createRefreshQueue } from '../live/refresh-queue.ts'
-import { FIDELITY_ROUTE, fidelityRoute } from './fidelity.ts'
 import { sameOrigin } from '../modules/nuxt-module.ts'
 import { loadRegistry } from '../modules/registry.ts'
 import {
@@ -112,11 +111,19 @@ export default defineNuxtModule({
     const problems = [...systemProblems, ...read().problems]
     for (const problem of problems) console.warn(`Warning: ${problem}`)
 
-    // The page of each file type, loaded when an artifact of it opens.
-    const pages = fileTypes.map(
-      (type) =>
-        `${JSON.stringify(type.id)}: { label: ${JSON.stringify(type.label)}, fidelity: ${Boolean(type.fidelity)}, page: () => import(${JSON.stringify(path.join(type.dir, type.page).split(path.sep).join('/'))}) }`,
-    )
+    // Each file type's page, loaded when an artifact of it opens.
+    const load = (type: (typeof fileTypes)[number], file: string) =>
+      `() => import(${JSON.stringify(path.join(type.dir, file).split(path.sep).join('/'))})`
+    const pages = fileTypes.map((type) => {
+      const fields = [
+        `label: ${JSON.stringify(type.label)}`,
+        `fidelity: ${Boolean(type.fidelity)}`,
+        `extensions: ${JSON.stringify(type.extensions)}`,
+        `icon: ${JSON.stringify(type.icon ?? 'i-lucide-file')}`,
+        `page: ${load(type, type.page)}`,
+      ]
+      return `${JSON.stringify(type.id)}: { ${fields.join(', ')} }`
+    })
     const template = addTemplate({
       filename: 'studio-file-types.mjs',
       getContents: () => `export default {${pages.join(',\n')}}\n`,
@@ -128,8 +135,19 @@ export default defineNuxtModule({
         getContents: () => `
 declare module '#studio/file-types' {
   import type { Component } from 'vue'
-  /** fidelity: its artifacts can be made lo-fi and hi-fi again. */
-  const types: Record<string, { label: string; fidelity: boolean; page: () => Promise<{ default: Component }> }>
+  type Load = () => Promise<{ default: Component }>
+  const types: Record<
+    string,
+    {
+      label: string
+      /** Its artifacts can be made lo-fi and hi-fi again. */
+      fidelity: boolean
+      extensions: string[]
+      /** An Iconify name. */
+      icon: string
+      page: Load
+    }
+  >
   export default types
 }
 declare module '${MANIFEST_MODULE}' {
@@ -213,24 +231,6 @@ declare module '${MANIFEST_MODULE}' {
       { server: false },
     )
     addVitePlugin(previews.plugin, { server: false })
-    if (nuxt.options.dev) {
-      const route = fidelityRoute({
-        root,
-        contributorsFolder: process.env.STUDIO_CONTRIBUTORS || 'contributors',
-        configFile: registry.configFile,
-        read,
-        readers,
-      })
-      addVitePlugin(
-        {
-          name: 'studio-fidelity',
-          configureServer(server) {
-            server.middlewares.use(`${base}${FIDELITY_ROUTE}`, route)
-          },
-        },
-        { server: false },
-      )
-    }
   },
 })
 

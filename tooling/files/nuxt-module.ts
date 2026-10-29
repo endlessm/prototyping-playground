@@ -1,8 +1,10 @@
 // The file service: while the dev server runs, Nitro routes read and save
-// artifacts' source (`server/source.ts`) and create prototypes
-// (`server/prototypes.ts`), and open pages hear `studio:source`
-// with the files that changed on disk, so an open editor can reload or offer
-// its conflict choice. The static build has none of it.
+// artifacts' source (`server/source.ts`), list and change a prototype's
+// files for its file tree (`server/tree.ts`) and create prototypes
+// (`server/prototypes.ts`). Open pages hear `studio:source` with the files
+// whose content changed on disk, so an open editor can reload or offer its
+// conflict choice, and `studio:files` when files or folders were added or
+// removed, so file trees refresh. The static build has none of it.
 import path from 'node:path'
 import {
   addServerHandler,
@@ -16,6 +18,7 @@ import { loadRegistry } from '../modules/registry.ts'
 
 export const SOURCE_ROUTE = '_studio/files/source'
 export const PROTOTYPES_ROUTE = '_studio/files/prototypes'
+export const TREE_ROUTE = '_studio/files/tree'
 
 /** What the routes need, through the server's runtime configuration. */
 export interface FileServiceConfig {
@@ -23,8 +26,22 @@ export interface FileServiceConfig {
   prototypesFolder: string
   contributorsFolder: string
   configFile: string
-  /** The installed file types, with each identity adapter's file. */
-  fileTypes: { id: string; extensions: string[]; identity: string }[]
+  /**
+   * The installed file types, with the files of each one's identity
+   * adapter, lo-fi adapter and template.
+   */
+  fileTypes: {
+    id: string
+    extensions: string[]
+    identity: string
+    fidelity?: string
+    template?: string
+  }[]
+  /**
+   * Where to note the programs the service would start (file browser, code
+   * editor) instead of starting them; for the browser scenarios.
+   */
+  launchLog?: string
 }
 
 const SETTLE_MS = 50
@@ -51,8 +68,11 @@ export default defineNuxtModule({
           id: type.id,
           extensions: type.extensions,
           identity: path.join(dir, type.identity),
+          ...(type.fidelity && { fidelity: path.join(dir, type.fidelity) }),
+          ...(type.template && { template: path.join(dir, type.template) }),
         })),
       ),
+      launchLog: process.env.STUDIO_LAUNCH_LOG || undefined,
     }
     nuxt.options.runtimeConfig.studioFiles = config
     addServerHandler({
@@ -63,6 +83,10 @@ export default defineNuxtModule({
       route: `/${PROTOTYPES_ROUTE}`,
       handler: resolve('./server/prototypes.ts'),
     })
+    addServerHandler({
+      route: `/${TREE_ROUTE}`,
+      handler: resolve('./server/tree.ts'),
+    })
     addVitePlugin(
       sourceChanges(root, path.resolve(root, config.prototypesFolder)),
       { server: false },
@@ -70,7 +94,10 @@ export default defineNuxtModule({
   },
 })
 
-/** Tells open pages which content files changed, as the service names them. */
+/**
+ * Tells open pages which content files changed, as the service names them,
+ * and which files and folders were added or removed.
+ */
 function sourceChanges(root: string, folder: string): Plugin {
   const named = (file: string) => {
     const relative = path.relative(root, file)
@@ -79,28 +106,42 @@ function sourceChanges(root: string, folder: string): Plugin {
   return {
     name: 'studio-source-changes',
     configureServer(server) {
-      const files = new Set<string>()
-      let timer: ReturnType<typeof setTimeout> | undefined
-      const changed = (file: string) => {
+      const batch = (event: string, key: 'files' | 'paths') => {
+        const files = new Set<string>()
+        let timer: ReturnType<typeof setTimeout> | undefined
+        return {
+          add(file: string) {
+            files.add(file)
+            clearTimeout(timer)
+            timer = setTimeout(() => {
+              server.ws.send({
+                type: 'custom',
+                event,
+                data: { [key]: [...files] },
+              })
+              files.clear()
+            }, SETTLE_MS)
+          },
+          stop: () => clearTimeout(timer),
+        }
+      }
+      const sources = batch('studio:source', 'files')
+      const structure = batch('studio:files', 'paths')
+      const listener = (event: string) => (file: string) => {
         const resolved = path.resolve(file)
         if (!resolved.startsWith(folder + path.sep)) return
-        files.add(named(resolved))
-        clearTimeout(timer)
-        timer = setTimeout(() => {
-          server.ws.send({
-            type: 'custom',
-            event: 'studio:source',
-            data: { files: [...files] },
-          })
-          files.clear()
-        }, SETTLE_MS)
+        if (event !== 'addDir' && event !== 'unlinkDir')
+          sources.add(named(resolved))
+        if (event !== 'change') structure.add(named(resolved))
       }
-      const events = ['add', 'change', 'unlink'] as const
-      for (const event of events) server.watcher.on(event, changed)
+      const events = ['add', 'change', 'unlink', 'addDir', 'unlinkDir']
+      const listeners = events.map((event) => [event, listener(event)] as const)
+      for (const [event, on] of listeners) server.watcher.on(event, on)
       server.watcher.add(folder)
       server.httpServer?.once('close', () => {
-        clearTimeout(timer)
-        for (const event of events) server.watcher.off(event, changed)
+        sources.stop()
+        structure.stop()
+        for (const [event, on] of listeners) server.watcher.off(event, on)
       })
     },
   }

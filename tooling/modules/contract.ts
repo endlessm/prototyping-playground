@@ -90,8 +90,15 @@ export interface ModuleFileType {
    * to the module's folder. Its artifacts get "Make lo-fi" and "Make hi-fi".
    */
   fidelity?: string
+  /**
+   * A file whose `template` export gives a new file's source from its title,
+   * relative to the module's folder. The studio adds the identity.
+   */
+  template?: string
   /** The Vue component an artifact page renders, relative to the folder. */
   page: string
+  /** An Iconify name for the type's cards, such as `i-lucide-file-text`. */
+  icon?: string
 }
 
 export interface BuildDataContext {

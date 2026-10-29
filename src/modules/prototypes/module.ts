@@ -39,6 +39,7 @@ export default {
       check: 'types/view/states.ts',
       fidelity: 'types/view/fidelity.ts',
       page: 'types/view/ViewPage.vue',
+      icon: 'i-lucide-app-window',
     },
   ],
 } satisfies StudioModule
