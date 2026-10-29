@@ -1,7 +1,9 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, test } from 'vitest'
 import { check } from '../../src/modules/document/types/document/check'
 import { identity } from '../../src/modules/document/types/document/identity'
 import { template } from '../../src/modules/document/types/document/template'
+import documents from '../../src/modules/document/module'
 
 describe('a document’s identity in its frontmatter', () => {
   test('[CL-51] is read from `studioId` in the frontmatter', () => {
@@ -87,5 +89,27 @@ describe('a document’s checks', () => {
     ])
     expect(check('---\ntitle: Brief\ntoc: true\n---\n# Hi\n')).toEqual([])
     expect(check('# No frontmatter\n')).toEqual([])
+  })
+})
+
+describe('the write-document skill', () => {
+  test('[PR-116] the Documents module carries it, covering plain Markdown, Mermaid with accTitle and accDescr, relative links with extensions, embeds and shared context', () => {
+    expect(documents.skills).toEqual([
+      expect.objectContaining({ path: 'skills/write-document/' }),
+    ])
+    const skill = readFileSync(
+      'src/modules/document/skills/write-document/SKILL.md',
+      'utf8',
+    )
+    expect(skill).toMatch(/^---\r?\nname: write-document\r?\n/)
+    for (const rule of [
+      'Write plain Markdown',
+      'accTitle',
+      'accDescr',
+      'with their extension',
+      'image syntax on its own line',
+      "the system's own context",
+    ])
+      expect(skill).toContain(rule)
   })
 })

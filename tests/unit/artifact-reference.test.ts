@@ -15,6 +15,7 @@ const prototype: ManifestPrototype = {
   owner: null,
   created: null,
   systemId: null,
+  status: 'active',
 }
 const artifact = (
   id: string,
