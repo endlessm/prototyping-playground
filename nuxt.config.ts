@@ -93,6 +93,26 @@ export default defineNuxtConfig({
     emitRouteChunkError: false,
   },
 
+  // Icons ship with the app, so the studio needs no icon service: the
+  // deployed site and a phone on the local network may be offline. The scan
+  // finds every `i-lucide-*` name in the studio's code, its modules and
+  // Nuxt UI's own defaults.
+  icon: {
+    provider: 'none',
+    fallbackToApi: false,
+    clientBundle: {
+      scan: {
+        globInclude: [
+          'app/**/*.{vue,ts}',
+          'src/modules/**/*.{vue,ts}',
+          'tests/fixtures/**/*.{vue,ts}',
+          'node_modules/@nuxt/ui/dist/shared/*.mjs',
+        ],
+        globExclude: [],
+      },
+    },
+  },
+
   // Remembered in this browser, applied before the first paint.
   colorMode: {
     storageKey: COLOR_MODE_KEY,

@@ -48,18 +48,20 @@ describe('the deployed site, built under a sub-path and served statically', () =
     ).toBe(`${PUBLIC_URL}/`)
   })
 
-  test('[CL-111] a deep link loads the app from the 404 copy, which reads the address', async () => {
+  test('[CL-111] [SH-08] a deep link loads the app from the 404 copy, which reads the address', async () => {
     const page = await newPage()
     const response = await page.goto(`${site.url}prototypes/missing/view`)
     expect(response?.status()).toBe(404)
+    // The app routes the address itself: an unknown one is not found, in
+    // the studio's frame.
     await expect
-      .poll(
-        () => page.getByText('/prototypes/missing/view').first().isVisible(),
-        {
-          timeout: 30_000,
-        },
-      )
+      .poll(() => page.getByText('Page not found').isVisible(), {
+        timeout: 30_000,
+      })
       .toBe(true)
+    expect(
+      await page.getByRole('navigation', { name: 'Main' }).isVisible(),
+    ).toBe(true)
     expect(new URL(page.url()).pathname).toBe(`${BASE}prototypes/missing/view`)
   })
 

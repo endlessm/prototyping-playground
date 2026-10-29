@@ -17,6 +17,9 @@ const folder = mkdtempSync(path.join(os.tmpdir(), 'studio-modules-e2e-'))
 const config = path.join(folder, 'studio.config.json')
 const env = {
   STUDIO_CONFIG: config,
+  // Nobody is registered, so Home's heading is the studio's name.
+  STUDIO_CONTRIBUTORS: folder,
+  STUDIO_GITHUB: '',
   STUDIO_MODULES: 'tests/fixtures/modules',
 }
 
