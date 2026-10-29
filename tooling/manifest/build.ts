@@ -55,6 +55,12 @@ export interface ManifestArtifact {
    * turned off. Its source can still be opened locally.
    */
   unavailable?: ArtifactUnavailable
+  /**
+   * In the deployed site, where the file's text is, relative to the main
+   * manifest, for a type whose page reads it. Locally the file service
+   * reads it.
+   */
+  text?: string
 }
 
 /** A turned-off file type, by its label and its module's. */
@@ -221,7 +227,7 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
         }
         if (!artifactId) {
           problems.push(
-            `${where}: the permanent identity is missing; it belongs in a leading <!-- @studio-id … --> comment.`,
+            `${where}: the permanent identity is missing; it belongs in ${type.identity.where ?? 'a leading <!-- @studio-id … --> comment'}.`,
           )
           continue
         }

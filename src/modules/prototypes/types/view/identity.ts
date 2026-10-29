@@ -6,6 +6,7 @@ import type { IdentityAdapter } from '../../../../../tooling/modules/contract.ts
 const LEADING = /^\uFEFF?(?:\s|<!--[\s\S]*?-->)*/
 
 export const identity: IdentityAdapter = {
+  where: 'a leading <!-- @studio-id … --> comment',
   read(source) {
     const header = LEADING.exec(source)?.[0] ?? ''
     const ids = [...header.matchAll(/@studio-id\s+([^\s>]*?)\s*(?:-->|\s)/g)]

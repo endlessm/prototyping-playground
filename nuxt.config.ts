@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import { defineNuxtConfig } from 'nuxt/config'
 import { nodeVersionWarning } from './tooling/check-node.ts'
@@ -120,6 +121,16 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  // MDC loads a highlighting theme named `<name>` from `@shikijs/themes/<name>`.
+  alias: {
+    '@shikijs/themes/studio-light': fileURLToPath(
+      new URL('./app/markdown/code-theme-light.ts', import.meta.url),
+    ),
+    '@shikijs/themes/studio-dark': fileURLToPath(
+      new URL('./app/markdown/code-theme-dark.ts', import.meta.url),
+    ),
+  },
+
   modules: [
     '@nuxtjs/i18n',
     '@nuxt/eslint',
@@ -132,6 +143,45 @@ export default defineNuxtConfig({
     './tooling/manifest/nuxt-module.ts',
     './tooling/files/nuxt-module.ts',
   ],
+
+  // Markdown readers parse with Nuxt's MDC and render Nuxt UI's prose
+  // components (`app/markdown/`).
+  ui: {
+    mdc: true,
+  },
+  mdc: {
+    // Documents are plain Markdown: no emoji shortcodes.
+    remarkPlugins: { 'remark-emoji': false },
+    // Every heading links to itself, as in the React studio's reader.
+    headings: {
+      anchorLinks: { h1: false, h2: true, h3: true, h4: true },
+    },
+    highlight: {
+      // Highlighted in the browser: the deployed site has no server.
+      noApiRoute: true,
+      // The studio's palette (`app/utils/contentPalette.ts`), by these names.
+      theme: {
+        default: 'studio-light',
+        light: 'studio-light',
+        dark: 'studio-dark',
+      },
+      langs: [
+        'bash',
+        'css',
+        'diff',
+        'html',
+        'js',
+        'json',
+        'jsx',
+        'md',
+        'shell',
+        'ts',
+        'tsx',
+        'vue',
+        'yaml',
+      ],
+    },
+  },
 
   runtimeConfig: {
     public: {

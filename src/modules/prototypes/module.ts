@@ -34,6 +34,8 @@ export default {
       extensions: ['.vue'],
       identity: 'types/view/identity.ts',
       page: 'types/view/ViewPage.vue',
+      embed: 'types/view/ViewEmbed.vue',
+      icon: 'i-lucide-app-window',
     },
   ],
 } satisfies StudioModule
