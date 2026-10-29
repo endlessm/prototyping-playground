@@ -174,7 +174,7 @@ describe('on the static build', () => {
     expect(await page.getByText(/^Welcome back, /).count()).toBe(0)
   })
 
-  test('[CL-125] the build carries no profile beyond keys and permanent IDs', () => {
+  test('[CL-125] the build carries no full profile: bylines only, never emails or preferences', () => {
     const files = fs.readdirSync(site.directory, {
       recursive: true,
     }) as string[]
@@ -184,7 +184,19 @@ describe('on the static build', () => {
       const text = fs.readFileSync(full, 'utf8')
       expect(text, file).not.toContain('ada@endless.example')
       expect(text, file).not.toContain('ben@home.example')
-      expect(text, file).not.toContain('Lovelace')
+      expect(text, file).not.toContain('"preferences"')
     }
+    // Gallery cards name each maker (PR-04): name, GitHub account and
+    // avatar, and nothing else from the profile.
+    const manifests = files.filter((file) =>
+      /studio-manifest[\\/]index\.[0-9a-f]+\.json$/.test(file),
+    )
+    expect(manifests).toHaveLength(1)
+    const { contributors } = JSON.parse(
+      fs.readFileSync(path.join(site.directory, manifests[0]!), 'utf8'),
+    ) as { contributors: Record<string, unknown>[] }
+    for (const contributor of contributors)
+      for (const field of Object.keys(contributor))
+        expect(['id', 'key', 'name', 'github', 'avatar']).toContain(field)
   })
 })

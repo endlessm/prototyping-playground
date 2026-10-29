@@ -23,6 +23,7 @@ import {
   type Plugin,
   type ViteDevServer,
 } from 'vite'
+import { readContributors } from '../contributors/profiles.ts'
 import { identityFileTypes } from '../identity/file-types.ts'
 import { createRefreshQueue } from '../live/refresh-queue.ts'
 import { FIDELITY_ROUTE, fidelityRoute } from './fidelity.ts'
@@ -62,6 +63,7 @@ export default defineNuxtModule({
     const base = nuxt.options.app.baseURL
     // The browser scenarios point the studio at fixture content.
     const prototypesFolder = process.env.STUDIO_PROTOTYPES || PROTOTYPES_FOLDER
+    const contributorsFolder = process.env.STUDIO_CONTRIBUTORS || 'contributors'
     const registry = await loadRegistry(root, {
       modulesFolder: process.env.STUDIO_MODULES || undefined,
       configFile: process.env.STUDIO_CONFIG || undefined,
@@ -105,6 +107,7 @@ export default defineNuxtModule({
         systems,
         fileTypes: readers,
         defaultSystem: defaultSystem(),
+        contributors: readContributors(root, contributorsFolder).contributors,
       })
     const problems = [...systemProblems, ...read().problems]
     for (const problem of problems) console.warn(`Warning: ${problem}`)
@@ -200,7 +203,11 @@ declare module '${MANIFEST_MODULE}' {
     )
     addVitePlugin(
       manifestPlugin(read, base, {
-        watch: [path.resolve(root, prototypesFolder), registry.configFile],
+        watch: [
+          path.resolve(root, prototypesFolder),
+          path.resolve(root, contributorsFolder),
+          registry.configFile,
+        ],
         changed: previews.changed,
       }),
       { server: false },

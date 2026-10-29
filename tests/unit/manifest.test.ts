@@ -91,6 +91,7 @@ describe('the manifest', () => {
         owner: 'ma1xykkc2j3d2x24',
         created: '2026-10-28',
         systemId: SYSTEM,
+        status: 'active',
       },
     ])
     expect(manifest.systems).toEqual([
@@ -195,6 +196,43 @@ describe('the manifest', () => {
     expect(problems).toEqual([
       'src/prototypes/bernardo/gone/meta.json: the system zzzz000000000001 is not installed; choose an installed system or null for no system.',
       'src/prototypes/bernardo/unset/meta.json: "systemId" is missing; name the prototype’s system, or null for no system.',
+    ])
+  })
+
+  test('[PR-08] [PR-04] marks archived prototypes, and names each contributor for bylines', () => {
+    prototype('ada/old', { studioId: 'a1d0000000000001', status: 'archived' })
+    prototype('ada/new', { studioId: 'a1d0000000000002' })
+    const contributors = {
+      ada: {
+        studioId: 'ada0000000000001',
+        name: 'Ada Lovelace',
+        github: 'ada-l',
+        avatar: 'images/ada.png',
+        email: 'ada@endless.example',
+        preferences: {},
+      },
+      ben: { studioId: 'ben0000000000002', name: 'Ben Okafor', github: '' },
+    }
+    const { manifest } = buildManifest({
+      root,
+      systems,
+      fileTypes,
+      contributors,
+    })
+    expect(manifest.prototypes.map(({ status }) => status)).toEqual([
+      'active',
+      'archived',
+    ])
+    // Only what a byline shows: never emails or preferences.
+    expect(manifest.contributors).toEqual([
+      {
+        id: 'ada0000000000001',
+        key: 'ada',
+        name: 'Ada Lovelace',
+        github: 'ada-l',
+        avatar: 'images/ada.png',
+      },
+      { id: 'ben0000000000002', key: 'ben', name: 'Ben Okafor' },
     ])
   })
 

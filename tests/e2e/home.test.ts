@@ -50,4 +50,34 @@ describe.each(targets)('Home on the $target', ({ local, start }) => {
     expect(await page.getByRole('navigation').count()).toBeGreaterThan(0)
     expect(await page.title()).toBe(name)
   })
+
+  test('[PR-12] [PR-16] only a registered contributor, running the studio locally, can create a prototype', async () => {
+    const page = await newPage()
+    await page.goto(`${studio.url}prototypes`)
+    await expect
+      .poll(
+        () =>
+          page
+            .getByRole('heading', { level: 1, name: 'Prototypes' })
+            .isVisible(),
+        { timeout: 60_000 },
+      )
+      .toBe(true)
+    expect(
+      await page.getByRole('button', { name: 'New prototype' }).count(),
+    ).toBe(0)
+    // The file service refuses too, and the deployed site has none.
+    const reply = await page.evaluate(async (url) => {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'Sneaky', system: null }),
+      })
+      return { status: response.status, text: await response.text() }
+    }, `${studio.url}_studio/files/prototypes`)
+    if (local) {
+      expect(reply.status).toBe(403)
+      expect(reply.text).toContain('Ask your agent to add you.')
+    } else expect(reply.status).not.toBe(201)
+  })
 })
