@@ -37,7 +37,10 @@ export const useShowAllFiles = () =>
  * until the dev server answers, the listing is null.
  */
 export function useFileTree(prototypeId: () => string | undefined) {
-  const url = `${useRuntimeConfig().app.baseURL}_studio/files/tree`
+  // Only the dev server has the route; the static build never names it.
+  const url = import.meta.dev
+    ? `${useRuntimeConfig().app.baseURL}_studio/files/tree`
+    : ''
   const listing = shallowRef<FileListing | null>(null)
   let latest = 0
 

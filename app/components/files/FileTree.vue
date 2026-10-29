@@ -439,7 +439,7 @@ const extension = (name: string) => {
             #item-wrapper="{ item, expanded: isOpen, selected: isSelected, ui }"
           >
             <div
-              v-if="item.field || renaming === item.node?.path"
+              v-if="item.field || (item.node && renaming === item.node.path)"
               :class="
                 ui.link({
                   class: 'gap-1.5 py-0.5',
