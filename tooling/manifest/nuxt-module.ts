@@ -130,7 +130,9 @@ declare module '${MANIFEST_MODULE}' {
 
     // The static build serves the preview documents from `_preview/`,
     // built before the app so Nitro copies them with its public files.
-    if (!nuxt.options.dev) {
+    // `nuxt prepare` (run on install) bundles nothing, and runs before the
+    // tsconfig files that a build reads exist.
+    if (!nuxt.options.dev && !nuxt.options._prepare) {
       const dist = path.join(workDir, 'dist')
       mkdirSync(dist, { recursive: true })
       nuxt.options.nitro.publicAssets ??= []
