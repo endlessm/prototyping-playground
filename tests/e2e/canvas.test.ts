@@ -364,7 +364,7 @@ describe('a canvas in the studio running locally', () => {
       .toBe(true)
   })
 
-  test('[CV-28] [CV-23] someone else’s canvas opens read-only', async () => {
+  test('[CV-28] [CV-23] [CV-35] someone else’s canvas opens read-only, with a menu holding only Hide controls', async () => {
     const page = await canvasPage()
     await page.goto(address(studio, PLAIN, THEIRS))
     await opened(page)
@@ -565,6 +565,36 @@ describe('a canvas in the studio running locally', () => {
       )
       .toBe('')
     expect(await stylePanel(page).isVisible()).toBe(false)
+  })
+
+  test('[CV-32] Excalidraw’s own selection, context menu and zoom controls stay', async () => {
+    const page = await canvasPage()
+    await open(page, studio, BOARD)
+    // Select the rectangle: its style panel appears at the left.
+    await focusCanvas(page)
+    await page.keyboard.press('Control+a')
+    await visible(stylePanel(page))
+    expect(await stylePanel(page).textContent()).toContain('Stroke')
+    // The context menu offers grouping, alignment, locking and layers.
+    const box = (await canvas(page).boundingBox())!
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, {
+      button: 'right',
+    })
+    const contextMenu = page.locator('.context-menu')
+    await visible(contextMenu)
+    const items = await contextMenu.locator('button').allTextContents()
+    for (const name of ['Group selection', 'Bring to front', 'Lock'])
+      expect(
+        items.some((item) => item.startsWith(name)),
+        name,
+      ).toBe(true)
+    await page.keyboard.press('Escape')
+    // The zoom controls stay.
+    const before = Number.parseInt((await zoom(page)) ?? '', 10)
+    await page.getByRole('button', { name: 'Zoom in' }).click()
+    await expect
+      .poll(async () => Number.parseInt((await zoom(page)) ?? '', 10))
+      .toBeGreaterThan(before)
   })
 
   test('[CV-48] [CV-49] the editor follows the studio’s colour mode from the first paint, and live', async () => {
