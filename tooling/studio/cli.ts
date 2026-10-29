@@ -1,10 +1,15 @@
 // yarn studio <command>: the one entry point for managing the studio. Agents
 // run these when people ask in plain words. Every command that changes files
 // prints what it would do and changes nothing until it runs again with --yes;
-// enable and disable apply right away.
+// enable and disable apply right away. Shared changes (the configuration and
+// modules) need an Admin. `--as <key>` runs one command as your own profile
+// after a Git email change.
+import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { Refusal, type Flags } from './output.ts'
+import { nodeVersionWarning } from '../check-node.ts'
+import { join, profile, whoami } from './contributors.ts'
+import { dev } from './dev.ts'
 import {
   createModule,
   disableModule,
@@ -12,6 +17,10 @@ import {
   listModules,
   removeModule,
 } from './modules.ts'
+import { Refusal, type Flags } from './output.ts'
+import { requireAdmin } from './permissions.ts'
+import { preferences } from './preferences.ts'
+import { context, status } from './status.ts'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 
@@ -19,9 +28,54 @@ interface Command {
   usage: string
   summary: string
   run: (root: string, args: string[], flags: Flags) => Promise<void> | void
+  /** A shared change: `always` applies right away, `yes` with --yes. */
+  shared?: 'always' | 'yes'
 }
 
 const COMMANDS: Record<string, Command> = {
+  status: {
+    usage: 'status [--json]',
+    summary:
+      'the studio, who you are, the default system, modules, systems and problems',
+    run: status,
+  },
+  context: {
+    usage: 'context src/prototypes/<contributor>/<prototype> [--json]',
+    summary:
+      'before editing a prototype: its owner, system, pending rebuild and whether you can edit it',
+    run: context,
+  },
+  whoami: {
+    usage: 'whoami [--json]',
+    summary: 'the contributor your Git identity resolves to',
+    run: whoami,
+  },
+  join: {
+    usage:
+      'join [--key <key>] [--name <name>] [--email <email>] [--github <user>] [--link <key>] [--yes]',
+    summary:
+      'register yourself as a contributor, or link a new Git email to your profile',
+    run: join,
+  },
+  profile: {
+    usage:
+      'profile [--name <name>] [--add-email <email>] [--remove-email <email>] [--primary-email <email>] [--github <user>] [--yes]',
+    summary: 'show your profile, or change your name, emails or GitHub account',
+    run: profile,
+  },
+  preferences: {
+    usage:
+      'preferences [--module <id>] --plan <file>  |  preferences --apply <file>',
+    summary:
+      "Admins: save a plan that adds modules' missing preference sections to every profile, then apply it",
+    run: preferences,
+  },
+  dev: {
+    usage: 'dev status [--json] | dev restart [--json] | dev stop',
+    summary:
+      "this studio's recorded dev server: see it, restart it on its port, stop it or clear a stale record",
+    run: dev,
+  },
   list: {
     usage: 'list',
     summary: 'each module and whether it is on, and the design systems',
@@ -31,39 +85,55 @@ const COMMANDS: Record<string, Command> = {
     usage: 'enable <module>',
     summary: 'turn a module on in studio.config.json',
     run: enableModule,
+    shared: 'always',
   },
   disable: {
     usage: 'disable <module>',
     summary: 'turn a module off; its files stay',
     run: disableModule,
+    shared: 'always',
   },
   remove: {
     usage: 'remove <module> [--content] [--force] [--yes]',
     summary: "delete a module's folder; --content deletes its content too",
     run: removeModule,
+    shared: 'yes',
   },
   'create-module': {
     usage: 'create-module <id> [--label <name>] [--yes]',
     summary: 'make a module with a page, a rail button, a README and a skill',
     run: createModule,
+    shared: 'yes',
   },
 }
 
-const SWITCHES = new Set(['--yes', '--content', '--force'])
-const VALUES = new Set(['--label'])
+const SWITCHES = new Set(['--yes', '--content', '--force', '--json'])
+const VALUES = new Set([
+  '--label',
+  '--key',
+  '--name',
+  '--email',
+  '--github',
+  '--link',
+  '--primary-email',
+  '--as',
+  '--plan',
+  '--apply',
+  '--module',
+])
+const LISTS = new Set(['--add-email', '--remove-email'])
 
 function usage() {
-  const width = Math.max(
-    ...Object.values(COMMANDS).map(({ usage }) => usage.length),
-  )
   return [
     'Usage: yarn studio <command>',
     '',
-    ...Object.values(COMMANDS).map(
-      ({ usage, summary }) => `  ${usage.padEnd(width)}  ${summary}`,
-    ),
+    ...Object.values(COMMANDS).flatMap(({ usage, summary }) => [
+      `  ${usage}`,
+      `      ${summary}`,
+    ]),
     '',
     'Commands that change files preview first; run them again with --yes.',
+    'Add --as <your key> to run one command as your profile after a Git email change.',
   ].join('\n')
 }
 
@@ -74,15 +144,25 @@ function parse(rest: string[]) {
     const arg = rest[i]!
     if (arg === '--') continue
     if (SWITCHES.has(arg)) flags[arg.slice(2)] = true
-    else if (VALUES.has(arg)) {
+    else if (VALUES.has(arg) || LISTS.has(arg)) {
       const value = rest[++i]
       if (value === undefined) throw new Refusal(`${arg} needs a value.`)
-      flags[arg.slice(2)] = value
+      const name = arg.slice(2)
+      const listed = flags[name]
+      flags[name] = LISTS.has(arg)
+        ? [...(Array.isArray(listed) ? listed : []), value]
+        : value
     } else if (arg.startsWith('--')) throw new Refusal(`Unknown option ${arg}.`)
     else args.push(arg)
   }
   return { flags, args }
 }
+
+const { engines } = JSON.parse(
+  readFileSync(path.join(ROOT, 'package.json'), 'utf8'),
+)
+const warning = nodeVersionWarning(process.version, engines.node)
+if (warning) console.warn(`Warning: ${warning}`)
 
 const [name, ...rest] = process.argv.slice(2)
 try {
@@ -94,6 +174,8 @@ try {
         `There's no command "${name}". Run yarn studio to list them.`,
       )
     const { flags, args } = parse(rest)
+    if (command.shared === 'always' || (command.shared === 'yes' && flags.yes))
+      requireAdmin(ROOT, flags)
     await command.run(ROOT, args, flags)
   }
 } catch (error) {

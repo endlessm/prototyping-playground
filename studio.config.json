@@ -2,7 +2,6 @@
   "$schema": "./src/platform/core/studio.config.schema.json",
   "formatVersion": 1,
   "name": "Endless Design Studio",
-  "usage": "team",
   "tagline": "Prototyping Sandbox",
   "modules": {
     "canvas": true,
