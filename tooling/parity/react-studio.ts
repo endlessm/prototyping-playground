@@ -32,7 +32,11 @@ const INSTALLED = '.parity-installed'
 const RECORD = '.studio/runtime/dev-server.json'
 const LOG = 'parity-dev.log'
 
-export const DEFAULT_CACHE = path.join(os.tmpdir(), 'studio-parity')
+// Not the system temp folder: cleanup there removed files from an installed
+// copy between runs.
+export const DEFAULT_CACHE =
+  process.env.STUDIO_PARITY_CACHE ??
+  path.join(os.homedir(), '.cache', 'studio-parity')
 
 // Vitest's own environment would leak into the React studio's tools.
 function cleanEnv(extra: Record<string, string> = {}) {
@@ -170,8 +174,23 @@ function removeOtherCopies(cacheDir: string, keep: string) {
 /** Stops the dev server the copy's registry records, if one runs: only a harness run can have started it. */
 async function stopRecorded(root: string) {
   const record = readRecord(root)
-  if (!record || !alive(record.pid)) return
-  await pnpmOrFail(root, ['studio', 'dev', 'stop'])
+  if (!record) return
+  // A run killed with its host process leaves the record behind, and its
+  // process ID can belong to an unrelated program later: stop only a server
+  // that still answers on the recorded port.
+  let answers = false
+  try {
+    answers = (
+      await fetch(record.url ?? `http://localhost:${record.port}/`, {
+        signal: AbortSignal.timeout(5_000),
+      })
+    ).ok
+  } catch {
+    // Nothing listens there.
+  }
+  if (answers && alive(record.pid))
+    await pnpmOrFail(root, ['studio', 'dev', 'stop'])
+  else rmSync(path.join(root, RECORD), { force: true })
 }
 
 export async function startReactStudio(
