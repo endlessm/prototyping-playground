@@ -79,6 +79,17 @@ export interface ModuleBuildData {
   load: (context: BuildDataContext) => unknown
 }
 
+/** A setting a module keeps for each contributor: text, a number, yes or no. */
+export type PreferenceValue = string | number | boolean | null
+
+/**
+ * The module's section of each contributor's `preferences`. Every value has
+ * the type of its default, and only declared names are allowed.
+ */
+export interface ModulePreferences {
+  defaults: Record<string, PreferenceValue>
+}
+
 export interface StudioModule {
   /** Lowercase letters, numbers and dashes; also the module's folder name. */
   id: string
@@ -95,4 +106,5 @@ export interface StudioModule {
   content?: string
   fileTypes?: ModuleFileType[]
   data?: Record<string, ModuleBuildData>
+  preferences?: ModulePreferences
 }
