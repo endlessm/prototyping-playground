@@ -47,7 +47,7 @@ flowchart LR
 
 ![Helper](./_parts/Card.vue)
 
-![Sketch](./sketch.excalidraw)
+![Sketch](./sketch.fig)
 
 ![Elsewhere](/prototypes/d0c5000000000009/artifacts/d0c500000000000a)
 
