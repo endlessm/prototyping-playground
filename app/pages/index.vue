@@ -9,6 +9,7 @@ import { orderHomeBlocks } from '../utils/home'
 // as a welcome and suits the narrow window an agent's harness gives it.
 const studio = useStudioConfig()
 const { t } = useI18n()
+const { known, firstName } = useMe()
 const palette = useCommandPalette()
 const local = import.meta.dev
 const shown = orderHomeBlocks(blocks, local).map((block) => ({
@@ -16,6 +17,15 @@ const shown = orderHomeBlocks(blocks, local).map((block) => ({
   component: defineAsyncComponent(block.component),
 }))
 useHead({ title: studio.name })
+
+// Locally Home greets you; until the dev server says who you are the heading
+// stays blank, so it doesn't change under you.
+const heading = computed(() => {
+  if (!known.value) return ' '
+  return firstName.value
+    ? t('home.welcome', { name: firstName.value })
+    : studio.name
+})
 </script>
 
 <template>
@@ -26,7 +36,7 @@ useHead({ title: studio.name })
           <h1
             class="text-center text-2xl font-semibold tracking-tight text-highlighted"
           >
-            {{ studio.name }}
+            {{ heading }}
           </h1>
           <p
             v-if="!local && studio.tagline"

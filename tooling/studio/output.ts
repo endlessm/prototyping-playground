@@ -1,7 +1,8 @@
 /** A command stops with this one-line message and exit code 1. */
 export class Refusal extends Error {}
 
-export type Flags = Record<string, string | true>
+/** Switches are `true`; repeatable options collect a list. */
+export type Flags = Record<string, string | true | string[] | undefined>
 
 export const say = (line = '') => console.log(line)
 

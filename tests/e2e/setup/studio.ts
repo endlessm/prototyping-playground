@@ -1,7 +1,9 @@
 // Starts the studio for browser scenarios: the dev server, or the static build
 // served the way a static host serves it.
 import { spawn } from 'node:child_process'
+import { mkdtempSync } from 'node:fs'
 import { createServer } from 'node:net'
+import os from 'node:os'
 import path from 'node:path'
 import { serveStatic } from '../../../tooling/serve-static.ts'
 
@@ -62,9 +64,10 @@ export async function startDevServer(
   { host = '127.0.0.1' }: { host?: string } = {},
 ): Promise<RunningStudio> {
   const port = await freePort()
-  // Its own build directory, so a person's `yarn dev` in the same checkout
-  // keeps running.
+  // Its own build directory and dev-server record, so a person's `yarn dev`
+  // in the same checkout keeps running and keeps its record.
   const child = run(['dev', '--port', String(port), '--host', host], {
+    STUDIO_RUNTIME_DIR: mkdtempSync(path.join(os.tmpdir(), 'studio-runtime-')),
     ...env,
     STUDIO_BUILD_DIR: '.nuxt-e2e',
   })

@@ -106,6 +106,8 @@ export default defineNuxtConfig({
     '@nuxt/ui',
     '@vueuse/nuxt',
     './tooling/modules/nuxt-module.ts',
+    './tooling/dev-server/nuxt-module.ts',
+    './tooling/contributors/nuxt-module.ts',
     './tooling/manifest/nuxt-module.ts',
   ],
 

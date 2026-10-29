@@ -30,6 +30,9 @@ writeFileSync(
 const env = {
   STUDIO_CONFIG: config,
   STUDIO_MODULES: 'tests/fixtures/shell-modules',
+  // Nobody is registered, so Home names the studio.
+  STUDIO_CONTRIBUTORS: folder,
+  STUDIO_GITHUB: '',
 }
 
 afterAll(() => {
@@ -79,7 +82,7 @@ describe('the studio frame on the dev server', () => {
       expect(await rail(page).getByLabel(label).count()).toBe(1)
   })
 
-  test('[SH-02] [SH-15] [SH-94] [SH-96] Home has the studio’s name in its tab, a heading and the search field', async () => {
+  test('[SH-02] [SH-15] [SH-94] [SH-96] Home has the studio’s name in its tab, the name as heading for someone unregistered, and the search field', async () => {
     const page = await newPage()
     await open(page, studio.url)
     expect(await page.title()).toBe(name)

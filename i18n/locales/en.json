@@ -17,7 +17,8 @@
     "resizeHint": "Drag to resize. Double-click to reset."
   },
   "home": {
-    "search": "Search the studio"
+    "search": "Search the studio",
+    "welcome": "Welcome back, {name}"
   },
   "navigation": {
     "opening": "Opening page"

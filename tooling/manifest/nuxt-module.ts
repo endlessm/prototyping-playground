@@ -130,7 +130,9 @@ declare module '${MANIFEST_MODULE}' {
 
     // The static build serves the preview documents from `_preview/`,
     // built before the app so Nitro copies them with its public files.
-    if (!nuxt.options.dev) {
+    // `nuxt prepare` also calls `build:before`, before it writes the
+    // tsconfigs a Vite build reads, and needs no documents.
+    if (!nuxt.options.dev && !nuxt.options._prepare) {
       const dist = path.join(workDir, 'dist')
       mkdirSync(dist, { recursive: true })
       nuxt.options.nitro.publicAssets ??= []
@@ -140,9 +142,6 @@ declare module '${MANIFEST_MODULE}' {
         maxAge: 0,
       })
       nuxt.hook('build:before', async () => {
-        // `nuxt prepare` (run on install) only writes types, and a fresh
-        // tree has no `.nuxt/tsconfig.app.json` for Vite to read yet.
-        if (nuxt.options._prepare) return
         for (const document of documents)
           await viteBuild(
             await previewConfig(document, preview(document), 'build'),
