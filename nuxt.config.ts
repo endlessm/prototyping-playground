@@ -131,6 +131,7 @@ export default defineNuxtConfig({
         '../src/modules/*/module.ts',
         '../src/modules/*/types/*/identity.ts',
         '../vitest.config.ts',
+        '../vitest.parity.config.ts',
       ],
     },
   },
