@@ -15,7 +15,7 @@ import { fileTypeOf, type IdentityFileType } from './file-types.ts'
 import { isResourceId } from './resource-id.ts'
 
 export interface IdentityResource {
-  kind: 'contributor' | 'system' | 'prototype' | 'artifact'
+  kind: 'contributor' | 'system' | 'prototype' | 'artifact' | 'state'
   /** Repository-relative, with forward slashes. */
   path: string
   studioId: string | null
@@ -23,16 +23,31 @@ export interface IdentityResource {
   prototype?: string
   /** For prototypes and artifacts: the contributor folder it lives in. */
   owner?: string
-  /** For artifacts: the file type's ID. */
+  /** For artifacts and states: the file type's ID. */
   fileType?: string
+  /** For states: the state's title in its view. */
+  title?: string
+}
+
+/** A named state, in the view at `path`, with no identity yet. */
+export interface MissingState {
+  path: string
+  title: string
 }
 
 export interface IdentityAudit {
   resources: IdentityResource[]
   /** Files with no identity yet. */
   missing: string[]
+  /** Named states with no identity yet. */
+  missingStates: MissingState[]
   /** Malformed and duplicate identities, as sentences naming the file. */
   problems: string[]
+  /**
+   * What artifacts' file types report about their source, such as a view's
+   * unreadable state titles, as sentences naming the file.
+   */
+  checks: string[]
 }
 
 export interface AuditOptions {
@@ -53,7 +68,9 @@ export function auditIdentities(
 ): IdentityAudit {
   const resources: IdentityResource[] = []
   const missing: string[] = []
+  const missingStates: MissingState[] = []
   const problems: string[] = []
+  const checks: string[] = []
   const owners = new Map<string, string>()
 
   const record = (
@@ -76,12 +93,19 @@ export function auditIdentities(
       problems.push(`${resource.path}: ${MALFORMED}`)
       return
     }
+    claim(resource, id)
+  }
+  const named = (resource: Omit<IdentityResource, 'studioId'>) =>
+    resource.title === undefined
+      ? resource.path
+      : stateName(resource.path, resource.title)
+  const claim = (resource: Omit<IdentityResource, 'studioId'>, id: string) => {
     const owner = owners.get(id)
     if (owner)
       problems.push(
-        `${resource.path}: the permanent identity ${id} is already used by ${owner}.`,
+        `${named(resource)}: the permanent identity ${id} is already used by ${owner}.`,
       )
-    else owners.set(id, resource.path)
+    else owners.set(id, named(resource))
     resources.push({ ...resource, studioId: id })
   }
   const text = (file: string) => readFileSync(path.resolve(root, file), 'utf8')
@@ -131,20 +155,33 @@ export function auditIdentities(
         const type = fileTypeOf(types, file)
         if (!type) continue
         const artifact = `${folder}/${file}`
-        record(
-          {
-            kind: 'artifact',
-            path: artifact,
-            prototype: folder,
-            owner,
-            fileType: type.id,
-          },
-          () => type.identity.read(text(artifact)),
+        const resource = {
+          path: artifact,
+          prototype: folder,
+          owner,
+          fileType: type.id,
+        }
+        record({ kind: 'artifact', ...resource }, () =>
+          type.identity.read(text(artifact)),
         )
+        for (const problem of type.check?.(text(artifact)) ?? [])
+          checks.push(`${artifact}: ${problem}`)
+        if (!type.identity.children) continue
+        let children: { key: string; studioId: string | null }[]
+        try {
+          children = type.identity.children.read(text(artifact))
+        } catch (error) {
+          problems.push(`${artifact}: ${sentence((error as Error).message)}`)
+          continue
+        }
+        for (const { key, studioId } of children)
+          if (studioId)
+            claim({ kind: 'state', ...resource, title: key }, studioId)
+          else missingStates.push({ path: artifact, title: key })
       }
     }
 
-  return { resources, missing, problems }
+  return { resources, missing, missingStates, problems, checks }
 }
 
 /** Every identity in use, for handing out new ones. */
@@ -154,3 +191,13 @@ export const identitiesInUse = (audit: IdentityAudit) =>
       resource.studioId ? [resource.studioId] : [],
     ),
   )
+
+/** How a state is named in messages: its view's path and its title. */
+export const stateName = (file: string, title: string) =>
+  `${file} (state ${JSON.stringify(title)})`
+
+/** Every file and named state with no identity yet, by name. */
+export const missingNames = (audit: IdentityAudit) => [
+  ...audit.missing,
+  ...audit.missingStates.map(({ path, title }) => stateName(path, title)),
+]

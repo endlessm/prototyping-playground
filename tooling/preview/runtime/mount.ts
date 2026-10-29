@@ -4,10 +4,16 @@
 // The studio can switch the document to another view of the same system; the
 // outgoing view stays on screen, inert, until the next one is ready. In
 // development the document also says whether what it shows matches the
-// saved source. It imports nothing of the studio.
-import type { App, Component } from 'vue'
+// saved source. A named state renders its view with the state's props; a
+// lo-fi view is drawn in grayscale with a handwritten font. Links to studio
+// addresses and the studio's shortcuts go to the studio, so a view's links
+// use its history. It imports nothing of the studio's app but plain
+// functions.
+import { reactive, type App, type Component } from 'vue'
+import { isTyping, previewShortcut } from '../../../app/utils/shortcuts.ts'
 import {
   acceptsHost,
+  isStudioHref,
   PREVIEW_CHANNEL,
   PREVIEW_VERSION,
   readAddress,
@@ -15,15 +21,56 @@ import {
   type PreviewPhase,
   type PreviewState,
 } from '../protocol.ts'
-import { COMPILE_ROUTE } from '../constants.ts'
+import { COMPILE_ROUTE, PREVIEW_ROUTE } from '../constants.ts'
+import { PROTOTYPE_SCOPE, type PrototypeScope } from './navigation.ts'
+
+interface ViewModule {
+  default?: Component
+  states?: unknown
+}
 
 interface View {
   /** Absolute path, with forward slashes. */
   file: string
   title: string
+  /** The prototype's permanent ID. */
+  prototype: string
+  /** Inside the prototype, without the extension. */
+  path: string
+  /** For a named state, its title. */
+  state: string | null
+  lofi: boolean
   /** None while the view is empty. */
-  load: (() => Promise<{ default?: Component }>) | null
+  load: (() => Promise<ViewModule>) | null
 }
+
+// The lo-fi look loads with the first lo-fi view, so other documents carry
+// no stylesheet of the studio's.
+let lofiStyles: Promise<unknown> | undefined
+const lofiLook = () =>
+  (lofiStyles ??= import('./lofi.css').catch((error: unknown) => {
+    lofiStyles = undefined
+    throw error
+  }))
+
+/** The props of the state titled `title` in a view's `states`, if any. */
+function stateProps(states: unknown, title: string) {
+  if (!Array.isArray(states)) return undefined
+  const found = states.find(
+    (state) => state && typeof state === 'object' && state.title === title,
+  ) as { props?: Record<string, unknown> } | undefined
+  return found && { ...(found.props ?? {}) }
+}
+
+// The studio's base path, from this document's own:
+// `<base>_preview/<document>/`.
+const STUDIO_BASE = import.meta.env.BASE_URL.slice(
+  0,
+  import.meta.env.BASE_URL.lastIndexOf(PREVIEW_ROUTE),
+)
+const ARTIFACT_ADDRESS = new RegExp(
+  `^${STUDIO_BASE.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}prototypes/[0-9a-z]{16}/artifacts/([0-9a-z]{16})$`,
+)
 
 interface MountOptions {
   create: (options: {
@@ -90,13 +137,18 @@ export function mountPreview({ create, views }: MountOptions) {
   let sequence = 0
   let state: PreviewState = 'loading'
   let phase: PreviewPhase = 'current'
-  // What is on screen: the view, its app and the file it came from.
+  // What is on screen: the view, its app, the file it came from and, for a
+  // named state, the state and its live props.
   let shown: {
     artifact: string
     app: App
     box: HTMLElement
     file: string
+    state: string | null
+    props: Record<string, unknown>
   } | null = null
+  // Each view file's newest `states`, from its hot updates.
+  const latestStates = new Map<string, unknown>()
   // When the latest attempt asked for its view's code: changes made before
   // that are already in what it got.
   let requestedAt = 0
@@ -173,9 +225,11 @@ export function mountPreview({ create, views }: MountOptions) {
       return status('empty', attempt)
     }
     let component: Component | undefined
+    let module: ViewModule
     requestedAt = Date.now()
     try {
-      component = (await view.load()).default
+      module = await view.load()
+      component = module.default
     } catch (error) {
       const detail = (await compileDetail(id)) || describe(error)
       if (attempt !== render) return
@@ -187,11 +241,40 @@ export function mountPreview({ create, views }: MountOptions) {
       unmount()
       return status('error', attempt, `${view.title} has no component.`)
     }
+    // A state's props stay reactive, so its newest props apply in place.
+    const props = reactive<Record<string, unknown>>({})
+    if (view.state !== null) {
+      const found = stateProps(
+        latestStates.get(view.file) ?? module.states,
+        view.state,
+      )
+      if (!found) {
+        unmount()
+        return status(
+          'error',
+          attempt,
+          `${view.title}.vue has no state titled ${JSON.stringify(view.state)} in export const states.`,
+        )
+      }
+      Object.assign(props, found)
+    }
+    if (view.lofi) {
+      try {
+        await lofiLook()
+      } catch (error) {
+        if (attempt !== render) return
+        unmount()
+        return status('error', attempt, describe(error))
+      }
+      if (attempt !== render) return
+    }
     const box = document.createElement('div')
     box.hidden = true
+    box.classList.toggle('lofi-view', view.lofi)
     host.append(box)
     let failed = ''
-    const app = create({ component })
+    const app = create({ component, props })
+    app.provide(PROTOTYPE_SCOPE, scope(id, view))
     const ownError = app.config.errorHandler
     app.config.errorHandler = (error, instance, info) => {
       if (state === 'ready' && attempt === render)
@@ -216,7 +299,14 @@ export function mountPreview({ create, views }: MountOptions) {
       return
     }
     unmount(box)
-    shown = { artifact: id, app, box, file: view.file }
+    shown = {
+      artifact: id,
+      app,
+      box,
+      file: view.file,
+      state: view.state,
+      props,
+    }
     box.hidden = false
     if (failed) return status('error', attempt, failed)
     status('ready', attempt)
@@ -237,12 +327,153 @@ export function mountPreview({ create, views }: MountOptions) {
     else post({ kind: 'status', state, render, detail: '' })
   })
 
-  // Views added, renamed, emptied or written since the document loaded.
+  // Views added, renamed, emptied or written since the document loaded. A
+  // view switched to lo-fi or back keeps its state.
   window.addEventListener('studio:views', () => {
     const view = artifact ? views[artifact] : undefined
-    const current = shown?.artifact === artifact ? shown.file : null
+    const current = shown?.artifact === artifact ? shown : null
     if (state === 'loading') return
-    if (state !== 'ready' || !view || view.file !== current) void show(artifact)
+    if (
+      state !== 'ready' ||
+      !view ||
+      !current ||
+      view.file !== current.file ||
+      view.state !== current.state
+    )
+      void show(artifact)
+    else if (!view.lofi) current.box.classList.remove('lofi-view')
+    else void lofiLook().then(() => current.box.classList.add('lofi-view'))
+  })
+
+  // A view's newest `states` after a hot update: the shown state takes its
+  // new props in place, or says it is gone.
+  window.addEventListener('studio:states', (event) => {
+    const { file, states } = (
+      event as CustomEvent<{ file: string; states: unknown }>
+    ).detail
+    latestStates.set(file, states)
+    if (!shown || shown.file !== file || shown.state === null) return
+    const next = stateProps(states, shown.state)
+    if (!next) return void show(artifact)
+    for (const key of Object.keys(shown.props))
+      if (!(key in next)) Reflect.deleteProperty(shown.props, key)
+    Object.assign(shown.props, next)
+  })
+
+  // What a view knows of its prototype, for its navigation helpers.
+  function scope(id: string, view: View): PrototypeScope {
+    const ofPrototype = () =>
+      Object.entries(views).filter(
+        ([, entry]) =>
+          entry.prototype === view.prototype && entry.state === null,
+      )
+    return {
+      base: STUDIO_BASE,
+      prototype: view.prototype,
+      current: id,
+      currentView:
+        ofPrototype().find(([, entry]) => entry.file === view.file)?.[0] ?? id,
+      artifacts: () =>
+        ofPrototype().map(([key, entry]) => ({ id: key, path: entry.path })),
+      navigate: (href, options) => navigate(href, options?.replace ?? false),
+    }
+  }
+
+  // Opens a studio address. In the studio, the studio opens it, so its
+  // history stays right. Opened on its own, the document shows another of
+  // its views in place, with its own history, and loads anything else.
+  function navigate(href: string, replace: boolean) {
+    if (!isStudioHref(href)) return
+    if (session) return post({ kind: 'navigate', href, replace })
+    const url = new URL(href, location.origin)
+    const next = ARTIFACT_ADDRESS.exec(url.pathname)?.[1]
+    if (!next || !views[next]) return location.assign(href)
+    const own = new URL(location.href)
+    own.searchParams.set('artifact', next)
+    own.hash = url.hash
+    if (replace) history.replaceState(null, '', own)
+    else history.pushState(null, '', own)
+    void show(next)
+  }
+  window.addEventListener('popstate', () => {
+    if (session) return
+    const next = readAddress(location.search).artifact
+    if (next !== artifact) void show(next)
+  })
+
+  // Links in a view: `#anchors` stay in it, studio addresses go through the
+  // studio, other web addresses open in a new tab. Modified clicks, downloads
+  // and links a view handles itself are the browser's.
+  document.addEventListener('click', (event) => {
+    const anchor =
+      event.target instanceof Element
+        ? event.target.closest<HTMLAnchorElement>('a[href]')
+        : null
+    if (
+      !anchor ||
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.altKey ||
+      event.shiftKey ||
+      anchor.hasAttribute('download') ||
+      (anchor.target && anchor.target !== '_self')
+    )
+      return
+    const raw = anchor.getAttribute('href')!
+    if (raw.startsWith('#')) {
+      event.preventDefault()
+      const id = raw.slice(1)
+      try {
+        if (id)
+          document.getElementById(decodeURIComponent(id))?.scrollIntoView()
+        else window.scrollTo(0, 0)
+      } catch {
+        // A malformed anchor.
+      }
+      return
+    }
+    const url = new URL(raw, location.href)
+    if (
+      url.origin === location.origin &&
+      url.pathname.startsWith(STUDIO_BASE) &&
+      !url.pathname.startsWith(`${STUDIO_BASE}${PREVIEW_ROUTE}`)
+    ) {
+      event.preventDefault()
+      navigate(`${url.pathname}${url.search}${url.hash}`, false)
+    } else if (url.protocol === 'http:' || url.protocol === 'https:') {
+      event.preventDefault()
+      window.open(url.href, '_blank', 'noopener,noreferrer')
+    }
+  })
+
+  // The studio's shortcuts work while the view has focus, except while
+  // typing in it. The search shortcut comes last, so a view may use it.
+  const passOn = (event: KeyboardEvent) => {
+    const action = previewShortcut(event)
+    if (!session || !action || event.defaultPrevented || isTyping(event.target))
+      return
+    if (
+      (action === 'source' || action === 'grid') &&
+      document.querySelector(
+        '[role="dialog"],[role="alertdialog"],[role="menu"]',
+      )
+    )
+      return
+    event.preventDefault()
+    event.stopImmediatePropagation()
+    post({ kind: 'shortcut', action })
+  }
+  window.addEventListener(
+    'keydown',
+    (event) => {
+      if (previewShortcut(event) !== 'palette') passOn(event)
+    },
+    true,
+  )
+  window.addEventListener('keydown', (event) => {
+    if (previewShortcut(event) === 'palette') passOn(event)
   })
 
   const hot = import.meta.hot

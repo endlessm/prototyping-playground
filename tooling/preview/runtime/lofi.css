@@ -1,0 +1,14 @@
+/* A lo-fi view (`<!-- @lofi -->`) keeps its system's components and
+   behavior, drawn in grayscale with a handwritten font over any theme. The
+   font is bundled, so nothing is fetched from another site. */
+@import '@fontsource/comic-neue/400.css';
+@import '@fontsource/comic-neue/700.css';
+
+.lofi-view {
+  filter: grayscale(1);
+}
+
+.lofi-view,
+.lofi-view * {
+  font-family: 'Comic Neue', 'Comic Sans MS', cursive !important;
+}

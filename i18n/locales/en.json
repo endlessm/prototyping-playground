@@ -49,6 +49,8 @@
     "noSystem": "None",
     "systemUnavailable": "System unavailable",
     "openInTab": "Open in a new tab",
+    "makeLofi": "Make lo-fi",
+    "makeHifi": "Make hi-fi",
     "actionsFor": "Actions for {title}",
     "gallery": {
       "title": "Prototypes",

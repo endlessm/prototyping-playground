@@ -5,7 +5,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { isResourceId } from '../identity/resource-id.ts'
-import type { IdentityAdapter } from '../modules/contract.ts'
+import type { FidelityAdapter, IdentityAdapter } from '../modules/contract.ts'
 import { PLAIN_TEXT } from '../modules/registry.ts'
 import type { InstalledSystem } from '../systems/registry.ts'
 
@@ -66,6 +66,10 @@ export interface ManifestArtifact {
   file: string
   /** The file type's ID. */
   type: string
+  /** A view's named states, in declaration order. */
+  states?: ManifestState[]
+  /** Drawn in grayscale with a handwritten font. */
+  lofi?: true
   /**
    * Set when the artifact can't open: its type belongs to a module that is
    * turned off. Its source can still be opened locally.
@@ -79,10 +83,19 @@ export interface ArtifactUnavailable {
   module: string
 }
 
+/** A named state of a view: a child artifact with its own identity. */
+export interface ManifestState {
+  id: string
+  title: string
+}
+
 export interface FileTypeReader {
   id: string
   extensions: string[]
   identity: IdentityAdapter
+  /** The problems of one file's source, as sentences. */
+  check?: (source: string) => string[]
+  fidelity?: FidelityAdapter
   /** Set for a type whose module is turned off. */
   off?: ArtifactUnavailable
 }
@@ -164,6 +177,15 @@ function readMeta(file: string, where: string, problems: string[]) {
   return meta
 }
 
+// A file that declares children, even broken ones, keeps its list.
+function hasStates(source: string, type: FileTypeReader) {
+  try {
+    return type.identity.children!.read(source).length > 0
+  } catch {
+    return true
+  }
+}
+
 export function buildManifest(options: ManifestOptions): BuiltManifest {
   const { root, systems, fileTypes } = options
   const folder = options.prototypesFolder ?? PROTOTYPES_FOLDER
@@ -230,10 +252,10 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
         if (!type) continue
         const where = `${relative}/${file}`
         let artifactId: string | null
+        let source: string
         try {
-          artifactId = type.identity.read(
-            readFileSync(path.join(dir, file), 'utf8'),
-          )
+          source = readFileSync(path.join(dir, file), 'utf8')
+          artifactId = type.identity.read(source)
         } catch (error) {
           const message = (error as Error).message
           problems.push(
@@ -256,14 +278,48 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
         }
         owners.set(artifactId, where)
         const inside = file.slice(0, -extension.length)
-        artifacts[id].push({
+        const artifact: ManifestArtifact = {
           id: artifactId,
           title: path.posix.basename(inside),
           path: inside,
           file: where,
           type: type.id,
           ...(type.off ? { unavailable: type.off } : {}),
-        })
+        }
+        for (const problem of type.check?.(source) ?? [])
+          problems.push(`${where}: ${problem}`)
+        if (type.identity.children) {
+          artifact.states = []
+          try {
+            for (const { key, studioId } of type.identity.children.read(
+              source,
+            )) {
+              const named = `${where}: state ${JSON.stringify(key)}`
+              if (!studioId) {
+                problems.push(`${named} has no permanent identity yet.`)
+                continue
+              }
+              const owner = owners.get(studioId)
+              if (owner) {
+                problems.push(
+                  `${named}: the permanent identity ${studioId} is already used by ${owner}.`,
+                )
+                continue
+              }
+              owners.set(studioId, `${where} (state ${JSON.stringify(key)})`)
+              artifact.states.push({ id: studioId, title: key })
+            }
+          } catch (error) {
+            const message = (error as Error).message
+            problems.push(
+              `${where}: ${message[0]!.toLowerCase()}${message.slice(1)}`,
+            )
+          }
+          if (!artifact.states.length && !hasStates(source, type))
+            delete artifact.states
+        }
+        if (type.fidelity?.isLofi(source)) artifact.lofi = true
+        artifacts[id].push(artifact)
       }
     }
 
