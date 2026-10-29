@@ -11,7 +11,7 @@ const deployed = !import.meta.dev
     </p>
     <p class="text-sm text-muted">
       {{ t('notFound.message') }}
-      <ULink to="/" class="text-primary hover:underline">
+      <ULink to="/prototypes" class="text-primary hover:underline">
         {{ t('notFound.home') }}
       </ULink>
     </p>
