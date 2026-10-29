@@ -6,7 +6,12 @@ import path from 'node:path'
 import { identityHint } from '../contributors/identity.ts'
 import { permissionRefusal, refusalMessage } from '../contributors/roles.ts'
 import { newStudioId } from '../contributors/studio-ids.ts'
-import { auditIdentities, identitiesInUse } from '../identity/audit.ts'
+import {
+  auditIdentities,
+  identitiesInUse,
+  missingNames,
+  stateName,
+} from '../identity/audit.ts'
 import { fileTypeOf, identityFileTypes } from '../identity/file-types.ts'
 import { studioModules } from './contributors.ts'
 import { NOTHING_CHANGED, Refusal, say, type Flags } from './output.ts'
@@ -26,7 +31,8 @@ export async function identityAudit(
   if (args.length)
     throw new Refusal('Usage: yarn studio identity-audit [--json]')
   const audit = auditIdentities(root, await installedFileTypes(root))
-  if (audit.problems.length || audit.missing.length) process.exitCode = 1
+  const missing = missingNames(audit)
+  if (audit.problems.length || missing.length) process.exitCode = 1
   if (flags.json) {
     say(JSON.stringify(audit, null, 2))
     return
@@ -34,11 +40,11 @@ export async function identityAudit(
   const count = (n: number, one: string, many: string) =>
     `${n} ${n === 1 ? one : many}`
   say(
-    `${count(audit.resources.length, 'resource', 'resources')}; ${count(audit.missing.length, 'missing identity', 'missing identities')}.`,
+    `${count(audit.resources.length, 'resource', 'resources')}; ${count(missing.length, 'missing identity', 'missing identities')}.`,
   )
-  for (const file of audit.missing) say(`  Missing: ${file}`)
+  for (const name of missing) say(`  Missing: ${name}`)
   for (const problem of audit.problems) say(`  ${problem}`)
-  if (audit.missing.length)
+  if (missing.length)
     say(
       'Give a prototype’s files their IDs with yarn studio identify src/prototypes/<contributor>/<prototype>.',
     )
@@ -94,24 +100,34 @@ export async function identify(root: string, args: string[], flags: Flags) {
   const ownerId = contributors[owner]?.studioId
   if (!ownerId)
     throw new Refusal(`${owner} has no contributor profile with a studio ID.`)
-  const missing = audit.missing.filter((file) => file.startsWith(`${folder}/`))
+  const inside = (file: string) => file.startsWith(`${folder}/`)
+  const missing = audit.missing.filter(inside)
+  const missingStates = audit.missingStates.filter(({ path }) => inside(path))
 
   if (!flags.yes) {
-    if (flags.json) say(JSON.stringify({ folder, missing }, null, 2))
+    if (flags.json)
+      say(JSON.stringify({ folder, missing, missingStates }, null, 2))
     else {
+      const counted = (n: number, one: string, many: string) =>
+        n ? [`${n} ${n === 1 ? one : many}`] : []
+      const parts = [
+        ...counted(missing.length, 'file', 'files'),
+        ...counted(missingStates.length, 'state', 'states'),
+      ]
+      const total = missing.length + missingStates.length
       say(
-        missing.length === 1
-          ? `1 file needs an identity in ${folder}.`
-          : `${missing.length} files need an identity in ${folder}.`,
+        `${parts.join(' and ') || '0 files'} ${total === 1 ? 'needs' : 'need'} an identity in ${folder}.`,
       )
       for (const file of missing) say(`  ${file}`)
+      for (const { path: file, title } of missingStates)
+        say(`  ${stateName(file, title)}`)
       say(NOTHING_CHANGED)
     }
     return
   }
 
   const taken = identitiesInUse(audit)
-  const assigned: { path: string; studioId: string }[] = []
+  const assigned: { path: string; title?: string; studioId: string }[] = []
   const writeMeta = (changes: Record<string, unknown>) => {
     const file = path.join(root, metaFile)
     const current = JSON.parse(readFileSync(file, 'utf8'))
@@ -134,12 +150,28 @@ export async function identify(root: string, args: string[], flags: Flags) {
     }
     assigned.push({ path: file, studioId })
   }
+  // Each state's comment goes after its view's.
+  for (const { path: file, title } of missingStates) {
+    const studioId = newStudioId(taken)
+    taken.add(studioId)
+    const absoluteFile = path.join(root, file)
+    const type = fileTypeOf(types, file)!
+    writeFileSync(
+      absoluteFile,
+      type.identity.children!.write(
+        readFileSync(absoluteFile, 'utf8'),
+        title,
+        studioId,
+      ),
+    )
+    assigned.push({ path: file, title, studioId })
+  }
   // A prototype written by hand may not name its owner yet.
   if (meta.ownerContributorId === undefined)
     writeMeta({ ownerContributorId: ownerId })
 
   if (flags.json) {
-    say(JSON.stringify({ folder, missing, assigned }, null, 2))
+    say(JSON.stringify({ folder, missing, missingStates, assigned }, null, 2))
     return
   }
   if (!assigned.length) {
@@ -149,6 +181,8 @@ export async function identify(root: string, args: string[], flags: Flags) {
   say(
     `Assigned ${assigned.length} ${assigned.length === 1 ? 'identity' : 'identities'} in ${folder}; existing identities were kept:`,
   )
-  for (const { path: file, studioId } of assigned)
-    say(`  ${file} → ${studioId}`)
+  for (const { path: file, title, studioId } of assigned)
+    say(
+      `  ${title === undefined ? file : stateName(file, title)} → ${studioId}`,
+    )
 }

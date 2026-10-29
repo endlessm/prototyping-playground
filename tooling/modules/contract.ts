@@ -52,6 +52,24 @@ export interface IdentityAdapter {
   read: (source: string) => string | null
   /** The source with `id` declared; throws if it already declares one. */
   write: (source: string, id: string) => string
+  /**
+   * Child artifacts declared inside the file, such as a view's named
+   * states, each keyed by a name unique in the file and with an identity of
+   * its own, also kept in comments.
+   */
+  children?: {
+    /** In declaration order; throws on a malformed declaration. */
+    read: (source: string) => { key: string; studioId: string | null }[]
+    /** The source with the child `key` given `id`. */
+    write: (source: string, key: string, id: string) => string
+  }
+}
+
+/** A file type whose artifacts can be drawn lo-fi. */
+export interface FidelityAdapter {
+  isLofi: (source: string) => boolean
+  /** The source switched to lo-fi (`on`) or back to hi-fi. */
+  setLofi: (source: string, on: boolean) => string
 }
 
 /** A kind of artifact file in prototypes, such as views. */
@@ -67,6 +85,17 @@ export interface ModuleFileType {
    * to the module's folder. It runs on Node.
    */
   identity: string
+  /**
+   * A file whose `check` export lists the problems of one file's source as
+   * sentences, relative to the module's folder. It runs on Node, and the
+   * build fails on any problem.
+   */
+  check?: string
+  /**
+   * A file whose `fidelity` export is the type's FidelityAdapter, relative
+   * to the module's folder. Its artifacts get "Make lo-fi" and "Make hi-fi".
+   */
+  fidelity?: string
   /** The Vue component an artifact page renders, relative to the folder. */
   page: string
 }

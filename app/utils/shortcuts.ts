@@ -1,6 +1,8 @@
 // The studio's keyboard shortcuts and their labels. Labels name the keys of
 // the computer in use: ⌘ on Apple computers and devices, Ctrl elsewhere.
-// Plain functions, so they run in tests without a browser.
+// Plain functions, so they run in tests without a browser, and in preview
+// documents, which pass the studio's shortcuts on.
+import type { PreviewShortcut } from '../../tooling/preview/protocol'
 
 export type StudioShortcut =
   'palette' | 'navigation' | 'source' | 'grid' | 'save'
@@ -88,7 +90,7 @@ export function artifactShortcut(event: Keystroke): 'source' | 'grid' | null {
   return event.shiftKey ? 'grid' : 'source'
 }
 
-export type PreviewShortcut = 'source' | 'grid' | 'palette' | 'navigation'
+export type { PreviewShortcut }
 
 /** The studio commands a preview document passes on to the studio. */
 export function previewShortcut(event: Keystroke): PreviewShortcut | null {

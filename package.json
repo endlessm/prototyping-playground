@@ -46,6 +46,7 @@
     "@codemirror/search": "^6.7.2",
     "@codemirror/state": "^6.7.6",
     "@codemirror/view": "^6.43.15",
+    "@fontsource/comic-neue": "^5.2.7",
     "@iconify-json/lucide": "^1.2.145",
     "@lezer/highlight": "^1.2.5",
     "@nuxt/ui": "~4.8.2",

@@ -5,7 +5,7 @@ import AppFileBoundary from '../../../../app/components/AppFileBoundary.vue'
 import ArtifactActions from '../components/ArtifactActions.vue'
 import ArtifactUnavailable from '../components/ArtifactUnavailable.vue'
 import PrototypeViewer from '../components/PrototypeViewer.vue'
-import { usePrototype } from '../composables/usePrototype'
+import { findArtifact, usePrototype } from '../composables/usePrototype'
 
 // The page stays while the person moves between artifacts of a prototype.
 definePageMeta({ key: (route) => `prototype:${route.params.prototypeId}` })
@@ -21,8 +21,9 @@ const studio = useStudioConfig()
 const { prototype, artifacts } = await usePrototype(
   () => route.params.prototypeId as string,
 )
+// A view's named state opens at its own address, as its view's page.
 const artifact = computed(() =>
-  artifacts.value.find(({ id }) => id === route.params.artifactId),
+  findArtifact(artifacts.value, route.params.artifactId as string),
 )
 // One page component per file type, so moving between artifacts of the
 // same type keeps the page (and a view's preview document) in place.

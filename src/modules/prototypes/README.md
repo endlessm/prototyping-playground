@@ -4,13 +4,13 @@ Prototypes and their artifacts. A prototype is a folder `src/prototypes/<contrib
 
 - `module.ts` declares the module, its pages and the view file type.
 - `pages/prototype.vue` is `/prototypes/<prototype-id>`. It replaces itself in the browser history with the prototype's first artifact, keeping the query and the `#anchor`.
-- `pages/artifact.vue` is `/prototypes/<prototype-id>/artifacts/<artifact-id>`. It shows the viewer (`components/PrototypeViewer.vue`): the prototype's title, its system and a plain list of its artifacts in file-tree order in the section navigation (`AppSectionNav`: hidden and shown with ⌘;, resized from its edge, remembered in this browser), the open artifact beside it, and the tab title "<Prototype> — <Artifact> — <studio name>". An unknown prototype is "Page not found"; an unknown artifact is too, with the prototype's navigation kept around it. A file type's page that crashes shows its error with "Copy error" (`AppFileBoundary`) and leaves the rest of the viewer working.
+- `pages/artifact.vue` is `/prototypes/<prototype-id>/artifacts/<artifact-id>`. It shows the viewer (`components/PrototypeViewer.vue`): the prototype's title, its system and a list of its artifacts in file-tree order, each view's named states under it, in the section navigation (`AppSectionNav`: hidden and shown with ⌘;, resized from its edge, remembered in this browser), the open artifact beside it, and the tab title "<Prototype> — <Artifact> — <studio name>". A named state's address opens its view's page with the state, titled "<View> · <State>". Locally, right-clicking a view's row offers "Make lo-fi" or "Make hi-fi" in your own prototypes (any, for an Admin). An unknown prototype is "Page not found"; an unknown artifact is too, with the prototype's navigation kept around it. A file type's page that crashes shows its error with "Copy error" (`AppFileBoundary`) and leaves the rest of the viewer working.
 - `pages/artifact.vue` keeps its page while the person moves between artifacts of one prototype, so an open preview document stays in place. Locally it also opens the artifact's source (see "Source mode").
 - `components/ArtifactActions.vue` is the open artifact's file menu ("File actions", local only): "Edit source", or "View source" when you can't change the prototype. Ticket 11's file tree adds the rest of the file actions.
 - `components/ArtifactSource.vue` adapts the shared source editor (`app/components/source/`) to an artifact, through the file service's source route.
 - `components/ArtifactUnavailable.vue` stands in for an artifact that can't open, with its reason and, locally, "Open source".
 - `components/PrototypesHome.vue` is the module's Home block: the five newest prototypes by `created`, each opening its first artifact. It comes first locally and after what colleagues come for on the deployed site.
-- `types/view/` is the view file type: `.vue` files, with the identity adapter (reads and writes the leading comment), the page that renders a view (`ViewPage.vue`), its preview frame and notices (`ViewPreview.vue`), and the error and empty states (`ViewError.vue`, `ViewEmpty.vue`), drawn in the studio's own style.
+- `types/view/` is the view file type: `.vue` files, with the identity adapter (reads and writes the leading comments, the view's and each named state's), its check and named states (`states.ts`), the lo-fi marker (`fidelity.ts`), the page that renders a view (`ViewPage.vue`), its preview frame and notices (`ViewPreview.vue`), and the error and empty states (`ViewError.vue`, `ViewEmpty.vue`), drawn in the studio's own style.
 
 ## meta.json
 
@@ -25,7 +25,7 @@ Prototypes and their artifacts. A prototype is a folder `src/prototypes/<contrib
 
 ## Artifacts
 
-The manifest (`tooling/manifest/build.ts`) lists each prototype's artifacts in file-tree order, folders first. Files and folders whose names start with `_` (a prototype's helpers) or `.` are not artifacts. Each artifact needs a permanent identity read from its leading comments; a missing, malformed or repeated one is reported and leaves the file out. The main manifest lists prototypes and systems; each prototype's artifact list is a separate file the viewer loads when the prototype opens.
+The manifest (`tooling/manifest/build.ts`) lists each prototype's artifacts in file-tree order, folders first. Files and folders whose names start with `_` (a prototype's helpers) or `.` are not artifacts. Each artifact needs a permanent identity read from its leading comments; a missing, malformed or repeated one is reported and leaves the file out. A view's record also carries its named states (`states`: ID and title, in declaration order) and `lofi: true` when it is lo-fi. A file type may declare a `check` (problems in one file's source, as sentences), which the manifest reports in development and which stops the build. The main manifest lists prototypes and systems; each prototype's artifact list is a separate file the viewer loads when the prototype opens.
 
 Files of a type whose module is turned off stay listed, marked `unavailable` with the type's and the module's labels. Their page says "<Type> files can’t open here: the <Module> module is turned off." with "Open source" locally, so they can still be found and repaired.
 
@@ -33,12 +33,12 @@ Files of a type whose module is turned off stay listed, marked `unavailable` wit
 
 Every prototype and artifact has a permanent ID that stays with it through renames and moves, so its address `/prototypes/<prototype-id>/artifacts/<artifact-id>` never breaks. Older readable addresses (folder or file names) are not supported. A file copied with its original's ID is a duplicate, which the audit and the build report.
 
-- **New files while the dev server runs.** A view an agent or editor creates in your own prototype gets its ID within a second, written as the leading comment (`tooling/identity/assign.ts`). An existing ID is never rewritten, a file created empty waits for its first content, and nothing is assigned while the studio has identity problems (the dev server logs what to fix). Only one dev server assigns at a time.
-- **`yarn studio identify src/prototypes/<contributor>/<folder>`.** Lists the files missing an ID (`--json` for tools); `--yes` writes them, plus the prototype's own `studioId` and `ownerContributorId` when missing, and lists each assigned ID. Only the owner or an Admin can run it, the prototype must declare `systemId`, and it refuses while the studio has identity problems.
-- **`yarn studio identity-audit`.** Counts every contributor, system, prototype and artifact and reports missing, malformed and duplicate IDs; exits 1 on any. It never writes. File types of switched-off modules count too, so an ID is never handed out twice.
-- **The build** (`yarn build`) stops on a missing, malformed or duplicate ID, naming the file.
+- **New files while the dev server runs.** A view an agent or editor creates in your own prototype gets its ID within a second, written as the leading comment (`tooling/identity/assign.ts`). So does each named state added to one of your views, unless the view's check reports a problem (a state renamed in code alone keeps a comment naming no state, which is reported rather than given a new ID). An existing ID is never rewritten, a file created empty waits for its first content, and nothing is assigned while the studio has identity problems (the dev server logs what to fix). Only one dev server assigns at a time.
+- **`yarn studio identify src/prototypes/<contributor>/<folder>`.** Lists the files and named states missing an ID (`--json` for tools: `missing` and `missingStates`); `--yes` writes them, plus the prototype's own `studioId` and `ownerContributorId` when missing, and lists each assigned ID. Only the owner or an Admin can run it, the prototype must declare `systemId`, and it refuses while the studio has identity problems.
+- **`yarn studio identity-audit`.** Counts every contributor, system, prototype, artifact and named state and reports missing, malformed and duplicate IDs; exits 1 on any. It never writes. File types of switched-off modules count too, so an ID is never handed out twice.
+- **The build** (`yarn build`) stops on a missing, malformed or duplicate ID, naming the file (and the state), and on what file types' checks report.
 
-A file type's identity adapter (`IdentityAdapter` in `tooling/modules/contract.ts`) reads and writes the ID in a comment or metadata, never in code (ADR 0001). New IDs are 16 lowercase Crockford base32 characters from 10 random bytes, checked against every ID in use.
+A file type's identity adapter (`IdentityAdapter` in `tooling/modules/contract.ts`) reads and writes the ID in a comment or metadata, never in code (ADR 0001). Its optional `children` reads and writes the IDs of artifacts declared inside the file, such as a view's named states. New IDs are 16 lowercase Crockford base32 characters from 10 random bytes, checked against every ID in use.
 
 ## Views
 
@@ -62,6 +62,53 @@ A preview document starts in the studio's color mode before it paints, and follo
 
 In development each preview document has its own Vite server, started on its first request; the build emits each document under `_preview/` beside the app.
 
+## Named states
+
+A view may declare named states (ADR 0001): variations of one screen, each with its own title and permanent ID, listed under the view in the navigation and opening at their own addresses `/prototypes/<prototype-id>/artifacts/<state-id>`. The regular `<script>` block, next to `<script setup>`, exports a plain list; each state renders the view with its `props`:
+
+```vue
+<!-- @studio-id vhme000000000001 -->
+<!-- @studio-state stmb000000000001 Member -->
+<!-- @studio-state stnw000000000001 New user -->
+<script setup lang="ts">
+defineProps<{ name: string }>()
+</script>
+
+<script lang="ts">
+export const states = [
+  { title: 'Member', props: { name: 'Ana' } },
+  { title: 'New user', props: { name: '' } },
+]
+</script>
+```
+
+- Titles are read statically, without running the view (`types/view/states.ts`): plain text in quotes on each state object, written in place, different from each other, on one line and without `-->`. A `title` inside props doesn't count. A view whose only script is the regular `<script>` also needs a `default` export.
+- Each state's identity is a leading comment, `<!-- @studio-state <id> <title> -->`, matched by title and written by assignment after the view's own. State IDs count with every other identity in the audit.
+- The view's check reports unreadable and repeated titles, and comments that name no state ("When renaming a state, change its title in the comment too…"). Renaming a state means changing its title in code and comment together; a rename in code alone is reported, not given a new link.
+- The preview renders a state with its props, kept reactive: editing them on disk updates the open state without reloading the document (Vue's hot reload decides whether the view keeps its own state). Moving between states remounts the view. A state whose title the running view no longer exports shows "<View>.vue has no state titled "<title>" in export const states."
+
+## Links and navigation inside a view
+
+Views name other artifacts of their prototype by path, from `#studio/prototype` (`tooling/preview/runtime/navigation.ts`, an alias of the preview documents):
+
+| Export                         | What it does                                                                                         |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| `<PrototypeLink to="...">`     | An anchor to the artifact at a path inside the prototype (`flows/Details`), or a studio `/` address. |
+| `usePrototypeNavigate()`       | A function that opens a path, or a `/` address (`{ replace: true }` replaces the history entry).     |
+| `usePrototypeArtifactHref()`   | A function returning a path's permanent address, with the studio's base path.                        |
+| `useIsPrototypeArtifact(path)` | Whether the view at the path (or one of its states) is on screen.                                    |
+
+A path may keep its extension, `?query` and `#anchor`. An unknown or ambiguous path throws an error naming it, which the preview shows. Inside a view:
+
+- A link to a studio address opens it in the studio (the preview document sends `navigate`), so history, Back and Forward and the highlighted row stay right. Opened alone in a tab, the document shows its own views in place, with its own history.
+- `#anchors` scroll inside the view, without a history entry.
+- Other `http(s)` addresses open in a new tab. Modified clicks (⌘ or Ctrl, Shift, Alt), downloads, links with a `target` and links a view handles itself are the browser's.
+- The studio's shortcuts (⌘K, ⌘;, ⌘' and ⌘⇧') pressed in a view reach the studio, except while typing in a field there; ⌘' and ⌘⇧' are left alone while a dialog or menu is open in the view, and a view may handle ⌘K first.
+
+## Lo-fi
+
+A view whose leading comments hold `<!-- @lofi -->` is lo-fi: its components and behavior stay, drawn in grayscale with the bundled handwritten font Comic Neue (`tooling/preview/runtime/lofi.css`, from `@fontsource/comic-neue`), so nothing is fetched from another site. "Make lo-fi" and "Make hi-fi" in a view's context menu add and remove the comment through the dev server (`POST <base>_studio/fidelity`, same origin, your own prototypes or any as an Admin; `tooling/manifest/fidelity.ts`). An open preview switches in place, without reloading its document. A file type offers this by declaring `fidelity` (`FidelityAdapter`: `isLofi`, `setLofi`).
+
 ## Live updates
 
 In development the studio keeps up with files changing on disk, by an agent, an editor or the studio, without reloading the page:
@@ -75,7 +122,7 @@ On the deployed site there are no live updates: the manifest is built once, and 
 
 ## Source mode
 
-Locally, any artifact's source opens in place of its page: from "File actions" → "Edit source" (or "View source"), from "Open source" on an artifact that can't open, or with ⌘' / Ctrl+' (not while typing in a form field or while a dialog or menu is open; inside the editor it works). The address gets `?mode=source`, so it can be shared and reloaded; the same shortcut, or "Done", returns to the rendered page and focuses it. The editor has focus when it opens. Source opens even when the view is broken, so it can always be repaired.
+Locally, any artifact's source opens in place of its page: from "File actions" → "Edit source" (or "View source"), from "Open source" on an artifact that can't open, or with ⌘' / Ctrl+', also while a view has focus (not while typing in a form field or while a dialog or menu is open; inside the editor it works). The address gets `?mode=source`, so it can be shared and reloaded; the same shortcut, or "Done", returns to the rendered page and focuses it. The editor has focus when it opens. A named state's source is its view's file. Source opens even when the view is broken, so it can always be repaired.
 
 The rendered page stays alive while its source is open, hidden and inert: a view keeps its state and its hot updates, so returning shows the saved change in the running view.
 
@@ -108,6 +155,8 @@ The studio and a preview document talk over a versioned, validated message chann
 | `ready`     | document | A load of the document started, with its `runtime` ID. The studio answers with `configure`.                                                                                             |
 | `configure` | studio   | Show this artifact. The document keeps the outgoing view on screen, inert, until the next is ready, and updates its own address.                                                        |
 | `status`    | document | `loading`, `ready`, `error` (with the detail) or `empty`, numbered by render attempt.                                                                                                   |
+| `navigate`  | document | Open this studio address (a path on the studio's origin with its base path), optionally replacing the history entry. Sent for links and `usePrototypeNavigate` in the view.             |
+| `shortcut`  | document | One of the studio's shortcuts was pressed in the view: `palette`, `navigation`, `source` or `grid`. The studio handles it as if pressed in its own window.                              |
 | `lifecycle` | document | Development only: whether the shown output matches the saved source: `current`, `updating`, `error` (the latest change failed to compile or render, with the detail) or `disconnected`. |
 
 The studio accepts only messages from its own frame, session and current runtime about the open artifact; the document accepts `configure` only from its parent with its session and runtime.

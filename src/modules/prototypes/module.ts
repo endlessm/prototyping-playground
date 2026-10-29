@@ -33,6 +33,8 @@ export default {
       label: 'View',
       extensions: ['.vue'],
       identity: 'types/view/identity.ts',
+      check: 'types/view/states.ts',
+      fidelity: 'types/view/fidelity.ts',
       page: 'types/view/ViewPage.vue',
     },
   ],
