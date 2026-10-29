@@ -29,7 +29,10 @@ export type I18n = {
   setLocale: (code: string) => Promise<void>;
 };
 
+// As in vue-i18n, a key with dots in it (`username_cant_contain...`) is found whole before it is read as a path.
 function lookup(locale: string, key: string): unknown {
+  const whole = messages[locale]?.[key];
+  if (whole !== undefined) return whole;
   let node: unknown = messages[locale];
   for (const part of key.split('.')) {
     if (node == null || typeof node !== 'object') return undefined;
