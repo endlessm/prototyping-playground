@@ -49,8 +49,9 @@ export interface ModuleSkill {
  */
 export interface IdentityAdapter {
   /**
-   * Where a file of this type declares it, for messages: "a top-level
-   * \"studioId\"". A leading `<!-- @studio-id … -->` comment by default.
+   * Where a file of this type declares it, completing "it belongs in …":
+   * "a top-level \"studioId\"". A leading `<!-- @studio-id … -->` comment
+   * by default.
    */
   where?: string
   /** The declared identity, or null; throws on a malformed declaration. */
@@ -102,15 +103,24 @@ export interface ModuleFileType {
    */
   fidelity?: string
   /**
-   * A file whose `template` export gives a new file's text, relative to the
-   * module's folder. It runs on Node and gets the new file's readable title;
-   * the studio adds the identity.
+   * A file whose `template` export gives a new file's source from its title,
+   * relative to the module's folder. The studio adds the identity.
    */
   template?: string
   /** The Vue component an artifact page renders, relative to the folder. */
   page: string
-  /** An Iconify name for navigation, file lists and the type's cards. */
+  /**
+   * The Vue component that previews an artifact embedded in a document,
+   * relative to the folder. A type without one shows as a card there.
+   */
+  embed?: string
+  /** An Iconify name for navigation, file lists and cards. */
   icon?: string
+  /**
+   * Whether the page reads the file's text, which the deployed site then
+   * ships as a file of its own (documents do; views compile instead).
+   */
+  text?: boolean
 }
 
 /**

@@ -40,6 +40,7 @@ export default {
       fidelity: 'types/view/fidelity.ts',
       icon: 'i-lucide-app-window',
       page: 'types/view/ViewPage.vue',
+      embed: 'types/view/ViewEmbed.vue',
     },
   ],
 } satisfies StudioModule

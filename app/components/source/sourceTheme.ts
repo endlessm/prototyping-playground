@@ -1,42 +1,16 @@
 // How the source editor looks: the studio's own background, text and
-// borders (Nuxt UI's neutral theme), with syntax colours from Flexoki
-// (https://stephango.com/flexoki, MIT, by Steph Ango): its 600 shades in
-// light mode, its 400 shades in dark mode. Keywords green, strings cyan,
-// numbers purple, constants yellow, functions orange, variables and
-// attributes blue, imports red, tags magenta; comments and punctuation quiet.
-// The colours live on the editor only, so the studio's theme gains no tokens.
+// borders (Nuxt UI's neutral theme), with syntax colours from the studio's
+// accent palette (`contentPalette`, Flexoki), shared with code in documents
+// and with diagrams. The colours live on the editor only, so the studio's
+// theme gains no tokens.
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language'
 import { EditorView } from '@codemirror/view'
 import { tags as t } from '@lezer/highlight'
+import { contentPalette, type ContentMode } from '../../utils/contentPalette'
 
-const FLEXOKI = {
-  light: {
-    red: '#AF3029',
-    orange: '#BC5215',
-    yellow: '#AD8301',
-    green: '#66800B',
-    cyan: '#24837B',
-    blue: '#205EA6',
-    purple: '#5E409D',
-    magenta: '#A02F6F',
-    comment: '#878580',
-  },
-  dark: {
-    red: '#D14D41',
-    orange: '#DA702C',
-    yellow: '#D0A215',
-    green: '#879A39',
-    cyan: '#3AA99F',
-    blue: '#4385BE',
-    purple: '#8B7EC8',
-    magenta: '#CE5D97',
-    comment: '#878580',
-  },
-}
-
-const palette = (mode: 'light' | 'dark') =>
+const palette = (mode: ContentMode) =>
   Object.fromEntries(
-    Object.entries(FLEXOKI[mode]).map(([name, color]) => [
+    Object.entries(contentPalette[mode]).map(([name, color]) => [
       `--fx-${name}`,
       color,
     ]),

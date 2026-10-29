@@ -117,7 +117,8 @@ export default defineNuxtModule({
     ]
     for (const problem of problems) console.warn(`Warning: ${problem}`)
 
-    // Each file type's page, loaded when an artifact of it opens.
+    // Each file type's page, loaded when an artifact of it opens, and its
+    // preview in documents, loaded when one appears.
     const load = (type: (typeof fileTypes)[number], file: string) =>
       `() => import(${JSON.stringify(path.join(type.dir, file).split(path.sep).join('/'))})`
     const pages = fileTypes.map((type) => {
@@ -125,8 +126,9 @@ export default defineNuxtModule({
         `label: ${JSON.stringify(type.label)}`,
         `fidelity: ${Boolean(type.fidelity)}`,
         `extensions: ${JSON.stringify(type.extensions)}`,
-        `icon: ${JSON.stringify(type.icon ?? 'i-lucide-file')}`,
+        `icon: ${JSON.stringify(type.icon ?? null)}`,
         `page: ${load(type, type.page)}`,
+        ...(type.embed ? [`embed: ${load(type, type.embed)}`] : []),
       ]
       return `${JSON.stringify(type.id)}: { ${fields.join(', ')} }`
     })
@@ -149,9 +151,11 @@ declare module '#studio/file-types' {
       /** Its artifacts can be made lo-fi and hi-fi again. */
       fidelity: boolean
       extensions: string[]
-      /** An Iconify name. */
-      icon: string
+      /** An Iconify name; none shows no icon in the navigation. */
+      icon: string | null
       page: Load
+      /** Its preview embedded in a document; without one, a card. */
+      embed?: Load
     }
   >
   export default types
@@ -227,12 +231,16 @@ declare module '${MANIFEST_MODULE}' {
     )
     addVitePlugin(
       manifestPlugin(read, base, {
+        root,
         watch: [
           path.resolve(root, prototypesFolder),
           path.resolve(root, contributorsFolder),
           registry.configFile,
         ],
         changed: previews.changed,
+        textTypes: new Set(
+          fileTypes.filter((type) => type.text).map((type) => type.id),
+        ),
       }),
       { server: false },
     )
@@ -269,7 +277,13 @@ const WATCH_EVENTS = ['add', 'addDir', 'unlink', 'unlinkDir', 'change'] as const
 function manifestPlugin(
   read: () => BuiltManifest,
   base: string,
-  live: { watch: string[]; changed: (files: ChangedFile[]) => Promise<void> },
+  live: {
+    root: string
+    watch: string[]
+    changed: (files: ChangedFile[]) => Promise<void>
+    /** The file types whose text the deployed site ships. */
+    textTypes: Set<string>
+  },
 ): Plugin {
   const resolved = `\0${MANIFEST_MODULE}`
   let production = false
@@ -290,7 +304,20 @@ function manifestPlugin(
       // Content-addressed files, linked relative to the main manifest.
       const built = read()
       const names: Record<string, string> = {}
-      for (const [prototype, list] of Object.entries(built.artifacts)) {
+      for (const [prototype, artifacts] of Object.entries(built.artifacts)) {
+        // The text of the files a page reads (documents) ships beside them.
+        const list = artifacts.map((artifact) => {
+          if (artifact.unavailable || !live.textTypes.has(artifact.type))
+            return artifact
+          const text = readFileSync(path.resolve(live.root, artifact.file))
+          const name = `text/${artifact.id}.${hash(text.toString('utf8'))}.txt`
+          this.emitFile({
+            type: 'asset',
+            fileName: `${folder}/${name}`,
+            source: text,
+          })
+          return { ...artifact, text: `./${name}` }
+        })
         const source = JSON.stringify(list)
         names[prototype] = `${prototype}.${hash(source)}.json`
         this.emitFile({

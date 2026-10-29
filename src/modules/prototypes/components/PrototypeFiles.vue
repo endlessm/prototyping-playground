@@ -100,7 +100,7 @@ const newOptions = computed<NewFileOption[]>(() => [
   ...typeOrder.map((type) => ({
     type,
     label: t('files.newType', { type: types[type]!.label.toLowerCase() }),
-    icon: types[type]!.icon,
+    icon: types[type]!.icon ?? 'i-lucide-file',
   })),
   { type: 'folder', label: t('files.newFolder'), icon: 'i-lucide-folder-plus' },
 ])
