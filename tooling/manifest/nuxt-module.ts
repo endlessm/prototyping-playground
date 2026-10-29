@@ -22,7 +22,7 @@ import {
   type Plugin,
   type ViteDevServer,
 } from 'vite'
-import type { IdentityReader } from '../modules/contract.ts'
+import type { IdentityAdapter } from '../modules/contract.ts'
 import { sameOrigin } from '../modules/nuxt-module.ts'
 import { loadRegistry } from '../modules/registry.ts'
 import {
@@ -67,7 +67,7 @@ export default defineNuxtModule({
     for (const type of fileTypes) {
       const file = pathToFileURL(path.join(type.dir, type.identity))
       const { identity } = (await import(file.href)) as {
-        identity: IdentityReader
+        identity: IdentityAdapter
       }
       readers.push({ id: type.id, extensions: type.extensions, identity })
     }
