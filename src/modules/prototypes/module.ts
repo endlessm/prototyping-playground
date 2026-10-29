@@ -33,6 +33,8 @@ export default {
       label: 'View',
       extensions: ['.vue'],
       identity: 'types/view/identity.ts',
+      check: 'types/view/states.ts',
+      fidelity: 'types/view/fidelity.ts',
       page: 'types/view/ViewPage.vue',
       embed: 'types/view/ViewEmbed.vue',
       icon: 'i-lucide-app-window',

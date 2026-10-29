@@ -47,10 +47,28 @@ export interface IdentityAdapter {
   /** The source with `id` declared; throws if it already declares one. */
   write: (source: string, id: string) => string
   /**
+   * Child artifacts declared inside the file, such as a view's named
+   * states, each keyed by a name unique in the file and with an identity of
+   * its own, also kept in comments.
+   */
+  children?: {
+    /** In declaration order; throws on a malformed declaration. */
+    read: (source: string) => { key: string; studioId: string | null }[]
+    /** The source with the child `key` given `id`. */
+    write: (source: string, key: string, id: string) => string
+  }
+  /**
    * Where the identity belongs, completing "it belongs in …", such as
    * "a leading <!-- @studio-id … --> comment".
    */
   where?: string
+}
+
+/** A file type whose artifacts can be drawn lo-fi. */
+export interface FidelityAdapter {
+  isLofi: (source: string) => boolean
+  /** The source switched to lo-fi (`on`) or back to hi-fi. */
+  setLofi: (source: string, on: boolean) => string
 }
 
 /** A kind of artifact file in prototypes, such as views. */
@@ -72,6 +90,11 @@ export interface ModuleFileType {
    * build fails on any problem.
    */
   check?: string
+  /**
+   * A file whose `fidelity` export is the type's FidelityAdapter, relative
+   * to the module's folder. Its artifacts get "Make lo-fi" and "Make hi-fi".
+   */
+  fidelity?: string
   /**
    * A file whose `template` export gives a new file's source from its title,
    * relative to the module's folder. The studio adds the identity.

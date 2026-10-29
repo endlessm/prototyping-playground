@@ -23,14 +23,26 @@ export { NO_SYSTEM, PREVIEW_ROUTE }
 
 const VIEWS_MODULE = 'virtual:studio-preview-views'
 const RUNTIME = path.resolve(import.meta.dirname, 'runtime/mount.ts')
+/** What views import their navigation helpers from. */
+export const NAVIGATION_MODULE = '#studio/prototype'
+const NAVIGATION = path.resolve(import.meta.dirname, 'runtime/navigation.ts')
 
 const posix = (file: string) => file.split(path.sep).join('/')
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 export interface PreviewView {
+  /** The view's or the named state's permanent ID. */
   id: string
   /** Absolute path of the view's file. */
   file: string
+  /** The prototype's permanent ID. */
+  prototype: string
+  /** Inside the prototype, without the extension: `flows/Sign in`. */
+  path: string
+  /** For a named state: its title, matched in the view's `states`. */
+  state?: string
+  /** Drawn in grayscale with a handwritten font. */
+  lofi?: boolean
 }
 
 // A view that holds nothing but comments (a new view, before the agent
@@ -51,7 +63,7 @@ function emptyFile(file: string) {
  * empty. When this changes in development, the module is reloaded in place.
  */
 export const viewsSignature = (views: PreviewView[]) =>
-  JSON.stringify(views.map(({ id, file }) => [id, file, emptyFile(file)]))
+  JSON.stringify(views.map((view) => [view, emptyFile(view.file)]))
 
 export interface PreviewDocument {
   /** The system's permanent ID, or `none`. */
@@ -119,8 +131,9 @@ function writeEntry(document: PreviewDocument, options: PreviewOptions) {
     }
   } else {
     lines.push(
-      `import { createApp } from 'vue'`,
-      `const create = ({ component, props }) => createApp(component, props)`,
+      `import { createApp, h } from 'vue'`,
+      // Props read on each render, so a state's new props apply in place.
+      `const create = ({ component, props }) => createApp({ render: () => h(component, { ...props }) })`,
     )
   }
   lines.push(
@@ -155,7 +168,8 @@ ${colorModeScript(document.system ? document.system.spec.colorModes : null)}
 
 export const VIEWS_RESOLVED = `\0${VIEWS_MODULE}`
 
-// Each view's file, title and loader (none for an empty view). In
+// Each view's and named state's file, title, place in its prototype, state,
+// fidelity and loader (none for an empty view). In
 // development the module accepts its own updates: it changes the one object
 // the runtime holds and tells it, so new, renamed and emptied views reach an
 // open document without a reload.
@@ -167,12 +181,21 @@ function viewsPlugin(options: PreviewOptions): Plugin {
     },
     load(id) {
       if (id !== VIEWS_RESOLVED) return
-      const entries = options.views().map(({ id, file }) => {
+      const entries = options.views().map((view) => {
+        const { id, file } = view
         const title = path.basename(file, path.extname(file))
         const load = emptyFile(file)
           ? 'null'
           : `() => import(${JSON.stringify(posix(file))})`
-        return `${JSON.stringify(id)}: { file: ${JSON.stringify(posix(file))}, title: ${JSON.stringify(title)}, load: ${load} }`
+        const data = JSON.stringify({
+          file: posix(file),
+          title,
+          prototype: view.prototype,
+          path: view.path,
+          state: view.state ?? null,
+          lofi: Boolean(view.lofi),
+        })
+        return `${JSON.stringify(id)}: { ...${data}, load: ${load} }`
       })
       return `const next = {${entries.join(',\n')}}
 const views = import.meta.hot?.data.views ?? next
@@ -296,6 +319,27 @@ async function systemPlugins(system: InstalledSystem, root: string) {
   return plugins
 }
 
+// Development only: a view module tells the document its newest `states`
+// after each hot update, so a state's new props reach the open view without
+// a remount.
+function statesPlugin(options: PreviewOptions): Plugin {
+  const folder = `${posix(options.prototypesDir)}/`
+  return {
+    name: 'studio-preview-states',
+    apply: 'serve',
+    enforce: 'post',
+    transform(code, id) {
+      if (!id.endsWith('.vue') || !posix(id).startsWith(folder)) return
+      const file = JSON.stringify(posix(id))
+      return `${code}
+if (import.meta.hot) import.meta.hot.accept((next) => {
+  if (next) window.dispatchEvent(new CustomEvent('studio:states', { detail: { file: ${file}, states: next.states } }))
+})
+`
+    },
+  }
+}
+
 /** The Vite configuration of one preview document. */
 export async function previewConfig(
   document: PreviewDocument,
@@ -307,6 +351,7 @@ export async function previewConfig(
     vue({ include: [/\.vue$/] }),
     viewsPlugin(options),
     compilePlugin(options),
+    statesPlugin(options),
   ]
   if (document.system)
     plugins.push(...(await systemPlugins(document.system, options.root)))
@@ -321,6 +366,11 @@ export async function previewConfig(
     clearScreen: false,
     cacheDir: path.join(options.workDir, '.vite', document.key),
     plugins,
+    resolve: {
+      alias: [{ find: NAVIGATION_MODULE, replacement: NAVIGATION }],
+      // One Vue for the runtime, its navigation helpers and the views.
+      dedupe: ['vue'],
+    },
     server: {
       middlewareMode: true,
       // Each document's Vite client connects to its own socket.

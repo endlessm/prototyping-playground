@@ -25,6 +25,7 @@ import {
 } from 'vite'
 import { identityFileTypes } from '../identity/file-types.ts'
 import { createRefreshQueue } from '../live/refresh-queue.ts'
+import { FIDELITY_ROUTE, fidelityRoute } from './fidelity.ts'
 import { sameOrigin } from '../modules/nuxt-module.ts'
 import { loadRegistry } from '../modules/registry.ts'
 import {
@@ -108,13 +109,14 @@ export default defineNuxtModule({
     const problems = [...systemProblems, ...read().problems]
     for (const problem of problems) console.warn(`Warning: ${problem}`)
 
-    // The page of each file type, loaded when an artifact of it opens.
-    // A document's embed of each type, loaded when one appears.
+    // Each file type's page, loaded when an artifact of it opens, and its
+    // preview in documents, loaded when one appears.
     const load = (type: (typeof fileTypes)[number], file: string) =>
       `() => import(${JSON.stringify(path.join(type.dir, file).split(path.sep).join('/'))})`
     const pages = fileTypes.map((type) => {
       const fields = [
         `label: ${JSON.stringify(type.label)}`,
+        `fidelity: ${Boolean(type.fidelity)}`,
         `extensions: ${JSON.stringify(type.extensions)}`,
         `icon: ${JSON.stringify(type.icon ?? 'i-lucide-file')}`,
         `page: ${load(type, type.page)}`,
@@ -138,6 +140,8 @@ declare module '#studio/file-types' {
     string,
     {
       label: string
+      /** Its artifacts can be made lo-fi and hi-fi again. */
+      fidelity: boolean
       extensions: string[]
       /** An Iconify name. */
       icon: string
@@ -165,13 +169,31 @@ declare module '${MANIFEST_MODULE}' {
       workDir,
       baseURL: base,
       prototypesDir: path.resolve(root, prototypesFolder),
+      // Each view, then each of its named states.
       views: () => {
         const { manifest, artifacts } = read()
         return manifest.prototypes
           .filter(({ systemId }) => (systemId ?? NO_SYSTEM) === document.key)
-          .flatMap(({ id }) => artifacts[id] ?? [])
-          .filter(({ type }) => type === 'view')
-          .map(({ id, file }) => ({ id, file: path.resolve(root, file) }))
+          .flatMap(({ id: prototype }) =>
+            (artifacts[prototype] ?? [])
+              .filter(({ type }) => type === 'view')
+              .flatMap((view) => {
+                const shared = {
+                  file: path.resolve(root, view.file),
+                  prototype,
+                  path: view.path,
+                  lofi: view.lofi === true,
+                }
+                return [
+                  { id: view.id, ...shared },
+                  ...(view.states ?? []).map((state) => ({
+                    id: state.id,
+                    ...shared,
+                    state: state.title,
+                  })),
+                ]
+              }),
+          )
       },
     })
 
@@ -211,6 +233,24 @@ declare module '${MANIFEST_MODULE}' {
       { server: false },
     )
     addVitePlugin(previews.plugin, { server: false })
+    if (nuxt.options.dev) {
+      const route = fidelityRoute({
+        root,
+        contributorsFolder: process.env.STUDIO_CONTRIBUTORS || 'contributors',
+        configFile: registry.configFile,
+        read,
+        readers,
+      })
+      addVitePlugin(
+        {
+          name: 'studio-fidelity',
+          configureServer(server) {
+            server.middlewares.use(`${base}${FIDELITY_ROUTE}`, route)
+          },
+        },
+        { server: false },
+      )
+    }
   },
 })
 

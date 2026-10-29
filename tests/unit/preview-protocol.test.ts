@@ -121,6 +121,36 @@ describe('the preview channel', () => {
     ).toBe(false)
   })
 
+  test('[PR-82] a preview asks the studio to navigate to one of its own addresses, or to run a shortcut', () => {
+    const navigate = { ...envelope, kind: 'navigate', replace: false }
+    expect(
+      isPreviewMessage({
+        ...navigate,
+        href: '/studio/prototypes/f1ws000000000001/artifacts/det0000000000a01?x=1#y',
+      }),
+    ).toBe(true)
+    for (const href of [
+      'https://elsewhere.example/',
+      '//elsewhere.example/',
+      'javascript:alert(1)',
+      'prototypes/relative',
+      `/${'a'.repeat(4096)}`,
+      '/line\nbreak',
+      42,
+    ])
+      expect(isPreviewMessage({ ...navigate, href })).toBe(false)
+    expect(isPreviewMessage({ ...navigate, href: '/', replace: 'yes' })).toBe(
+      false,
+    )
+    for (const action of ['palette', 'navigation', 'source', 'grid'])
+      expect(isPreviewMessage({ ...envelope, kind: 'shortcut', action })).toBe(
+        true,
+      )
+    expect(
+      isPreviewMessage({ ...envelope, kind: 'shortcut', action: 'quit' }),
+    ).toBe(false)
+  })
+
   test('[PR-97] a preview accepts configure only from its own studio and session', () => {
     const configure = { ...envelope, kind: 'configure' }
     expect(isHostMessage(configure)).toBe(true)

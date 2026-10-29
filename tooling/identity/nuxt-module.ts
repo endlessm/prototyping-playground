@@ -7,7 +7,7 @@ import { resolveIdentity } from '../contributors/identity.ts'
 import { readContributors } from '../contributors/profiles.ts'
 import { PROTOTYPES_FOLDER } from '../manifest/build.ts'
 import { loadRegistry } from '../modules/registry.ts'
-import { auditIdentities, type AuditOptions } from './audit.ts'
+import { auditIdentities, missingNames, type AuditOptions } from './audit.ts'
 import { identityFileTypes } from './file-types.ts'
 import { watchNewArtifacts } from './assign.ts'
 
@@ -16,8 +16,8 @@ export function strictIdentityProblems(
   audit: ReturnType<typeof auditIdentities>,
 ) {
   return [
-    ...audit.missing.map(
-      (file) => `${file}: the permanent identity is missing.`,
+    ...missingNames(audit).map(
+      (name) => `${name}: the permanent identity is missing.`,
     ),
     ...audit.problems,
   ]
@@ -42,17 +42,24 @@ export default defineNuxtModule({
 
     if (!nuxt.options.dev) {
       nuxt.hook('build:before', () => {
-        const problems = strictIdentityProblems(
-          auditIdentities(root, types, options),
-        )
+        const audit = auditIdentities(root, types, options)
+        const problems = strictIdentityProblems(audit)
+        const lines: string[] = []
         if (problems.length)
-          throw new Error(
-            [
-              'The build stopped: every prototype and artifact needs its own permanent identity.',
-              ...problems.map((problem) => `  ${problem}`),
-              'Run yarn studio identity-audit to see them, and yarn studio identify <prototype folder> --yes to fill in missing IDs.',
-            ].join('\n'),
+          lines.push(
+            'The build stopped: every prototype and artifact needs its own permanent identity.',
+            ...problems.map((problem) => `  ${problem}`),
+            'Run yarn studio identity-audit to see them, and yarn studio identify <prototype folder> --yes to fill in missing IDs.',
           )
+        // What file types check in their files, such as a view's states.
+        if (audit.checks.length)
+          lines.push(
+            lines.length
+              ? 'These files have problems to fix too:'
+              : 'The build stopped: these files have problems to fix first.',
+            ...audit.checks.map((problem) => `  ${problem}`),
+          )
+        if (lines.length) throw new Error(lines.join('\n'))
       })
       return
     }
