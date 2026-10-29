@@ -9,6 +9,12 @@ export interface ModulePage {
   path: string
   /** The Vue page, relative to the module's folder. */
   file: string
+  /**
+   * Pages shown inside this one (its `<NuxtPage />`), which stays on screen
+   * while they change. Their addresses continue this one's, with no leading
+   * slash; `''` is the page at this address.
+   */
+  children?: ModulePage[]
 }
 
 export interface ModuleRail {
@@ -123,6 +129,8 @@ export interface BuildDataContext {
   dir: string
   /** The ids of the enabled modules. */
   enabled: string[]
+  /** Whether the data is for the dev server, rather than the build. */
+  dev: boolean
 }
 
 /**

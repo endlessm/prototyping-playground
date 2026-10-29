@@ -76,7 +76,11 @@ function watchRoot(root: string, pattern: string) {
   )
 }
 
-export function buildDataStore(enabled: InstalledModule[], root: string) {
+export function buildDataStore(
+  enabled: InstalledModule[],
+  root: string,
+  { dev = false }: { dev?: boolean } = {},
+) {
   const entries = new Map(
     enabled.flatMap((module) =>
       Object.entries(module.spec.data ?? {}).map(
@@ -96,6 +100,7 @@ export function buildDataStore(enabled: InstalledModule[], root: string) {
       root,
       dir: entry.module.dir,
       enabled: ids,
+      dev,
     })
     return serializeData(value, key)
   })

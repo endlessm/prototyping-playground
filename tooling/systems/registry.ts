@@ -10,6 +10,12 @@ import type { SystemSpec } from './contract.ts'
 
 export const SYSTEMS_FOLDER = 'src/systems'
 
+/**
+ * The systems folder the app reads; the browser scenarios point it at
+ * fixture systems with `STUDIO_SYSTEMS`. The `studio` command ignores it.
+ */
+export const systemsFolder = () => process.env.STUDIO_SYSTEMS || SYSTEMS_FOLDER
+
 export interface InstalledSystem {
   spec: SystemSpec
   /** The folder name, which `studio.config.json` registers. */
@@ -28,8 +34,12 @@ export interface SystemRegistry {
   problems: string[]
 }
 
+// Counts reads, so two in the same millisecond still read the file again.
+let loads = 0
+
 const STATUS = new Set(['active', 'archived'])
 const MODES = new Set(['light', 'dark'])
+const ASSETS = new Set(['fonts', 'icons', 'images'])
 
 const relativeFile = (value: unknown) =>
   typeof value === 'string' &&
@@ -62,6 +72,29 @@ export function systemProblems(spec: unknown, where: string): string[] {
     problems.push(`${where}: docs is "warn", "strict" or "off".`)
   if (!Array.isArray(system.libraries))
     problems.push(`${where}: libraries must be a list.`)
+  else if (
+    system.libraries.some(
+      (library) =>
+        library?.assets !== undefined &&
+        (!Array.isArray(library.assets) ||
+          library.assets.some((kind: unknown) => !ASSETS.has(kind as string))),
+    )
+  )
+    problems.push(
+      `${where}: a library’s assets are "fonts", "icons" and "images".`,
+    )
+  const overview = system.overview
+  if (
+    overview !== undefined &&
+    (!overview ||
+      typeof overview !== 'object' ||
+      Object.values(overview).some(
+        (value) => typeof value !== 'string' || !PLAIN_TEXT.test(value),
+      ))
+  )
+    problems.push(
+      `${where}: overview.summary, overview.guidance and overview.code are plain text.`,
+    )
   if (!isResourceId(system.studioId))
     problems.push(
       `${where}: the studioId must be 16 lowercase letters and digits (Crockford base32).`,
@@ -124,7 +157,7 @@ export async function loadSystems(
     const where = `${relative}/system.ts`
     // A query busts Node's module cache when the dev server restarts in-process.
     const url = pathToFileURL(path.join(dir, 'system.ts'))
-    url.search = `?t=${Date.now()}`
+    url.search = `?t=${Date.now()}-${++loads}`
     const spec = (await import(url.href)).default
     const found = systemProblems(spec, where)
     const owner = systems.find((system) => system.id === spec?.studioId)

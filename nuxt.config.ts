@@ -151,8 +151,9 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
 
-  // The source editor and the canvas editor load on first use; bundled
-  // ahead, so opening them doesn't make Vite reload the page.
+  // The source editor, the Markdown parser and the canvas editor load on
+  // first use; bundled ahead, so opening them doesn't make Vite reload the
+  // page.
   $development: {
     vite: {
       optimizeDeps: {
@@ -174,6 +175,8 @@ export default defineNuxtConfig({
           '@codemirror/view',
           '@lezer/highlight',
           'codemirror-lang-mermaid',
+          // Context and Skills documents.
+          'marked',
         ],
       },
     },
