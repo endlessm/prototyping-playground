@@ -1,5 +1,11 @@
 import { createHash } from 'node:crypto'
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import type { Page } from 'playwright'
@@ -15,6 +21,9 @@ import {
 // Garden, a section with its own navigation, and Diary, which is local only.
 const folder = mkdtempSync(path.join(os.tmpdir(), 'studio-shell-e2e-'))
 const config = path.join(folder, 'studio.config.json')
+// An empty contributors folder, apart from the configuration.
+const nobody = path.join(folder, 'contributors')
+mkdirSync(nobody)
 const { name, tagline, ...base } = JSON.parse(
   readFileSync('studio.config.json', 'utf8'),
 )
@@ -31,7 +40,7 @@ const env = {
   STUDIO_CONFIG: config,
   STUDIO_MODULES: 'tests/fixtures/shell-modules',
   // Nobody is registered, so Home names the studio.
-  STUDIO_CONTRIBUTORS: folder,
+  STUDIO_CONTRIBUTORS: nobody,
   STUDIO_GITHUB: '',
 }
 

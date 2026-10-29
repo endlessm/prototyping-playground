@@ -132,7 +132,7 @@ describe('on the dev server', () => {
     await page.goto(`${studio.url}prototypes/demo`)
     await expect
       .poll(
-        () => page.getByText("There's nothing at this address.").isVisible(),
+        () => page.getByText('There’s nothing at this address.').isVisible(),
         {
           timeout: 60_000,
         },

@@ -1,4 +1,10 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import type { Page } from 'playwright'
@@ -15,10 +21,13 @@ import {
 // studio.
 const folder = mkdtempSync(path.join(os.tmpdir(), 'studio-modules-e2e-'))
 const config = path.join(folder, 'studio.config.json')
+// An empty contributors folder, apart from the configuration.
+const nobody = path.join(folder, 'contributors')
+mkdirSync(nobody)
 const env = {
   STUDIO_CONFIG: config,
   // Nobody is registered, so Home's heading is the studio's name.
-  STUDIO_CONTRIBUTORS: folder,
+  STUDIO_CONTRIBUTORS: nobody,
   STUDIO_GITHUB: '',
   STUDIO_MODULES: 'tests/fixtures/modules',
 }
