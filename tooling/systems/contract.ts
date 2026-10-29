@@ -44,7 +44,9 @@ export interface SystemExport {
 export interface SystemApp {
   /**
    * Creates every Vue app of the system: `(options) => App`, where options
-   * carry the view's `component` and `props`.
+   * carry the view's `component`, its `props` and `system`: the view's
+   * `export const system` with its state's `system` over it, which only the
+   * system gives a meaning.
    */
   factory: SystemExport
   /** The app's stylesheet, compiled with Tailwind for the preview only. */
