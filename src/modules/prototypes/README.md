@@ -6,7 +6,7 @@ Prototypes and their artifacts. A prototype is a folder `src/prototypes/<contrib
 - `pages/prototype.vue` is `/prototypes/<prototype-id>`. It replaces itself in the browser history with the prototype's first artifact, keeping the query and the `#anchor`.
 - `pages/artifact.vue` is `/prototypes/<prototype-id>/artifacts/<artifact-id>`. It shows the viewer (`components/PrototypeViewer.vue`): the prototype's title, its system and a plain list of its artifacts in file-tree order on the left, the open artifact on the right, and the tab title "<Prototype> — <Artifact> — <studio name>".
 - `pages/artifact.vue` keeps its page while the person moves between artifacts of one prototype, so an open preview document stays in place.
-- `types/view/` is the view file type: `.vue` files, with the identity reader, the page that renders a view (`ViewPage.vue`), its preview frame and notices (`ViewPreview.vue`), and the error and empty states (`ViewError.vue`, `ViewEmpty.vue`), drawn in the studio's own style.
+- `types/view/` is the view file type: `.vue` files, with the identity adapter (reads and writes the leading comment), the page that renders a view (`ViewPage.vue`), its preview frame and notices (`ViewPreview.vue`), and the error and empty states (`ViewError.vue`, `ViewEmpty.vue`), drawn in the studio's own style.
 
 ## meta.json
 
@@ -22,6 +22,17 @@ Prototypes and their artifacts. A prototype is a folder `src/prototypes/<contrib
 ## Artifacts
 
 The manifest (`tooling/manifest/build.ts`) lists each prototype's artifacts in file-tree order, folders first. Files and folders whose names start with `_` (a prototype's helpers) or `.` are not artifacts. Each artifact needs a permanent identity read from its leading comments; a missing, malformed or repeated one is reported and leaves the file out. The main manifest lists prototypes and systems; each prototype's artifact list is a separate file the viewer loads when the prototype opens.
+
+## Permanent identities
+
+Every prototype and artifact has a permanent ID that stays with it through renames and moves, so its address `/prototypes/<prototype-id>/artifacts/<artifact-id>` never breaks. Older readable addresses (folder or file names) are not supported. A file copied with its original's ID is a duplicate, which the audit and the build report.
+
+- **New files while the dev server runs.** A view an agent or editor creates in your own prototype gets its ID within a second, written as the leading comment (`tooling/identity/assign.ts`). An existing ID is never rewritten, a file created empty waits for its first content, and nothing is assigned while the studio has identity problems (the dev server logs what to fix). Only one dev server assigns at a time.
+- **`yarn studio identify src/prototypes/<contributor>/<folder>`.** Lists the files missing an ID (`--json` for tools); `--yes` writes them, plus the prototype's own `studioId` and `ownerContributorId` when missing, and lists each assigned ID. Only the owner or an Admin can run it, the prototype must declare `systemId`, and it refuses while the studio has identity problems.
+- **`yarn studio identity-audit`.** Counts every contributor, system, prototype and artifact and reports missing, malformed and duplicate IDs; exits 1 on any. It never writes. File types of switched-off modules count too, so an ID is never handed out twice.
+- **The build** (`yarn build`) stops on a missing, malformed or duplicate ID, naming the file.
+
+A file type's identity adapter (`IdentityAdapter` in `tooling/modules/contract.ts`) reads and writes the ID in a comment or metadata, never in code (ADR 0001). New IDs are 16 lowercase Crockford base32 characters from 10 random bytes, checked against every ID in use.
 
 ## Views
 

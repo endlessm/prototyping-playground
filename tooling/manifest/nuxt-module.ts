@@ -11,7 +11,6 @@ import { readFile } from 'node:fs/promises'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { createServer as createNetServer } from 'node:net'
 import path from 'node:path'
-import { pathToFileURL } from 'node:url'
 import {
   addTemplate,
   addTypeTemplate,
@@ -24,8 +23,8 @@ import {
   type Plugin,
   type ViteDevServer,
 } from 'vite'
+import { identityFileTypes } from '../identity/file-types.ts'
 import { createRefreshQueue } from '../live/refresh-queue.ts'
-import type { IdentityReader } from '../modules/contract.ts'
 import { sameOrigin } from '../modules/nuxt-module.ts'
 import { loadRegistry } from '../modules/registry.ts'
 import {
@@ -47,13 +46,13 @@ import {
 } from './build.ts'
 
 const MANIFEST_MODULE = 'virtual:studio-manifest'
+const MANIFEST_ROUTE = '_studio/manifest/'
 
 /** A file whose content changed, with when (milliseconds since 1970). */
 interface ChangedFile {
   file: string
   at: number
 }
-const MANIFEST_ROUTE = '_studio/manifest/'
 
 export default defineNuxtModule({
   meta: { name: 'studio-manifest' },
@@ -74,14 +73,7 @@ export default defineNuxtModule({
     const fileTypes = registry.enabled.flatMap(({ spec, dir }) =>
       (spec.fileTypes ?? []).map((type) => ({ ...type, dir })),
     )
-    const readers: FileTypeReader[] = []
-    for (const type of fileTypes) {
-      const file = pathToFileURL(path.join(type.dir, type.identity))
-      const { identity } = (await import(file.href)) as {
-        identity: IdentityReader
-      }
-      readers.push({ id: type.id, extensions: type.extensions, identity })
-    }
+    const readers: FileTypeReader[] = await identityFileTypes(registry.enabled)
     // The configuration is read again, so a new default system shows.
     const defaultSystem = () => {
       try {
