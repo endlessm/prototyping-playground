@@ -10,7 +10,8 @@ Prototypes and their artifacts. A prototype is a folder `src/prototypes/<contrib
 - `components/ArtifactSource.vue` adapts the shared source editor (`app/components/source/`) to an artifact, through the file service's source route.
 - `components/ArtifactUnavailable.vue` stands in for an artifact that can't open, with its reason and, locally, "Open source".
 - `components/PrototypesHome.vue` is the module's Home block: the five newest prototypes by `created`, each opening its first artifact. It comes first locally and after what colleagues come for on the deployed site.
-- `types/view/` is the view file type: `.vue` files, with the identity adapter (reads and writes the leading comments, the view's and each named state's), its check and named states (`states.ts`), the lo-fi marker (`fidelity.ts`), the page that renders a view (`ViewPage.vue`), its preview frame and notices (`ViewPreview.vue`), and the error and empty states (`ViewError.vue`, `ViewEmpty.vue`), drawn in the studio's own style.
+- `types/view/` is the view file type: `.vue` files, with the identity adapter (reads and writes the leading comments, the view's and each named state's), its check and named states (`states.ts`), the lo-fi marker (`fidelity.ts`), the page that renders a view (`ViewPage.vue`), its preview frame and notices (`ViewPreview.vue`), the error and empty states (`ViewError.vue`, `ViewEmpty.vue`), drawn in the studio's own style, and its preview embedded in a document (`ViewEmbed.vue`, see "Views in documents").
+- `composables/usePreviewFrame.ts` is the studio's side of one preview frame (the channel below): a view's page and its embeds in documents both use it.
 
 ## meta.json
 
@@ -145,6 +146,12 @@ While `yarn dev` runs, `tooling/files/` adds Nitro routes the studio's own pages
 | `PUT <base>_studio/files/source` `{ prototype, artifact, content, base }` | Saves over version `base`. 409 `changed` if the file changed on disk since; 403 with the reason (`identity`, `owner`, `archived`); 409 `identity` if the permanent ID was changed or removed; 413 over 750 KB; 404 for helpers, hidden files, links leading out of the prototype and unknown IDs. |
 
 Changed content files reach open pages as `studio:source` with their paths, which is how an open editor hears of outside edits. Creating, renaming, moving and deleting files arrive with the file tree (ticket 11) and prototype management (tickets 10 and 13).
+
+## Views in documents
+
+A document embeds a view, or a view's named state, of its own prototype by linking it on its own line with image syntax (`![Sign in](./flows/Sign in.vue)`, or the state's permanent address); the Documents module's README has the rules. The view's `ViewEmbed.vue` shows it as a picture of its desktop layout: the preview document at 1440 px wide, scaled to the text's width and cropped to the embed's height (220 to 440 px). It takes no clicks or keyboard focus, is hidden from screen readers and can't navigate; the frame's header opens the view. It says "Loading preview…" until the view first renders and "This view has an error. Open it to see what is wrong." when it fails, and updates by itself when the view's source changes, like the view's page. Navigation helpers (`#studio/prototype`) work inside it, resolved in the document's prototype.
+
+A file type gives documents a preview by declaring `embed` (a Vue component taking `prototype`, `artifact`, `width` and `height`) and an `icon` for its cards; without `embed` it shows as a card.
 
 ## The preview channel
 

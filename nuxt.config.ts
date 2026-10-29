@@ -201,8 +201,8 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
 
-  // The source editor loads on first use; bundled ahead, so opening it
-  // doesn't make Vite reload the page.
+  // The source editor and Mermaid load on first use; bundled ahead, so
+  // opening them doesn't make Vite reload the page.
   $development: {
     vite: {
       optimizeDeps: {
@@ -221,6 +221,8 @@ export default defineNuxtConfig({
           '@codemirror/view',
           '@lezer/highlight',
           'codemirror-lang-mermaid',
+          'mermaid',
+          'yaml',
         ],
       },
     },

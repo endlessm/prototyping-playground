@@ -12,7 +12,8 @@ const emit = defineEmits<{ select: [id: string] }>()
 const { t } = useI18n()
 
 const active = ref(props.headings[0]?.id)
-// The last heading scrolled past the top, or the last one at the bottom.
+// The last heading scrolled to the top (going to a heading leaves its scroll
+// margin above it), or the last one at the bottom.
 function update() {
   const scroller = props.scroller
   if (!scroller) return
@@ -22,9 +23,12 @@ function update() {
   if (!elements.length) return
   const bottom =
     scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 4
-  const top = scroller.getBoundingClientRect().top + 64
+  const top = scroller.getBoundingClientRect().top + 8
   const passed = elements.filter(
-    (element) => element.getBoundingClientRect().top <= top,
+    (element) =>
+      element.getBoundingClientRect().top -
+        parseFloat(getComputedStyle(element).scrollMarginTop) <=
+      top,
   )
   active.value = (bottom ? elements.at(-1) : (passed.at(-1) ?? elements[0]))!.id
 }

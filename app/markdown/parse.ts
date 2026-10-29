@@ -7,7 +7,7 @@
 // passthrough are off: documents are plain Markdown.
 import type { MDCElement, MDCNode, MDCRoot } from '@nuxtjs/mdc'
 import { parseMarkdown } from '@nuxtjs/mdc/runtime'
-import { frontmatterOf } from '../../src/modules/document/types/document/frontmatter'
+import { parse } from 'yaml'
 import rehypeFileEmbeds from './rehype-file-embeds'
 import remarkHtmlAsText from './remark-html-as-text'
 import remarkMermaid from './remark-mermaid'
@@ -81,6 +81,9 @@ function headingsOf(body: MDCRoot) {
   return headings
 }
 
+// Frontmatter that isn't valid YAML is the document's error, in YAML's words.
+const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/
+
 const plain = (value: unknown) =>
   typeof value === 'string' && value.trim() ? value.trim() : undefined
 
@@ -93,7 +96,8 @@ export async function parseDocument(
   options: { file?: string } = {},
 ): Promise<ParsedDocument> {
   const text = source.replace(/^\uFEFF/, '')
-  frontmatterOf(text)
+  const frontmatter = FRONTMATTER.exec(text)
+  if (frontmatter) parse(frontmatter[1]!)
   const parsed = await parseMarkdown(
     text,
     OPTIONS as Parameters<typeof parseMarkdown>[1],

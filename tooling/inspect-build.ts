@@ -57,8 +57,11 @@ function scriptReferences(code: string) {
   ].map((match) => match[1]!)
   const lazy = [
     ...code.matchAll(/\bimport\(\s*["'`]([^"'`]+)["'`]\s*\)/g),
-    // Vite's preload dependency lists.
-    ...code.matchAll(/["'`](\.\.?\/[^"'`\s]+\.(?:js|mjs|css))["'`]/g),
+    // Vite's preload dependency lists: items of an array, unlike the module
+    // names a library's own bundler left in its code.
+    ...code.matchAll(
+      /["'`](\.\.?\/[^"'`\s]+\.(?:js|mjs|css))["'`](?=\s*[,\]])/g,
+    ),
   ].map((match) => match[1]!)
   return { imports, lazy }
 }

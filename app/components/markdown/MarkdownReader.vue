@@ -41,30 +41,46 @@ function scrollToHeading(id: string, animate: boolean) {
 }
 const hashId = () => decodeURIComponent(route.hash.slice(1))
 
-// A new page opens at the top, or at its heading once that has rendered:
-// prose components render a moment after the text arrives.
-let waiting: MutationObserver | undefined
-const stopWaiting = () => {
-  waiting?.disconnect()
-  waiting = undefined
+// A new page opens at the top, or at the heading in its address. Prose,
+// diagrams and embeds render a moment after the text arrives and push the
+// heading down, so it stays pinned while the page settles, until the person
+// scrolls themselves.
+const SETTLE_MS = 3000
+let pinned: (() => void) | undefined
+const unpin = () => {
+  pinned?.()
+  pinned = undefined
+}
+function pin(id: string) {
+  const area = scroller.value
+  if (!area) return
+  const follow = () => scrollToHeading(id, false)
+  const changes = new MutationObserver(follow)
+  changes.observe(area, { childList: true, subtree: true })
+  const sizes = new ResizeObserver(follow)
+  if (area.firstElementChild) sizes.observe(area.firstElementChild)
+  const events = ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const
+  for (const event of events) area.addEventListener(event, unpin)
+  const timer = setTimeout(unpin, SETTLE_MS)
+  pinned = () => {
+    changes.disconnect()
+    sizes.disconnect()
+    for (const event of events) area.removeEventListener(event, unpin)
+    clearTimeout(timer)
+  }
+  follow()
 }
 watch(
   () => props.page,
   () =>
     nextTick(() => {
-      stopWaiting()
+      unpin()
       scroller.value?.scrollTo({ top: 0 })
-      const id = hashId()
-      if (!id || scrollToHeading(id, false) || !scroller.value) return
-      waiting = new MutationObserver(() => {
-        if (scrollToHeading(id, false)) stopWaiting()
-      })
-      waiting.observe(scroller.value, { childList: true, subtree: true })
-      setTimeout(stopWaiting, 3000)
+      if (hashId()) pin(hashId())
     }),
   { immediate: true, flush: 'post' },
 )
-onBeforeUnmount(stopWaiting)
+onBeforeUnmount(unpin)
 // Choosing a heading on the page, from a link or "On this page".
 let chosen = ''
 watch(
@@ -88,11 +104,13 @@ const toc = computed(
 </script>
 
 <template>
-  <!-- `relative` keeps the footnotes' hidden heading inside the scroller. -->
+  <!-- `relative` keeps the footnotes' hidden heading inside the scroller.
+       An edit keeps the scroll position: the browser's scroll anchoring
+       can't follow text that renders again. -->
   <div
     ref="scroller"
     data-document-scroll
-    class="relative h-full min-h-0 overflow-y-auto bg-default"
+    class="relative h-full min-h-0 overflow-y-auto bg-default [overflow-anchor:none]"
   >
     <div
       class="mx-auto flex max-w-5xl items-start justify-center gap-12 px-8 pt-12 pb-24"

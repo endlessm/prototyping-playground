@@ -1,9 +1,10 @@
 // What a document's link or embed points at. References reach only the
 // artifacts of the document's own prototype: a path relative to the
 // document (`./flows/Sign in.vue`, `../notes/Brief`) or a permanent address
-// (`/prototypes/<prototype-id>/artifacts/<artifact-id>`). A path leaving the
-// prototype or entering its helpers (`_…`) is refused, and so is another
-// prototype's address. Framework-neutral, so the rules are tested alone.
+// (`/prototypes/<prototype-id>/artifacts/<artifact-id>`, a view's named
+// state's too). A path leaving the prototype or entering its helpers (`_…`)
+// is refused, and so is another prototype's address. Framework-neutral, so
+// the rules are tested alone.
 import type {
   ManifestArtifact,
   ManifestPrototype,
@@ -88,8 +89,20 @@ export function resolveReference(
   const permanent = PERMANENT.exec(reference)
   if (permanent) {
     if (permanent[1] !== origin.prototype.id) return problem('elsewhere')
-    const artifact = artifacts.find(({ id }) => id === permanent[2])
-    return artifact ? found(artifact) : problem('not_found')
+    const id = permanent[2]
+    for (const artifact of artifacts) {
+      if (artifact.id === id) return found(artifact)
+      // A view's named state shows as its view in that state, which the
+      // preview document opens by the state's ID.
+      const state = artifact.states?.find((entry) => entry.id === id)
+      if (state)
+        return found({
+          ...artifact,
+          id: state.id,
+          title: `${artifact.title} · ${state.title}`,
+        })
+    }
+    return problem('not_found')
   }
   if (/^([a-z][a-z0-9+.-]*:|\/\/)/i.test(reference))
     return problem('invalid_reference')

@@ -50,6 +50,9 @@ describe('a document’s identity in its frontmatter', () => {
     expect(() =>
       identity.write('---\ntitle: Brief\n\nText\n', 'abcd000000000001'),
     ).toThrow(/Close the frontmatter/)
+    expect(() =>
+      identity.read('---\nstudioId: abcd000000000001\n\nText\n'),
+    ).toThrow(/Close the frontmatter/)
   })
 })
 

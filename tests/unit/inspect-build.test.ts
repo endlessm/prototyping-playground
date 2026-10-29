@@ -79,4 +79,13 @@ describe('[CL-114] build inspection', () => {
     write('_nuxt/lazy.js', 'import"../../outside.js"')
     expect(() => inspectBuild(site, '/studio/')).toThrow(/escapes the build/)
   })
+
+  test('a bundled library’s module names are not references', () => {
+    // A CommonJS module inlined by its library's own bundler (Mermaid's).
+    write(
+      '_nuxt/lazy.js',
+      'p=c({"../../node_modules/.pnpm/x@1.0.0/node_modules/x/lib/is.js"(e){e.a=1}});',
+    )
+    expect(() => inspectBuild(site, '/studio/')).not.toThrow()
+  })
 })

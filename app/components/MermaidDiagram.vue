@@ -18,7 +18,8 @@ watch(
   async ([source, dark]) => {
     const render = ++renders
     try {
-      const drawn = await renderMermaid(source, id, dark)
+      // Mermaid replaces any element with the id it draws with.
+      const drawn = await renderMermaid(source, `${id}-${render}`, dark)
       if (render !== renders) return
       svg.value = drawn
       error.value = undefined

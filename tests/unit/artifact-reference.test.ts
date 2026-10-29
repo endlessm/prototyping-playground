@@ -32,7 +32,9 @@ const artifact = (
 })
 const brief = artifact('d000000000000001', 'notes/Brief', '.md', 'document')
 const signIn = artifact('v000000000000001', 'flows/Sign in', '.vue', 'view')
-const home = artifact('v000000000000002', 'Home', '.vue', 'view')
+const home = artifact('v000000000000002', 'Home', '.vue', 'view', {
+  states: [{ id: 's000000000000001', title: 'Signed in' }],
+})
 const board = artifact('c000000000000001', 'Board', '.canvas', 'canvas', {
   unavailable: { type: 'Canvas', module: 'Canvas' },
 })
@@ -81,6 +83,21 @@ describe('a reference inside the document’s prototype', () => {
         'required',
       ),
     ).toMatchObject({ state: 'resolved', artifact: home })
+  })
+})
+
+describe('a named state', () => {
+  test('[PR-112] [PR-89] embeds by its permanent address, as its view showing that state', () => {
+    expect(
+      resolve(
+        `/prototypes/${prototype.id}/artifacts/s000000000000001`,
+        'required',
+      ),
+    ).toEqual({
+      state: 'resolved',
+      artifact: { ...home, id: 's000000000000001', title: 'Home · Signed in' },
+      presentation: 'preview',
+    })
   })
 })
 
