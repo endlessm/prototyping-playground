@@ -157,6 +157,8 @@ export default defineNuxtConfig({
     vite: {
       optimizeDeps: {
         include: [
+          '@vueuse/integrations/useFuse',
+          'fuse.js',
           '@codemirror/autocomplete',
           '@codemirror/commands',
           '@codemirror/lang-css',

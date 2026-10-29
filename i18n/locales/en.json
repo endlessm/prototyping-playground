@@ -158,5 +158,11 @@
       "keep": "Keep editing",
       "discard": "Discard"
     }
+  },
+  "palette": {
+    "places": "Places",
+    "home": "Home",
+    "description": "Find pages, prototypes and actions.",
+    "empty": "No results found."
   }
 }

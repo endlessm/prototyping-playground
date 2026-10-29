@@ -32,6 +32,12 @@ Prototypes and their artifacts. A prototype is a folder `src/prototypes/<contrib
 
 From the terminal: `yarn new "Prototype Name" [--system <folder name or ID> | --no-system]` (`yarn studio new`) creates it right away and prints the folder and the address. Both use `tooling/files/prototypes.ts`: the folder is `src/prototypes/<your key>/<slug>/` (`Agent Config` → `agent-config`) with `meta.json` (format version, new permanent ID, your contributor ID as owner, title, today's date, system ID or `null`) and one empty starting view, `Prototype.vue`, holding only its identity comment. It refuses, leaving nothing behind: an empty title ("Add a title."), one without letters or numbers, one that isn't plain text, someone who isn't a registered contributor ("Ask your agent to add you."), an unknown or archived system, and a title whose folder you already have ("You already have a prototype named “…”.").
 
+## Command palette
+
+The module supplies the Prototypes place and its manifest collection as data (`paletteSource: 'prototypes'`, order 25). The shared shell renders `UCommandPalette` in a modal opened through `useOverlay`. Prototypes are newest first, with the owner's first name; search also matches the contributor and folder. The open prototype is disabled. Its available artifacts and named states appear in the same group, with permanent addresses and the current artifact disabled. Archived prototypes are excluded on the deployed site. Other modules supply places and grouped entries through `palette`, with hidden `keywords`; Systems can declare `paletteSource: 'systems'` at order 20, and Manual supplies its page entries at order 30. Disabled and local-only modules supply nothing on surfaces where they are unavailable.
+
+Ctrl+K (Command+K on macOS), the rail's Search button and Home's search row open the palette. Arrow keys and Enter choose, Escape cancels and returns focus. Closed palettes preserve text-field shortcuts, including inside preview frames; held-key repeats do nothing. Search and navigation work in the deployed build too.
+
 ## meta.json
 
 | Field                | Meaning                                                                                                                                 |

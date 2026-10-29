@@ -8,6 +8,9 @@ export default {
   label: 'Prototypes',
   description: 'Prototypes with views that render in their design system.',
   required: true,
+  palette: [{ label: 'Prototypes', to: '/prototypes', keywords: ['gallery'] }],
+  paletteSource: 'prototypes',
+  paletteOrder: 25,
   rail: { position: 'top', icon: 'i-lucide-square-mouse-pointer', order: 0 },
   // Your work first locally; on the deployed site, after what colleagues
   // come for.
