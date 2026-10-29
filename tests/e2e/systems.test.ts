@@ -711,7 +711,7 @@ describe('the deployed site', { timeout: 120_000 }, () => {
     await site?.stop()
   })
 
-  test('[SY-198] [SY-18] active systems are published; archived ones are not', async () => {
+  test('[SY-198] [SY-18] [SY-199] active systems are published, with no local tools; archived ones are not', async () => {
     const page = await newPage()
     await page.goto(`${site.url}systems`)
     const list = page.getByRole('list', { name: 'Systems', exact: true })
@@ -733,6 +733,13 @@ describe('the deployed site', { timeout: 120_000 }, () => {
         readFileSync(file, 'utf8').includes('Kept for the record'),
     )
     expect(leaks).toEqual([])
+    // Nor the dev-only file service or the source editor.
+    const local = files(site.directory).filter((file) => {
+      if (!/.(m?js|html|json)$/.test(file)) return false
+      const text = readFileSync(file, 'utf8')
+      return text.includes('_studio/files') || text.includes('cm-gutters')
+    })
+    expect(local).toEqual([])
   })
 
   test('[SY-198] [SY-199] system pages read the same, with no editing or local actions', async () => {

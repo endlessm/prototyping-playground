@@ -3,13 +3,19 @@ import AppNotFound from '../../../../app/components/AppNotFound.vue'
 import type { SystemCatalog } from '../../../../tooling/systems/catalog'
 import { useSystemDocuments } from '../composables/useSystemCatalog'
 import { documentFile, sourceFile } from '../utils/pages'
-import SkillSource from './SkillSource.vue'
 import SystemDocument from './SystemDocument.vue'
 import SystemPage from './SystemPage.vue'
 
 // A Context or Skills document at its address (the path without `.md`):
 // read in the studio's style, or, locally, edited in source mode. A skill's
 // source also offers its supporting files.
+
+// The editor exists only in the studio running locally, so the deployed
+// site never loads it.
+const SkillSource = import.meta.dev
+  ? defineAsyncComponent(() => import('./SkillSource.vue'))
+  : undefined
+
 const props = defineProps<{
   system: SystemCatalog
   section: 'context' | 'skills'
@@ -68,7 +74,7 @@ useHead({
       :source="source"
       :title="title"
     />
-    <template v-if="skill" #source="{ done }">
+    <template v-if="skill && SkillSource" #source="{ done }">
       <SkillSource
         :system="system"
         :skill="skill"
