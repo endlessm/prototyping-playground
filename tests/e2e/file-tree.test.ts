@@ -1,10 +1,11 @@
 // A prototype's file tree: the real files and folders, live from disk, with
 // readable names; filtering, folding, "Show all files"; creating, renaming
-// and deleting (to the Recycle Bin here) from the mouse and the keyboard;
+// and deleting (to the Recycle Bin or the Trash) from the mouse and the keyboard;
 // and each row's menu. Someone else's prototype and the deployed site get
 // read-only trees. The studio runs as Ben (a contributor) on a disposable
-// copy inside the checkout; the programs it would start (File Explorer, a
-// code editor) are noted in a log instead.
+// copy inside the checkout; the programs it would start (the file browser)
+// are noted in a log instead, as if no code editor were installed. Wording
+// and programs follow the computer the scenarios run on.
 import {
   existsSync,
   mkdirSync,
@@ -85,6 +86,23 @@ function reset() {
   writeFileSync(launchLog, '')
 }
 reset()
+
+const WINDOWS = process.platform === 'win32'
+const APPLE = process.platform === 'darwin'
+const REVEAL = WINDOWS
+  ? 'Show in Explorer'
+  : APPLE
+    ? 'Reveal in Finder'
+    : 'Show in folder'
+const TRASH = WINDOWS ? 'the Recycle Bin' : 'the Trash'
+const SOURCE_KEY = APPLE ? "⌘'" : "Ctrl+'"
+/** What showing a file in the file browser starts here. */
+function revealed(file: string) {
+  const full = path.resolve(at(file))
+  if (WINDOWS) return { command: 'explorer.exe', args: [`/select,${full}`] }
+  if (APPLE) return { command: '/usr/bin/open', args: ['-R', full] }
+  return { command: 'xdg-open', args: [path.dirname(full)] }
+}
 
 const launched = () =>
   readFileSync(launchLog, 'utf8')
@@ -253,12 +271,11 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     await visible(page.getByRole('tree', { name: 'Files' }))
     for (const name of ['_parts', 'Helper.vue', 'logo.png', 'meta.json'])
       await visible(row(page, name))
-    // In your code editor, or, without one, in File Explorer.
+    // In your code editor, or, without one, in the file browser.
     await row(page, 'meta.json').click()
-    const metaFile = path.resolve(at('ben/demo/meta.json'))
     await expect
-      .poll(() => launched().at(-1)?.args.at(-1)?.endsWith(metaFile))
-      .toBe(true)
+      .poll(() => launched().at(-1))
+      .toEqual(revealed('ben/demo/meta.json'))
     // Remembered in this browser, for every prototype.
     await page.reload()
     await visible(row(page, 'meta.json'))
@@ -345,7 +362,7 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     expect(existsSync(at('ben/demo/flows'))).toBe(true)
   })
 
-  test('[SH-81] [SH-82] [PR-44] [PR-60] [SH-87] [PR-61] Delete asks first, moves to the Recycle Bin and says so; the page leaves a deleted artifact', async () => {
+  test('[SH-81] [SH-82] [PR-44] [PR-60] [SH-87] [PR-61] Delete asks first, moves to the trash and says so; the page leaves a deleted artifact', async () => {
     reset()
     const page = await open(SIGN_IN)
     await link(page, 'Sign In').focus()
@@ -353,12 +370,10 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     const dialog = page.getByRole('dialog', { name: 'Delete “Sign In”?' })
     await visible(dialog)
     await visible(
-      dialog.getByText(
-        'It moves to the Recycle Bin, where you can restore it.',
-      ),
+      dialog.getByText(`It moves to ${TRASH}, where you can restore it.`),
     )
     await dialog.getByRole('button', { name: 'Delete' }).click()
-    await visible(toast(page, 'Moved “Sign In” to the Recycle Bin'))
+    await visible(toast(page, `Moved “Sign In” to ${TRASH}`))
     expect(existsSync(at('ben/demo/flows/sign-in.vue'))).toBe(false)
     expect(existsSync('.trash')).toBe(false)
     // The page goes to the prototype's first artifact.
@@ -372,7 +387,7 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     const folder = page.getByRole('dialog', { name: 'Delete “Flows”?' })
     await visible(
       folder.getByText(
-        'The folder and everything in it move to the Recycle Bin, where you can restore them. This includes 1 file the tree isn’t showing: notes.txt.',
+        `The folder and everything in it move to ${TRASH}, where you can restore them. This includes 1 file the tree isn’t showing: notes.txt.`,
       ),
     )
     await folder.getByRole('button', { name: 'Cancel' }).click()
@@ -402,14 +417,14 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     )
   })
 
-  test('[SH-62] [SH-63] [SH-64] [SH-65] [SH-66] [SH-90] [PR-63] [PR-126] a file’s menu: source, editor, Explorer, link, path, lo-fi, rename, delete', async () => {
+  test('[SH-62] [SH-63] [SH-64] [SH-65] [SH-66] [SH-90] [PR-63] [PR-126] a file’s menu: source, editor, file browser, link, path, lo-fi, rename, delete', async () => {
     reset()
     const page = await open()
     await link(page, 'Details').click({ button: 'right' })
     expect(await menuItems(page)).toEqual([
-      "Edit sourceCtrl+'",
+      `Edit source${SOURCE_KEY}`,
       'Open in editor',
-      'Show in Explorer',
+      REVEAL,
       'Copy link',
       'Copy path',
       'Make lo-fi',
@@ -430,19 +445,18 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     )
 
     await link(page, 'Details').click({ button: 'right' })
-    await page.getByRole('menuitem', { name: 'Show in Explorer' }).click()
+    await page.getByRole('menuitem', { name: REVEAL }).click()
     await expect
       .poll(() => launched().at(-1))
-      .toEqual({
-        command: 'explorer.exe',
-        args: [`/select,${path.resolve(at('ben/demo/flows/Details.vue'))}`],
-      })
+      .toEqual(revealed('ben/demo/flows/Details.vue'))
 
+    // No code editor: the file browser instead, and what else to do.
     await link(page, 'Details').click({ button: 'right' })
     await page.getByRole('menuitem', { name: 'Open in editor' }).click()
     await visible(
       toast(page, 'You can also use Edit source, or copy its path.'),
     )
+    expect(launched().length).toBe(2)
 
     await link(page, 'Details').click({ button: 'right' })
     await page.getByRole('menuitem', { name: 'Make lo-fi' }).click()
@@ -463,9 +477,9 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     expect(await button(page, 'New').count()).toBe(0)
     await link(page, 'Board', 'Shared').click({ button: 'right' })
     expect(await menuItems(page)).toEqual([
-      "View sourceCtrl+'",
+      `View source${SOURCE_KEY}`,
       'Open in editor',
-      'Show in Explorer',
+      REVEAL,
       'Copy link',
       'Copy path',
     ])

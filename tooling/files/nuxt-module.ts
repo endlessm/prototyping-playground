@@ -43,7 +43,8 @@ export interface FileServiceConfig {
   }[]
   /**
    * Where to note the programs the service would start (file browser, code
-   * editor) instead of starting them; for the browser scenarios.
+   * editor) instead of starting them, with no code editor found; for the
+   * browser scenarios.
    */
   launchLog?: string
 }

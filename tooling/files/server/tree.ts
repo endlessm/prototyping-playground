@@ -32,10 +32,13 @@ export default defineEventHandler(async (event) => {
   const tree = createFileTree({
     ...config,
     fileTypes: await loadFileTypes(config),
+    // Noted instead of started, and as if no code editor is installed, so
+    // the scenarios go the same on every computer.
     ...(launchLog && {
       launch: async (command: string, args: string[]) => {
         appendFileSync(launchLog, `${JSON.stringify({ command, args })}\n`)
       },
+      editors: [],
     }),
   })
   event.node.res.setHeader('Cache-Control', 'no-store')
