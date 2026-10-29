@@ -58,6 +58,7 @@
     "@vueuse/core": "^14.2.1",
     "@vueuse/nuxt": "^14.2.1",
     "codemirror-lang-mermaid": "^0.5.0",
+    "marked": "^17.0.1",
     "mermaid": "^12.2.0",
     "nuxt": "^4.4.8",
     "tailwindcss": "^4.1.11",
