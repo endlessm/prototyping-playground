@@ -1,16 +1,19 @@
 <script setup lang="ts">
-import PrototypeNewModal from './PrototypeNewModal.vue'
-
 // "New prototype": only while the studio runs locally, and only for a
-// registered contributor. The deployed site never shows it.
+// registered contributor. The dialog is loaded only in development, so the
+// deployed site carries neither it nor the file service's address.
 const { t } = useI18n()
 const { me } = useMe()
 const { systems, defaultSystem } = await useSystems()
-const modal = useOverlay().create(PrototypeNewModal)
 const local = import.meta.dev
+const modal = import.meta.dev
+  ? useOverlay().create(
+      defineAsyncComponent(() => import('./PrototypeNewModal.vue')),
+    )
+  : undefined
 
 function open() {
-  void modal.open({
+  void modal?.open({
     systems: systems.value
       .filter(({ status }) => status === 'active')
       .map(({ id, label }) => ({ id, label })),
