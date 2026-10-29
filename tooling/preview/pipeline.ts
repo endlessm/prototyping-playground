@@ -5,14 +5,19 @@
 // style or Nuxt composable can enter it, because none is in its module graph.
 // Prototypes with no system share a document with plain Vue and browser
 // defaults.
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import vue from '@vitejs/plugin-vue'
-import type { InlineConfig, Plugin, PluginOption } from 'vite'
+import type { InlineConfig, Plugin, PluginOption, ViteDevServer } from 'vite'
 import type { InstalledSystem } from '../systems/registry.ts'
 
-import { colorModeScript, NO_SYSTEM, PREVIEW_ROUTE } from './constants.ts'
+import {
+  colorModeScript,
+  COMPILE_ROUTE,
+  NO_SYSTEM,
+  PREVIEW_ROUTE,
+} from './constants.ts'
 
 export { NO_SYSTEM, PREVIEW_ROUTE }
 
@@ -27,6 +32,26 @@ export interface PreviewView {
   /** Absolute path of the view's file. */
   file: string
 }
+
+// A view that holds nothing but comments (a new view, before the agent
+// writes it) is empty: the studio says so instead of compiling it.
+export const isEmptyView = (source: string) =>
+  source.replace(/<!--[\s\S]*?-->/g, '').trim() === ''
+
+function emptyFile(file: string) {
+  try {
+    return isEmptyView(readFileSync(file, 'utf8'))
+  } catch {
+    return false
+  }
+}
+
+/**
+ * What a document's views module holds: each view's file and whether it is
+ * empty. When this changes in development, the module is reloaded in place.
+ */
+export const viewsSignature = (views: PreviewView[]) =>
+  JSON.stringify(views.map(({ id, file }) => [id, file, emptyFile(file)]))
 
 export interface PreviewDocument {
   /** The system's permanent ID, or `none`. */
@@ -128,23 +153,91 @@ ${colorModeScript(document.system ? document.system.spec.colorModes : null)}
   return dir
 }
 
+export const VIEWS_RESOLVED = `\0${VIEWS_MODULE}`
+
+// Each view's file, title and loader (none for an empty view). In
+// development the module accepts its own updates: it changes the one object
+// the runtime holds and tells it, so new, renamed and emptied views reach an
+// open document without a reload.
 function viewsPlugin(options: PreviewOptions): Plugin {
-  const resolved = `\0${VIEWS_MODULE}`
   return {
     name: 'studio-preview-views',
     resolveId(id) {
-      if (id === VIEWS_MODULE) return resolved
+      if (id === VIEWS_MODULE) return VIEWS_RESOLVED
     },
     load(id) {
-      if (id !== resolved) return
-      const entries = options
-        .views()
-        .map(
-          ({ id, file }) =>
-            `${JSON.stringify(id)}: () => import(${JSON.stringify(posix(file))})`,
-        )
-      return `export default {${entries.join(',\n')}}\n`
+      if (id !== VIEWS_RESOLVED) return
+      const entries = options.views().map(({ id, file }) => {
+        const title = path.basename(file, path.extname(file))
+        const load = emptyFile(file)
+          ? 'null'
+          : `() => import(${JSON.stringify(posix(file))})`
+        return `${JSON.stringify(id)}: { file: ${JSON.stringify(posix(file))}, title: ${JSON.stringify(title)}, load: ${load} }`
+      })
+      return `const next = {${entries.join(',\n')}}
+const views = import.meta.hot?.data.views ?? next
+if (import.meta.hot) {
+  import.meta.hot.data.views = views
+  if (views !== next) {
+    for (const id of Object.keys(views)) if (!(id in next)) delete views[id]
+    Object.assign(views, next)
+    window.dispatchEvent(new CustomEvent('studio:views'))
+  }
+  import.meta.hot.accept()
+}
+export default views
+`
     },
+  }
+}
+
+// Development only: the compiler's message and location for a view that
+// failed to load, which the browser reports only as a failed import.
+function compilePlugin(options: PreviewOptions): Plugin {
+  return {
+    name: 'studio-preview-compile',
+    apply: 'serve',
+    configureServer(server) {
+      // The whole folder, not only the views it has compiled: a folder that
+      // is removed and made again keeps updating its views.
+      server.watcher.add(options.prototypesDir)
+      server.middlewares.use(async (req, res, next) => {
+        const url = new URL(req.url ?? '/', 'http://localhost')
+        if (!url.pathname.endsWith(`/${COMPILE_ROUTE}`)) return next()
+        const view = options
+          .views()
+          .find(({ id }) => id === url.searchParams.get('artifact'))
+        const found = view ? await compileError(server, view, options.root) : {}
+        res.setHeader('Content-Type', 'application/json')
+        res.setHeader('Cache-Control', 'no-store')
+        res.end(JSON.stringify(found))
+      })
+    },
+  }
+}
+
+async function compileError(
+  server: ViteDevServer,
+  view: PreviewView,
+  root: string,
+) {
+  try {
+    await server.transformRequest(`/@fs/${posix(view.file)}`)
+    return {}
+  } catch (failure) {
+    const error = failure as Error & {
+      id?: string
+      loc?: { file?: string; line: number; column: number }
+      frame?: string
+    }
+    const file = error.loc?.file ?? error.id?.split('?')[0] ?? view.file
+    return {
+      message: error.message,
+      file: posix(path.relative(root, file)),
+      line: error.loc?.line ?? null,
+      column: error.loc?.column ?? null,
+      frame: error.frame ?? '',
+    }
   }
 }
 
@@ -213,6 +306,7 @@ export async function previewConfig(
   const plugins: PluginOption[] = [
     vue({ include: [/\.vue$/] }),
     viewsPlugin(options),
+    compilePlugin(options),
   ]
   if (document.system)
     plugins.push(...(await systemPlugins(document.system, options.root)))
@@ -230,7 +324,8 @@ export async function previewConfig(
     server: {
       middlewareMode: true,
       // Each document's Vite client connects to its own socket.
-      hmr: { host: '127.0.0.1', port: options.hmrPort },
+      // The studio shows errors in its own words, not Vite's overlay.
+      hmr: { host: '127.0.0.1', port: options.hmrPort, overlay: false },
       fs: { allow: [options.root] },
     },
     build: {

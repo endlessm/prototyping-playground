@@ -19,6 +19,8 @@ const HOME = 'vhme000000000001'
 const NOTES = 'vnts000000000001'
 const PLAIN = 'p1a1n00000000001'
 const PLAIN_VIEW = 'vp1an00000000001'
+const DRAFTS = 'drafts0000000001'
+const BLANK = 'b1ank00000000002'
 
 // Endless Studios' primary colour (`--color-orange-500` in the app's
 // stylesheet) and Nuxt UI's neutral primary (neutral-500), the studio's.
@@ -61,7 +63,10 @@ async function preview(page: Page, title: string) {
   return frame.contentFrame()
 }
 
-function scenarios(start: () => Promise<RunningStudio>) {
+function scenarios(
+  start: () => Promise<RunningStudio>,
+  where: 'dev' | 'static',
+) {
   const newPage = useBrowser()
   let studio: RunningStudio
   beforeAll(async () => {
@@ -227,7 +232,7 @@ function scenarios(start: () => Promise<RunningStudio>) {
       .poll(() => recent.getByRole('link').allTextContents(), {
         timeout: 60_000,
       })
-      .toEqual(['Tracer', 'Plain'])
+      .toEqual(['Drafts', 'Tracer', 'Plain'])
     await recent.getByRole('link', { name: 'Tracer' }).click()
     await expect
       .poll(() => page.url())
@@ -296,12 +301,61 @@ function scenarios(start: () => Promise<RunningStudio>) {
         ),
     ).toContain('dark')
   })
+
+  test('[PR-88] a new, empty view shows the explanation, with the prompt only locally', async () => {
+    const page = await newPage()
+    await page.goto(`${studio.url}prototypes/${DRAFTS}/artifacts/${BLANK}`)
+    await expect
+      .poll(() => page.getByText('This view is empty').isVisible(), {
+        timeout: 60_000,
+      })
+      .toBe(true)
+    expect(
+      await page
+        .getByText(
+          "Ask your agent to build something here. Describe what it's for and who it's for.",
+        )
+        .isVisible(),
+    ).toBe(true)
+    expect(
+      await page.getByRole('button', { name: 'Copy prompt' }).count(),
+    ).toBe(where === 'dev' ? 1 : 0)
+  })
+
+  test.runIf(where === 'static')(
+    '[SH-142] on the deployed site a prototype’s file list is fetched when first opened, then kept',
+    async () => {
+      const page = await newPage()
+      const lists: string[] = []
+      page.on('request', (request) => {
+        if (
+          /studio-manifest\/tracer0000000001\.[^/]+\.json$/.test(request.url())
+        )
+          lists.push(request.url())
+      })
+      await page.goto(studio.url)
+      await expect.poll(() => page.title(), { timeout: 60_000 }).toBe(name)
+      expect(lists).toEqual([])
+      await page.goto(`${studio.url}prototypes/${TRACER}/artifacts/${HOME}`)
+      const navigation = page.getByRole('navigation', { name: 'Tracer' })
+      await expect
+        .poll(() => navigation.getByRole('link').count(), { timeout: 60_000 })
+        .toBe(2)
+      for (const title of ['Notes', 'Home', 'Notes']) {
+        await navigation.getByRole('link', { name: title }).click()
+        await expect
+          .poll(() => page.title())
+          .toBe(`Tracer — ${title} — ${name as string}`)
+      }
+      expect(lists).toHaveLength(1)
+    },
+  )
 }
 
 describe('the preview document on the dev server', () => {
-  scenarios(() => startDevServer(env))
+  scenarios(() => startDevServer(env), 'dev')
 })
 
 describe('the preview document in the static build, under a sub-path', () => {
-  scenarios(() => startStaticSite('/studio/', env))
+  scenarios(() => startStaticSite('/studio/', env), 'static')
 })

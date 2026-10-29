@@ -13,8 +13,8 @@ export async function useSystems() {
       id === null
         ? null
         : (systems.value.find((system) => system.id === id) ?? undefined),
-    /** The address of a view's preview document. */
-    previewUrl: (systemId: string | null, artifactId: string) =>
-      `${base}${PREVIEW_ROUTE}${systemId ?? NO_SYSTEM}/?artifact=${artifactId}`,
+    /** The address of a system's preview document, without its query. */
+    previewDocument: (systemId: string | null) =>
+      `${base}${PREVIEW_ROUTE}${systemId ?? NO_SYSTEM}/`,
   }
 }

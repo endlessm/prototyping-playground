@@ -1,10 +1,12 @@
 // Builds the studio's content into the app: the manifest of prototypes,
 // artifacts and systems, the enabled file types' pages, and each system's
 // preview document. In development the manifest is read fresh on request and
-// preview documents are served by their own Vite pipelines; the build emits
-// the manifest as files and builds the preview documents beside the app.
+// pushed to open pages when content changes, and preview documents are served
+// by their own Vite pipelines, which hear of new, renamed and emptied views;
+// the build emits the manifest as files and builds the preview documents
+// beside the app.
 import { createHash } from 'node:crypto'
-import { mkdirSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, statSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { createServer as createNetServer } from 'node:net'
@@ -22,6 +24,7 @@ import {
   type ViteDevServer,
 } from 'vite'
 import { identityFileTypes } from '../identity/file-types.ts'
+import { createRefreshQueue } from '../live/refresh-queue.ts'
 import { sameOrigin } from '../modules/nuxt-module.ts'
 import { loadRegistry } from '../modules/registry.ts'
 import {
@@ -31,6 +34,8 @@ import {
   previewDocuments,
   type PreviewDocument,
   type PreviewOptions,
+  VIEWS_RESOLVED,
+  viewsSignature,
 } from '../preview/pipeline.ts'
 import { loadSystems } from '../systems/registry.ts'
 import {
@@ -42,6 +47,12 @@ import {
 
 const MANIFEST_MODULE = 'virtual:studio-manifest'
 const MANIFEST_ROUTE = '_studio/manifest/'
+
+/** A file whose content changed, with when (milliseconds since 1970). */
+interface ChangedFile {
+  file: string
+  at: number
+}
 
 export default defineNuxtModule({
   meta: { name: 'studio-manifest' },
@@ -63,13 +74,24 @@ export default defineNuxtModule({
       (spec.fileTypes ?? []).map((type) => ({ ...type, dir })),
     )
     const readers: FileTypeReader[] = await identityFileTypes(registry.enabled)
+    // The configuration is read again, so a new default system shows.
+    const defaultSystem = () => {
+      try {
+        const config = JSON.parse(readFileSync(registry.configFile, 'utf8'))
+        return typeof config.defaultSystem === 'string'
+          ? config.defaultSystem
+          : null
+      } catch {
+        return registry.config.defaultSystem ?? null
+      }
+    }
     const read = (): BuiltManifest =>
       buildManifest({
         root,
         prototypesFolder,
         systems,
         fileTypes: readers,
-        defaultSystem: registry.config.defaultSystem ?? null,
+        defaultSystem: defaultSystem(),
       })
     const problems = [...systemProblems, ...read().problems]
     for (const problem of problems) console.warn(`Warning: ${problem}`)
@@ -141,15 +163,26 @@ declare module '${MANIFEST_MODULE}' {
       })
     }
 
-    addVitePlugin(manifestPlugin(read, base), { server: false })
+    const previews = previewPlugin(documents, preview, base, (close) =>
+      nuxt.hook('close', close),
+    )
     addVitePlugin(
-      previewPlugin(documents, preview, base, (close) =>
-        nuxt.hook('close', close),
-      ),
+      manifestPlugin(read, base, {
+        watch: [path.resolve(root, prototypesFolder), registry.configFile],
+        changed: previews.changed,
+      }),
       { server: false },
     )
+    addVitePlugin(previews.plugin, { server: false })
   },
 })
+
+const hash = (text: string) =>
+  createHash('sha256').update(text).digest('hex').slice(0, 10)
+
+/** Changes whenever the manifest or any artifact list does. */
+const revisionOf = (built: BuiltManifest) =>
+  hash(JSON.stringify([built.manifest, built.artifacts]))
 
 /** The manifest as the client reads it, with where each artifact list is. */
 function clientManifest(
@@ -158,16 +191,23 @@ function clientManifest(
 ) {
   return {
     ...built.manifest,
+    revision: revisionOf(built),
     artifacts: Object.fromEntries(
       built.manifest.prototypes.map(({ id }) => [id, artifactUrl(id)]),
     ),
   }
 }
 
-const hash = (text: string) =>
-  createHash('sha256').update(text).digest('hex').slice(0, 10)
+// Content changes on disk in bursts (a folder move is many events); they
+// become one refresh after a short pause.
+const SETTLE_MS = 60
+const WATCH_EVENTS = ['add', 'addDir', 'unlink', 'unlinkDir', 'change'] as const
 
-function manifestPlugin(read: () => BuiltManifest, base: string): Plugin {
+function manifestPlugin(
+  read: () => BuiltManifest,
+  base: string,
+  live: { watch: string[]; changed: (files: ChangedFile[]) => Promise<void> },
+): Plugin {
   const resolved = `\0${MANIFEST_MODULE}`
   let production = false
   let folder = ''
@@ -226,6 +266,72 @@ function manifestPlugin(read: () => BuiltManifest, base: string): Plugin {
         if (!list) res.statusCode = 404
         res.end(JSON.stringify(list ?? { error: 'Not found' }))
       })
+
+      // Pushes the manifest, with every artifact list, when it changes.
+      let revision = revisionOf(read())
+      const files = new Set<string>()
+      // Each file's content as last seen, so a save that changes nothing
+      // (or a file written again as it was) is not news.
+      const contents = new Map<string, string>()
+      const altered = (file: string) => {
+        let content = ''
+        try {
+          content = hash(readFileSync(file, 'utf8'))
+        } catch {
+          // Removed, or a folder.
+        }
+        if (contents.get(file) === content) return false
+        contents.set(file, content)
+        return true
+      }
+      const refresh = createRefreshQueue(
+        async () => {
+          // With when each changed, so a document that loaded a file after
+          // the change knows it is not news.
+          const changedFiles = [...files].filter(altered).map((file) => {
+            let at = Date.now()
+            try {
+              at = statSync(file).mtimeMs
+            } catch {
+              // Removed.
+            }
+            return { file, at }
+          })
+          files.clear()
+          const built = read()
+          const next = revisionOf(built)
+          if (next !== revision) {
+            revision = next
+            server.ws.send({
+              type: 'custom',
+              event: 'studio:manifest',
+              data: {
+                manifest: clientManifest(built, (id) => `./${id}.json`),
+                artifacts: built.artifacts,
+              },
+            })
+          }
+          await live.changed(changedFiles)
+        },
+        (callback) => setTimeout(callback, SETTLE_MS),
+      )
+      const roots = live.watch.map((file) => path.resolve(file))
+      const changed = (file: string) => {
+        const resolved = path.resolve(file)
+        if (
+          roots.some(
+            (root) => resolved === root || resolved.startsWith(root + path.sep),
+          )
+        ) {
+          files.add(resolved.split(path.sep).join('/'))
+          refresh()
+        }
+      }
+      for (const event of WATCH_EVENTS) server.watcher.on(event, changed)
+      server.watcher.add(roots)
+      server.httpServer?.once('close', () => {
+        for (const event of WATCH_EVENTS) server.watcher.off(event, changed)
+      })
     },
   }
 }
@@ -243,14 +349,18 @@ function freePort() {
 }
 
 // In development each preview document has its own Vite server, started on
-// its first request and stopped with the studio's.
+// its first request and stopped with the studio's. When content changes,
+// each running document reloads its views module if its views did, and
+// hears of the change, so a view that failed can try again.
 function previewPlugin(
   documents: PreviewDocument[],
   options: (document: PreviewDocument) => PreviewOptions,
   base: string,
   onClose: (close: () => Promise<void>) => void,
-): Plugin {
+) {
   const servers = new Map<string, Promise<ViteDevServer>>()
+  // What each running document's views module was built from.
+  const signatures = new Map<string, string>()
   const prefix = `${base}${PREVIEW_ROUTE}`
   onClose(async () => {
     for (const pending of servers.values()) await (await pending).close()
@@ -259,6 +369,7 @@ function previewPlugin(
   const serverOf = (document: PreviewDocument) => {
     let server = servers.get(document.key)
     if (!server) {
+      signatures.set(document.key, viewsSignature(options(document).views()))
       server = freePort()
         .then((hmrPort) =>
           previewConfig(document, { ...options(document), hmrPort }, 'serve'),
@@ -296,7 +407,27 @@ function previewPlugin(
     }
     server.middlewares(req, res, next)
   }
-  return {
+  async function changed(files: ChangedFile[]) {
+    for (const document of documents) {
+      const pending = servers.get(document.key)
+      if (!pending) continue
+      const server = await pending
+      const signature = viewsSignature(options(document).views())
+      if (signature !== signatures.get(document.key)) {
+        signatures.set(document.key, signature)
+        const views = server.moduleGraph.getModuleById(VIEWS_RESOLVED)
+        if (views) await server.reloadModule(views)
+      }
+      // A document's own watcher can lose a file that was removed and
+      // written again, and then keep serving its old compiled copy. The
+      // studio's watcher passes each change on, so the document's server
+      // drops that copy and sends the hot update itself.
+      for (const { file } of files)
+        server.watcher.emit(existsSync(file) ? 'change' : 'unlink', file)
+      server.ws.send({ type: 'custom', event: 'studio:file', data: { files } })
+    }
+  }
+  const plugin: Plugin = {
     name: 'studio-preview-documents',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
@@ -308,4 +439,5 @@ function previewPlugin(
       })
     },
   }
+  return { plugin, changed }
 }

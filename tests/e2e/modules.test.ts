@@ -80,6 +80,37 @@ describe('a module switched on and off on the dev server', () => {
     expect(other.status).toBe(403)
   })
 
+  test('[SH-141] module build data refreshes on the open page when its source changes', async () => {
+    const note = 'tests/fixtures/modules/sample/notes/third.md'
+    const page = await newPage()
+    await page.goto(`${studio!.url}sample`)
+    const notes = page.getByRole('list', { name: 'Sample' })
+    await expect
+      .poll(() => notes.getByRole('listitem').allTextContents(), {
+        timeout: 30_000,
+      })
+      .toEqual(['first.md', 'second.md'])
+    await page.evaluate(() => ((window as { mark?: number }).mark = 1))
+    try {
+      writeFileSync(note, '# Third\n')
+      await expect
+        .poll(() => notes.getByRole('listitem').allTextContents(), {
+          timeout: 10_000,
+        })
+        .toEqual(['first.md', 'second.md', 'third.md'])
+    } finally {
+      rmSync(note, { force: true })
+    }
+    await expect
+      .poll(() => notes.getByRole('listitem').allTextContents(), {
+        timeout: 10_000,
+      })
+      .toEqual(['first.md', 'second.md'])
+    expect(await page.evaluate(() => (window as { mark?: number }).mark)).toBe(
+      1,
+    )
+  })
+
   test('[SH-146] a disabled module loses its rail button and page after a restart', async () => {
     await studio!.stop()
     switchSample(false)

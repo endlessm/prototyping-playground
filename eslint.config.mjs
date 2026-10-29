@@ -9,8 +9,11 @@ export default withNuxt([
     ignores: [
       'src/prototypes/**',
       'src/systems/**',
+      // React views for the parity harness, in the React studio's own style.
+      'tests/fixtures/parity/react/**',
       '.nuxt*/**',
       '.output*/**',
+      '.e2e/**',
       '.yarn/**',
     ],
   },

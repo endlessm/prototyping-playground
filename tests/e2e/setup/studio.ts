@@ -1,6 +1,6 @@
 // Starts the studio for browser scenarios: the dev server, or the static build
 // served the way a static host serves it.
-import { spawn } from 'node:child_process'
+import { spawn, spawnSync, type ChildProcess } from 'node:child_process'
 import { mkdtempSync } from 'node:fs'
 import { createServer } from 'node:net'
 import os from 'node:os'
@@ -44,6 +44,17 @@ function run(args: string[], env: Record<string, string>) {
   })
 }
 
+// `nuxt dev` serves from a forked child that holds the port and the build
+// folder's lock. On Windows killing the parent leaves it running for a while,
+// so the next scenario's server would find the lock taken: end the tree.
+function stopTree(child: ChildProcess) {
+  if (process.platform === 'win32' && child.pid)
+    spawnSync('taskkill', ['/T', '/F', '/PID', String(child.pid)], {
+      stdio: 'ignore',
+    })
+  else child.kill()
+}
+
 async function waitFor(url: string, timeout: number) {
   const deadline = Date.now() + timeout
   while (Date.now() < deadline) {
@@ -78,7 +89,7 @@ export async function startDevServer(
   try {
     await waitFor(url, 300_000)
   } catch (error) {
-    child.kill()
+    stopTree(child)
     throw new Error(`${(error as Error).message}\n${log}`, { cause: error })
   }
   return {
@@ -86,7 +97,7 @@ export async function startDevServer(
     stop: async () => {
       if (child.exitCode !== null) return
       const exited = new Promise((resolve) => child.once('exit', resolve))
-      child.kill()
+      stopTree(child)
       await exited
     },
   }

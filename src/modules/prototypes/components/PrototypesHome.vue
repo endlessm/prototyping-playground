@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import HomeBlock from '../../../../app/components/HomeBlock.vue'
 
-// Home's block of the newest prototypes. Each opens its first artifact.
+// Home's block of the newest prototypes, by title within a day. Each opens
+// its first artifact.
 const LIMIT = 5
 const manifest = await useManifest()
 const recent = computed(() =>
   [...manifest.value.prototypes]
-    .sort((a, b) => (b.created ?? '').localeCompare(a.created ?? ''))
+    .sort(
+      (a, b) =>
+        (b.created ?? '').localeCompare(a.created ?? '') ||
+        a.title.localeCompare(b.title),
+    )
     .slice(0, LIMIT),
 )
 const { t } = useI18n()
