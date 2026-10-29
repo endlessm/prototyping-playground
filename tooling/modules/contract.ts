@@ -79,6 +79,18 @@ export interface ModuleBuildData {
   load: (context: BuildDataContext) => unknown
 }
 
+/** What a module shows on Home: a block under the search field. */
+export interface ModuleHome {
+  /** The Vue component, relative to the module's folder. */
+  component: string
+  /**
+   * Where the block sits, low first: locally, where your own work comes
+   * first, and on the deployed site, where what colleagues come for does.
+   * 50 by default.
+   */
+  order?: { local?: number; deployed?: number }
+}
+
 export interface StudioModule {
   /** Lowercase letters, numbers and dashes; also the module's folder name. */
   id: string
@@ -87,7 +99,13 @@ export interface StudioModule {
   description?: string
   /** A required module can't be turned off or removed. */
   required?: boolean
+  /**
+   * Only for the studio running locally: the deployed site gets none of the
+   * module's pages, rail button, palette entries or Home block.
+   */
+  localOnly?: boolean
   rail?: ModuleRail
+  home?: ModuleHome
   pages?: ModulePage[]
   palette?: ModulePaletteEntry[]
   skills?: ModuleSkill[]

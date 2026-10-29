@@ -140,6 +140,9 @@ declare module '${MANIFEST_MODULE}' {
         maxAge: 0,
       })
       nuxt.hook('build:before', async () => {
+        // `nuxt prepare` (run on install) only writes types, and a fresh
+        // tree has no `.nuxt/tsconfig.app.json` for Vite to read yet.
+        if (nuxt.options._prepare) return
         for (const document of documents)
           await viteBuild(
             await previewConfig(document, preview(document), 'build'),

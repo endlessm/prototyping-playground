@@ -4,9 +4,9 @@ A prototyping sandbox for the Endless team, rewritten in Nuxt and Vue (ADR 0003,
 
 ## Layout
 
-- `app/`: the Nuxt 4 app (client-rendered). `nuxt.config.ts` and `app/app.config.ts` configure it; interface strings live in `i18n/locales/en.json`.
+- `app/`: the Nuxt 4 app (client-rendered). `nuxt.config.ts` and `app/app.config.ts` configure it; interface strings live in `i18n/locales/en.json`. The frame is Nuxt UI's dashboard (`app/layouts/default.vue`): the rail (`AppRail.vue`), then the page. A section page puts its navigation first with `AppSectionNav.vue`, which owns hiding (⌘;), resizing and remembering. Shared pieces: `AppNotFound`, `AppFileBoundary` (a crash in one file's page), `HomeBlock`, `useStudioToast`, `shortcutLabel` (⌘ on Apple computers, Ctrl elsewhere), `menuGroups` and `afterMenuCloses` for menus, `requestJson` for the dev server. Preferences this browser remembers use keys starting with `design-studio:`.
 - `tooling/`: Node scripts in TypeScript, run directly by Node 22.18+ (type stripping): the `studio` command (`tooling/studio/`), the module registry and the Nuxt module that builds modules into the app (`tooling/modules/`), the system registry (`tooling/systems/`), the manifest of prototypes and artifacts (`tooling/manifest/`), the preview documents views render in (`tooling/preview/`), build inspection, the static server behind `yarn preview`, the Node version check, deployment settings.
-- `src/modules/<id>/`: studio modules, all in one folder. `module.ts` declares the module (`tooling/modules/contract.ts` lists the fields): label, rail button (top, bottom or none), Vue pages under `/<id>`, command palette entries, agent skills, a content folder, file types (such as views) and named build data. `studio.config.json` turns each one on or off; the dev server reads both when it starts, so a switch takes a restart.
+- `src/modules/<id>/`: studio modules, all in one folder. `module.ts` declares the module (`tooling/modules/contract.ts` lists the fields): label, rail button (top, bottom or none), Vue pages under `/<id>`, a Home block, `localOnly` (left out of the deployed site), command palette entries, agent skills, a content folder, file types (such as views) and named build data. `studio.config.json` turns each one on or off; the dev server reads both when it starts, so a switch takes a restart.
 - `tests/unit`, `tests/integration`, `tests/e2e`: the Vitest projects. E2E scenarios drive Chromium through Playwright against the dev server and against the static build.
 - Content stays apart from the app: `src/prototypes/`, `src/systems/` (each system is a yarn workspace package that declares its Vue app in `system.ts`), `contributors/` and `studio.config.json`.
 - Views render in their system's preview document, a same-origin iframe built by a Vite pipeline of its own beside the Nuxt app, so it holds only the system's app and never the studio's styles or Nuxt runtime. Prototype and system code is never compiled by the studio's Nuxt build.
@@ -15,7 +15,7 @@ A prototyping sandbox for the Endless team, rewritten in Nuxt and Vue (ADR 0003,
 
 Use yarn 4 through corepack and Node 22 (`mise.toml`). `yarn install` installs the Git hooks and prepares Nuxt.
 
-- `yarn dev`: the studio in development.
+- `yarn dev`: the studio in development. `yarn dev --host` also serves it at the computer's network address, to open it from a phone or tablet over plain http.
 - `yarn studio`: lists the studio commands (`list`, `enable`, `disable`, `remove`, `create-module`). Commands that change files print a preview and change nothing until rerun with `--yes`; `enable` and `disable` apply right away. Restart the dev server after any of them.
 - `yarn lint`, `yarn format:check` (or `yarn format`), `yarn typecheck`.
 - `yarn test` (unit and integration), `yarn test:e2e`, `yarn test:full` (everything, as CI runs it).

@@ -1,5 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Design Studio">
-<style>.tile{fill:#f7f6f2;stroke:#deddd5}.mark{fill:#171715}@media(prefers-color-scheme:dark){.tile{fill:#171715;stroke:#363630}.mark{fill:#f7f6f2}}</style>
-<rect class="tile" x=".5" y=".5" width="63" height="63" rx="14" fill="#f7f6f2" stroke="#deddd5"/>
-<g class="mark" fill="#171715" transform="translate(33 32) scale(1.44) translate(-24.99435 -24)"><path d="M21.3943 12H12.48V36H21.3943V12Z"/><path d="M23.7944 12H25.5087C28.6913 12 31.7436 13.2643 33.994 15.5147C36.2444 17.7652 37.5087 20.8174 37.5087 24C37.5087 27.1826 36.2444 30.2348 33.994 32.4853C31.7436 34.7357 28.6913 36 25.5087 36H23.7944V12Z"/></g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <style>
+    .box { fill: #171717 } .mark { fill: #fafafa }
+    @media (prefers-color-scheme: dark) { .box { fill: #fafafa } .mark { fill: #171717 } }
+  </style>
+  <rect class="box" width="32" height="32" rx="7"/>
+  <g class="mark" transform="translate(6 6) scale(0.8333)"><rect x="3" y="3" width="18" height="4.5" rx="1.5"/><rect x="3" y="9.75" width="12" height="4.5" rx="1.5"/><rect x="3" y="16.5" width="18" height="4.5" rx="1.5"/></g>
 </svg>

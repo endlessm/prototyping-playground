@@ -7,6 +7,12 @@ export default {
   label: 'Prototypes',
   description: 'Prototypes with views that render in their design system.',
   required: true,
+  // Your work first locally; on the deployed site, after what colleagues
+  // come for.
+  home: {
+    component: 'components/PrototypesHome.vue',
+    order: { local: 10, deployed: 20 },
+  },
   pages: [
     { path: '/prototypes/:prototypeId', file: 'pages/prototype.vue' },
     {

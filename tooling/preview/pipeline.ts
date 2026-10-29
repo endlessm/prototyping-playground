@@ -12,7 +12,7 @@ import vue from '@vitejs/plugin-vue'
 import type { InlineConfig, Plugin, PluginOption } from 'vite'
 import type { InstalledSystem } from '../systems/registry.ts'
 
-import { NO_SYSTEM, PREVIEW_ROUTE } from './constants.ts'
+import { colorModeScript, NO_SYSTEM, PREVIEW_ROUTE } from './constants.ts'
 
 export { NO_SYSTEM, PREVIEW_ROUTE }
 
@@ -114,6 +114,9 @@ function writeEntry(document: PreviewDocument, options: PreviewOptions) {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Preview</title>
+    <script>
+${colorModeScript(document.system ? document.system.spec.colorModes : null)}
+    </script>
   </head>
   ${body}
     <div id="app"></div>

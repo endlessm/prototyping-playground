@@ -1,13 +1,19 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
+import AppNotFound from '../../../../app/components/AppNotFound.vue'
+import AppSectionNav from '../../../../app/components/AppSectionNav.vue'
 import type {
   ManifestArtifact,
   ManifestPrototype,
 } from '../../../../app/composables/useManifest'
 
+// A prototype's frame: its navigation in the section panel, and the open
+// artifact beside it. An unknown prototype, or an unknown artifact in a
+// known one, is not found; the prototype keeps its navigation around it.
 const props = defineProps<{
   prototype: ManifestPrototype | undefined
   artifacts: ManifestArtifact[]
+  notFound?: boolean
 }>()
 
 const { t } = useI18n()
@@ -29,39 +35,27 @@ const items = computed<NavigationMenuItem[]>(() =>
 </script>
 
 <template>
-  <UDashboardPanel
-    v-if="prototype"
-    id="prototype-navigation"
-    :default-size="18"
-    :min-size="12"
-    :max-size="30"
-    resizable
-  >
+  <AppSectionNav v-if="prototype" :label="prototype.title">
     <template #header>
-      <div class="flex flex-col gap-0.5 px-4 pt-4">
-        <h1 class="truncate font-semibold text-highlighted">
+      <div class="flex min-w-0 flex-col gap-0.5">
+        <h1 class="truncate text-sm font-semibold text-highlighted">
           {{ prototype.title }}
         </h1>
-        <p class="text-sm text-muted">
+        <p class="truncate text-xs text-muted">
           {{ t('prototypes.system', { name: system }) }}
         </p>
       </div>
     </template>
-    <template #body>
-      <UNavigationMenu
-        :items="items"
-        orientation="vertical"
-        :aria-label="prototype.title"
-      />
-    </template>
-  </UDashboardPanel>
+    <UNavigationMenu
+      :items="items"
+      orientation="vertical"
+      :aria-label="prototype.title"
+    />
+  </AppSectionNav>
   <UDashboardPanel id="prototype-artifact">
     <template #body>
-      <slot>
-        <p v-if="!prototype" class="text-muted">
-          {{ t('prototypes.notFound') }}
-        </p>
-      </slot>
+      <AppNotFound v-if="!prototype || notFound" />
+      <slot v-else />
     </template>
   </UDashboardPanel>
 </template>

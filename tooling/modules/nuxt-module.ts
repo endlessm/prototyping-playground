@@ -13,7 +13,7 @@ import {
 } from 'nuxt/kit'
 import type { Plugin } from 'vite'
 import { buildDataStore } from './build-data.ts'
-import { loadRegistry } from './registry.ts'
+import { loadRegistry, modulesForApp } from './registry.ts'
 
 const DATA_MODULE = 'virtual:studio-module-data'
 const DATA_ROUTE = '_studio/data/'
@@ -28,7 +28,8 @@ export default defineNuxtModule({
       modulesFolder: process.env.STUDIO_MODULES || undefined,
       configFile: process.env.STUDIO_CONFIG || undefined,
     })
-    const { enabled } = registry
+    // Local-only modules stay off the deployed site.
+    const enabled = modulesForApp(registry.enabled, { dev: nuxt.options.dev })
 
     extendPages((pages) => {
       for (const { spec, dir } of enabled)
@@ -56,6 +57,19 @@ export default defineNuxtModule({
           : null,
       palette: spec.palette ?? [],
     }))
+    // Each module's Home block, loaded when Home opens.
+    const homeBlocks = enabled.flatMap(({ spec, dir }) =>
+      spec.home
+        ? [
+            `{ id: ${JSON.stringify(spec.id)}, label: ${JSON.stringify(spec.label)}, order: ${JSON.stringify(spec.home.order ?? {})}, component: () => import(${JSON.stringify(path.join(dir, spec.home.component).split(path.sep).join('/'))}) }`,
+          ]
+        : [],
+    )
+    const homeTemplate = addTemplate({
+      filename: 'studio-home-blocks.mjs',
+      getContents: () => `export default [${homeBlocks.join(',\n')}]\n`,
+    })
+    nuxt.options.alias['#studio/home-blocks'] = homeTemplate.dst
     const template = addTemplate({
       filename: 'studio-modules.mjs',
       getContents: () => `export default ${JSON.stringify(client, null, 2)}\n`,
@@ -75,6 +89,17 @@ declare module '#studio/modules' {
   }
   const modules: ClientModule[]
   export default modules
+}
+declare module '#studio/home-blocks' {
+  import type { Component } from 'vue'
+  export interface HomeBlock {
+    id: string
+    label: string
+    order: { local?: number; deployed?: number }
+    component: () => Promise<{ default: Component }>
+  }
+  const blocks: HomeBlock[]
+  export default blocks
 }
 declare module '${DATA_MODULE}' {
   /** Where each \`<module>/<name>\` build data is fetched from. */

@@ -58,11 +58,13 @@ async function waitFor(url: string, timeout: number) {
 
 export async function startDevServer(
   env: Record<string, string> = {},
+  // `0.0.0.0` also answers on the computer's network addresses.
+  { host = '127.0.0.1' }: { host?: string } = {},
 ): Promise<RunningStudio> {
   const port = await freePort()
   // Its own build directory, so a person's `yarn dev` in the same checkout
   // keeps running.
-  const child = run(['dev', '--port', String(port), '--host', '127.0.0.1'], {
+  const child = run(['dev', '--port', String(port), '--host', host], {
     ...env,
     STUDIO_BUILD_DIR: '.nuxt-e2e',
   })

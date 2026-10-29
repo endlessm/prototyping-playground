@@ -174,7 +174,7 @@ function scenarios(start: () => Promise<RunningStudio>) {
   test('[SY-134] [SY-135] the studio’s dark mode stays out of Endless Studios, which has only a light mode', async () => {
     const page = await newPage()
     await page.addInitScript(() =>
-      localStorage.setItem('nuxt-color-mode', 'dark'),
+      localStorage.setItem('design-studio:color-mode', 'dark'),
     )
     await page.goto(`${studio.url}prototypes/${TRACER}/artifacts/${HOME}`)
     const view = await preview(page, 'Home')
@@ -217,6 +217,84 @@ function scenarios(start: () => Promise<RunningStudio>) {
     expect(look.sheets).toBe(0)
     const inside = await view.locator('html').evaluate(studioTraces)
     expect(inside.nuxt).toBe(false)
+  })
+
+  test('[SH-97] Home lists the newest prototypes, each opening its first artifact', async () => {
+    const page = await newPage()
+    await page.goto(studio.url)
+    const recent = page.getByRole('region', { name: 'Recent prototypes' })
+    await expect
+      .poll(() => recent.getByRole('link').allTextContents(), {
+        timeout: 60_000,
+      })
+      .toEqual(['Tracer', 'Plain'])
+    await recent.getByRole('link', { name: 'Tracer' }).click()
+    await expect
+      .poll(() => page.url())
+      .toBe(`${studio.url}prototypes/${TRACER}/artifacts/${HOME}`)
+  })
+
+  test('[SH-08] [PR-25] an unknown artifact is not found inside its prototype, which keeps its navigation', async () => {
+    const page = await newPage()
+    await page.goto(
+      `${studio.url}prototypes/${TRACER}/artifacts/nothing0000000000`,
+    )
+    await expect
+      .poll(() => page.getByText('Page not found').isVisible(), {
+        timeout: 60_000,
+      })
+      .toBe(true)
+    expect(
+      await page.getByRole('navigation', { name: 'Tracer' }).isVisible(),
+    ).toBe(true)
+    await page.goto(`${studio.url}prototypes/nothing0000000000`)
+    await expect
+      .poll(() => page.getByText('Page not found').isVisible())
+      .toBe(true)
+  })
+
+  test('[PR-80] [CL-113] [SH-54] an open view follows the studio’s color mode without losing its state, and starts in it', async () => {
+    const page = await newPage()
+    await page.emulateMedia({ colorScheme: 'light' })
+    // What each document's root holds at its first frame.
+    await page.addInitScript(() => {
+      requestAnimationFrame(() => {
+        ;(window as unknown as { firstFrame: string }).firstFrame =
+          document.documentElement.className
+      })
+    })
+    await page.goto(`${studio.url}prototypes/${PLAIN}/artifacts/${PLAIN_VIEW}`)
+    const view = await preview(page, 'Plain')
+    const note = view.getByRole('textbox', { name: 'Note' })
+    await note.fill('Kept across modes')
+    const dark = () =>
+      view.locator('html').evaluate((html) => html.classList.contains('dark'))
+    expect(await dark()).toBe(false)
+    await page.getByRole('button', { name: 'Color mode' }).click()
+    await page.getByRole('menuitemcheckbox', { name: 'Dark' }).click()
+    await expect.poll(dark).toBe(true)
+    expect(
+      await view
+        .locator('html')
+        .evaluate((html) => getComputedStyle(html).colorScheme),
+    ).toBe('dark')
+    expect(await note.inputValue()).toBe('Kept across modes')
+    // System follows the computer inside the view too.
+    await page.getByRole('button', { name: 'Color mode' }).click()
+    await page.getByRole('menuitemcheckbox', { name: 'System' }).click()
+    await expect.poll(dark).toBe(false)
+    await page.emulateMedia({ colorScheme: 'dark' })
+    await expect.poll(dark).toBe(true)
+    // A reload starts the view in the mode, before it paints.
+    await page.reload()
+    const again = await preview(page, 'Plain')
+    expect(
+      await again
+        .locator('html')
+        .evaluate(
+          () => (window as unknown as { firstFrame: string }).firstFrame,
+        ),
+    ).toContain('dark')
   })
 }
 

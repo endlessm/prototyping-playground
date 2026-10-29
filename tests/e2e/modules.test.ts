@@ -25,8 +25,7 @@ function switchSample(on: boolean) {
   writeFileSync(config, JSON.stringify({ ...base, modules: { sample: on } }))
 }
 
-const rail = (page: Page) =>
-  page.getByRole('navigation', { name: 'Studio sections' })
+const rail = (page: Page) => page.getByRole('navigation', { name: 'Main' })
 
 afterAll(() => {
   rmSync(folder, { recursive: true, force: true })

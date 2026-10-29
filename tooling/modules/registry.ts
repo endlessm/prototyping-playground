@@ -52,7 +52,9 @@ const KEYS = new Set([
   'label',
   'description',
   'required',
+  'localOnly',
   'rail',
+  'home',
   'pages',
   'palette',
   'skills',
@@ -102,6 +104,24 @@ export function moduleProblems(spec: unknown, folderName: string): string[] {
     else if (rail.position !== 'none' && !rail.to && !pages.length)
       problems.push(`${where}: a rail button needs a page or a "to" address.`)
   }
+  if (module.localOnly !== undefined && typeof module.localOnly !== 'boolean')
+    problems.push(`${where}: localOnly is true or false.`)
+  if (module.home !== undefined) {
+    const { component, order } = (module.home ?? {}) as Record<string, unknown>
+    const places = (order ?? {}) as Record<string, unknown>
+    if (
+      typeof component !== 'string' ||
+      !component.endsWith('.vue') ||
+      typeof places !== 'object' ||
+      Object.entries(places).some(
+        ([where, value]) =>
+          !['local', 'deployed'].includes(where) || typeof value !== 'number',
+      )
+    )
+      problems.push(
+        `${where}: the Home block names its .vue component and optional numeric local and deployed orders.`,
+      )
+  }
   const fileTypes = module.fileTypes
   if (fileTypes !== undefined) {
     if (!Array.isArray(fileTypes))
@@ -150,6 +170,14 @@ export function moduleProblems(spec: unknown, folderName: string): string[] {
       }
   }
   return problems
+}
+
+/** The enabled modules the app gets: local-only ones stay off the deployed site. */
+export function modulesForApp(
+  enabled: InstalledModule[],
+  { dev }: { dev: boolean },
+) {
+  return enabled.filter(({ spec }) => dev || !spec.localOnly)
 }
 
 /** Repository-relative paths or globs, never outside the studio. */
