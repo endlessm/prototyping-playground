@@ -61,6 +61,8 @@ scenario(
       .toBe(true)
     await step('A card’s actions')
     await page.keyboard.press('Escape')
+    // The open menu hides the rest of the page from assistive technology.
+    await expect.poll(() => page.getByRole('menu').count()).toBe(0)
 
     // Only when the person running the studios is a contributor (both
     // studios resolve the same Git identity).
