@@ -9,7 +9,6 @@ import { readFile } from 'node:fs/promises'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { createServer as createNetServer } from 'node:net'
 import path from 'node:path'
-import { pathToFileURL } from 'node:url'
 import {
   addTemplate,
   addTypeTemplate,
@@ -22,7 +21,7 @@ import {
   type Plugin,
   type ViteDevServer,
 } from 'vite'
-import type { IdentityAdapter } from '../modules/contract.ts'
+import { identityFileTypes } from '../identity/file-types.ts'
 import { sameOrigin } from '../modules/nuxt-module.ts'
 import { loadRegistry } from '../modules/registry.ts'
 import {
@@ -63,14 +62,7 @@ export default defineNuxtModule({
     const fileTypes = registry.enabled.flatMap(({ spec, dir }) =>
       (spec.fileTypes ?? []).map((type) => ({ ...type, dir })),
     )
-    const readers: FileTypeReader[] = []
-    for (const type of fileTypes) {
-      const file = pathToFileURL(path.join(type.dir, type.identity))
-      const { identity } = (await import(file.href)) as {
-        identity: IdentityAdapter
-      }
-      readers.push({ id: type.id, extensions: type.extensions, identity })
-    }
+    const readers: FileTypeReader[] = await identityFileTypes(registry.enabled)
     const read = (): BuiltManifest =>
       buildManifest({
         root,

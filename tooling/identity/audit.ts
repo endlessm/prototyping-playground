@@ -84,7 +84,8 @@ export function auditIdentities(
     else owners.set(id, resource.path)
     resources.push({ ...resource, studioId: id })
   }
-  const text = (file: string) => readFileSync(path.join(root, file), 'utf8')
+  const text = (file: string) => readFileSync(path.resolve(root, file), 'utf8')
+  const relative = (file: string) => posix(path.relative(root, file))
   const json = (file: string) => {
     const value = JSON.parse(text(file))
     if (!value || typeof value !== 'object' || Array.isArray(value))
@@ -100,7 +101,7 @@ export function auditIdentities(
         .sort()
     : []
   for (const name of profiles) {
-    const file = `${posix(contributorsFolder)}/${name}`
+    const file = relative(path.join(people, name))
     record({ kind: 'contributor', path: file }, () => json(file).studioId)
   }
 
@@ -116,15 +117,6 @@ export function auditIdentities(
 
   const prototypesFolder = posix(options.prototypesFolder ?? PROTOTYPES_FOLDER)
   const base = path.resolve(root, prototypesFolder)
-  const relative = (file: string) => posix(path.relative(root, file))
-  const contributorIds = new Map(
-    resources
-      .filter((resource) => resource.kind === 'contributor')
-      .map((resource) => [
-        path.posix.basename(resource.path, '.json'),
-        resource.studioId,
-      ]),
-  )
   for (const owner of directories(base))
     for (const name of directories(path.join(base, owner))) {
       const dir = path.join(base, owner, name)
@@ -133,17 +125,7 @@ export function auditIdentities(
       const metaFile = `${folder}/meta.json`
       record(
         { kind: 'prototype', path: metaFile, prototype: folder, owner },
-        () => {
-          const meta = json(metaFile)
-          if (
-            meta.ownerContributorId !== undefined &&
-            meta.ownerContributorId !== contributorIds.get(owner)
-          )
-            problems.push(
-              `${metaFile}: ownerContributorId must be the ID of ${owner}, whose folder it is in.`,
-            )
-          return meta.studioId
-        },
+        () => json(metaFile).studioId,
       )
       for (const file of treeFiles(dir)) {
         const type = fileTypeOf(types, file)
