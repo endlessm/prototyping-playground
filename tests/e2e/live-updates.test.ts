@@ -33,12 +33,17 @@ const PROTOTYPE = 'pr0t0000000000a1'
 const COUNTER = 'c0nter0000000001'
 const SECOND = 'sec0nd0000000001'
 
+let touched = false
 function write(name: string, source: string) {
   const file = path.join(folder, name)
   if (existsSync(file) && readFileSync(file, 'utf8') === source) return
   writeFileSync(file, source)
+  touched = true
 }
-const remove = (name: string) => rmSync(path.join(folder, name))
+const remove = (name: string) => {
+  rmSync(path.join(folder, name))
+  touched = true
+}
 const view = (id: string, body: string) =>
   `<!-- @studio-id ${id} -->\n${body.trim()}\n`
 
@@ -69,11 +74,11 @@ const plain = (id: string, heading: string) =>
 
 // Back to the two views, leaving files that stay as they are, as an agent
 // would: a folder removed and made again is a burst the scenarios don't need.
-function reset() {
+async function reset() {
+  touched = false
   mkdirSync(folder, { recursive: true })
   for (const name of readdirSync(folder))
-    if (!['meta.json', 'Counter.vue', 'Second.vue'].includes(name))
-      rmSync(path.join(folder, name))
+    if (!['meta.json', 'Counter.vue', 'Second.vue'].includes(name)) remove(name)
   write(
     'meta.json',
     JSON.stringify({
@@ -87,6 +92,9 @@ function reset() {
   )
   write('Counter.vue', counter('Counter one'))
   write('Second.vue', plain(SECOND, 'Second view'))
+  // Lets the studio and open documents take in the change before a scenario
+  // opens its page.
+  if (touched) await new Promise((resolve) => setTimeout(resolve, 1_000))
 }
 
 const address = (studio: RunningStudio, artifact: string) =>
@@ -135,7 +143,7 @@ describe('live updates on the dev server', { timeout: 120_000 }, () => {
   }
   let studio: RunningStudio
   beforeAll(async () => {
-    reset()
+    await reset()
     studio = await startDevServer(env)
   })
   afterAll(async () => {
@@ -144,7 +152,7 @@ describe('live updates on the dev server', { timeout: 120_000 }, () => {
   })
 
   test('[PR-81] [SY-176] editing a view updates its open preview and keeps its state', async () => {
-    reset()
+    await reset()
     const page = await newPage()
     await opened(page, address(studio, COUNTER))
     const frame = frameOf(page)
@@ -173,7 +181,7 @@ describe('live updates on the dev server', { timeout: 120_000 }, () => {
   })
 
   test('[PR-66] [SH-137] [CL-121] [SH-140] new, removed and renamed views appear in every open tab without a reload', async () => {
-    reset()
+    await reset()
     const page = await newPage()
     const other = await newPage()
     await opened(page, address(studio, COUNTER))
@@ -224,7 +232,7 @@ describe('live updates on the dev server', { timeout: 120_000 }, () => {
   })
 
   test('[PR-84] [SH-139] a view that fails to compile shows the compiler’s message and location, and recovers once fixed', async () => {
-    reset()
+    await reset()
     write(
       'Broken.vue',
       view('br0ken0000000001', '<template>\n  <main>\n    <h1>Fixed</h1>\n'),
@@ -267,7 +275,7 @@ describe('live updates on the dev server', { timeout: 120_000 }, () => {
   })
 
   test('[PR-86] [PR-98] [CL-124] a preview that can’t show the latest change says it is out of date, then catches up', async () => {
-    reset()
+    await reset()
     const page = await newPage()
     await opened(page, address(studio, COUNTER))
     expect(await host(page).getAttribute('data-preview-freshness')).toBe(
@@ -309,7 +317,7 @@ describe('live updates on the dev server', { timeout: 120_000 }, () => {
   })
 
   test('[PR-86] [PR-98] a view whose file is removed and written again never keeps showing the old output', async () => {
-    reset()
+    await reset()
     const page = await newPage()
     await opened(page, address(studio, COUNTER))
     remove('Counter.vue')
@@ -330,7 +338,7 @@ describe('live updates on the dev server', { timeout: 120_000 }, () => {
   })
 
   test('[PR-85] a view with nothing to show says what is missing, and recovers by itself', async () => {
-    reset()
+    await reset()
     write(
       'Unfinished.vue',
       view(
@@ -353,7 +361,7 @@ describe('live updates on the dev server', { timeout: 120_000 }, () => {
   })
 
   test('[PR-88] a new, empty view asks for the agent, with a prompt to copy', async () => {
-    reset()
+    await reset()
     write('Blank.vue', '<!-- @studio-id b1ank00000000001 -->\n')
     const page = await newPage()
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write'])
@@ -401,7 +409,7 @@ describe('live updates on the dev server', { timeout: 120_000 }, () => {
   })
 
   test('[PR-79] moving between views keeps the outgoing one until the next is ready, saying “Opening view” when slow', async () => {
-    reset()
+    await reset()
     const page = await newPage()
     await page.route('**/Second.vue*', async (route) => {
       await new Promise((resolve) => setTimeout(resolve, 2_000))
@@ -428,7 +436,7 @@ describe('live updates on the dev server', { timeout: 120_000 }, () => {
   })
 
   test('[PR-97] a view’s preview opens in its own tab and reports its state', async () => {
-    reset()
+    await reset()
     const page = await newPage()
     await opened(page, address(studio, COUNTER))
     expect(await host(page).getAttribute('data-preview-artifact')).toBe(COUNTER)
@@ -464,7 +472,7 @@ describe('live updates on the dev server', { timeout: 120_000 }, () => {
   })
 
   test('[PR-87] a preview that stops answering says so after 15 seconds', async () => {
-    reset()
+    await reset()
     const page = await newPage()
     await page.route('**/_preview/none/?*', (route) =>
       route.fulfill({

@@ -40,6 +40,12 @@ type Outgoing = PreviewMessage extends infer M
   : never
 
 const MAX_DETAIL = 8192
+
+interface ChangedFile {
+  file: string
+  /** When it changed, in milliseconds since 1970. */
+  at: number
+}
 // How long a changed view may wait for its hot update.
 const CATCH_UP_MS = 2000
 
@@ -91,6 +97,9 @@ export function mountPreview({ create, views }: MountOptions) {
     box: HTMLElement
     file: string
   } | null = null
+  // When the latest attempt asked for its view's code: changes made before
+  // that are already in what it got.
+  let requestedAt = 0
 
   root.dataset.previewRuntime = runtime
   if (session) root.dataset.previewSession = session
@@ -164,6 +173,7 @@ export function mountPreview({ create, views }: MountOptions) {
       return status('empty', attempt)
     }
     let component: Component | undefined
+    requestedAt = Date.now()
     try {
       component = (await view.load()).default
     } catch (error) {
@@ -275,9 +285,12 @@ export function mountPreview({ create, views }: MountOptions) {
     // view's file changed and no hot update for it follows (Vite can lose a
     // file that was removed and written again), the document says it is out
     // of date and reloads, rather than keep showing older output.
-    hot.on('studio:file', ({ files }: { files: string[] }) => {
+    hot.on('studio:file', ({ files }: { files: ChangedFile[] }) => {
+      const news = files.filter(({ at }) => at > requestedAt)
+      if (!news.length) return
       if (state === 'error') return location.reload()
-      if (state !== 'ready' || !shown || !files.includes(shown.file)) return
+      if (state !== 'ready' || !shown) return
+      if (!news.some(({ file }) => file === shown!.file)) return
       if (Date.now() - updatedAt < CATCH_UP_MS) return
       lifecycle('updating')
       clearTimeout(catchingUp)

@@ -6,7 +6,7 @@
 // the build emits the manifest as files and builds the preview documents
 // beside the app.
 import { createHash } from 'node:crypto'
-import { mkdirSync, readFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, statSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { createServer as createNetServer } from 'node:net'
@@ -47,6 +47,12 @@ import {
 } from './build.ts'
 
 const MANIFEST_MODULE = 'virtual:studio-manifest'
+
+/** A file whose content changed, with when (milliseconds since 1970). */
+interface ChangedFile {
+  file: string
+  at: number
+}
 const MANIFEST_ROUTE = '_studio/manifest/'
 
 export default defineNuxtModule({
@@ -158,8 +164,6 @@ declare module '${MANIFEST_MODULE}' {
         maxAge: 0,
       })
       nuxt.hook('build:before', async () => {
-        // `nuxt prepare` (run on install) only writes types.
-        if (nuxt.options._prepare) return
         for (const document of documents)
           await viteBuild(
             await previewConfig(document, preview(document), 'build'),
@@ -210,7 +214,7 @@ const WATCH_EVENTS = ['add', 'addDir', 'unlink', 'unlinkDir', 'change'] as const
 function manifestPlugin(
   read: () => BuiltManifest,
   base: string,
-  live: { watch: string[]; changed: (files: string[]) => Promise<void> },
+  live: { watch: string[]; changed: (files: ChangedFile[]) => Promise<void> },
 ): Plugin {
   const resolved = `\0${MANIFEST_MODULE}`
   let production = false
@@ -290,7 +294,17 @@ function manifestPlugin(
       }
       const refresh = createRefreshQueue(
         async () => {
-          const changedFiles = [...files].filter(altered)
+          // With when each changed, so a document that loaded a file after
+          // the change knows it is not news.
+          const changedFiles = [...files].filter(altered).map((file) => {
+            let at = Date.now()
+            try {
+              at = statSync(file).mtimeMs
+            } catch {
+              // Removed.
+            }
+            return { file, at }
+          })
           files.clear()
           const built = read()
           const next = revisionOf(built)
@@ -401,7 +415,7 @@ function previewPlugin(
     }
     server.middlewares(req, res, next)
   }
-  async function changed(files: string[]) {
+  async function changed(files: ChangedFile[]) {
     for (const document of documents) {
       const pending = servers.get(document.key)
       if (!pending) continue
