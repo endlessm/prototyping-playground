@@ -17,6 +17,7 @@
     "build:inspect": "node tooling/inspect-build.ts",
     "preview": "node tooling/serve-static.ts",
     "studio": "node tooling/studio/cli.ts",
+    "new": "node tooling/studio/cli.ts new",
     "postinstall": "node tooling/check-node.ts && husky && nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",

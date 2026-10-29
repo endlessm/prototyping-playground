@@ -1,6 +1,6 @@
 ---
 name: build-prototype
-description: Create or edit a prototype view, a Vue file that renders in its assigned system's preview document, with its named states, system options, links to other views and lo-fi marker.
+description: Create a prototype, or create or edit a prototype view, a Vue file that renders in its assigned system's preview document, with its named states, system options, links to other views and lo-fi marker.
 ---
 
 # Build a prototype view
@@ -11,7 +11,7 @@ The [prototypes README](../../README.md) is the contract; read the sections you 
 
 1. Find the prototype's folder, `src/prototypes/<contributor>/<folder>/`, and read its `meta.json`. `systemId` names its system, or `null` for no system. Work only in your own prototypes unless you are an Admin.
 2. For a system, read that system's `AGENTS.md` and follow it: it says which components, stand-ins and strings views use.
-3. A new prototype is a folder with a `meta.json` (the README lists its fields) that names its `systemId`, or `null`. Run `yarn studio identify src/prototypes/<contributor>/<folder> --json`, then `--yes`, to give it its IDs and owner.
+3. To start a new prototype, run `yarn new "Prototype Name"` as the person. It uses the studio's default system; add `--system <folder name or ID>` for another, or `--no-system` for none, as they asked. It creates `src/prototypes/<their key>/<slug>/` with `meta.json` (the README lists its fields), your contributor ID as owner, and an empty starting view, `Prototype.vue`, and prints the address to open. Pass its refusals on as they are (someone who isn't a contributor yet must be added first). Build the first view in `Prototype.vue`, or rename it. A prototype folder written by hand instead needs `yarn studio identify src/prototypes/<contributor>/<folder> --json`, then `--yes`, to get its IDs and owner.
 
 ## Write views
 

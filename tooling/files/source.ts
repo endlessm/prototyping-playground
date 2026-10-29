@@ -28,15 +28,17 @@ import { CONFIG_FILE } from '../modules/registry.ts'
 export const MAX_SOURCE_BYTES = 750 * 1024
 
 /** A request the service refuses: an HTTP status, a code and a sentence. */
+// Plain fields, not parameter properties: the command line runs this file
+// with Node's type stripping.
 export class FileServiceError extends Error {
-  constructor(
-    readonly status: number,
-    /** `not_found`, `too_large`, `changed`, `identity`, or a refusal. */
-    readonly code: string,
-    message: string,
-  ) {
+  readonly status: number
+  /** `not_found`, `too_large`, `changed`, `identity`, or a refusal. */
+  readonly code: string
+  constructor(status: number, code: string, message: string) {
     super(message)
     this.name = 'FileServiceError'
+    this.status = status
+    this.code = code
   }
 }
 
@@ -251,7 +253,7 @@ function ordinaryFile(file: string) {
   }
 }
 
-function defaultIdentify(root: string) {
+export function defaultIdentify(root: string) {
   return (
     contributors: ReturnType<typeof readContributors>['contributors'],
   ) => {

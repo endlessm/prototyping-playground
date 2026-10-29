@@ -327,7 +327,8 @@ describe('on the dev server', () => {
     await page.getByRole('menuitem', { name: 'Make lo-fi' }).click()
     await expect
       .poll(() => readFileSync(path.join(folder, 'Sketch.vue'), 'utf8'))
-      // The marker takes the file's own line ending (CRLF in a Windows checkout).
+      // The marker keeps the file's own line endings (CRLF in a Windows
+      // checkout).
       .toMatch(/^<!-- @lofi -->\r?\n<!-- @studio-id skt0000000000a01 -->/)
     await expect
       .poll(async () => (await lofiOf(page)).filter, { timeout: 30_000 })
