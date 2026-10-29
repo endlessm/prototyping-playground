@@ -12,7 +12,9 @@ This studio's domain language. The Design Studio platform documents its own term
 
 **Stand-in**: studio code that replaces something the real app gets from Nuxt or its backend (`$t`, `$auth`, the store, GraphQL, navigation) so copied app source runs without a server. _Avoid_: mock, shim.
 
-**Sample**: the per-screen data a stand-in answers with: the signed-in user, store state, query responses, the locale.
+**Sample**: the per-screen data a stand-in answers with: store state and handlers, query responses. With the signed-in user and the locale, it is one of a screen's system options.
+
+**System options**: what a view tells its system's app factory about the app around the screen, in `export const system`; a named state overrides them option by option. For Endless Studios: the locale, the signed-in user and the sample. _Avoid_: screen props (props are the view's own).
 
 **App factory**: the one function a Vue system uses to create its Vue app with every stand-in installed. Screens, inline components and tests all use it.
 
