@@ -136,6 +136,10 @@ onBeforeRouteUpdate(mayLeave)
 useEventListener(window, 'beforeunload', (event: BeforeUnloadEvent) => {
   if (dirty.value) event.preventDefault()
 })
+
+// A page that switches files inside one editor (a skill's files) asks
+// first too.
+defineExpose({ mayLeave })
 </script>
 
 <template>

@@ -9,6 +9,9 @@ export default {
   styling: 'tailwind',
   colorModes: ['light'],
   docs: 'warn',
+  overview: {
+    summary: 'The Endless Studios frontend in Vue: Nuxt UI with the app’s own theme and components, for screens that look like the real platform.',
+  },
   libraries: [
     {
       kind: 'package',
@@ -26,6 +29,7 @@ export default {
       package: '@iconify-json/lucide',
       description: 'Icon catalog, used as i-lucide-* names',
       docs: 'https://lucide.dev/icons/',
+      assets: ['icons'],
     },
   ],
   origin: null,
