@@ -381,7 +381,7 @@ describe('the studio frame on the dev server', () => {
         .count(),
     ).toBe(0)
     await page.getByRole('link', { name: 'View all prototypes' }).click()
-    await expect.poll(() => page.url()).toBe(studio.url)
+    await expect.poll(() => page.url()).toBe(`${studio.url}prototypes`)
   })
 
   test('[SH-06] [SH-07] [PR-24] a slow page keeps the current one on screen and shows “Opening page” after 0.2 s', async () => {

@@ -1,5 +1,6 @@
 // The file service: while the dev server runs, Nitro routes read and save
-// artifacts' source (`server/source.ts`), and open pages hear `studio:source`
+// artifacts' source (`server/source.ts`) and create prototypes
+// (`server/prototypes.ts`), and open pages hear `studio:source`
 // with the files that changed on disk, so an open editor can reload or offer
 // its conflict choice. The static build has none of it.
 import path from 'node:path'
@@ -14,6 +15,7 @@ import { posix, PROTOTYPES_FOLDER } from '../manifest/build.ts'
 import { loadRegistry } from '../modules/registry.ts'
 
 export const SOURCE_ROUTE = '_studio/files/source'
+export const PROTOTYPES_ROUTE = '_studio/files/prototypes'
 
 /** What the routes need, through the server's runtime configuration. */
 export interface FileServiceConfig {
@@ -56,6 +58,10 @@ export default defineNuxtModule({
     addServerHandler({
       route: `/${SOURCE_ROUTE}`,
       handler: resolve('./server/source.ts'),
+    })
+    addServerHandler({
+      route: `/${PROTOTYPES_ROUTE}`,
+      handler: resolve('./server/prototypes.ts'),
     })
     addVitePlugin(
       sourceChanges(root, path.resolve(root, config.prototypesFolder)),

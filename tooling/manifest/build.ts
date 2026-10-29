@@ -1,5 +1,5 @@
 // The manifest the studio reads: prototypes, their artifacts in file-tree
-// order, and the installed systems. Each prototype's artifact list is kept
+// order, the installed systems, and the contributors' names for bylines. Each prototype's artifact list is kept
 // apart, so the main manifest stays small and a list loads when its
 // prototype opens. Problems are reported as sentences naming the file.
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
@@ -23,6 +23,21 @@ export interface ManifestPrototype {
   created: string | null
   /** The assigned system's permanent ID, or null for no system. */
   systemId: string | null
+  /** Archived prototypes are left out of the deployed site. */
+  status: 'active' | 'archived'
+}
+
+/** What a byline shows of a contributor, and nothing more. */
+export interface ManifestContributor {
+  /** The permanent contributor ID prototypes name as their owner. */
+  id: string
+  /** The folder their prototypes live in. */
+  key: string
+  name: string
+  /** A GitHub account, for the profile photo. */
+  github?: string
+  /** An image inside `public/`, such as `images/sam.jpg`. */
+  avatar?: string
 }
 
 export interface ManifestSystem {
@@ -39,6 +54,7 @@ export interface Manifest {
   systems: ManifestSystem[]
   /** The system new prototypes start with. */
   defaultSystem: string | null
+  contributors: ManifestContributor[]
 }
 
 export interface ManifestArtifact {
@@ -96,6 +112,11 @@ export interface ManifestOptions {
   systems: InstalledSystem[]
   fileTypes: FileTypeReader[]
   defaultSystem?: string | null
+  /** Contributor profiles by key; only their bylines are listed. */
+  contributors?: Record<
+    string,
+    { studioId: string; name: string; github?: string; avatar?: string }
+  >
 }
 
 export interface BuiltManifest {
@@ -228,6 +249,7 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
             : null,
         created: typeof meta.created === 'string' ? meta.created : null,
         systemId: (meta.systemId as string | null) ?? null,
+        status: meta.status === 'archived' ? 'archived' : 'active',
       })
       artifacts[id] = []
       for (const file of treeFiles(dir)) {
@@ -318,6 +340,15 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
         colorModes: spec.colorModes,
       })),
       defaultSystem: options.defaultSystem ?? null,
+      contributors: Object.entries(options.contributors ?? {}).map(
+        ([key, { studioId, name, github, avatar }]) => ({
+          id: studioId,
+          key,
+          name,
+          ...(github ? { github } : {}),
+          ...(avatar ? { avatar } : {}),
+        }),
+      ),
     },
     artifacts,
     problems,
