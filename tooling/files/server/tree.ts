@@ -1,9 +1,9 @@
 // The file service's tree route, a Nitro route that exists only while the
 // dev server runs (`../nuxt-module.ts`):
 //
-//   GET  <base>_studio/files/tree?prototype=<id>
+//   GET  <base>_studio/files/tree?prototype=<id>[&access=0]
 //       the prototype's files and folders, its folder, and whether you may
-//       change them (and why not)
+//       change them (and why not); with access=0, without the last two
 //   POST <base>_studio/files/tree   { op, prototype, … }
 //       create   { parent, name, type }  a folder (type "folder") or a file
 //                                        of that type → { path, artifact }
@@ -19,10 +19,24 @@
 import { appendFileSync } from 'node:fs'
 import { createError, defineEventHandler, getQuery, readBody } from 'h3'
 import { useRuntimeConfig } from 'nitropack/runtime'
-import { FileServiceError } from '../source.ts'
+import { defaultIdentify, FileServiceError } from '../source.ts'
 import { createFileTree } from '../tree.ts'
 import type { FileServiceConfig } from '../nuxt-module.ts'
 import { loadFileTypes, sameOrigin } from './common.ts'
+
+// Finding out who you are runs Git and perhaps the GitHub CLI, which hold
+// up the dev server, and every open tree asks. As with the studio's own
+// "who are you", the answer is kept until the profiles change.
+type Identify = ReturnType<typeof defaultIdentify>
+let known: { profiles: string; identity: ReturnType<Identify> } | undefined
+const remembered =
+  (root: string): Identify =>
+  (contributors) => {
+    const profiles = JSON.stringify(contributors)
+    if (known?.profiles !== profiles)
+      known = { profiles, identity: defaultIdentify(root)(contributors) }
+    return known.identity
+  }
 
 export default defineEventHandler(async (event) => {
   if (!sameOrigin(event))
@@ -32,6 +46,7 @@ export default defineEventHandler(async (event) => {
   const tree = createFileTree({
     ...config,
     fileTypes: await loadFileTypes(config),
+    identify: remembered(config.root),
     // Noted instead of started, and as if no code editor is installed, so
     // the scenarios go the same on every computer.
     ...(launchLog && {
@@ -44,7 +59,10 @@ export default defineEventHandler(async (event) => {
   event.node.res.setHeader('Cache-Control', 'no-store')
   try {
     if (event.method === 'GET')
-      return await tree.list({ prototype: getQuery(event).prototype })
+      return await tree.list({
+        prototype: getQuery(event).prototype,
+        access: getQuery(event).access !== '0',
+      })
     if (event.method !== 'POST')
       throw new FileServiceError(405, 'method', 'Use GET or POST.')
     const body = (await readBody(event)) ?? {}

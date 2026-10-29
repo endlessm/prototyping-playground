@@ -44,15 +44,25 @@ export function useFileTree(prototypeId: () => string | undefined) {
   const listing = shallowRef<FileListing | null>(null)
   let latest = 0
 
-  async function reload() {
+  /**
+   * Loads the listing again. Whether you may change the files is asked only
+   * with `access` (or the first time): finding out who you are holds up
+   * the dev server, and files coming and going don't change it.
+   */
+  async function reload(access = false) {
     const id = prototypeId()
     if (!import.meta.dev || !id) return
+    const previous = listing.value
+    const withAccess = access || !previous
     const request = ++latest
     try {
       const next = await requestJson<FileListing>(
-        `${url}?prototype=${encodeURIComponent(id)}`,
+        `${url}?prototype=${encodeURIComponent(id)}${withAccess ? '' : '&access=0'}`,
       )
-      if (request === latest) listing.value = next
+      if (request !== latest) return
+      listing.value = withAccess
+        ? next
+        : { ...next, editable: previous!.editable, reason: previous!.reason }
     } catch {
       // Gone, or the dev server is restarting: the next change loads again.
       if (request === latest) listing.value = null
@@ -69,27 +79,36 @@ export function useFileTree(prototypeId: () => string | undefined) {
   }
 
   if (import.meta.dev) {
-    const changed = () => void reload()
+    // A prototype's meta.json can say it is archived.
+    const meta = (files: string[]) =>
+      files.some((file) => file.endsWith('/meta.json'))
+    const changed = ({ paths }: { paths: string[] }) => void reload(meta(paths))
+    const edited = ({ files }: { files: string[] }) => {
+      if (meta(files)) void reload(true)
+    }
+    const again = () => void reload(true)
     onMounted(() => {
       import.meta.hot?.on('studio:files', changed)
+      import.meta.hot?.on('studio:source', edited)
       // Events sent while the socket was down are not replayed.
-      import.meta.hot?.on('vite:ws:connect', changed)
+      import.meta.hot?.on('vite:ws:connect', again)
     })
     onScopeDispose(() => {
       import.meta.hot?.off('studio:files', changed)
-      import.meta.hot?.off('vite:ws:connect', changed)
+      import.meta.hot?.off('studio:source', edited)
+      import.meta.hot?.off('vite:ws:connect', again)
     })
     watch(
       prototypeId,
       () => {
         listing.value = null
-        void reload()
+        void reload(true)
       },
       { immediate: true },
     )
     // A change of identity or configuration can change what you may do.
-    onMounted(() => import.meta.hot?.on('studio:identity', changed))
-    onScopeDispose(() => import.meta.hot?.off('studio:identity', changed))
+    onMounted(() => import.meta.hot?.on('studio:identity', again))
+    onScopeDispose(() => import.meta.hot?.off('studio:identity', again))
   }
 
   return { listing, reload, change }

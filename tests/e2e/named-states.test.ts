@@ -452,12 +452,17 @@ describe('the static build', () => {
     await expect.poll(() => handwriting(page)).toBe(true)
     // Bundled: nothing comes from another site.
     expect(requests.filter((url) => !url.startsWith(site.url))).toEqual([])
-    // Nobody is identified on the deployed site: no file menu.
+    // The deployed site's file menu only copies (ticket 11): no lo-fi.
     await navigation(page)
       .getByRole('link', { name: 'Sketch' })
       .click({ button: 'right' })
-    await page.waitForTimeout(300)
-    expect(await page.getByRole('menuitem').count()).toBe(0)
+    await expect
+      .poll(async () =>
+        (await page.getByRole('menuitem').allTextContents()).map((text) =>
+          text.trim(),
+        ),
+      )
+      .toEqual(['Copy link', 'Copy path'])
   })
 })
 

@@ -122,6 +122,19 @@ describe('listing', () => {
     expect(listed.folder).toBe('src/prototypes/ben/demo')
   })
 
+  test('[SH-70] [CL-123] listing only the files doesn’t resolve who you are (Git and the GitHub CLI block the dev server)', async () => {
+    let asked = 0
+    const listed = await tree({
+      identify: () => {
+        asked++
+        return { key: actor, email: '' }
+      },
+    }).list({ prototype: BEN_DEMO, access: false })
+    expect(asked).toBe(0)
+    expect(listed.nodes.length).toBeGreaterThan(0)
+    expect(listed).not.toHaveProperty('editable')
+  })
+
   test('[SH-92] the listing says whether you may change the prototype, and why not', async () => {
     expect(await tree().list({ prototype: BEN_DEMO })).toMatchObject({
       editable: true,

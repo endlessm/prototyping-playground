@@ -156,15 +156,26 @@ export function createFileTree(options: TreeOptions) {
   }
 
   return {
-    /** The prototype's files and folders, and whether you may change them. */
-    async list(request: { prototype: unknown }) {
+    /**
+     * The prototype's files and folders and, unless `access` is false,
+     * whether you may change them. Finding out who you are runs Git and
+     * perhaps the GitHub CLI, which hold up the dev server, so a tree that
+     * only follows files coming and going leaves it out.
+     */
+    async list(request: { prototype: unknown; access?: unknown }): Promise<{
+      folder: string
+      nodes: FileNode[]
+      editable?: boolean
+      reason?: string
+    }> {
       const { dir, contributor, meta } = prototypeOf(
         String(request.prototype ?? ''),
       )
+      const listing = { folder: display(dir), nodes: readTree(dir) }
+      if (request.access === false) return listing
       const refusal = refusalFor(contributor, meta)
       return {
-        folder: display(dir),
-        nodes: readTree(dir),
+        ...listing,
         editable: !refusal,
         ...(refusal ? { reason: refusal.message } : {}),
       }
