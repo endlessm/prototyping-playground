@@ -314,6 +314,15 @@ function dropOn(source: FileNode, target: FileNode | null, where: Where) {
   return arrangeIn(source, folder, before)
 }
 
+/** Where the line showing a drop sits on a row: before it, after it, or nowhere. */
+function lineOn(row: Row): 'before' | 'after' | undefined {
+  const drop = dropping.value
+  // A row without a file (a view's state) is never a drop's place.
+  if (!row.node || !drop || drop === 'end' || drop.path !== row.node.path)
+    return undefined
+  return drop.where === 'inside' ? undefined : drop.where
+}
+
 /** A row's dragging: out with its address, and within the tree. */
 function dragging(row: Row) {
   const to = row.entry?.to ?? row.child?.to
@@ -667,15 +676,12 @@ const extension = (name: string) => {
               @keydown="onRowKeydown(item, $event)"
             >
               <span
-                v-if="
-                  dropping !== 'end' &&
-                  dropping?.path === item.node?.path &&
-                  dropping?.where !== 'inside'
-                "
+                v-if="lineOn(item)"
                 aria-hidden="true"
+                :data-drop-line="lineOn(item)"
                 :class="[
                   'pointer-events-none absolute inset-x-1 z-10 h-0.5 rounded-full bg-primary',
-                  dropping?.where === 'before' ? '-top-px' : '-bottom-px',
+                  lineOn(item) === 'before' ? '-top-px' : '-bottom-px',
                 ]"
               />
               <NuxtLink
@@ -715,15 +721,12 @@ const extension = (name: string) => {
               @keydown="onRowKeydown(item, $event)"
             >
               <span
-                v-if="
-                  dropping !== 'end' &&
-                  dropping?.path === item.node?.path &&
-                  dropping?.where !== 'inside'
-                "
+                v-if="lineOn(item)"
                 aria-hidden="true"
+                :data-drop-line="lineOn(item)"
                 :class="[
                   'pointer-events-none absolute inset-x-1 z-10 h-0.5 rounded-full bg-primary',
-                  dropping?.where === 'before' ? '-top-px' : '-bottom-px',
+                  lineOn(item) === 'before' ? '-top-px' : '-bottom-px',
                 ]"
               />
               <UIcon
@@ -754,15 +757,12 @@ const extension = (name: string) => {
               @keydown="onRowKeydown(item, $event)"
             >
               <span
-                v-if="
-                  dropping !== 'end' &&
-                  dropping?.path === item.node?.path &&
-                  dropping?.where !== 'inside'
-                "
+                v-if="lineOn(item)"
                 aria-hidden="true"
+                :data-drop-line="lineOn(item)"
                 :class="[
                   'pointer-events-none absolute inset-x-1 z-10 h-0.5 rounded-full bg-primary',
-                  dropping?.where === 'before' ? '-top-px' : '-bottom-px',
+                  lineOn(item) === 'before' ? '-top-px' : '-bottom-px',
                 ]"
               />
               <UIcon name="i-lucide-file" class="size-4 shrink-0 opacity-70" />

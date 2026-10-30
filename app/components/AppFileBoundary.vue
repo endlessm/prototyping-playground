@@ -8,7 +8,7 @@ import AppFileError from './AppFileError.vue'
   <NuxtErrorBoundary>
     <slot />
     <template #error="{ error }">
-      <AppFileError :error="error" />
+      <AppFileError class="m-4 sm:m-6" :error="error" />
     </template>
   </NuxtErrorBoundary>
 </template>

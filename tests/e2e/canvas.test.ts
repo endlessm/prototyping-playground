@@ -174,7 +174,13 @@ async function openMenu(page: Page) {
   await page.getByTestId('main-menu-trigger').click()
   await visible(page.locator('.dropdown-menu'))
 }
-const hint = (page: Page) => page.getByText('This canvas is empty')
+// Whether the scene holds nothing, as the page reports it (no message shows).
+const empty = (page: Page) =>
+  canvas(page).evaluate((node) => node.hasAttribute('data-canvas-empty'))
+const message = (page: Page) => page.getByText('This canvas is empty')
+// The artifact page's area beside the navigation.
+const artifactArea = (page: Page) =>
+  page.locator('[id$="-panel-prototype-artifact"] [data-slot="body"]').first()
 // Excalidraw's style panel, shown while something is selected.
 const stylePanel = (page: Page) =>
   page.locator('.selected-shape-actions .Island').first()
@@ -319,13 +325,28 @@ describe('a canvas in the studio running locally', () => {
     )
   })
 
-  test('[CV-23] [CV-27] [CV-31] an empty canvas of your own invites you to draw, and drawing on it dismisses the hint', async () => {
+  test('[CV-23] [CV-27] [CV-31] an empty canvas of your own fills the page with no message, frame or file menu, as in React, and drawing on it fills it', async () => {
     const page = await canvasPage()
     await open(page, studio, EMPTY)
-    await visible(hint(page))
-    expect(await canvas(page).textContent()).toContain(
-      'Drag a view or document from the navigation onto this canvas, press N for a sticky note, or ask your agent to lay it out for you.',
-    )
+    await expect.poll(() => empty(page)).toBe(true)
+    // React's hint is painted under Excalidraw and never seen; none here.
+    await page.waitForTimeout(1000)
+    expect(await message(page).count()).toBe(0)
+    // Edge to edge beside the navigation: no padding, border or "…" menu.
+    expect(
+      await canvas(page).evaluate(
+        (node) => getComputedStyle(node).borderTopWidth,
+      ),
+    ).toBe('0px')
+    const area = (await artifactArea(page).boundingBox())!
+    const box = (await canvas(page).boundingBox())!
+    expect(Math.abs(box.x - area.x)).toBeLessThan(1)
+    expect(Math.abs(box.y - area.y)).toBeLessThan(1)
+    expect(Math.abs(box.width - area.width)).toBeLessThan(1)
+    expect(Math.abs(box.height - area.height)).toBeLessThan(1)
+    expect(
+      await page.getByRole('button', { name: 'File actions' }).count(),
+    ).toBe(0)
     for (const name of [
       'Selection',
       'Hand (panning tool) — H',
@@ -342,7 +363,6 @@ describe('a canvas in the studio running locally', () => {
     await focusCanvas(page)
     await page.keyboard.press('r')
     await expect.poll(() => tool(page, 'Rectangle').isChecked()).toBe(true)
-    const box = (await canvas(page).boundingBox())!
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
     await page.mouse.down()
     await page.mouse.move(
@@ -353,7 +373,7 @@ describe('a canvas in the studio running locally', () => {
       },
     )
     await page.mouse.up()
-    await expect.poll(() => hint(page).count()).toBe(0)
+    await expect.poll(() => empty(page)).toBe(false)
   })
 
   test('[CV-33] new text uses Nunito', async () => {
@@ -384,10 +404,9 @@ describe('a canvas in the studio running locally', () => {
     const page = await canvasPage()
     await page.goto(address(studio, PLAIN, THEIRS))
     await opened(page)
-    await visible(hint(page))
-    expect(await canvas(page).textContent()).toContain(
-      'Nothing has been put on it yet.',
-    )
+    await expect.poll(() => empty(page)).toBe(true)
+    await page.waitForTimeout(1000)
+    expect(await message(page).count()).toBe(0)
     expect(await toolbar(page).count()).toBe(0)
     await openMenu(page)
     expect(
@@ -400,7 +419,7 @@ describe('a canvas in the studio running locally', () => {
     await focusCanvas(page)
     await page.keyboard.press('n')
     await new Promise((resolve) => setTimeout(resolve, 300))
-    await visible(hint(page))
+    expect(await empty(page)).toBe(true)
   })
 
   test('[CV-29] a canvas from a newer format opens read-only', async () => {
@@ -645,13 +664,13 @@ describe('a canvas in the studio running locally', () => {
   test('[CV-51] N adds a sticky note on your own canvas, as one undo step', async () => {
     const page = await canvasPage()
     await open(page, studio, EMPTY)
-    await visible(hint(page))
+    await expect.poll(() => empty(page)).toBe(true)
     await focusCanvas(page)
     await page.keyboard.press('n')
-    await expect.poll(() => hint(page).count()).toBe(0)
+    await expect.poll(() => empty(page)).toBe(false)
     await visible(stylePanel(page))
     await page.keyboard.press('Control+z')
-    await visible(hint(page))
+    await expect.poll(() => empty(page)).toBe(true)
   })
 
   test('[CV-54] [CV-58] tools answer their letters; there is no image tool', async () => {
