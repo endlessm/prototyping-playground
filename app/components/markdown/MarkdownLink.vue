@@ -6,6 +6,7 @@
 // other sites open in a new tab.
 const props = defineProps<{ href?: string }>()
 const { origin, resolve } = useMarkdownOrigin()
+const studioAddress = useMarkdownLinks()
 
 const EXTERNAL = /^([a-z][a-z0-9+.-]*:|\/\/)/i
 
@@ -14,6 +15,8 @@ const target = computed(() => {
   if (!href || href.startsWith('#') || href.startsWith('?')) return { href }
   if (EXTERNAL.test(href)) return { href, external: true }
   if (href.startsWith('/')) return { href }
+  const address = studioAddress(href)
+  if (address) return { href: address }
   const resolution = resolve(href, 'optional')
   if (resolution?.state === 'resolved' && origin.value) {
     const hash = /#.*$/.exec(href)?.[0] ?? ''
