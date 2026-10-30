@@ -95,7 +95,7 @@ describe('the create-diagram skill', () => {
       'src/modules/diagrams/skills/create-diagram/SKILL.md',
       'utf8',
     )
-    expect(skill).toMatch(/^---\nname: create-diagram\ndescription: /)
+    expect(skill).toMatch(/^---\r?\nname: create-diagram\r?\ndescription: /)
     for (const topic of [
       '.mermaid',
       '.mmd',

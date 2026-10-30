@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import AppNotFound from '../../../../app/components/AppNotFound.vue'
+import TextFileReader from '../../../../app/components/TextFileReader.vue'
 import type { SystemCatalog } from '../../../../tooling/systems/catalog'
 import { useSystemDocuments } from '../composables/useSystemCatalog'
-import { documentFile, sourceFile } from '../utils/pages'
+import { documentFile, isDocument, sourceFile } from '../utils/pages'
 import SystemDocument from './SystemDocument.vue'
 import SystemPage from './SystemPage.vue'
 
 // A Context or Skills document at its address (the path without `.md`):
 // read in the studio's style, or, locally, edited in source mode. A skill's
-// source also offers its supporting files.
+// source also offers its supporting files. A skill's other text files (a
+// script) open read-only as their text, at their path with its extension.
 
 // The editor exists only in the studio running locally, so the deployed
 // site never loads it.
@@ -39,7 +41,9 @@ const skill = computed(() =>
       )
     : undefined,
 )
+const text = computed(() => Boolean(file.value && !isDocument(file.value)))
 const title = computed(() => {
+  if (text.value) return address.value.split('/').at(-1) ?? ''
   const listed = props.system.context.find(
     (document) => document.file === file.value,
   )?.title
@@ -67,8 +71,11 @@ useHead({
     :key="file"
     :system="system"
     :source="sourceFile(system, `${section}/${address}`)"
+    :wide="text"
   >
+    <TextFileReader v-if="text" :path="file" :text="source" />
     <SystemDocument
+      v-else
       :system="system"
       :file="file"
       :source="source"

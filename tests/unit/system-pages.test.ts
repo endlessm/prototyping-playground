@@ -46,7 +46,12 @@ const harbor: SystemCatalog = {
       title: 'Build flow',
       description: '',
       file: 'src/systems/harbor/skills/build-flow/SKILL.md',
-      files: ['SKILL.md', 'references/steps.md', 'logo.png'],
+      files: [
+        'SKILL.md',
+        'references/steps.md',
+        'logo.png',
+        'scripts/check.mjs',
+      ],
     },
   ],
 }
@@ -97,5 +102,22 @@ describe('a system’s pages', () => {
       documentLink(harbor, skill, 'https://example.com/a.md'),
     ).toBeUndefined()
     expect(documentLink(harbor, skill, 'logo.png')).toBeUndefined()
+  })
+
+  test('[PR-124] a skill’s other text files open at their path, extension included; binary files don’t', () => {
+    expect(documentFile(harbor, 'skills', 'build-flow/scripts/check.mjs')).toBe(
+      'src/systems/harbor/skills/build-flow/scripts/check.mjs',
+    )
+    expect(
+      documentFile(harbor, 'skills', 'build-flow/logo.png'),
+    ).toBeUndefined()
+    expect(sourceFile(harbor, 'skills/build-flow/scripts/check.mjs')).toBe(
+      'skills/build-flow/scripts/check.mjs',
+    )
+    const skill = 'src/systems/harbor/skills/build-flow/SKILL.md'
+    expect(documentLink(harbor, skill, './scripts/check.mjs')).toBe(
+      '/systems/hrbr000000000001/skills/build-flow/scripts/check.mjs',
+    )
+    expect(documentLink(harbor, skill, 'scripts/missing.mjs')).toBeUndefined()
   })
 })
