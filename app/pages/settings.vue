@@ -43,7 +43,9 @@ const changes = computed(() =>
         JSON.stringify(
           key === 'defaultSystem'
             ? (data.value?.config[key] ?? 'none')
-            : data.value?.config[key],
+            : key === 'tagline'
+              ? (data.value?.config[key] ?? '')
+              : data.value?.config[key],
         ),
     ),
   ),

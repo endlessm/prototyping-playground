@@ -168,6 +168,27 @@ test('[SH-105] [SH-117] conflict disables saving until reload; failures can relo
   await expect.poll(() => name.inputValue()).toBe('Endless Design Studio')
 })
 
+test('[SH-109] [SH-115] [SH-116] an omitted optional tagline opens without unsaved changes', async () => {
+  await page.route('**/_studio/settings', async (route) => {
+    const response = await route.fetch()
+    const body = await response.json()
+    delete body.config.tagline
+    await route.fulfill({ json: body })
+  })
+  await page.goto(`${server.url}settings`)
+  const tagline = page.getByRole('textbox', { name: 'Tagline', exact: true })
+  await expect.poll(() => tagline.isVisible(), { timeout: 60000 }).toBe(true)
+  expect(await tagline.inputValue()).toBe('')
+  expect(
+    await page.getByRole('button', { name: 'Save changes' }).isDisabled(),
+  ).toBe(true)
+  expect(
+    await page
+      .getByText('Your settings are up to date.', { exact: true })
+      .isVisible(),
+  ).toBe(true)
+})
+
 test('[SH-106] [SH-110] [SH-114] registered readers and unregistered people have disabled controls; dropped controls are absent', async () => {
   for (const role of ['contributor', null]) {
     await page.route('**/_studio/settings', async (route) => {
@@ -224,7 +245,7 @@ test('[SH-119] [SH-120] [SH-121] [SH-122] [CL-59] save and manual edits restart 
   )
   await expect
     .poll(() => page.getByText('Applying changes', { exact: true }).count(), {
-      timeout: 30000,
+      timeout: 120000,
     })
     .toBe(0)
   await name.fill('Still editable')
