@@ -320,18 +320,23 @@ test('[SH-119] [SH-120] [SH-121] [SH-122] [CL-59] save and manual edits restart 
       { timeout: 30000 },
     )
     .toBe(true)
+  // The old page keeps its draft under the cover, then reloads once the new
+  // server answers; the new page covers itself again until Nuxt is ready. A
+  // cold restart on Windows can take a minute or more.
   await expect
-    .poll(() => name.inputValue().catch(() => ''), { timeout: 120000 })
+    .poll(
+      async () =>
+        (await page.locator('#studio-restart').count()) === 0 &&
+        (await name.isVisible()) &&
+        (await name.inputValue()),
+      { timeout: 180000 },
+    )
     .toBe('Updated studio')
   expect(JSON.parse(readFileSync(configFile, 'utf8')).name).toBe(
     'Updated studio',
   )
-  await expect
-    .poll(() => page.getByText('Applying changes', { exact: true }).count(), {
-      timeout: 120000,
-    })
-    .toBe(0)
   await name.fill('Still editable')
+  expect(await name.inputValue()).toBe('Still editable')
   await page.getByRole('button', { name: 'Discard', exact: true }).click()
   await page.screenshot({ path: '.scratch/28-settings.png', fullPage: true })
   const config = JSON.parse(readFileSync(configFile, 'utf8'))
@@ -340,4 +345,4 @@ test('[SH-119] [SH-120] [SH-121] [SH-122] [CL-59] save and manual edits restart 
   await expect
     .poll(() => name.inputValue().catch(() => ''), { timeout: 120000 })
     .toBe('Edited by agent')
-}, 300000)
+}, 420000)
