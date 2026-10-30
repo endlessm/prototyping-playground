@@ -204,6 +204,13 @@ export interface StudioModule {
   /** A repository-relative folder of content `studio remove` keeps. */
   content?: string
   fileTypes?: ModuleFileType[]
+  /**
+   * A file whose "references" export lists reference adapters
+   * (ReferenceAdapter in tooling/files/references.ts): where a kind of
+   * source names other files, so renames and moves can repair them. They
+   * keep working while the module is turned off.
+   */
+  references?: string
   data?: Record<string, ModuleBuildData>
   preferences?: ModulePreferences
 }

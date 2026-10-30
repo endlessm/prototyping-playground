@@ -33,6 +33,7 @@ export default {
     },
   ],
   content: 'src/prototypes',
+  references: 'references.ts',
   fileTypes: [
     {
       id: 'view',

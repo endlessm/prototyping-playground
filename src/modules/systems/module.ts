@@ -55,6 +55,11 @@ export default {
           path: ':page(colors|typography|radius|shadows|spacing|motion|effects|tokens)',
           file: 'pages/theme.vue',
         },
+        { path: ':kind(fonts|icons|images)', file: 'pages/assets.vue' },
+        {
+          path: ':kind(fonts|icons|images)/:path(.+)',
+          file: 'pages/asset.vue',
+        },
         { path: ':page(.*)', file: 'pages/missing.vue' },
       ],
     },

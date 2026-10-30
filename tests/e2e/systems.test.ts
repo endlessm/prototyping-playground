@@ -54,6 +54,13 @@ const at = (file: string) => path.join(content, 'systems', file)
 const read = (file: string) => readFileSync(at(file), 'utf8')
 const VOICE = read('harbor/context/voice.md')
 const reset = () => writeFileSync(at('harbor/context/voice.md'), VOICE)
+const THEME = read('harbor/styles/theme.css')
+const resetTheme = () => writeFileSync(at('harbor/styles/theme.css'), THEME)
+// A real font for the font preview, from Endless Studios' Fontsource package.
+cpSync(
+  'node_modules/@fontsource-variable/figtree/files/figtree-latin-wght-normal.woff2',
+  at('harbor/assets/fonts/Harbor.woff2'),
+)
 
 const ENV = {
   STUDIO_CONFIG: posix(path.join(content, 'studio.config.json')),
@@ -97,6 +104,7 @@ const editor = (page: Page, file: string) =>
   page.getByRole('textbox', { name: `Source of ${file}` })
 const systemsPath = (file: string) => posix(path.join(content, 'systems', file))
 const query = (page: Page) => new URL(page.url()).search
+const theme = (page: Page) => page.frameLocator('iframe[data-theme-frame]')
 
 describe('in the studio running locally', { timeout: 120_000 }, () => {
   const newPage = useBrowser()
@@ -440,7 +448,7 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
       .toBe(`${studio.url}systems/${HARBOR}/colors`)
   })
 
-  test('[SY-63] [SY-64] [SY-65] [SY-66] [SY-68] the Overview sums up guidance, toolkit and use', async () => {
+  test('[SY-63] [SY-64] [SY-65] [SY-66] [SY-68] [SY-101] the Overview sums up guidance, toolkit and use', async () => {
     const page = await open(`systems/${HARBOR}`)
     await visible(heading(page, 'Harbor'))
     await visible(page.getByText('Screens for the dock team.'))
@@ -457,7 +465,8 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     const toolkit = region(page, 'Toolkit')
     expect(await text(toolkit)).toContain('1 Components')
     expect(await text(toolkit)).toContain('3 Theme tokens')
-    expect(await text(toolkit)).toContain('1 Local assets')
+    // Local fonts, icons and images, and the copied app's images.
+    expect(await text(toolkit)).toContain('6 Assets')
     expect(await text(toolkit)).toContain('Plain Vue with Harbor’s theme.')
     expect(await text(toolkit)).toContain(
       'Color modes: Light only. This system stays in light mode while Studio follows its global color mode.',
@@ -597,6 +606,236 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     expect(new URL(page.url()).pathname).toBe(
       `/systems/${HARBOR}/skills/build-flow/references/steps`,
     )
+  })
+
+  test('[SY-86] [SY-87] [SY-88] [SY-91] Colors are measured inside Harbor’s own preview document and follow edits to its stylesheet', async () => {
+    resetTheme()
+    const page = await open(`systems/${HARBOR}/colors`)
+    await visible(heading(page, 'Colors'))
+    const frame = theme(page)
+    const sea = frame.locator('[data-token="--color-sea"]')
+    await expect
+      .poll(() => sea.getAttribute('data-value'), { timeout: 60_000 })
+      .toBe('#0a7ea4')
+    expect(await sea.innerText()).toBe('#0a7ea4')
+    // The value shows in full on hover.
+    expect(await sea.getAttribute('title')).toBe('#0a7ea4')
+    // A name with no ramp step is one of the other colours.
+    await visible(frame.getByRole('heading', { name: 'Other colors' }))
+    // The document is Harbor's: its theme class and stylesheet, light only.
+    expect(
+      await frame
+        .locator('html')
+        .evaluate((html) => [
+          html.classList.contains('harbor-theme'),
+          getComputedStyle(html).colorScheme,
+        ]),
+    ).toEqual([true, 'light'])
+    expect(await page.locator('.harbor-theme').count()).toBe(0)
+    // The swatch is painted with the token.
+    expect(
+      await frame
+        .locator('[data-swatch="--color-sea"]')
+        .evaluate((node) => getComputedStyle(node).backgroundColor),
+    ).toBe('rgb(10, 126, 164)')
+    // The frame is as tall as what it shows.
+    await expect
+      .poll(
+        () =>
+          page
+            .locator('iframe[data-theme-frame]')
+            .evaluate((node) => node.getBoundingClientRect().height),
+        { timeout: 30_000 },
+      )
+      .toBeGreaterThan(150)
+
+    writeFileSync(
+      at('harbor/styles/theme.css'),
+      THEME.replace('#0a7ea4', '#123456'),
+    )
+    await expect
+      .poll(() => sea.getAttribute('data-value'), { timeout: 60_000 })
+      .toBe('#123456')
+    resetTheme()
+  })
+
+  test('[SY-89] [SY-90] Typography always renders and notes what isn’t declared; Radius samples each value', async () => {
+    const page = await open(`systems/${HARBOR}/typography`)
+    await visible(heading(page, 'Typography'))
+    const frame = theme(page)
+    await visible(
+      frame.getByText('This system does not declare font sizes in its theme.'),
+    )
+    await visible(
+      frame.getByText(
+        'This system does not declare font weights in its theme.',
+      ),
+    )
+    await visible(link(nav(page, 'Harbor'), 'Typography'))
+
+    await link(nav(page, 'Harbor'), 'Radius').click()
+    await expect
+      .poll(() => new URL(page.url()).pathname, { timeout: 30_000 })
+      .toBe(`/systems/${HARBOR}/radius`)
+    const card = frame.locator('[data-token-row="--radius-card"]')
+    await visible(card)
+    await expect
+      .poll(() =>
+        card
+          .locator('div div')
+          .first()
+          .evaluate((node) => getComputedStyle(node).borderRadius),
+      )
+      .toBe('12px')
+    expect(
+      await frame
+        .locator('[data-token="--radius-card"]')
+        .getAttribute('data-value'),
+    ).toBe('12px')
+  })
+
+  test('[SY-92] ⌘’ inside a theme page opens the stylesheet all theme pages share', async () => {
+    const page = await open(`systems/${HARBOR}/radius`)
+    const frame = theme(page)
+    const row = frame.locator('[data-token-row="--radius-card"]')
+    await visible(row)
+    await row.click()
+    await page.keyboard.press("Control+'")
+    await visible(editor(page, systemsPath('harbor/styles/theme.css')))
+    expect(query(page)).toBe('?mode=source')
+  })
+
+  test('[SY-93] [SY-94] [SY-95] [SY-100] Icons lists the icon library, the system’s icon sample and its local icons', async () => {
+    const page = await open(`systems/${HARBOR}/icons`)
+    await visible(heading(page, 'Icons'))
+    const libraries = page.getByRole('list', { name: 'Icons libraries' })
+    const harborIcons = libraries.getByRole('link', {
+      name: 'Harbor Icons in Libraries',
+    })
+    await visible(harborIcons)
+    expect(await harborIcons.innerText()).toContain('Icon library')
+    expect(await harborIcons.getAttribute('href')).toBe(
+      `/systems/${HARBOR}/libraries#harbor-icons`,
+    )
+    // The sample: usage, a link to every icon, and a grid.
+    await visible(page.getByText('<UIcon name="i-lucide-anchor" />'))
+    expect(await link(page, 'Browse all icons').getAttribute('href')).toBe(
+      'https://lucide.dev/icons/',
+    )
+    await visible(page.getByText('i-lucide-ship', { exact: true }))
+
+    await visible(heading(page, 'Local icons'))
+    const local = page.getByRole('list', { name: 'Local icons' })
+    const anchor = local.getByRole('link', { name: /icons\/anchor\.svg/ })
+    await visible(anchor)
+    await expect
+      .poll(() =>
+        anchor
+          .locator('img')
+          .evaluate((image: HTMLImageElement) => image.naturalWidth),
+      )
+      .toBeGreaterThan(0)
+  })
+
+  test('[SY-170] [SY-95] the copied app images show on Images and Icons, apart from local ones', async () => {
+    const page = await open(`systems/${HARBOR}/images`)
+    await visible(heading(page, 'App images'))
+    const app = page.getByRole('list', { name: 'App images' })
+    const dock = app.getByRole('link', { name: /assets\/images\/dock\.svg/ })
+    await visible(dock)
+    await expect
+      .poll(() =>
+        dock
+          .locator('img')
+          .evaluate((image: HTMLImageElement) => image.naturalWidth),
+      )
+      .toBeGreaterThan(0)
+    await visible(
+      page
+        .getByRole('list', { name: 'Local images' })
+        .getByRole('link', { name: /marks\/wave\.svg/ }),
+    )
+    await page.goto(`${studio.url}systems/${HARBOR}/icons`)
+    await visible(
+      page
+        .getByRole('list', { name: 'App icons' })
+        .getByRole('link', { name: /Icons\/bell\.svg/ }),
+    )
+  })
+
+  test('[SY-97] [SY-99] an asset opens its preview page, as a picture in the studio’s look, with no editing', async () => {
+    const page = await open(`systems/${HARBOR}/images`)
+    await page
+      .getByRole('list', { name: 'Local images' })
+      .getByRole('link', { name: /marks\/wave\.svg/ })
+      .click()
+    await expect
+      .poll(() => new URL(page.url()).pathname, { timeout: 30_000 })
+      .toBe(`/systems/${HARBOR}/images/marks/wave.svg`)
+    await visible(heading(page, 'wave.svg'))
+    await visible(page.getByText('marks/wave.svg', { exact: true }))
+    await visible(page.getByText(systemsPath('harbor/assets/marks/wave.svg')))
+    const picture = page.getByRole('img', { name: 'marks/wave.svg' })
+    await expect
+      .poll(() =>
+        picture.evaluate((image: HTMLImageElement) => image.naturalWidth),
+      )
+      .toBeGreaterThan(0)
+    // An SVG shows as a picture: its script never runs.
+    expect(await page.title()).not.toBe('executed')
+    expect(await page.locator('.harbor-theme').count()).toBe(0)
+    await page.keyboard.press("Control+'")
+    await page.waitForTimeout(300)
+    expect(await page.getByRole('textbox').count()).toBe(0)
+    // The breadcrumb leads back.
+    await link(page, 'Images').last().click()
+    await expect
+      .poll(() => new URL(page.url()).pathname, { timeout: 30_000 })
+      .toBe(`/systems/${HARBOR}/images`)
+  })
+
+  test('[SY-98] a font previews under a name of its own, says when it can’t, and is unloaded on leaving', async () => {
+    const page = await open(`systems/${HARBOR}/fonts/fonts/Harbor.woff2`)
+    await visible(heading(page, 'Harbor.woff2'))
+    const sample = page.getByText(
+      'The quick brown fox jumps over the lazy dog.',
+    )
+    await visible(sample)
+    const family = await sample.evaluate(
+      (node) => getComputedStyle(node.parentElement!).fontFamily,
+    )
+    expect(family).toMatch(/^"?studio-asset-/)
+    const loaded = () =>
+      page.evaluate(
+        () =>
+          [...document.fonts].filter((font) =>
+            font.family.replace(/"/g, '').startsWith('studio-asset-'),
+          ).length,
+      )
+    expect(await loaded()).toBe(1)
+
+    await link(page, 'Fonts').last().click()
+    await visible(heading(page, 'Local fonts'))
+    await expect.poll(loaded).toBe(0)
+
+    await page
+      .getByRole('list', { name: 'Local fonts' })
+      .getByRole('link', { name: /Broken\.woff2/ })
+      .click()
+    await visible(page.getByText('This font could not be previewed.'))
+  })
+
+  test('[SY-96] an asset page with nothing to list says how to add some', async () => {
+    const page = await open(`systems/${LANTERN}/fonts`)
+    await visible(heading(page, 'Fonts'))
+    await visible(page.getByText('No local fonts added'))
+    await visible(
+      page.getByText(
+        'Ask your agent to bring in your product’s font files and connect them to this system’s theme.',
+      ),
+    )
+    await page.goto(`${studio.url}systems/${LANTERN}/icons/missing.svg`)
+    await visible(page.getByText('Page not found'))
   })
 
   test('[SY-07] unknown systems, pages and documents are not found', async () => {
@@ -769,6 +1008,9 @@ describe('the deployed site', { timeout: 120_000 }, () => {
     // Nor the dev-only file service or the source editor.
     const local = files(site.directory).filter((file) => {
       if (!/.(m?js|html|json)$/.test(file)) return false
+      // Context & Skills ships the modules' READMEs, whose prose names the
+      // dev route; that text is documentation, not the service.
+      if (/studio-guidance-documents\.[^\\/]*\.json$/.test(file)) return false
       const text = readFileSync(file, 'utf8')
       return text.includes('_studio/files') || text.includes('cm-gutters')
     })
@@ -805,6 +1047,34 @@ describe('the deployed site', { timeout: 120_000 }, () => {
     await page.goto(`${site.url}systems/${HARBOR}/libraries`)
     await visible(page.getByText('The sources and tools behind Harbor.'))
   })
+  test('[SY-87] [SY-97] [SY-170] Theme values and asset files ship with the site', async () => {
+    const page = await newPage()
+    await page.goto(`${site.url}systems/${HARBOR}/colors`)
+    await expect
+      .poll(
+        () =>
+          theme(page)
+            .locator('[data-token="--color-sea"]')
+            .getAttribute('data-value'),
+        { timeout: 60_000 },
+      )
+      .toBe('#0a7ea4')
+    await page.goto(
+      `${site.url}systems/${HARBOR}/images/assets/images/dock.svg`,
+    )
+    const picture = page.getByRole('img', { name: 'assets/images/dock.svg' })
+    await expect
+      .poll(
+        () => picture.evaluate((image: HTMLImageElement) => image.naturalWidth),
+        { timeout: 30_000 },
+      )
+      .toBeGreaterThan(0)
+    // Only asset files are published, never the system's source.
+    expect(
+      readdirSync(path.join(site.directory, '_system-assets', HARBOR)).sort(),
+    ).toEqual(['app', 'assets'])
+  })
+
   test('[PR-124] a skill’s script reads as plain monospace text under its path', async () => {
     const page = await newPage()
     await page.goto(
