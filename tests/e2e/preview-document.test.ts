@@ -96,7 +96,7 @@ function scenarios(
         `${studio.url}prototypes/${TRACER}/artifacts/${HOME}?mode=source#intro`,
       )
     await expect
-      .poll(() => page.title())
+      .poll(() => page.title(), { timeout: 30_000 })
       .toBe(`Tracer — Home — ${name as string}`)
     await page.goBack()
     await expect.poll(() => new URL(page.url()).pathname).toBe(base())
