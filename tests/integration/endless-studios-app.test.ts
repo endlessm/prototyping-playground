@@ -57,6 +57,8 @@ beforeAll(async () => {
     server: { middlewareMode: true, hmr: false, ws: false, watch: null },
     optimizeDeps: { noDiscovery: true, include: [] },
     ssr: { noExternal: ['@nuxt/ui'] },
+    // Every image as its URL, so tests see which file it resolved to.
+    build: { ...preview.build, assetsInlineLimit: 0 },
   })
   const app = system.spec.app.factory
   factory = (
@@ -421,5 +423,49 @@ describe('the Endless Studios app factory', () => {
     })
     expect(signedOut).not.toMatch(/ana\.learner|Edit profile/)
     expect(signedOut).toMatch(/Log ?in/i)
+  })
+  test('[SY-184] the app shell wraps a screen in the app’s sidebar, top bar and footer, and only when asked', async () => {
+    const bare = await html('ShellScreen.vue')
+    expect(bare).toContain('The screen itself')
+    expect(bare).not.toContain('layout-main-content')
+    const shell = await html('ShellScreen.vue', { system: { shell: true } })
+    // The screen sits in StudioLayout's main column, between the top bar and the footer.
+    expect(shell).toMatch(
+      /id="layout-main-content"[\s\S]*logo-endless\.svg[\s\S]*The screen itself[\s\S]*logo-endless-studios-orange\.svg/,
+    )
+    expect(shell).toContain('logo-endless-navbar.svg')
+    // Signed in: the sidebar's notifications and no sign-up action.
+    expect(shell).toContain('Notifications')
+    expect(shell).not.toContain('signup-button-topbar')
+  })
+
+  test('[SY-184] signed out, the app shell shows the sign-up state', async () => {
+    const shell = await html('ShellScreen.vue', {
+      system: { shell: true, user: null },
+    })
+    expect(shell).toContain('The screen itself')
+    expect(shell).toMatch(/data-testid="signup-button-topbar"[\s\S]*?Sign up/)
+    expect(shell).toMatch(/data-testid="login-button-topbar"[\s\S]*?Log in/)
+  })
+
+  test('[SY-195] template asset URLs and script asset imports both resolve to the copied images', async () => {
+    const shell = await html('ShellScreen.vue', { system: { shell: true } })
+    const images = posix(path.join(systemDir, 'studios/assets/images'))
+    const sources = [...shell.matchAll(/<img[^>]*?src="([^"]+)"/g)].map(
+      ([, src]) => decodeURI(src!),
+    )
+    // Template `src="~/assets/images/…"` URLs (top bar, sidebar and footer
+    // logos) and the sidebar's script import of the profile picture.
+    for (const file of [
+      'logo-endless.svg',
+      'logo-endless-navbar.svg',
+      'logo-endless-studios-orange.svg',
+      'profile-pic.svg',
+    ]) {
+      expect(
+        sources.find((src) => src.endsWith(`/${file}`)),
+        file,
+      ).toContain(`${images}/${file}`)
+    }
   })
 })

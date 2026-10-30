@@ -2,6 +2,8 @@
 <!-- @studio-state st5p00000000e001 Spanish learner -->
 <!-- @studio-state st5g00000000e001 Signed out -->
 <!-- @studio-state st5e00000000e001 No events -->
+<!-- @studio-state st5a00000000e001 In the app -->
+<!-- @studio-state st5s00000000e001 In the app, signed out -->
 <script setup lang="ts">
 import UpcomingEvents from '~/components/Dashboard/UpcomingEvents.vue'
 
@@ -41,6 +43,8 @@ export const states = [
   },
   { title: 'Signed out', system: { user: null } },
   { title: 'No events', system: { sample: {} } },
+  { title: 'In the app', system: { shell: true } },
+  { title: 'In the app, signed out', system: { shell: true, user: null } },
 ]
 </script>
 

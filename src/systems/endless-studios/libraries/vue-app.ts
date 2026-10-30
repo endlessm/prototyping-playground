@@ -1,6 +1,6 @@
 // The single entry point to the Endless Studios Vue runtime. The preview document and the system's tests create
 // every app here, so they share one set of plugins and stand-ins.
-import { createApp, createSSRApp, h, Suspense, type App, type Component } from 'vue';
+import { createApp, createSSRApp, defineAsyncComponent, h, Suspense, type App, type Component } from 'vue';
 import ui from '@nuxt/ui/vue-plugin';
 import UApp from '@nuxt/ui/components/App.vue';
 import { addCollection } from '@iconify/vue';
@@ -14,6 +14,9 @@ import { createDayjs, NUXT_APP_KEY, type NuxtAppStandIn } from '../runtime/nuxt-
 import { createSampleStore, type StoreSample } from '../runtime/store';
 
 addCollection(lucide);
+
+// Loaded only by screens that ask for it: the copied sidebar, top bar and footer, with their styles, stay out of the rest.
+const AppShell = defineAsyncComponent(() => import('../runtime/AppShell.vue'));
 
 export { sampleUsers };
 export type { SampleUser, SampleUserName, UserOption, QuerySamples, StoreSample };
@@ -34,6 +37,8 @@ export type StudiosOptions = {
   /** `learner` (default), `mentor`, `admin`, a user object, or `null` for signed out. */
   user?: UserOption;
   sample?: StudiosSample;
+  /** Wrap the screen in the app's sidebar, top bar and footer (`runtime/AppShell.vue`). Off by default. */
+  shell?: boolean;
 };
 
 export type StudiosAppOptions = {
@@ -48,7 +53,7 @@ export type StudiosAppOptions = {
 export type StudiosApp = App & { runtime: NuxtAppStandIn };
 
 export function createStudiosApp({ component, props, system = {}, ssr = false }: StudiosAppOptions): StudiosApp {
-  const { locale = defaultLocale, user, sample = {} } = system;
+  const { locale = defaultLocale, user, sample = {}, shell = false } = system;
   const i18n = createI18n(locale);
   const auth = createAuth(user);
   const store = createSampleStore(sample);
@@ -65,7 +70,8 @@ export function createStudiosApp({ component, props, system = {}, ssr = false }:
 
   // Suspense lets copied components that `await` in setup (such as useGraphQLQuery) render.
   const screen = () => h(component, { ...props });
-  const root = { render: () => h(UApp, null, () => h(Suspense, null, { default: screen })) };
+  const content = shell ? () => h(AppShell, null, { default: screen }) : screen;
+  const root = { render: () => h(UApp, null, () => h(Suspense, null, { default: content })) };
   const app = (ssr ? createSSRApp(root) : createApp(root)) as StudiosApp;
   app.use(ui);
   app.use(store);
