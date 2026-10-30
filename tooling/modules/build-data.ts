@@ -79,26 +79,36 @@ function watchRoot(root: string, pattern: string) {
 export function buildDataStore(
   enabled: InstalledModule[],
   root: string,
-  { dev = false }: { dev?: boolean } = {},
+  {
+    dev = false,
+    studio = {},
+  }: {
+    dev?: boolean
+    /**
+     * The studio's own data, whatever modules are on, keyed
+     * `studio/<name>`; its loaders get the root as their folder.
+     */
+    studio?: Record<string, ModuleBuildData>
+  } = {},
 ) {
-  const entries = new Map(
-    enabled.flatMap((module) =>
+  const entries = new Map<string, { dir: string; data: ModuleBuildData }>([
+    ...enabled.flatMap((module) =>
       Object.entries(module.spec.data ?? {}).map(
         ([name, data]) =>
-          [`${module.spec.id}/${name}`, { module, data }] as [
-            string,
-            { module: InstalledModule; data: ModuleBuildData },
-          ],
+          [`${module.spec.id}/${name}`, { dir: module.dir, data }] as const,
       ),
     ),
-  )
+    ...Object.entries(studio).map(
+      ([name, data]) => [`studio/${name}`, { dir: root, data }] as const,
+    ),
+  ])
   const ids = enabled.map(({ spec }) => spec.id)
   const cache = generationCache(async (key) => {
     const entry = entries.get(key)
     if (!entry) throw new Error(`Build data ${key} is unavailable.`)
     const value = await entry.data.load({
       root,
-      dir: entry.module.dir,
+      dir: entry.dir,
       enabled: ids,
       dev,
     })
