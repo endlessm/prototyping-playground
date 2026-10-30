@@ -1,8 +1,8 @@
 ---
-title: Diagrams
+title: Lanterns
 order: 5
 section: Capabilities
-module: diagrams
+module: lantern
 ---
 
-Diagrams are pictures.
+Lanterns are a module this studio doesn’t have.

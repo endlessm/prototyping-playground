@@ -37,7 +37,7 @@ Give the agent the view, what you expected and any references. Ask it to check t
 
 ## How do I edit source?
 
-Locally, right-click a file and choose **Edit source**, or press **Ctrl+'** (**⌘'** on a Mac) to switch between the page and its source. **Ctrl+S** (**⌘S**) saves; **Done** returns to the page. If the file changed on disk while you were editing, the studio asks whether to load the new version or keep yours. Leaving with unsaved changes asks first. Canvases save on their own.
+Locally, right-click a file and choose **Edit source**, or press **Ctrl+'** (**⌘'** on a Mac) to switch between the page and its source. **Ctrl+S** (**⌘S**) saves; **Done** returns to the page. If the file changed on disk while you were editing, the studio asks whether to load the new version or keep yours. Leaving with unsaved changes asks first. Canvases save on their own; see [Prototypes & systems](prototypes.md#how-do-documents-diagrams-and-canvases-connect).
 
 **Open in editor** uses the code editor installed on your computer; without one, the file is shown in Explorer (Finder on a Mac). You can also ask the agent to make the change.
 

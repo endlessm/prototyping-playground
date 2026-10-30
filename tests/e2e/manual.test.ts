@@ -152,7 +152,7 @@ describe('in the studio running locally', { timeout: 150_000 }, () => {
     await visible(page.getByText('What the studio is and how it is organized.'))
     await visible(page.getByRole('navigation', { name: 'On this page' }))
     const nav = chapters(page)
-    // Canvas is on, so its chapter shows; no Diagrams module, no chapter.
+    // Canvas is on, so its chapter shows; no Lantern module, no chapter.
     // The chapter with broken metadata is skipped.
     expect(await nav.getByRole('link').allTextContents()).toEqual([
       'Overview',
