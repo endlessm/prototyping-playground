@@ -123,3 +123,16 @@ test('[CL-131] document frontmatter and canvas identities cannot change unnotice
     'Sketch.excalidraw: permanent ID abc0000000000004 was removed',
   )
 })
+
+test('[CL-131] documentation examples and canvas element data are not resource identities', () => {
+  write(
+    'src/prototypes/ben/demo/Brief.md',
+    '---\nstudioId: abc0000000000003\n---\nExample: <!-- @studio-id abc0000000000001 -->',
+  )
+  write(
+    'src/prototypes/ben/demo/Sketch.excalidraw',
+    '{"studioId":"abc0000000000004","elements":[{"studioId":"abc0000000000001"}]}',
+  )
+  git(root, 'add', '.')
+  expect(scopeReport(root, changedFiles(root)).identity).toEqual([])
+})

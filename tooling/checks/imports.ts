@@ -45,7 +45,9 @@ export function sourceProblems(
     : policy.system!.dir
   const problems: string[] = []
   const report = (message: string) =>
-    problems.push(`${path.relative(policy.root, file).split(path.sep).join('/')}: ${message}`)
+    problems.push(
+      `${path.relative(policy.root, file).split(path.sep).join('/')}: ${message}`,
+    )
   const allowed = (specifier: string) => {
     const name = specifier.split('?')[0]!
     if (name === 'vue' || name === '#studio/prototype') return true

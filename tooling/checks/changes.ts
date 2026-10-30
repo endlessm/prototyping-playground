@@ -130,12 +130,24 @@ export function scopeReport(
     ? git(root, 'ls-tree', '-r', '--name-only', after).trim().split('\n')
     : git(root, 'ls-files', '-z').split('\0')
   const ids = new Map<string, string>()
-  const markers = (source: string) =>
-    [
+  const markers = (source: string, file: string): string[] => {
+    if (/\.(json|excalidraw)$/.test(file)) {
+      try {
+        const value = JSON.parse(source)?.studioId
+        return typeof value === 'string' ? [value] : []
+      } catch {
+        return []
+      }
+    }
+    if (file.endsWith('.md'))
+      source =
+        /^\uFEFF?---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(source)?.[1] ?? ''
+    return [
       ...source.matchAll(
         /(?:@studio-(?:id|state)\s+|["']?studioId["']?\s*:\s*["']?)([0-9a-z]{16})/g,
       ),
     ].map((match) => match[1]!)
+  }
   for (const file of all.filter(
     (file) =>
       /^(src\/prototypes\/|src\/systems\/[^/]+\/system\.ts$|contributors\/)/.test(
@@ -143,7 +155,7 @@ export function scopeReport(
       ) && /\.(vue|md|json|ts|mmd|excalidraw)$/.test(file),
   )) {
     const current = contentAt(root, file, after)
-    for (const id of markers(current)) {
+    for (const id of markers(current, file)) {
       const previous = ids.get(id)
       if (previous)
         identity.push(
@@ -152,8 +164,8 @@ export function scopeReport(
       ids.set(id, file)
     }
     if (files.includes(file) && current)
-      for (const id of markers(contentAt(root, file, before)))
-        if (!markers(current).includes(id))
+      for (const id of markers(contentAt(root, file, before), file))
+        if (!markers(current, file).includes(id))
           identity.push(
             `${file}: permanent ID ${id} was removed or changed. Restore the original marker.`,
           )
