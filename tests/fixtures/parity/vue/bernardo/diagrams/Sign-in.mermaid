@@ -1,0 +1,8 @@
+%% @studio-id d1a6000000000p02
+flowchart LR
+  accTitle: Sign-in flow
+  accDescr: A returning member signs in, checks a code, then lands on Home.
+  start[Sign in] --> code{Code valid?}
+  code -->|Yes| home[Home]
+  code -->|No| retry[Try again]
+  retry --> start

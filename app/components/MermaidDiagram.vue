@@ -25,8 +25,18 @@ const rendering = ref(false)
 const timedOut = ref(false)
 let renders = 0
 
+// The theme's colours are read when drawing, so a stylesheet changed while
+// the studio runs draws the diagram again.
+const theme = ref(0)
+if (import.meta.hot) {
+  const hot = import.meta.hot
+  const changed = () => theme.value++
+  hot.on('vite:afterUpdate', changed)
+  onScopeDispose(() => hot.off('vite:afterUpdate', changed))
+}
+
 watch(
-  () => [props.source ?? '', colorMode.value === 'dark'] as const,
+  () => [props.source ?? '', colorMode.value === 'dark', theme.value] as const,
   async ([source, dark]) => {
     const render = ++renders
     rendering.value = true
