@@ -108,6 +108,8 @@ export const STATIC_OUTPUT = '.output-e2e'
 export async function buildStaticSite(
   basePath: string,
   env: Record<string, string> = {},
+  /** Hears what the build printed, once it has finished. */
+  onLog?: (log: string) => void,
 ) {
   const child = run(['generate'], {
     ...env,
@@ -122,14 +124,16 @@ export async function buildStaticSite(
     child.once('exit', resolve),
   )
   if (code !== 0) throw new Error(`nuxt generate failed (${code}):\n${log}`)
+  onLog?.(log)
   return path.resolve(STATIC_OUTPUT, 'public')
 }
 
 export async function startStaticSite(
   basePath: string,
   env: Record<string, string> = {},
+  onLog?: (log: string) => void,
 ): Promise<RunningStudio & { directory: string }> {
-  const directory = await buildStaticSite(basePath, env)
+  const directory = await buildStaticSite(basePath, env, onLog)
   const server = await serveStatic({ directory, basePath, port: 0 })
   return { url: server.url, stop: server.close, directory }
 }

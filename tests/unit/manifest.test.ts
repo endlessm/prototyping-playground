@@ -255,6 +255,23 @@ describe('the manifest', () => {
     ])
   })
 
+  test('[PR-40] a rebuild copy names the system it waits for and the prototype it came from', () => {
+    prototype('ada/copy', {
+      studioId: 'cpy0000000000001',
+      systemId: null,
+      rebuild: {
+        targetSystemId: SYSTEM,
+        sourcePrototypeId: 'src0000000000001',
+      },
+    })
+    prototype('ada/plain', { studioId: 'p1a1n00000000001' })
+    const { manifest } = build()
+    expect(manifest.prototypes.map(({ rebuild }) => rebuild)).toEqual([
+      { targetSystemId: SYSTEM, sourcePrototypeId: 'src0000000000001' },
+      undefined,
+    ])
+  })
+
   test('[CL-103] an unreadable or incomplete meta.json is reported and leaves the prototype out', () => {
     write('bernardo/broken/meta.json', '{ "title": ')
     prototype('bernardo/untitled', { studioId: 'vnt1000000000001', title: '' })
