@@ -14,6 +14,8 @@ const props = defineProps<{
 }>()
 
 const MIN_HEIGHT = 96
+// Room for an error and the start of its detail.
+const ERROR_HEIGHT = 160
 const { t } = useI18n()
 const { previewDocument } = await useSystems()
 const frame = useTemplateRef('frame')
@@ -58,7 +60,9 @@ onBeforeUnmount(() => observer?.disconnect())
       :title="title"
       class="block w-full border-0"
       :class="{ invisible: state === 'error' }"
-      :style="{ height: `${height}px` }"
+      :style="{
+        height: `${state === 'error' ? Math.max(height, ERROR_HEIGHT) : height}px`,
+      }"
       @load="measure"
     />
     <p

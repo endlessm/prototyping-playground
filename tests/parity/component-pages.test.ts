@@ -16,6 +16,22 @@ const firstExample = (page: Page, side: string, text: string) =>
     ? page.locator('iframe').first().contentFrame().getByText(text).first()
     : page.getByText(text).first()
 
+// Opens Show code. The first code block a dev server highlights makes Vite
+// optimize Shiki and reload the page, closing it again; so it tries again.
+async function showCode(page: Page) {
+  const code = page.getByText('CommonPairs').first()
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await page.getByRole('button', { name: 'Show code' }).click()
+    try {
+      await expect.poll(() => code.isVisible(), { timeout: 60_000 }).toBe(true)
+      return
+    } catch {
+      await page.getByRole('button', { name: 'Show code' }).waitFor()
+    }
+  }
+  await shows(code)
+}
+
 scenario(
   '[SY-103] [SY-105] [SY-106] [SY-108] [SY-110] [SY-167] [SY-168] reading component pages',
   async ({ page, url, side, step }) => {
@@ -24,7 +40,7 @@ scenario(
     await shows(firstExample(page, side, 'Invite Learners'))
     await step('The Button page')
 
-    await page.getByRole('button', { name: 'Show code' }).click()
+    await showCode(page)
     await page.getByRole('button', { name: /^Props/ }).click()
     await shows(page.getByRole('columnheader', { name: 'Type' }))
     await step('Button with its code and props open')

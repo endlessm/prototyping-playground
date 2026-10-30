@@ -26,6 +26,7 @@ const harbor: SystemCatalog = {
     { name: '--radius-card', group: 'radius' },
   ],
   components: [],
+  overview: null,
   assets: [],
   context: [
     {
