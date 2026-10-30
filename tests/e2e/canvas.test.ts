@@ -3,7 +3,9 @@
 // The studio runs as Ben (a contributor) on a disposable copy of the
 // fixtures: his own canvases are editable, Bernardo's are read-only, and the
 // deployed site opens every canvas read-only. Excalidraw's fonts come from
-// its CDN; the scenarios answer those requests themselves.
+// its CDN; the scenarios answer those requests themselves. They draw without
+// saving, so each starts from the same files: their saves are answered here
+// and never reach the disk (`canvas-saving.test.ts` covers saving).
 import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import type { Page } from 'playwright'
@@ -128,13 +130,21 @@ const BEN = {
 
 const newPage = useBrowser()
 const fontRequests: string[] = []
-// A page that answers Excalidraw's font requests itself and records them.
+// A page that answers Excalidraw's font requests itself and records them,
+// and whose saves never reach the disk.
 async function canvasPage() {
   const page = await newPage()
   await page.route('https://esm.sh/**', (route) => {
     fontRequests.push(route.request().url())
     return route.fulfill({ status: 404, body: '' })
   })
+  await page.route(
+    (url) => url.pathname.endsWith('/_studio/files/source'),
+    (route) =>
+      route.request().method() === 'PUT'
+        ? route.fulfill({ json: { version: 'unsaved', warnings: [] } })
+        : route.fallback(),
+  )
   return page
 }
 const address = (studio: RunningStudio, prototype: string, artifact: string) =>
@@ -250,7 +260,13 @@ describe('a canvas in the studio running locally', () => {
     expect(log.some(({ event }) => event.includes('view-mode'))).toBe(false)
     expect(await canvas(page).getAttribute('aria-busy')).toBeNull()
     expect(await page.locator('.canvas-scene').getAttribute('inert')).toBeNull()
-    expect(await page.getByRole('status').count()).toBe(0)
+    // Only the save status is left.
+    expect(
+      await page
+        .getByRole('status')
+        .and(page.locator(':not([data-save-status])'))
+        .count(),
+    ).toBe(0)
     expect(
       await page
         .locator('.canvas-scene')

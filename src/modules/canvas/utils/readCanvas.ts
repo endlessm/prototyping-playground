@@ -6,6 +6,8 @@ export interface CanvasText {
   text: string
   /** The file's version, for saving over it. Empty on the deployed site. */
   version: string
+  /** Where it is, as the dev server's change notices name it. */
+  path: string
   /** Whether you may change it; the deployed site is always read-only. */
   editable: boolean
 }
@@ -32,6 +34,7 @@ export async function readCanvas(
     return {
       text: source.content,
       version: source.version,
+      path: source.path,
       editable: source.editable,
     }
   }
@@ -42,5 +45,5 @@ export async function readCanvas(
   bundled.catch(() => (bundled = undefined))
   const text = (await bundled)[artifactId]
   if (text === undefined) throw new Error('This canvas isn’t in the build.')
-  return { text, version: '', editable: false }
+  return { text, version: '', path: '', editable: false }
 }
