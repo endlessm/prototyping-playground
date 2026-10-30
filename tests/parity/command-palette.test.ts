@@ -67,3 +67,32 @@ scenario(
     await input.press('Escape')
   },
 )
+
+scenario(
+  '[SY-03] opening a system from the palette',
+  async ({ page, url, step }) => {
+    await page.goto(url)
+    await expect
+      .poll(
+        () =>
+          page
+            .getByRole('button', { name: /Search/ })
+            .first()
+            .isVisible(),
+        { timeout: 60000 },
+      )
+      .toBe(true)
+    await page.keyboard.press('Control+k')
+    const input = page.getByPlaceholder('Search the studio')
+    await expect.poll(() => input.isVisible(), { timeout: 60000 }).toBe(true)
+    await input.fill('Endless Studios')
+    const system = page.getByRole('option', {
+      name: 'Endless Studios system',
+      exact: true,
+    })
+    await expect.poll(() => system.isVisible(), { timeout: 30000 }).toBe(true)
+    await step('Systems palette entry')
+    await system.click()
+    await expect.poll(() => page.url()).toContain('/systems/8x5spen6xtvp96a9')
+  },
+)

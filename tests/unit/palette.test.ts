@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
 import { paletteGroups } from '../../app/utils/palette'
 
-test('[SH-42] [SH-43] [PR-19] enabled module data orders groups, preserves search terms and disables current destinations', () => {
+test('[SY-03] [SH-42] [SH-43] [PR-19] enabled module data orders groups, preserves search terms and disables current destinations', () => {
   const groups = paletteGroups(
     [
       {
@@ -86,6 +86,42 @@ test('[SH-42] [SH-43] [PR-19] enabled module data orders groups, preserves searc
   })
   expect(groups[2]!.items.at(-1)).toMatchObject({
     label: 'Member',
+    disabled: true,
+  })
+})
+
+test('[SY-03] a system remains disabled on its nested pages', () => {
+  const groups = paletteGroups(
+    [
+      {
+        id: 'systems',
+        label: 'Systems',
+        palette: [],
+        paletteSource: 'systems',
+      },
+    ],
+    {
+      prototypes: [],
+      contributors: [],
+      defaultSystem: null,
+      systems: [
+        {
+          id: 'sys',
+          key: 'harbor',
+          label: 'Harbor',
+          status: 'active',
+          colorModes: ['light'],
+        },
+      ],
+    },
+    [],
+    { path: '/systems/sys/context' },
+    false,
+    { places: 'Places', home: 'Home', settings: 'Studio settings' },
+  )
+  expect(groups[1]!.items[0]).toMatchObject({
+    label: 'Harbor system',
+    to: '/systems/sys',
     disabled: true,
   })
 })

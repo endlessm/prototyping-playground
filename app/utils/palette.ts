@@ -49,13 +49,16 @@ export function paletteGroups(
       items.push(
         ...manifest.systems
           .filter((s) => local || s.status !== 'archived')
-          .map((system) =>
-            entry({
-              label: system.label,
+          .map((system) => ({
+            ...entry({
+              label: `${system.label} system`,
               to: `/systems/${system.id}`,
               keywords: [system.key],
             }),
-          ),
+            disabled:
+              current.path === `/systems/${system.id}` ||
+              current.path.startsWith(`/systems/${system.id}/`),
+          })),
       )
     }
     if (module.paletteSource === 'prototypes') {

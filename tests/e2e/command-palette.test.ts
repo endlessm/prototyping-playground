@@ -96,6 +96,55 @@ for (const deployed of [false, true]) {
         .toContain('/artifacts/smbr000000000001')
     })
 
+    test('[SY-03] [PR-19] systems, documents and canvases join the palette and tree', async () => {
+      const page = await newPage()
+      for (const destination of [
+        {
+          prototype: 'd0c5000000000p01',
+          query: 'Research brief',
+          artifact: 'd0c5000000000p02',
+        },
+        {
+          prototype: 'skchp00000000001',
+          query: 'Sketch',
+          artifact: 'skp1an0000000001',
+        },
+      ]) {
+        await page.goto(studio.url + 'prototypes/' + destination.prototype)
+        const search = page.getByRole('button', {
+          name: 'Search (Ctrl+K)',
+          exact: true,
+        })
+        await expect
+          .poll(() => search.isVisible(), { timeout: 60000 })
+          .toBe(true)
+        await search.click()
+        const input = page.getByPlaceholder('Search the studio')
+        await input.fill(destination.query)
+        const option = page.getByRole('option', {
+          name: destination.query,
+          exact: true,
+        })
+        await expect
+          .poll(() => option.isVisible(), { timeout: 30000 })
+          .toBe(true)
+        await option.click()
+        await expect
+          .poll(() => page.url())
+          .toContain('/artifacts/' + destination.artifact)
+      }
+      await page.goto(studio.url + 'systems/8x5spen6xtvp96a9/context')
+      await page
+        .getByRole('button', { name: 'Search (Ctrl+K)', exact: true })
+        .click()
+      const system = page.getByRole('option', {
+        name: 'Endless Studios system',
+        exact: true,
+      })
+      await expect.poll(() => system.isVisible(), { timeout: 30000 }).toBe(true)
+      expect(await system.getAttribute('data-disabled')).not.toBeNull()
+    })
+
     test('[SH-40] [SH-46] [PR-83] shortcuts cross the preview, preserve fields and ignore repeated keys', async () => {
       const page = await newPage()
       await page.goto(`${studio.url}prototypes/st4tes0000000001`)
