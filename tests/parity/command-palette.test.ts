@@ -50,8 +50,7 @@ scenario(
       .poll(() => page.getByRole('option', { name: /^Plain/ }).isVisible())
       .toBe(true)
     await step('Finding a prototype')
-    await input.press('ArrowDown')
-    await input.press('Enter')
+    await page.getByRole('option', { name: /^Plain/ }).click()
     await expect
       .poll(() => page.url(), { timeout: 30_000 })
       .toContain('/prototypes/')
