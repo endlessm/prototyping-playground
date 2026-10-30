@@ -24,8 +24,22 @@ import trashFile from 'trash'
 import { newStudioId } from '../contributors/studio-ids.ts'
 import { identityLock } from '../identity/assign.ts'
 import { auditIdentities, identitiesInUse } from '../identity/audit.ts'
-import { compare, posix, PROTOTYPES_FOLDER } from '../manifest/build.ts'
+import { posix, PROTOTYPES_FOLDER, readOrder } from '../manifest/build.ts'
+import {
+  afterChange,
+  byOrder,
+  parentOf,
+  parseOrder,
+  place,
+  withFolderOrder,
+} from '../manifest/order.ts'
 import { artifactTitle } from '../manifest/titles.ts'
+import {
+  movesOf,
+  repairReferences,
+  snapshotFiles,
+  type ReferenceAdapter,
+} from './references.ts'
 import {
   fileAccess,
   FileServiceError,
@@ -59,6 +73,8 @@ export interface TreeOptions extends FileServiceOptions {
   platform?: NodeJS.Platform
   /** The code editors to try, in order; the installed ones by default. */
   editors?: Editor[]
+  /** Where each kind of source names other files, to repair on moves. */
+  references?: ReferenceAdapter[]
 }
 
 const FOLDER = 'folder'
@@ -137,6 +153,88 @@ export function createFileTree(options: TreeOptions) {
   const relativeTo = (dir: string, file: string) =>
     posix(path.relative(realpathSync(dir), file))
 
+  const readMeta = (dir: string) =>
+    JSON.parse(readFileSync(path.join(dir, META), 'utf8')) as Record<
+      string,
+      unknown
+    >
+  function saveOrder(dir: string, order: string[]) {
+    const meta = readMeta(dir)
+    if (order.length) meta.order = order
+    else delete meta.order
+    writeFileSync(
+      path.join(dir, META),
+      `${JSON.stringify(meta, null, 2)}
+`,
+    )
+  }
+  /**
+   * Keeps the saved order in step with a rename (`to` is the new path), or
+   * a move or delete (`to` is null: a moved file lands after the arranged
+   * ones in its new folder).
+   */
+  function keepOrder(dir: string, from: string, to: string | null) {
+    let order: string[] | null
+    try {
+      order = parseOrder(readMeta(dir).order)
+    } catch {
+      return
+    }
+    if (!order) return
+    const next = afterChange(order, from, to)
+    if (next.length !== order.length || next.some((p, i) => p !== order[i]))
+      saveOrder(dir, next)
+  }
+
+  /**
+   * Renames or moves a file or folder and repairs the references to it and
+   * in it. If they can't be repaired, the move is undone.
+   */
+  function relocate(dir: string, source: string, target: string) {
+    const from = relativeTo(dir, source)
+    const before = new Set(snapshotFiles(dir).keys())
+    renameSync(source, target)
+    const to = relativeTo(dir, target)
+    let relinked: string[]
+    try {
+      relinked = repairReferences(
+        dir,
+        before,
+        movesOf(before, from, to),
+        options.references ?? [],
+      )
+    } catch (error) {
+      renameSync(target, source)
+      throw refuse(
+        409,
+        'references',
+        `Nothing moved: the references to it couldn’t be updated. ${(error as Error).message}`,
+      )
+    }
+    return { from, to, relinked: relinked.length }
+  }
+
+  /** Moves a file or folder, refusing what can't go there. */
+  function moveInto(dir: string, relative: unknown, into: unknown) {
+    const source = movable(dir, relative)
+    const folder = inside(dir, into ?? '')
+    if (!folder || !statSync(folder).isDirectory()) throw folderGone()
+    if (folder === source || folder.startsWith(source + path.sep))
+      throw refuse(400, 'invalid', 'A folder can’t move inside itself.')
+    const target = path.join(folder, path.basename(source))
+    const from = relativeTo(dir, source)
+    if (target === source) return { path: from, moved: false, relinked: 0 }
+    if (existsSync(target))
+      throw refuse(
+        409,
+        'exists',
+        `Something named “${path.basename(target)}” already exists there.`,
+      )
+    const { to, relinked } = relocate(dir, source, target)
+    keepOrder(dir, from, null)
+    return { path: to, moved: true, relinked }
+  }
+
   /** A new permanent ID that no file in the studio uses yet. */
   function newId() {
     const taken = identitiesInUse(
@@ -171,7 +269,10 @@ export function createFileTree(options: TreeOptions) {
       const { dir, contributor, meta } = prototypeOf(
         String(request.prototype ?? ''),
       )
-      const listing = { folder: display(dir), nodes: readTree(dir) }
+      const listing = {
+        folder: display(dir),
+        nodes: readTree(dir, readOrder(dir)),
+      }
       if (request.access === false) return listing
       const refusal = refusalFor(contributor, meta)
       return {
@@ -264,7 +365,8 @@ export function createFileTree(options: TreeOptions) {
       )
         name += extension
       const target = path.join(path.dirname(source), name)
-      if (target === source) return { path: relativeTo(dir, source) }
+      if (target === source)
+        return { path: relativeTo(dir, source), relinked: 0 }
       // Only the letter case changes: the same file on most computers.
       const sameFile =
         target.toLowerCase() === source.toLowerCase() &&
@@ -277,8 +379,71 @@ export function createFileTree(options: TreeOptions) {
           'exists',
           `Something named “${name}” already exists there.`,
         )
-      renameSync(source, target)
-      return { path: relativeTo(dir, target) }
+      const { from, to, relinked } = relocate(dir, source, target)
+      keepOrder(dir, from, to)
+      return { path: to, relinked }
+    },
+
+    /** Moves a file or folder into another folder, '' for the top level. */
+    async move(request: { prototype: unknown; path: unknown; to: unknown }) {
+      const { dir } = changeable(request.prototype)
+      return moveInto(dir, request.path, request.to)
+    },
+
+    /**
+     * Puts a file or folder before another in its folder, or last when
+     * `before` is empty, and saves the order in meta.json. With `to`, it
+     * moves into that folder first.
+     */
+    async reorder(request: {
+      prototype: unknown
+      path: unknown
+      to?: unknown
+      before?: unknown
+    }) {
+      const { dir } = changeable(request.prototype)
+      let current = relativeTo(dir, movable(dir, request.path))
+      let moved = false
+      let relinked = 0
+      if (typeof request.to === 'string' && request.to !== parentOf(current))
+        ({
+          path: current,
+          moved,
+          relinked,
+        } = moveInto(dir, current, request.to))
+      const folder = parentOf(current)
+      const where = inside(dir, folder)
+      if (!where || !statSync(where).isDirectory()) throw folderGone()
+      const siblings = byOrder(
+        readdirSync(where, { withFileTypes: true })
+          .filter(
+            (entry) =>
+              !entry.name.startsWith('.') &&
+              (entry.isDirectory() || entry.isFile()),
+          )
+          .map((entry) => ({
+            name: entry.name,
+            path: folder ? `${folder}/${entry.name}` : entry.name,
+            dir: entry.isDirectory(),
+          })),
+        readOrder(dir),
+      ).map((entry) => entry.path)
+      const before = typeof request.before === 'string' ? request.before : ''
+      if (before && !siblings.includes(before))
+        throw refuse(
+          404,
+          'not_found',
+          'That place was moved or deleted. Try again.',
+        )
+      saveOrder(
+        dir,
+        withFolderOrder(
+          parseOrder(readMeta(dir).order) ?? [],
+          folder,
+          place(siblings, current, before),
+        ),
+      )
+      return { path: current, moved, relinked }
     },
 
     /** Moves a file or folder to the computer's trash. */
@@ -286,6 +451,7 @@ export function createFileTree(options: TreeOptions) {
       const { dir } = changeable(request.prototype)
       const file = movable(dir, request.path)
       await trash(file)
+      keepOrder(dir, relativeTo(dir, file), null)
       const trashedTo: TrashPlace =
         platform === 'win32' ? 'recycle-bin' : 'trash'
       return { trashedTo }
@@ -367,32 +533,39 @@ export function createFileTree(options: TreeOptions) {
 
 export type FileTree = ReturnType<typeof createFileTree>
 
-/** Files and folders under `dir`, folders first, without hidden files. */
-export function readTree(dir: string, prefix = ''): FileNode[] {
-  const entries = readdirSync(dir, { withFileTypes: true }).filter(
-    (entry) =>
-      !entry.name.startsWith('.') &&
-      entry.name !== 'node_modules' &&
-      (entry.isDirectory() || entry.isFile()),
+/**
+ * Files and folders under `dir`, without hidden files, in the tree's order
+ * (`../manifest/order.ts`): the arranged ones, then files, then folders.
+ */
+export function readTree(
+  dir: string,
+  order: readonly string[] = [],
+  prefix = '',
+): FileNode[] {
+  const entries = readdirSync(dir, { withFileTypes: true })
+    .filter(
+      (entry) =>
+        !entry.name.startsWith('.') &&
+        entry.name !== 'node_modules' &&
+        (entry.isDirectory() || entry.isFile()),
+    )
+    .map((entry) => ({
+      name: entry.name,
+      path: `${prefix}${entry.name}`,
+      dir: entry.isDirectory(),
+    }))
+  return byOrder(entries, order).map((entry) =>
+    entry.dir
+      ? {
+          ...entry,
+          children: readTree(
+            path.join(dir, entry.name),
+            order,
+            `${entry.path}/`,
+          ),
+        }
+      : entry,
   )
-  const sorted = (dirs: boolean) =>
-    entries
-      .filter((entry) => entry.isDirectory() === dirs)
-      .map((entry) => entry.name)
-      .sort(compare)
-  return [
-    ...sorted(true).map((name) => ({
-      name,
-      path: `${prefix}${name}`,
-      dir: true,
-      children: readTree(path.join(dir, name), `${prefix}${name}/`),
-    })),
-    ...sorted(false).map((name) => ({
-      name,
-      path: `${prefix}${name}`,
-      dir: false,
-    })),
-  ]
 }
 
 /** Starts a program and returns once it has started. */

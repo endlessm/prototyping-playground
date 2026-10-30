@@ -12,6 +12,7 @@ export default {
       when: 'asks for a document inside a prototype',
     },
   ],
+  references: 'references.ts',
   fileTypes: [
     {
       id: 'document',

@@ -16,6 +16,8 @@ export interface FileListing {
 export type FileOperation =
   | { op: 'create'; parent: string; name: string; type: string }
   | { op: 'rename'; path: string; name: string }
+  | { op: 'move'; path: string; to: string }
+  | { op: 'reorder'; path: string; to: string; before: string }
   | { op: 'delete'; path: string }
   | { op: 'lofi'; artifact: string; lofi: boolean }
   | { op: 'reveal'; path: string }

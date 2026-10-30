@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { ContextMenuItem, DropdownMenuItem } from '@nuxt/ui'
+import { parentOf, place } from '../../../tooling/manifest/order'
 import { artifactTitle } from '../../../tooling/manifest/titles'
 import {
   filterNodes,
   findNode,
   folderPaths,
   parentsOf,
+  within,
   type FileNode,
   type FileTreeEntry,
   type NewFileOption,
@@ -20,9 +22,11 @@ import { treeFolds } from '../../composables/useFileTree'
 // open one current, its folders opened. A filter, "Expand all" / "Collapse
 // all" and, where you may change the files, "+" (New) sit in the header.
 // Rows have right-click menus; F2 renames and Delete asks, then deletes.
-// Creating and renaming use an inline name field. What happens to the
-// files is the caller's: it passes the changes as functions, and the menu
-// actions for each row.
+// Creating and renaming use an inline name field. Rows are dragged before
+// or after another, into a folder, or below the rows to the top level, and
+// Alt+↑/↓ moves the focused one; an artifact's row dragged out carries its
+// web address. What happens to the files is the caller's: it passes the
+// changes as functions, and the menu actions for each row.
 const props = defineProps<{
   /** "Artifacts" or "Files": the heading and the tree's name. */
   heading: string
@@ -52,6 +56,13 @@ const props = defineProps<{
   create?: (parent: string, type: string, name: string) => Promise<unknown>
   rename?: (node: FileNode, name: string) => Promise<unknown>
   remove?: (node: FileNode) => Promise<unknown>
+  /**
+   * Moves a row into the folder `to` ('' for the top level) and, with
+   * `before`, puts it before that sibling there ('' for last).
+   */
+  arrange?: (node: FileNode, to: string, before?: string) => Promise<unknown>
+  /** An address in the app as a full web address, for rows dragged out. */
+  linkOf?: (to: string) => string
   /** A file that isn't an artifact was chosen. */
   openFile?: (node: FileNode) => void
 }>()
@@ -250,6 +261,176 @@ async function confirmDelete(node: FileNode) {
   if (remove) await props.remove?.(node)
 }
 
+// Arranging. Not while filtering: the rows shown then aren't a folder's own,
+// so only moving into a folder works.
+type Where = 'before' | 'after' | 'inside'
+const dragged = shallowRef<FileNode>()
+const dropping = ref<{ path: string; where: Where } | 'end'>()
+const container = useTemplateRef<HTMLElement>('container')
+
+const arrangeable = (node?: FileNode): node is FileNode =>
+  Boolean(node && props.arrange && changeable(node))
+const siblingsOf = (folder: string) =>
+  (folder ? findNode(props.nodes, folder)?.children : props.nodes) ?? []
+
+/** Where a drop on this row would put the dragged one, if anywhere. */
+function whereOn(row: Row, event: DragEvent): Where | undefined {
+  const source = dragged.value
+  const node = row.node
+  if (!source || !node || within(node.path, source.path)) return undefined
+  const box = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  const y = (event.clientY - box.top) / box.height
+  const ordering = !filtering.value
+  if (!node.dir) return ordering ? (y < 0.5 ? 'before' : 'after') : undefined
+  // An open folder's contents follow it, so its lower edge is inside it.
+  const open = Boolean(row.children) && expanded.value.includes(node.path)
+  if (ordering && y < 0.25) return 'before'
+  if (ordering && y > 0.75 && !open) return 'after'
+  return parentOf(source.path) === node.path ? undefined : 'inside'
+}
+
+async function arrangeIn(node: FileNode, to: string, before: string) {
+  if (to === parentOf(node.path)) {
+    const siblings = siblingsOf(to).map(({ path }) => path)
+    const next = place(siblings, node.path, before)
+    if (next.every((path, index) => path === siblings[index])) return
+  }
+  await props.arrange?.(node, to, before)
+}
+function dropOn(source: FileNode, target: FileNode | null, where: Where) {
+  if (!target)
+    return filtering.value
+      ? parentOf(source.path) && props.arrange?.(source, '')
+      : arrangeIn(source, '', '')
+  if (where === 'inside') return props.arrange?.(source, target.path)
+  const folder = parentOf(target.path)
+  const others = siblingsOf(folder)
+    .map(({ path }) => path)
+    .filter((path) => path !== source.path)
+  const before =
+    where === 'before'
+      ? target.path
+      : (others[others.indexOf(target.path) + 1] ?? '')
+  return arrangeIn(source, folder, before)
+}
+
+/** A row's dragging: out with its address, and within the tree. */
+function dragging(row: Row) {
+  const to = row.entry?.to ?? row.child?.to
+  const href = to && props.linkOf?.(to)
+  const node = row.node
+  const drop = dropping.value
+  const leave = () => {
+    const now = dropping.value
+    if (now && now !== 'end' && now.path === node?.path)
+      dropping.value = undefined
+  }
+  return {
+    draggable: Boolean(href) || arrangeable(node),
+    'data-drop':
+      drop && drop !== 'end' && drop.path === node?.path
+        ? drop.where
+        : undefined,
+    onDragstart(event: DragEvent) {
+      const data = event.dataTransfer
+      if (!data) return
+      if (href) {
+        data.setData('text/uri-list', href)
+        data.setData('text/plain', href)
+      }
+      if (arrangeable(node)) {
+        dragged.value = node
+        if (!href) data.setData('text/plain', node.name)
+      }
+      data.effectAllowed = 'all'
+    },
+    onDragover(event: DragEvent) {
+      event.stopPropagation()
+      const where = whereOn(row, event)
+      if (!where) return leave()
+      event.preventDefault()
+      if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+      dropping.value = { path: node!.path, where }
+    },
+    onDragleave(event: DragEvent) {
+      const into = event.relatedTarget as Node | null
+      if (!into || !(event.currentTarget as Element).contains(into)) leave()
+    },
+    onDrop(event: DragEvent) {
+      event.stopPropagation()
+      const where = whereOn(row, event)
+      const source = dragged.value
+      dragged.value = undefined
+      dropping.value = undefined
+      if (!where || !source) return
+      event.preventDefault()
+      void dropOn(source, node!, where)
+    },
+    onDragend() {
+      dragged.value = undefined
+      dropping.value = undefined
+    },
+  }
+}
+const endDrop = {
+  onDragover(event: DragEvent) {
+    if (!dragged.value) return
+    event.preventDefault()
+    dropping.value = 'end'
+  },
+  onDragleave() {
+    if (dropping.value === 'end') dropping.value = undefined
+  },
+  onDrop(event: DragEvent) {
+    const source = dragged.value
+    dragged.value = undefined
+    dropping.value = undefined
+    if (!source) return
+    event.preventDefault()
+    void dropOn(source, null, 'inside')
+  },
+}
+
+// A row moved from the keyboard keeps the focus while the tree is drawn
+// again, which happens more than once as the change comes back from the
+// dev server, until you do something else.
+let keepFocus: string | undefined
+function refocus() {
+  if (keepFocus === undefined) return
+  const element = container.value?.querySelector<HTMLElement>(
+    `[data-tree-path="${CSS.escape(keepFocus)}"]`,
+  )
+  if (element && document.activeElement !== element) element.focus()
+}
+watch(rows, () => nextTick(refocus), { flush: 'post' })
+const letFocusGo = () => (keepFocus = undefined)
+
+// Alt+↑/↓ on a row, before the tree moves the focus with the arrows.
+async function onArrangeKey(event: KeyboardEvent) {
+  if (!event.altKey || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown'))
+    return letFocusGo()
+  const path = (event.target as Element | null)
+    ?.closest('[data-tree-path]')
+    ?.getAttribute('data-tree-path')
+  const node = path == null ? undefined : findNode(props.nodes, path)
+  if (!arrangeable(node) || filtering.value) return
+  event.preventDefault()
+  event.stopPropagation()
+  const folder = parentOf(node.path)
+  const siblings = siblingsOf(folder)
+  const at = siblings.findIndex((sibling) => sibling.path === node.path)
+  const up = event.key === 'ArrowUp'
+  if (up ? at <= 0 : at < 0 || at >= siblings.length - 1) return
+  keepFocus = node.path
+  await arrangeIn(
+    node,
+    folder,
+    up ? siblings[at - 1]!.path : (siblings[at + 2]?.path ?? ''),
+  )
+  await nextTick()
+  refocus()
+}
+
 const later = (action: () => unknown) =>
   afterMenuCloses(action, () => undefined)
 const newItems = (parent: string) =>
@@ -422,7 +603,13 @@ const extension = (name: string) => {
       :content="{ onCloseAutoFocus: keepNameField }"
       :ui="{ content: 'min-w-44' }"
     >
-      <div class="min-h-0" @contextmenu.capture="pick">
+      <div
+        ref="container"
+        class="flex min-h-0 flex-col"
+        @contextmenu.capture="pick"
+        @keydown.capture="onArrangeKey"
+        @pointerdown.capture="letFocusGo"
+      >
         <UTree
           :items="rows"
           :get-key="(row: Row) => row.key"
@@ -466,15 +653,31 @@ const extension = (name: string) => {
             <div
               v-else-if="item.entry || item.child"
               :data-tree-path="item.node?.path"
+              v-bind="dragging(item)"
               :class="
                 ui.link({
-                  class: 'gap-1.5',
+                  class: [
+                    'relative gap-1.5',
+                    dragged && dragged === item.node && 'opacity-50',
+                  ],
                   selected: isSelected,
                   disabled: false,
                 })
               "
               @keydown="onRowKeydown(item, $event)"
             >
+              <span
+                v-if="
+                  dropping !== 'end' &&
+                  dropping?.path === item.node?.path &&
+                  dropping?.where !== 'inside'
+                "
+                aria-hidden="true"
+                :class="[
+                  'pointer-events-none absolute inset-x-1 z-10 h-0.5 rounded-full bg-primary',
+                  dropping?.where === 'before' ? '-top-px' : '-bottom-px',
+                ]"
+              />
               <NuxtLink
                 :to="(item.entry ?? item.child)!.to"
                 tabindex="-1"
@@ -494,15 +697,35 @@ const extension = (name: string) => {
               v-else-if="item.node?.dir"
               :data-tree-path="item.node.path"
               :title="item.node.name"
+              v-bind="dragging(item)"
               :class="
                 ui.link({
-                  class: 'gap-1.5 cursor-default font-medium',
+                  class: [
+                    'relative gap-1.5 cursor-default font-medium',
+                    dragged && dragged === item.node && 'opacity-50',
+                    dropping !== 'end' &&
+                      dropping?.path === item.node.path &&
+                      dropping.where === 'inside' &&
+                      'bg-elevated ring-1 ring-inset ring-primary/50',
+                  ],
                   selected: false,
                   disabled: false,
                 })
               "
               @keydown="onRowKeydown(item, $event)"
             >
+              <span
+                v-if="
+                  dropping !== 'end' &&
+                  dropping?.path === item.node?.path &&
+                  dropping?.where !== 'inside'
+                "
+                aria-hidden="true"
+                :class="[
+                  'pointer-events-none absolute inset-x-1 z-10 h-0.5 rounded-full bg-primary',
+                  dropping?.where === 'before' ? '-top-px' : '-bottom-px',
+                ]"
+              />
               <UIcon
                 name="i-lucide-chevron-right"
                 :class="[
@@ -517,15 +740,31 @@ const extension = (name: string) => {
               v-else
               :data-tree-path="item.node?.path"
               :title="t('files.openInEditor')"
+              v-bind="dragging(item)"
               :class="
                 ui.link({
-                  class: 'gap-1.5 text-muted',
+                  class: [
+                    'relative gap-1.5 text-muted',
+                    dragged && dragged === item.node && 'opacity-50',
+                  ],
                   selected: false,
                   disabled: false,
                 })
               "
               @keydown="onRowKeydown(item, $event)"
             >
+              <span
+                v-if="
+                  dropping !== 'end' &&
+                  dropping?.path === item.node?.path &&
+                  dropping?.where !== 'inside'
+                "
+                aria-hidden="true"
+                :class="[
+                  'pointer-events-none absolute inset-x-1 z-10 h-0.5 rounded-full bg-primary',
+                  dropping?.where === 'before' ? '-top-px' : '-bottom-px',
+                ]"
+              />
               <UIcon name="i-lucide-file" class="size-4 shrink-0 opacity-70" />
               <span class="min-w-0 flex-1 truncate"
                 >{{ extension(item.label)[0]
@@ -536,6 +775,17 @@ const extension = (name: string) => {
             </div>
           </template>
         </UTree>
+        <!-- Below the rows: the top level, last. -->
+        <div
+          v-if="editable && arrange"
+          data-testid="tree-end"
+          v-bind="endDrop"
+          :class="[
+            'relative min-h-8 flex-1',
+            dropping === 'end' &&
+              'before:absolute before:inset-x-1 before:top-0 before:h-0.5 before:rounded-full before:bg-primary',
+          ]"
+        />
       </div>
     </UContextMenu>
   </div>

@@ -2,13 +2,16 @@
 // artifacts' source (`server/source.ts`) and systems' own source files
 // (`server/system-source.ts`), list and change a prototype's files for its
 // file tree (`server/tree.ts`) and create prototypes
-// (`server/prototypes.ts`). Open pages hear `studio:source` with the files
-// whose content changed on disk, so an open editor can reload or offer its
-// conflict choice, and `studio:files` when files or folders were added or
-// removed, so file trees refresh. The static build has none of it.
+// (`server/prototypes.ts`); renames and moves made outside the studio
+// have their references repaired (`server/moves.ts`). Open pages hear
+// `studio:source` with the files whose content changed on disk, so an open
+// editor can reload or offer its conflict choice, and `studio:files` when
+// files or folders were added or removed, so file trees refresh. The static
+// build has none of it.
 import path from 'node:path'
 import {
   addServerHandler,
+  addServerPlugin,
   addVitePlugin,
   createResolver,
   defineNuxtModule,
@@ -41,6 +44,8 @@ export interface FileServiceConfig {
     fidelity?: string
     template?: string
   }[]
+  /** The files of every module's reference adapters, turned off or not. */
+  references: string[]
   /**
    * Where to note the programs the service would start (file browser, code
    * editor) instead of starting them, with no code editor found; for the
@@ -78,6 +83,9 @@ export default defineNuxtModule({
           ...(type.template && { template: path.join(dir, type.template) }),
         })),
       ),
+      references: registry.modules.flatMap(({ spec, dir }) =>
+        spec.references ? [path.join(dir, spec.references)] : [],
+      ),
       launchLog: process.env.STUDIO_LAUNCH_LOG || undefined,
     }
     nuxt.options.runtimeConfig.studioFiles = config
@@ -97,6 +105,8 @@ export default defineNuxtModule({
       route: `/${TREE_ROUTE}`,
       handler: resolve('./server/tree.ts'),
     })
+    // Renames and moves made outside the studio repair references too.
+    addServerPlugin(resolve('./server/moves.ts'))
     addVitePlugin(
       sourceChanges(root, [
         path.resolve(root, config.prototypesFolder),
