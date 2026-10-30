@@ -139,6 +139,45 @@ describe('a module’s reference adapters', () => {
   })
 })
 
+describe('a file type’s previews', () => {
+  const type = {
+    id: 'sketch',
+    label: 'Sketch',
+    extensions: ['.sketch'],
+    identity: 'identity.ts',
+    page: 'SketchPage.vue',
+    embed: 'SketchEmbed.vue',
+  }
+  test('[CV-08] [CV-67] a file type names the surfaces its preview shows on', () => {
+    expect(
+      moduleProblems(
+        {
+          ...base,
+          fileTypes: [
+            type,
+            { ...type, id: 'board', embedIn: ['document'] },
+            { ...type, id: 'screen', embedIn: ['document', 'canvas'] },
+          ],
+        },
+        'notes',
+      ),
+    ).toEqual([])
+    for (const wrong of [
+      { embedIn: ['wall'] },
+      { embedIn: [] },
+      { embedIn: 'canvas' },
+    ])
+      expect(
+        moduleProblems(
+          { ...base, fileTypes: [{ ...type, ...wrong }] },
+          'notes',
+        ),
+      ).toEqual([
+        'notes/module.ts: file type "sketch" names the surfaces its preview shows on: “document”, “canvas” or both.',
+      ])
+  })
+})
+
 describe('a module’s prototype actions', () => {
   test('[PR-47] a module may add items to the prototype menu from a file of its own', () => {
     expect(

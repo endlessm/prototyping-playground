@@ -83,7 +83,7 @@ Links use permanent IDs kept in each file, so a link to a prototype, view, state
 
 **Diagrams** are standalone Mermaid files, drawn in the studio's light or dark colours. A diagram with a syntax error shows the error instead.
 
-**Canvases** use Excalidraw. Drag an artifact from the file tree onto the canvas, or paste its link, to place a live picture of it next to your text, shapes and arrows. Documents show as cards. Other people's canvases and canvases on the deployed site are read-only.
+**Canvases** use Excalidraw. Drag an artifact from the file tree onto the canvas, or paste its link, to place it next to your text, shapes and arrows. Views, states and diagrams show as live pictures; documents and other canvases show as cards. Click an item's title bar to open it. A link to a deleted file, or to another prototype, shows a card that says so. Other people's canvases and canvases on the deployed site are read-only.
 
 A canvas saves itself a moment after you stop drawing, and when you leave it or switch tabs. The status at the bottom right says **Saved**, **Saving…**, **Unsaved changes** or **Couldn't save**, with **Retry**. When the agent edits the same canvas, its changes come in without a reload, merged with yours. If you leave while a save can't finish, the studio asks whether to keep editing or discard your changes.
 
