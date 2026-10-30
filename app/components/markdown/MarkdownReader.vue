@@ -143,6 +143,7 @@ const toc = computed(
             :components="components"
           />
         </Suspense>
+        <slot name="footer" />
       </article>
       <MarkdownToc
         v-if="toc"
