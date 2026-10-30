@@ -712,7 +712,9 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     await visible(page.getByText(file, { exact: true }))
     await visible(page.getByText('Read-only', { exact: true }))
     expect(
-      await editor(page, file).evaluate((node) => node.isContentEditable),
+      await editor(page, file).evaluate(
+        (node) => (node as HTMLElement).isContentEditable,
+      ),
     ).toBe(false)
     // JavaScript: the keyword is coloured, unlike plain text.
     const plain = await editor(page, file).evaluate(

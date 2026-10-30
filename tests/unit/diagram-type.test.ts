@@ -7,7 +7,7 @@ import { template } from '../../src/modules/diagrams/types/diagram/template'
 describe('the Diagrams module', () => {
   test('[PR-117] a .mermaid or .mmd file in a prototype is a diagram, with a page, a preview in documents, and its text shipped to the deployed site', () => {
     expect(diagrams.id).toBe('diagrams')
-    expect(diagrams.required).toBeFalsy()
+    expect('required' in diagrams).toBe(false)
     expect(diagrams.fileTypes).toEqual([
       expect.objectContaining({
         id: 'diagram',
