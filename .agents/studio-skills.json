@@ -11,8 +11,12 @@
   ".claude/skills/studio-platform-manage-modules/SKILL.md": "5dec8131f0d26b26ef13922693b72497970b8828f7ec2b8652c35dbed2790652",
   ".agents/skills/studio-platform-setup-contributor/SKILL.md": "cbb29086ab93a1052ad833084c9dd8b9db4bda300d6f3f82f02f99c0d0436b9c",
   ".claude/skills/studio-platform-setup-contributor/SKILL.md": "cbb29086ab93a1052ad833084c9dd8b9db4bda300d6f3f82f02f99c0d0436b9c",
+  ".agents/skills/studio-module-canvas-use-canvas/SKILL.md": "98053f1b4c9e82564519725fddd25bc33e01a65f9b0d8d6e5301416f8bfe008e",
+  ".claude/skills/studio-module-canvas-use-canvas/SKILL.md": "98053f1b4c9e82564519725fddd25bc33e01a65f9b0d8d6e5301416f8bfe008e",
   ".agents/skills/studio-module-contributors-use-contributors/SKILL.md": "e0b5f31cabd8af04c69e079050838bdd9d28ae17299c6035d038930773549e3b",
   ".claude/skills/studio-module-contributors-use-contributors/SKILL.md": "e0b5f31cabd8af04c69e079050838bdd9d28ae17299c6035d038930773549e3b",
-  ".agents/skills/studio-module-prototypes-build-prototype/SKILL.md": "fe360293a621fe09fa98288fa78ada8fd02809e85e250edd82aa2a532d735631",
-  ".claude/skills/studio-module-prototypes-build-prototype/SKILL.md": "fe360293a621fe09fa98288fa78ada8fd02809e85e250edd82aa2a532d735631"
+  ".agents/skills/studio-module-document-write-document/SKILL.md": "4261d546db81a3cda9a65abba524d8cc09e26fdd69e01767a6c8fcd0eb2cafee",
+  ".claude/skills/studio-module-document-write-document/SKILL.md": "4261d546db81a3cda9a65abba524d8cc09e26fdd69e01767a6c8fcd0eb2cafee",
+  ".agents/skills/studio-module-prototypes-build-prototype/SKILL.md": "912aa968de21b42de282b71857839d746e1593b232cc1c44ab7f2811579c8041",
+  ".claude/skills/studio-module-prototypes-build-prototype/SKILL.md": "912aa968de21b42de282b71857839d746e1593b232cc1c44ab7f2811579c8041"
 }
