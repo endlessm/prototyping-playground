@@ -84,6 +84,21 @@ describe('the setup prompt', () => {
     expect(skill.match(/shadcn/gi)).toEqual(['shadcn'])
   })
 
+  test('[SY-154] [SY-155] the other design-system skills are written for Vue and Nuxt UI', () => {
+    const document = readFileSync(
+      'src/modules/systems/skills/document-component/SKILL.md',
+      'utf8',
+    )
+    expect(document).toContain('yarn component-docs')
+    const check = readFileSync(
+      'src/platform/skills/check-design-system/SKILL.md',
+      'utf8',
+    )
+    expect(check).toContain('Nuxt UI')
+    for (const skill of [document, check])
+      expect(skill).not.toMatch(/shadcn|React|\.tsx\b|\bpnpm\b/)
+  })
+
   test('[SY-74] [SY-75] [SY-77] neither path mentions shadcn or React', () => {
     for (const path of ['vue', 'nuxt-ui'] as const)
       expect(
