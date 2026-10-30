@@ -33,6 +33,17 @@ export interface ReferenceAdapter {
   extensions: string[]
   /** The source with its references resolved through the context. */
   move: (source: string, file: string, context: MoveReferenceContext) => string
+  /**
+   * A copied prototype's file with the original's permanent IDs it names
+   * replaced by the copy's (`ids`, old to new), when the kind of source
+   * records such a change itself (a canvas element's new version). Without
+   * one, the IDs are replaced as text.
+   */
+  copy?: (
+    source: string,
+    file: string,
+    ids: ReadonlyMap<string, string>,
+  ) => string
 }
 
 /** Every file a reference can name or hold, with its identity on disk. */
