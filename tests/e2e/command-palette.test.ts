@@ -96,7 +96,7 @@ for (const deployed of [false, true]) {
         .toContain('/artifacts/smbr000000000001')
     })
 
-    test('[SY-03] [PR-19] systems, documents and canvases join the palette and tree', async () => {
+    test('[SY-03] [PR-19] systems, documents, canvases and diagrams join the palette and tree', async () => {
       const page = await newPage()
       for (const destination of [
         {
@@ -108,6 +108,11 @@ for (const deployed of [false, true]) {
           prototype: 'skchp00000000001',
           query: 'Sketch',
           artifact: 'skp1an0000000001',
+        },
+        {
+          prototype: 'd1a6000000000p01',
+          query: 'Sign-in',
+          artifact: 'd1a6000000000p02',
         },
       ]) {
         await page.goto(studio.url + 'prototypes/' + destination.prototype)
