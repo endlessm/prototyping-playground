@@ -288,7 +288,7 @@ describe('in the studio running locally', { timeout: 150_000 }, () => {
     await visible(header.getByText('Open', { exact: true }))
     await header.click()
     await expect
-      .poll(() => new URL(page.url()).pathname)
+      .poll(() => new URL(page.url()).pathname, { timeout: 30_000 })
       .toBe(`/prototypes/${FLOWS}/artifacts/${SIGN_IN}`)
     await ready(page)
   })

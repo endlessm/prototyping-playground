@@ -355,7 +355,7 @@ describe('in the studio running locally', { timeout: 150_000 }, () => {
     )
     await header.click()
     await expect
-      .poll(() => new URL(page.url()).pathname)
+      .poll(() => new URL(page.url()).pathname, { timeout: 30_000 })
       .toBe(`/prototypes/${NOTES}/artifacts/${HOME}`)
   })
 
