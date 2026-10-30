@@ -23,6 +23,8 @@ import { newPrototype } from './new.ts'
 import { requireAdmin } from './permissions.ts'
 import { preferences } from './preferences.ts'
 import { context, status } from './status.ts'
+import { configure } from './configure.ts'
+import { sync, syncInFreshProcess } from './sync.ts'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 
@@ -35,6 +37,19 @@ interface Command {
 }
 
 const COMMANDS: Record<string, Command> = {
+  configure: {
+    usage:
+      'configure [--name <name>] [--tagline <text>] [--system <key|id|none>] [--admins <key,key>] [--maintainers <system=key,key>] [--recovery] [--yes]',
+    summary:
+      'preview or apply studio settings and roles; recovery uses repository access',
+    run: configure,
+  },
+  sync: {
+    usage: 'sync [--check]',
+    summary:
+      'refresh module guidance and skill adapters, or check without writing',
+    run: sync,
+  },
   status: {
     usage: 'status [--json]',
     summary:
@@ -128,6 +143,8 @@ const COMMANDS: Record<string, Command> = {
 }
 
 const SWITCHES = new Set([
+  '--recovery',
+  '--check',
   '--yes',
   '--content',
   '--force',
@@ -135,6 +152,8 @@ const SWITCHES = new Set([
   '--no-system',
 ])
 const VALUES = new Set([
+  '--tagline',
+  '--admins',
   '--label',
   '--key',
   '--name',
@@ -148,7 +167,7 @@ const VALUES = new Set([
   '--module',
   '--system',
 ])
-const LISTS = new Set(['--add-email', '--remove-email'])
+const LISTS = new Set(['--add-email', '--remove-email', '--maintainers'])
 
 function usage() {
   return [
@@ -204,6 +223,14 @@ try {
     if (command.shared === 'always' || (command.shared === 'yes' && flags.yes))
       requireAdmin(ROOT, flags)
     await command.run(ROOT, args, flags)
+    if (
+      name !== 'sync' &&
+      (command.shared === 'always' ||
+        flags.yes ||
+        flags.apply ||
+        name === 'new')
+    )
+      syncInFreshProcess(ROOT)
   }
 } catch (error) {
   if (!(error instanceof Refusal)) throw error
