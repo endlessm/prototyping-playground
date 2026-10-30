@@ -308,41 +308,49 @@ describe('items on a canvas in the studio running locally', () => {
     await studio?.stop()
   })
 
-  test('[CV-67] [CV-68] [CV-66] a view shows live, laid out at 1440 px, scaled to the item and cropped, taking no input', async () => {
-    const page = await canvasPage()
-    await open(page, studio, SINGLE)
-    const box = itemBox(page, 'home')
-    await previewReady(box)
-    expect(await frameText(box)).toBe('Welcome')
-    const layout = await box.evaluate((element) => {
-      const frame = element.querySelector('iframe')!
-      const body = frame.closest('[inert]')!
-      return {
-        frameWidth: frame.offsetWidth,
-        transform: (frame.parentElement as HTMLElement).style.transform,
-        preview: (element.querySelector('[data-preview-state]') as HTMLElement)
-          .style.height,
-        inert: body !== null,
-        pointer: getComputedStyle(body).pointerEvents,
-      }
-    })
-    // 478 px inside the border, 300 px below the header.
-    expect(layout.frameWidth).toBe(1440)
-    expect(Number(/scale\(([\d.]+)\)/.exec(layout.transform)?.[1])).toBeCloseTo(
-      478 / 1440,
-      5,
-    )
-    expect(layout.preview).toBe('300px')
-    expect(layout.inert).toBe(true)
-    expect(layout.pointer).toBe('none')
-    // A click on the preview selects the item instead of pressing its button.
-    await select(page, box)
-    expect(
-      await page.evaluate(
-        () => document.activeElement?.tagName.toLowerCase() ?? '',
-      ),
-    ).not.toBe('iframe')
-  })
+  // The first page compiles the canvas and the first preview document on a
+  // cold dev server.
+  test(
+    '[CV-67] [CV-68] [CV-66] a view shows live, laid out at 1440 px, scaled to the item and cropped, taking no input',
+    {
+      timeout: 180_000,
+    },
+    async () => {
+      const page = await canvasPage()
+      await open(page, studio, SINGLE)
+      const box = itemBox(page, 'home')
+      await previewReady(box)
+      expect(await frameText(box)).toBe('Welcome')
+      const layout = await box.evaluate((element) => {
+        const frame = element.querySelector('iframe')!
+        const body = frame.closest('[inert]')!
+        return {
+          frameWidth: frame.offsetWidth,
+          transform: (frame.parentElement as HTMLElement).style.transform,
+          preview: (
+            element.querySelector('[data-preview-state]') as HTMLElement
+          ).style.height,
+          inert: body !== null,
+          pointer: getComputedStyle(body).pointerEvents,
+        }
+      })
+      // 478 px inside the border, 300 px below the header.
+      expect(layout.frameWidth).toBe(1440)
+      expect(
+        Number(/scale\(([\d.]+)\)/.exec(layout.transform)?.[1]),
+      ).toBeCloseTo(478 / 1440, 5)
+      expect(layout.preview).toBe('300px')
+      expect(layout.inert).toBe(true)
+      expect(layout.pointer).toBe('none')
+      // A click on the preview selects the item instead of pressing its button.
+      await select(page, box)
+      expect(
+        await page.evaluate(
+          () => document.activeElement?.tagName.toLowerCase() ?? '',
+        ),
+      ).not.toBe('iframe')
+    },
+  )
 
   test('[CV-69] [CV-86] the title bar names the item, opens it in one click, and a wheel over it pans the canvas', async () => {
     const page = await canvasPage()
