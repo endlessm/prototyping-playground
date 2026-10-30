@@ -3,9 +3,11 @@
 // adapters, loaded once.
 import { pathToFileURL } from 'node:url'
 import { getRequestHeader, type H3Event } from 'h3'
+import { useRuntimeConfig } from 'nitropack/runtime'
 import type { FileServiceConfig } from '../nuxt-module.ts'
 import type { ReferenceAdapter } from '../references.ts'
 import { defaultIdentify, type FileServiceOptions } from '../source.ts'
+import { RELEASE_ROUTE } from '../watchers.ts'
 
 let fileTypes: Promise<FileServiceOptions['fileTypes']>
 let references: Promise<ReferenceAdapter[]>
@@ -22,6 +24,28 @@ export function sameOrigin(event: H3Event) {
   // Over plain http on a network address browsers leave it out.
   const origin = getRequestHeader(event, 'origin')
   return !origin || origin === `http://${getRequestHeader(event, 'host')}`
+}
+
+/**
+ * Asks the dev server's main process to have its file watchers let go of a
+ * folder before it is renamed or trashed (`../watchers.ts`); resolves to how
+ * to have them watch it again.
+ */
+export function releaser(event: H3Event, config: FileServiceConfig) {
+  const base = useRuntimeConfig(event).app.baseURL
+  const url = `http://${getRequestHeader(event, 'host')}${base}${RELEASE_ROUTE}`
+  const call = (folder: string, restore: boolean) =>
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: config.releaseToken, folder, restore }),
+    }).catch(() => undefined)
+  return async (folder: string) => {
+    await call(folder, false)
+    return async () => {
+      await call(folder, true)
+    }
+  }
 }
 
 export function loadFileTypes(config: FileServiceConfig) {

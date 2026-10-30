@@ -372,6 +372,35 @@ describe('reaching files', () => {
     expect(launched[0]!.command).toBe('/usr/bin/open')
   })
 
+  test('[PR-33] a prototype’s folder opens in a code editor, or is shown with what else to do', async () => {
+    const editors = [{ name: 'Zed', command: 'zed', args: [] }]
+    expect(
+      await tree({
+        editors,
+        launch: async (command, args) => {
+          launched.push({ command, args })
+        },
+      }).open({ prototype: BEN_DEMO, path: '' }),
+    ).toEqual({ opened: true, editor: 'Zed' })
+    expect(launched).toEqual([
+      { command: 'zed', args: [at('src/prototypes/ben/demo')] },
+    ])
+    launched.length = 0
+    expect(
+      await tree({ platform: 'win32' }).open({ prototype: BEN_DEMO, path: '' }),
+    ).toEqual({
+      opened: false,
+      message:
+        'No supported code editor is installed, so the folder is shown in File Explorer. Edit source is available in the studio, or copy its path.',
+    })
+    expect(launched).toEqual([
+      {
+        command: 'explorer.exe',
+        args: [`/select,${at('src/prototypes/ben/demo')}`],
+      },
+    ])
+  })
+
   test('[SH-63] LAUNCH_EDITOR goes first among the installed editors', () => {
     const editors = installedEditors(
       'win32',

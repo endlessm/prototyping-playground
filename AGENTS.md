@@ -27,6 +27,7 @@ Use yarn 4 through corepack and Node 22 (`mise.toml`). `yarn install` installs t
 - `yarn studio`: lists the studio commands. Commands that change files print a preview and change nothing until rerun with `--yes`; `enable` and `disable` apply right away. Shared changes (modules, configuration) need an Admin; restart the dev server after them.
   - Inspect: `status`, `whoami` (the contributor your Git identity resolves to), `context src/prototypes/<key>/<id> --json` (owner, system, pending rebuild, `role`, `canEdit`), `list`.
   - Contributors: `join`, `profile`, `preferences` (see `src/modules/contributors/README.md`). `--as <key>` runs one command as your own profile after a Git email change.
+  - Prototypes: `delete-prototype src/prototypes/<key>/<id> [--yes] [--json]` previews what would break or be lost, then deletes the folder for good (owner or Admin). Renaming, duplicating, archiving and restoring follow `src/modules/prototypes/skills/organize-prototype/SKILL.md`.
   - Permanent IDs: `identify src/prototypes/<key>/<id> [--yes] [--json]` (after writing files directly; previews first, works in your own prototypes, never replaces an ID) and `identity-audit [--json]` (counts resources, reports missing, malformed and duplicate IDs; exits 1 on any).
   - Modules: `enable`, `disable`, `remove`, `create-module`.
   - Dev server: `dev status`, `dev restart`, `dev stop`. The running server records itself in `.studio/runtime/`, and a second one is refused unless `STUDIO_DEV_FORCE=1`. Restart or stop the studio's server only through these commands, never by port or process name.
@@ -69,4 +70,5 @@ When the person asks for a standalone diagram inside a prototype, read [Diagrams
 When the person asks for a document inside a prototype, read [Documents: write-document](src/modules/document/skills/write-document/SKILL.md).
 When the person asks to add or change the human Manual, read [Manual: write-manual](src/modules/documentation/skills/write-manual/SKILL.md).
 When the person asks to create a prototype, or to create or edit its interactive views, read [Prototypes: build-prototype](src/modules/prototypes/skills/build-prototype/SKILL.md).
+When the person asks to rename, move, duplicate, archive, restore or delete a prototype, read [Prototypes: organize-prototype](src/modules/prototypes/skills/organize-prototype/SKILL.md).
 <!-- /studio:modules -->
