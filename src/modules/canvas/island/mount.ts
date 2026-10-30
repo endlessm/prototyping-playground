@@ -8,7 +8,12 @@ import { createRoot } from 'react-dom/client'
 import './canvas.css'
 import { CanvasEditor, type CanvasEditorProps } from './Editor'
 
-export type { CanvasEditorProps, CanvasHandle } from './Editor'
+export type {
+  CanvasEditorProps,
+  CanvasHandle,
+  CanvasItemHost,
+  CanvasItemState,
+} from './Editor'
 
 export function mountCanvas(element: HTMLElement, props: CanvasEditorProps) {
   const root = createRoot(element)

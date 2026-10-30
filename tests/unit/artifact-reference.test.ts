@@ -1,7 +1,10 @@
 // How a document's links and embeds find artifacts: only inside its own
 // prototype, by a path relative to the document or a permanent address.
 import { describe, expect, test } from 'vitest'
-import { resolveReference } from '../../app/utils/artifactReference'
+import {
+  embedPresentation,
+  resolveReference,
+} from '../../app/utils/artifactReference'
 import type {
   ManifestArtifact,
   ManifestPrototype,
@@ -144,5 +147,35 @@ describe('a reference that can’t be shown', () => {
         'required',
       ),
     ).toEqual({ state: 'unavailable', code: 'elsewhere' })
+  })
+})
+
+describe('how an artifact shows where it is placed', () => {
+  const view = { embed: true, embedIn: ['document', 'canvas'] as const }
+  const anywhere = { embed: true }
+  const canvas = { embed: true, embedIn: ['document'] as const }
+
+  test('[CV-67] [CV-71] a type with a preview shows live on the surfaces it names, else as a card', () => {
+    expect(embedPresentation(view, 'canvas')).toBe('preview')
+    expect(embedPresentation(view, 'document')).toBe('preview')
+    expect(embedPresentation(anywhere, 'canvas')).toBe('preview')
+    expect(embedPresentation({}, 'canvas')).toBe('card')
+    expect(embedPresentation(undefined, 'document')).toBe('card')
+  })
+
+  test('[CV-08] a canvas previews in a document but shows as a card on another canvas', () => {
+    expect(embedPresentation(canvas, 'document')).toBe('preview')
+    expect(embedPresentation(canvas, 'canvas')).toBe('card')
+  })
+
+  test('[CV-70] a named state on a canvas is titled “View · State”', () => {
+    expect(
+      resolveReference(
+        `/prototypes/${prototype.id}/artifacts/s000000000000001`,
+        { prototype, artifact: board },
+        artifacts,
+        { extension: 'required', presentation: embeds, extensions: [] },
+      ),
+    ).toMatchObject({ artifact: { title: 'Home · Signed in' } })
   })
 })
