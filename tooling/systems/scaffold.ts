@@ -1,5 +1,5 @@
 // Templates for a component's page: its examples file and its
-// Markdown page, from templates, written next to the component file. A flat
+// Markdown page, written next to the component file. A flat
 // component (`button.vue`) first moves into a folder of its own with the
 // files that share its name and an `index.ts` that re-exports it. Files that
 // exist are never touched. `yarn component-docs` and the component editor's
