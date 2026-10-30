@@ -3,8 +3,12 @@ import { scenario } from './setup/scenario'
 
 // The parity fixture Tree (tests/fixtures/parity): Home, and Details and
 // sign-in in a folder "flows". The new studio runs on the committed
-// fixtures, so each drag here is shown and then let go on the row it
-// started from, where nothing is dropped: nothing moves. Dropping,
+// fixtures, and the file tree scenario runs next on the same React copy, so
+// each drag here is shown and then let go over the prototype's title,
+// outside the tree, where neither studio drops anything: nothing moves.
+// (Not on the row it started from: React's row refuses itself, so the drop
+// falls through to the whole list, "the top level, last", and moves it.)
+// Dropping,
 // Alt+arrows and repairing links are the browser scenarios'
 // (tests/e2e/file-tree-moves.test.ts). Arranging needs someone who may
 // change the prototype: Bernardo, its owner, as the GitHub CLI resolves
@@ -32,7 +36,7 @@ scenario(
       height: number
     }) => [where.x + where.width / 2, where.y + where.height / 2] as const
 
-    /** Drags `name` to a spot, takes the step, and lets go where it began. */
+    /** Drags `name` to a spot, takes the step, and lets go outside the tree. */
     async function show(
       name: string,
       to: readonly [number, number],
@@ -44,7 +48,7 @@ scenario(
       await page.mouse.move(...to, { steps: 10 })
       await page.waitForTimeout(300)
       await step(title)
-      await page.mouse.move(...start, { steps: 10 })
+      await page.mouse.move(...middle(await box('Tree')), { steps: 10 })
       await page.mouse.up()
     }
 
@@ -61,5 +65,10 @@ scenario(
     )
     await expect.poll(() => link('Details').isVisible()).toBe(true)
     await expect.poll(() => link('Home').isVisible()).toBe(true)
+    // Nothing moved: Details is still in Flows, and Home still first.
+    await page.waitForTimeout(2_000)
+    const left = async (name: string) => (await box(name)).x
+    expect(await left('Details')).toBeGreaterThan(await left('Flows'))
+    expect((await box('Home')).y).toBeLessThan((await box('Flows')).y)
   },
 )
