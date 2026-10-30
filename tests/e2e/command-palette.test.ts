@@ -44,9 +44,15 @@ for (const deployed of [false, true]) {
           .getAttribute('data-disabled'),
       ).not.toBeNull()
       await input.fill('overview')
-      await expect.poll(() => page.getByRole('option').count()).toBe(1)
+      // Home's hidden synonym, and the Manual's "Overview" chapter by its title.
+      await expect.poll(() => page.getByRole('option').count()).toBe(2)
       expect(
         await page.getByRole('option', { name: 'Home', exact: true }).count(),
+      ).toBe(1)
+      expect(
+        await page
+          .getByRole('option', { name: 'Overview', exact: true })
+          .count(),
       ).toBe(1)
       await input.fill('configuration')
       await expect
@@ -94,8 +100,21 @@ for (const deployed of [false, true]) {
       await expect
         .poll(() => page.url())
         .toContain('/artifacts/smbr000000000001')
-    })
+    }, 180_000)
 
+    test('[PR-19] archived prototypes remain searchable locally and leave the deployed palette', async () => {
+      const page = await newPage()
+      await page.goto(studio.url)
+      await page
+        .getByRole('button', { name: 'Search (Ctrl+K)', exact: true })
+        .click()
+      await page.getByPlaceholder('Search the studio').fill('Shelf')
+      await expect
+        .poll(() => page.getByRole('option', { name: /^Shelf/ }).count(), {
+          timeout: 30_000,
+        })
+        .toBe(deployed ? 0 : 1)
+    })
     test('[PR-140] [SH-43] finds real Manual chapters and disables the current chapter', async () => {
       const page = await newPage()
       await page.goto(studio.url)
@@ -129,21 +148,30 @@ for (const deployed of [false, true]) {
       for (const destination of [
         {
           prototype: 'd0c5000000000p01',
+          from: 'd0c5000000000p03',
           query: 'Brief',
           artifact: 'd0c5000000000p02',
         },
         {
           prototype: 'skchp00000000001',
+          from: 'emp1an0000000001',
           query: 'Sketch',
           artifact: 'skp1an0000000001',
         },
         {
           prototype: 'd1a6000000000p01',
+          from: 'd1a6000000000p04',
           query: 'Sign In',
           artifact: 'd1a6000000000p02',
         },
       ]) {
-        await page.goto(studio.url + 'prototypes/' + destination.prototype)
+        await page.goto(
+          studio.url +
+            'prototypes/' +
+            destination.prototype +
+            '/artifacts/' +
+            destination.from,
+        )
         const search = page.getByRole('button', {
           name: 'Search (Ctrl+K)',
           exact: true,

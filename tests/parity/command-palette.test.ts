@@ -95,3 +95,43 @@ scenario(
     await expect.poll(() => page.url()).toContain('/systems/8x5spen6xtvp96a9')
   },
 )
+
+scenario(
+  '[PR-140] [SH-43] real Manual chapters in the command palette',
+  async ({ page, url, step }) => {
+    await page.goto(url)
+    await page
+      .getByRole('button', { name: /Search/ })
+      .first()
+      .waitFor({ state: 'visible', timeout: 120_000 })
+    await page.keyboard.press('Control+k')
+    const input = page.getByPlaceholder('Search the studio')
+    await input.waitFor({ state: 'visible', timeout: 120_000 })
+    await page
+      .getByText('Manual', { exact: true })
+      .last()
+      .scrollIntoViewIfNeeded()
+    await step('Manual group with empty search')
+    await input.fill('Working with your agent')
+    const chapter = page.getByRole('option', {
+      name: 'Working with your agent',
+      exact: true,
+    })
+    await chapter.waitFor({ state: 'visible', timeout: 30_000 })
+    await step('Manual group with a real chapter')
+    for (let index = 0; index < 20; index++) {
+      if (
+        (await chapter.getAttribute('data-highlighted')) !== null ||
+        (await chapter.getAttribute('data-selected')) === 'true' ||
+        (await chapter.getAttribute('aria-selected')) === 'true'
+      )
+        break
+      await input.press('ArrowDown')
+    }
+    await input.press('Enter')
+    await expect
+      .poll(() => page.url(), { timeout: 30_000 })
+      .toContain('/documentation/manual/agent')
+    await step('Manual chapter opened from the keyboard')
+  },
+)
