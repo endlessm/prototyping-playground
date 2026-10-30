@@ -48,7 +48,10 @@ scenario(
       .toBe(true)
     await step('Context & Skills: the Platform and the modules')
 
-    await page.getByRole('button', { name: 'Search' }).click()
+    await page
+      .getByRole('button', { name: 'Search', exact: true })
+      .last()
+      .click()
     await page
       .getByRole('textbox', { name: 'Search context and skills' })
       .or(page.getByRole('searchbox', { name: 'Search context and skills' }))
