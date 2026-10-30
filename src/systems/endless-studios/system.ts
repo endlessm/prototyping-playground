@@ -40,6 +40,20 @@ export default {
       assets: ['icons'],
     },
   ],
+  icons: {
+    snippet: '<UIcon name="i-lucide-bell" class="size-5" />',
+    href: 'https://lucide.dev/icons/',
+    names: [
+      'i-lucide-bell',
+      'i-lucide-search',
+      'i-lucide-gamepad-2',
+      'i-lucide-graduation-cap',
+      'i-lucide-trophy',
+      'i-lucide-users',
+      'i-lucide-calendar',
+      'i-lucide-settings',
+    ],
+  },
   origin: null,
   studioId: '8x5spen6xtvp96a9',
   app: {
