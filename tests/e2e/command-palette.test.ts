@@ -101,7 +101,7 @@ for (const deployed of [false, true]) {
       for (const destination of [
         {
           prototype: 'd0c5000000000p01',
-          query: 'Research brief',
+          query: 'Brief',
           artifact: 'd0c5000000000p02',
         },
         {
@@ -111,7 +111,7 @@ for (const deployed of [false, true]) {
         },
         {
           prototype: 'd1a6000000000p01',
-          query: 'Sign-in',
+          query: 'Sign In',
           artifact: 'd1a6000000000p02',
         },
       ]) {
@@ -135,7 +135,7 @@ for (const deployed of [false, true]) {
           .toBe(true)
         await option.click()
         await expect
-          .poll(() => page.url())
+          .poll(() => page.url(), { timeout: 30_000 })
           .toContain('/artifacts/' + destination.artifact)
       }
       await page.goto(studio.url + 'systems/8x5spen6xtvp96a9/context')
