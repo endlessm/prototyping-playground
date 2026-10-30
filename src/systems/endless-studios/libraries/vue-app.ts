@@ -1,6 +1,6 @@
 // The single entry point to the Endless Studios Vue runtime. The preview document and the system's tests create
 // every app here, so they share one set of plugins and stand-ins.
-import { createApp, createSSRApp, h, Suspense, type App, type Component } from 'vue';
+import { createApp, createSSRApp, defineAsyncComponent, h, Suspense, type App, type Component } from 'vue';
 import ui from '@nuxt/ui/vue-plugin';
 import UApp from '@nuxt/ui/components/App.vue';
 import { addCollection } from '@iconify/vue';
@@ -12,9 +12,11 @@ import { mixin } from '../runtime/mixin';
 import { NuxtLink } from '../runtime/navigation';
 import { createDayjs, NUXT_APP_KEY, type NuxtAppStandIn } from '../runtime/nuxt-app';
 import { createSampleStore, type StoreSample } from '../runtime/store';
-import AppShell from '../runtime/AppShell.vue';
 
 addCollection(lucide);
+
+// Loaded only by screens that ask for it: the copied sidebar, top bar and footer, with their styles, stay out of the rest.
+const AppShell = defineAsyncComponent(() => import('../runtime/AppShell.vue'));
 
 export { sampleUsers };
 export type { SampleUser, SampleUserName, UserOption, QuerySamples, StoreSample };
