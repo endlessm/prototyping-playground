@@ -123,8 +123,9 @@ function takeFile(
       lastIds,
       {
         reconcile: (local, theirs) =>
+          // Excalidraw's own elements carry their fractional index.
           reconcileElements(
-            local,
+            local as never,
             theirs as never,
             api.getAppState(),
           ) as ExcalidrawElement[],
@@ -135,7 +136,7 @@ function takeFile(
     elements,
     appState: {
       viewBackgroundColor: file.background,
-      ...(file.gridSize != null ? { gridSize: file.gridSize } : {}),
+      gridSize: file.gridSize ?? api.getAppState().gridSize,
     },
     captureUpdate: CaptureUpdateAction.NEVER,
   })
