@@ -8,19 +8,12 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { parse } from 'yaml'
 import { directories, posix, treeFiles } from '../manifest/build.ts'
-import type { SystemAssetKind, SystemLibrary } from './contract.ts'
+import type { SystemAssetKind, SystemIcons, SystemLibrary } from './contract.ts'
 import type { InstalledSystem } from './registry.ts'
 import { isBinaryFile, isTextContent } from './text-files.ts'
+import { stylesheetTokens, type ThemeToken, type TokenGroup } from './tokens.ts'
 
-export type TokenGroup =
-  | 'colors'
-  | 'typography'
-  | 'radius'
-  | 'shadows'
-  | 'spacing'
-  | 'motion'
-  | 'effects'
-  | 'other'
+export type { ColorSection, ThemeToken, TokenGroup } from './tokens.ts'
 
 /** The theme's pages, in navigation order. */
 export const TOKEN_GROUPS: TokenGroup[] = [
@@ -71,6 +64,16 @@ export interface CatalogSkill {
   files: string[]
 }
 
+export interface CatalogAsset {
+  /** Its address under the asset page: inside `assets/`, or inside the copied source. */
+  path: string
+  kind: SystemAssetKind
+  /** Added to the system's `assets/`, or one of the copied app's images. */
+  origin: 'local' | 'app'
+  /** Inside the system's folder. */
+  file: string
+}
+
 export interface SystemCatalog {
   id: string
   key: string
@@ -82,14 +85,15 @@ export interface SystemCatalog {
   summary: string | null
   guidance: string | null
   code: string | null
+  /** The Icons page's sample, or null. */
+  icons: SystemIcons | null
   /** The theme's stylesheet, repository-relative, or null. */
   stylesheet: string | null
   libraries: CatalogLibrary[]
-  /** Each token name once, by page, in declaration order within a page. */
-  tokens: { name: string; group: TokenGroup }[]
+  /** Each token once, by page, in declaration order within a page. */
+  tokens: ThemeToken[]
   components: CatalogComponent[]
-  /** Under `assets/`. */
-  assets: { path: string; kind: SystemAssetKind }[]
+  assets: CatalogAsset[]
   context: CatalogDocument[]
   /** Every folder inside `context/`, in file-tree order, empty ones too. */
   contextFolders: string[]
@@ -130,41 +134,6 @@ export function documentTitle(source: string, file: string) {
 export function skillTitle(name: string) {
   const words = name.replace(/-+/g, ' ').trim()
   return words.charAt(0).toUpperCase() + words.slice(1)
-}
-
-function groupOf(name: string, value: string): TokenGroup {
-  if (/^--(color|ui-color|ui-bg|ui-text|ui-border)/.test(name)) return 'colors'
-  if (/^--(font|text|leading|tracking)/.test(name)) return 'typography'
-  if (/^--(radius|ui-radius)/.test(name)) return 'radius'
-  if (/^--(shadow|inset-shadow|drop-shadow|text-shadow)/.test(name))
-    return 'shadows'
-  if (/^--(spacing|space|container)/.test(name)) return 'spacing'
-  if (/^--(ease|animate|duration|transition|default-transition)/.test(name))
-    return 'motion'
-  if (/^--(blur|backdrop-blur|perspective|aspect)/.test(name)) return 'effects'
-  if (
-    /^(#|rgba?\(|hsla?\(|oklch\(|oklab\(|lab\(|lch\(|color-mix\()/i.test(value)
-  )
-    return 'colors'
-  return 'other'
-}
-
-/** Custom properties declared by the stylesheet and the local files it imports. */
-function themeTokens(file: string, seen = new Set<string>()) {
-  const found: { name: string; value: string }[] = []
-  if (seen.has(file) || !existsSync(file)) return found
-  seen.add(file)
-  const css = readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
-  // Only relative imports are the system's own; packages bring their own.
-  for (const [, target] of css.matchAll(
-    /@import\s+(?:url\()?['"](\.[^'"]+)['"]/g,
-  ))
-    found.push(...themeTokens(path.resolve(path.dirname(file), target!), seen))
-  for (const [, name, value] of css.matchAll(
-    /(?:^|[{;])\s*(--[A-Za-z0-9_-]+)\s*:\s*([^;}]*)/gm,
-  ))
-    found.push({ name: name!, value: value!.trim() })
-  return found
 }
 
 function installedVersion(dir: string, root: string, name: string) {
@@ -220,6 +189,47 @@ function skillsOf(system: InstalledSystem): CatalogSkill[] {
     })
 }
 
+function assetKind(file: string, icons: RegExp): SystemAssetKind | null {
+  const extension = path.extname(file).toLowerCase()
+  if (FONTS.includes(extension)) return 'fonts'
+  if (!IMAGES.includes(extension) && extension !== '.ico') return null
+  return icons.test(file) ? 'icons' : 'images'
+}
+
+/**
+ * The system's assets: the files in its `assets/` folder (fonts, icons
+ * under `icons/`, other images), then the copied app source's images
+ * (`<source>/assets/images/`, icons in its `Icons` folders). Package files
+ * aren't assets. The asset pages, the Overview's count and the files the
+ * studio serves all read this.
+ */
+export function systemAssets(system: InstalledSystem): CatalogAsset[] {
+  const local = filesIn(path.join(system.dir, 'assets')).flatMap((file) => {
+    const kind = assetKind(file, /^icons\//)
+    return kind
+      ? [{ path: file, kind, origin: 'local' as const, file: `assets/${file}` }]
+      : []
+  })
+  const source = system.spec.app.source
+  const images = source ? path.join(system.dir, source, 'assets/images') : null
+  const app = images
+    ? filesIn(images).flatMap((file) => {
+        const kind = assetKind(file, /(^|\/)icons\//i)
+        return kind && kind !== 'fonts'
+          ? [
+              {
+                path: `assets/images/${file}`,
+                kind,
+                origin: 'app' as const,
+                file: posix(path.join(source!, 'assets/images', file)),
+              },
+            ]
+          : []
+      })
+    : []
+  return [...local, ...app]
+}
+
 export function systemCatalog(
   system: InstalledSystem,
   root: string,
@@ -228,9 +238,13 @@ export function systemCatalog(
   const stylesheet = spec.app.stylesheet
     ? path.join(dir, spec.app.stylesheet)
     : null
-  const tokens = new Map<string, TokenGroup>()
-  for (const { name, value } of stylesheet ? themeTokens(stylesheet) : [])
-    if (!tokens.has(name)) tokens.set(name, groupOf(name, value))
+  const tokens =
+    stylesheet && existsSync(stylesheet)
+      ? stylesheetTokens(stylesheet, {
+          themeClass: spec.themeClass,
+          nuxtUiColors: spec.app.nuxtUi?.colors,
+        })
+      : []
   const componentsDir = path.join(dir, 'components')
   const contextDir = path.join(dir, 'context')
   return {
@@ -243,6 +257,7 @@ export function systemCatalog(
     summary: text(spec.overview?.summary),
     guidance: text(spec.overview?.guidance),
     code: text(spec.overview?.code),
+    icons: spec.icons ?? null,
     stylesheet:
       stylesheet && existsSync(stylesheet)
         ? posix(path.relative(root, stylesheet))
@@ -254,9 +269,7 @@ export function systemCatalog(
       assets: assets ?? [],
     })),
     tokens: TOKEN_GROUPS.flatMap((group) =>
-      [...tokens]
-        .filter(([, found]) => found === group)
-        .map(([name]) => ({ name, group })),
+      tokens.filter((token) => token.group === group),
     ),
     components: directories(componentsDir).flatMap((slug) => {
       const files = treeFiles(path.join(componentsDir, slug))
@@ -273,17 +286,7 @@ export function systemCatalog(
         },
       ]
     }),
-    assets: filesIn(path.join(dir, 'assets')).flatMap((file) => {
-      const extension = path.extname(file).toLowerCase()
-      const kind: SystemAssetKind | null = FONTS.includes(extension)
-        ? 'fonts'
-        : !IMAGES.includes(extension) && extension !== '.ico'
-          ? null
-          : file.startsWith('icons/')
-            ? 'icons'
-            : 'images'
-      return kind ? [{ path: file, kind }] : []
-    }),
+    assets: systemAssets(system),
     context: filesIn(contextDir)
       .filter((file) => file.toLowerCase().endsWith('.md'))
       .map((file) => ({

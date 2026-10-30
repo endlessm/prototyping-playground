@@ -41,6 +41,7 @@ import {
 import { systemContentProblems } from '../systems/catalog.ts'
 import { loadSystems, systemsFolder } from '../systems/registry.ts'
 import { moduleChecks } from '../checks/module-checks.ts'
+import { serveSystemAssets } from '../systems/serve-assets.ts'
 import {
   buildManifest,
   PROTOTYPES_FOLDER,
@@ -254,6 +255,9 @@ declare module '${MANIFEST_MODULE}' {
       { server: false },
     )
     addVitePlugin(previews.plugin, { server: false })
+    // The files the systems' asset pages show.
+    const assets = serveSystemAssets(nuxt, systems)
+    if (assets) addVitePlugin(assets, { server: false })
   },
 })
 

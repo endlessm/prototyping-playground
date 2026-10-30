@@ -1,10 +1,11 @@
-// The manifest the studio reads: prototypes, their artifacts in file-tree
-// order, the installed systems, and the contributors' names for bylines. Each prototype's artifact list is kept
+// The manifest the studio reads: prototypes, their artifacts in their
+// tree's order (the first opens with the prototype), the installed systems, and the contributors' names for bylines. Each prototype's artifact list is kept
 // apart, so the main manifest stays small and a list loads when its
 // prototype opens. Problems are reported as sentences naming the file.
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { isResourceId } from '../identity/resource-id.ts'
+import { byOrder, compare, parseOrder } from './order.ts'
 import { artifactTitle } from './titles.ts'
 import type {
   FidelityAdapter,
@@ -132,9 +133,7 @@ export interface BuiltManifest {
 }
 
 export const posix = (file: string) => file.split(path.sep).join('/')
-export const compare = (a: string, b: string) =>
-  a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }) ||
-  (a < b ? -1 : a > b ? 1 : 0)
+export { compare }
 // Leading underscores mark a prototype's helpers; dot files are hidden.
 export const listed = (name: string) =>
   !name.startsWith('_') && !name.startsWith('.') && name !== 'node_modules'
@@ -167,6 +166,43 @@ export function treeFiles(dir: string, prefix = '', helpers = false): string[] {
     ),
     ...files.map((name) => `${prefix}${name}`),
   ]
+}
+
+/** The order saved in a prototype's meta.json, or none. */
+export function readOrder(dir: string): string[] {
+  try {
+    return (
+      parseOrder(
+        JSON.parse(readFileSync(path.join(dir, 'meta.json'), 'utf8')).order,
+      ) ?? []
+    )
+  } catch {
+    return []
+  }
+}
+
+/**
+ * A prototype's files in its tree's order (`./order.ts`): at each level
+ * the arranged entries, then files, then folders.
+ */
+export function arrangedFiles(
+  dir: string,
+  order: readonly string[] = readOrder(dir),
+  prefix = '',
+): string[] {
+  const entries = readdirSync(dir, { withFileTypes: true })
+    .filter((entry) => listed(entry.name))
+    .filter((entry) => entry.isDirectory() || entry.isFile())
+    .map((entry) => ({
+      name: entry.name,
+      path: `${prefix}${entry.name}`,
+      dir: entry.isDirectory(),
+    }))
+  return byOrder(entries, order).flatMap((entry) =>
+    entry.dir
+      ? arrangedFiles(path.join(dir, entry.name), order, `${entry.path}/`)
+      : [entry.path],
+  )
 }
 
 function readMeta(file: string, where: string, problems: string[]) {
@@ -263,7 +299,7 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
         status: meta.status === 'archived' ? 'archived' : 'active',
       })
       artifacts[id] = []
-      for (const file of treeFiles(dir)) {
+      for (const file of arrangedFiles(dir, parseOrder(meta.order) ?? [])) {
         const extension = path.extname(file).toLowerCase()
         const type = types.get(extension)
         if (!type) continue

@@ -41,3 +41,62 @@ scenario(
     await step('A Context document')
   },
 )
+
+scenario(
+  '[SY-86] [SY-87] [SY-88] [SY-89] [SY-90] [SY-93] [SY-100] [SY-165] [SY-170] Endless Studios’ theme and assets',
+  async ({ page, url, side, step }) => {
+    const heading = (name: string) =>
+      page.getByRole('heading', { name, exact: true }).first()
+    // The new studio draws the tokens inside the system's preview document.
+    const measured = async (token: string) => {
+      if (side !== 'vue') return
+      await expect
+        .poll(
+          () =>
+            page
+              .locator('iframe')
+              .first()
+              .contentFrame()
+              .locator(`[data-token="${token}"]`)
+              .getAttribute('data-value'),
+          { timeout: 120_000 },
+        )
+        .toMatch(/./)
+    }
+
+    await page.goto(`${url}systems/${ENDLESS}/colors`)
+    await shows(heading('Colors'))
+    await measured('--ui-text-muted')
+    await step('Colors')
+
+    await page.goto(`${url}systems/${ENDLESS}/typography`)
+    await shows(heading('Typography'))
+    await measured('--font-sans')
+    await step('Typography')
+
+    await page.goto(`${url}systems/${ENDLESS}/radius`)
+    await shows(heading('Radius'))
+    await measured('--radius-4xl')
+    await step('Radius')
+
+    await page.goto(`${url}systems/${ENDLESS}/icons`)
+    await shows(heading('Icons'))
+    await step('Icons')
+
+    await page.goto(`${url}systems/${ENDLESS}/images`)
+    await shows(heading('Images'))
+    // The copied app images' thumbnails.
+    if (side === 'vue')
+      await expect
+        .poll(
+          () =>
+            page
+              .locator('img')
+              .first()
+              .evaluate((image: HTMLImageElement) => image.naturalWidth),
+          { timeout: 60_000 },
+        )
+        .toBeGreaterThan(0)
+    await step('Images')
+  },
+)

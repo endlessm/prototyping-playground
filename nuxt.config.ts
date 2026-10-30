@@ -106,6 +106,8 @@ export default defineNuxtConfig({
         globInclude: [
           'app/**/*.{vue,ts}',
           'src/modules/**/*.{vue,ts}',
+          // A system's icon sample (`icons` in its declaration).
+          'src/systems/*/system.ts',
           'tests/fixtures/**/*.{vue,ts}',
           'node_modules/@nuxt/ui/dist/shared/*.mjs',
         ],

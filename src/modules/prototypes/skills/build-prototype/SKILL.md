@@ -9,7 +9,7 @@ The [prototypes README](../../README.md) is the contract; read the sections you 
 
 ## Before you start
 
-1. Find the prototype's folder, `src/prototypes/<contributor>/<folder>/`, and read its `meta.json`. `systemId` names its system, or `null` for no system. Work only in your own prototypes unless you are an Admin.
+1. Find the prototype's folder, `src/prototypes/<contributor>/<folder>/`, and read its `meta.json`. `systemId` names its system, or `null` for no system; `order`, when present, is the navigation's order (paths inside the prototype), and its first artifact is the one the prototype opens with. Work only in your own prototypes unless you are an Admin.
 2. For a system, read that system's `AGENTS.md` and follow it: it says which components, stand-ins and strings views use.
 3. To start a new prototype, run `yarn new "Prototype Name"` as the person. It uses the studio's default system; add `--system <folder name or ID>` for another, or `--no-system` for none, as they asked. It creates `src/prototypes/<their key>/<slug>/` with `meta.json` (the README lists its fields), your contributor ID as owner, and an empty starting view, `Prototype.vue`, and prints the address to open. Pass its refusals on as they are (someone who isn't a contributor yet must be added first). Build the first view in `Prototype.vue`, or rename it. A prototype folder written by hand instead needs `yarn studio identify src/prototypes/<contributor>/<folder> --json`, then `--yes`, to get its IDs and owner.
 
@@ -75,7 +75,7 @@ The [prototypes README](../../README.md) is the contract; read the sections you 
     </template>
     ```
 
-    `usePrototypeArtifactHref()` gives a function returning a path's address; `useIsPrototypeArtifact('Home')` says whether that view (or one of its states) is on screen. A path may keep its `?query` or `#anchor`; a target starting with `/` is a studio address. An unknown or ambiguous path stops the view with an error naming it. Links open in the studio, so Back and Forward work; `#anchors` scroll inside the view; other web addresses open in a new tab. When you rename or move a view, update the paths that link to it.
+    `usePrototypeArtifactHref()` gives a function returning a path's address; `useIsPrototypeArtifact('Home')` says whether that view (or one of its states) is on screen. A path may keep its `?query` or `#anchor`; a target starting with `/` is a studio address. An unknown or ambiguous path stops the view with an error naming it. Links open in the studio, so Back and Forward work; `#anchors` scroll inside the view; other web addresses open in a new tab. A rename or move made in the studio, or with your own tools while `yarn dev` runs, updates the imports, paths and links that reach the file, inside the prototype; without the dev server, update them yourself. A one-segment path (`Details`) is updated only in a `to` attribute or a `navigate(…)` call.
 
 ## Lo-fi
 
