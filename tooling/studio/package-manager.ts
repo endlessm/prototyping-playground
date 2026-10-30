@@ -9,7 +9,8 @@ export function yarn(
   args: string[],
   label = `yarn ${args.join(' ')}`,
 ) {
-  const launcher = process.env.npm_execpath
+  // Tests hand in a stand-in script for yarn.
+  const launcher = process.env.STUDIO_YARN || process.env.npm_execpath
   if (launcher) packageStep(root, label, process.execPath, [launcher, ...args])
   else packageStep(root, label, 'yarn', args)
 }

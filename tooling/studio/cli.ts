@@ -26,6 +26,13 @@ import { preferences } from './preferences.ts'
 import { context, status } from './status.ts'
 import { configure } from './configure.ts'
 import { sync, syncInFreshProcess } from './sync.ts'
+import {
+  archiveSystem,
+  createSystem,
+  deleteSystem,
+  renameSystem,
+  restoreSystem,
+} from './system-commands.ts'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 
@@ -137,9 +144,44 @@ const COMMANDS: Record<string, Command> = {
     shared: 'always',
   },
   remove: {
-    usage: 'remove <module> [--content] [--force] [--yes]',
-    summary: "delete a module's folder; --content deletes its content too",
+    usage: 'remove <module|system> [--content] [--force] [--yes]',
+    summary:
+      "delete a module's folder (--content deletes its content too), or a design system no prototype or document uses (--force anyway)",
     run: removeModule,
+    shared: 'yes',
+  },
+  'create-system': {
+    usage: 'create-system <id> [--label <name>] [--yes]',
+    summary:
+      'make an empty Vue design system, registered, ready to set up with your agent',
+    run: createSystem,
+    shared: 'yes',
+  },
+  'rename-system': {
+    usage: 'rename-system <id> --label <name> [--yes]',
+    summary:
+      'rename a system and its folder, repairing references (Admins and its maintainers)',
+    run: renameSystem,
+  },
+  'archive-system': {
+    usage: 'archive-system <id> [--yes]',
+    summary:
+      'archive a system and its active prototypes; its files stay, the deployed site leaves them out',
+    run: archiveSystem,
+    shared: 'yes',
+  },
+  'restore-system': {
+    usage: 'restore-system <id> [--restore-prototypes] [--yes]',
+    summary:
+      'restore an archived system, and optionally the prototypes archived with it',
+    run: restoreSystem,
+    shared: 'yes',
+  },
+  'delete-system': {
+    usage: 'delete-system <id> [--yes]',
+    summary:
+      "delete a system's files for good; its prototypes keep theirs and wait for a rebuild",
+    run: deleteSystem,
     shared: 'yes',
   },
   'create-module': {
@@ -158,6 +200,7 @@ const SWITCHES = new Set([
   '--force',
   '--json',
   '--no-system',
+  '--restore-prototypes',
 ])
 const VALUES = new Set([
   '--tagline',
