@@ -253,6 +253,21 @@
       "snap": "Snap to objects",
       "hideControls": "Hide controls",
       "showControls": "Show controls"
+    },
+    "save": {
+      "saved": "Saved",
+      "saving": "Saving…",
+      "unsaved": "Unsaved changes",
+      "failed": "Couldn’t save",
+      "retry": "Retry",
+      "keepsChanging": "Couldn’t save: the file keeps changing.",
+      "retrying": "Couldn’t save this canvas. Trying again."
+    },
+    "leave": {
+      "title": "This canvas has unsaved changes",
+      "description": "Saving hasn’t finished. Keep the canvas open to retry, or discard the unsaved changes.",
+      "keep": "Keep editing",
+      "discard": "Discard"
     }
   },
   "systems": {
