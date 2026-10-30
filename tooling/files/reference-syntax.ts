@@ -108,8 +108,8 @@ function codeEdits(
     attribute && body.length === 1 && body[0]!.type === 'ExpressionStatement'
       ? (body[0]!.expression as AstNode)
       : undefined
-  walk(ast as never, {
-    enter(raw, rawParent) {
+  walk(ast as unknown as Parameters<typeof walk>[0], {
+    enter(raw: unknown, rawParent: unknown) {
       const node = raw as unknown as AstNode
       const parent = rawParent as unknown as AstNode | null
       const literal =
