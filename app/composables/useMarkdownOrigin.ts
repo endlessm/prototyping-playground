@@ -16,6 +16,8 @@ export interface MarkdownOrigin {
 
 const ORIGIN: InjectionKey<() => MarkdownOrigin | undefined> =
   Symbol('markdown-origin')
+const LINKS: InjectionKey<(href: string) => string | undefined> =
+  Symbol('markdown-links')
 
 const extensions = Object.values(types).flatMap((type) => type.extensions)
 
@@ -24,6 +26,22 @@ export function provideMarkdownOrigin(
   origin: () => MarkdownOrigin | undefined,
 ) {
   provide(ORIGIN, origin)
+}
+
+/**
+ * Gives the reader below this component the studio address of a relative
+ * link, when it has one: the Manual and Context & Skills open the guidance
+ * files they link to in the documentation browser.
+ */
+export function provideMarkdownLinks(
+  resolve: (href: string) => string | undefined,
+) {
+  provide(LINKS, resolve)
+}
+
+/** The studio address its reader gives a relative link, if any. */
+export function useMarkdownLinks() {
+  return inject(LINKS, () => undefined)
 }
 
 /**
