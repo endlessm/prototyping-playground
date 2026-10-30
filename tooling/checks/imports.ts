@@ -54,6 +54,14 @@ export function sourceProblems(
   const allowed = (specifier: string) => {
     const name = specifier.split('?')[0]!
     if (name === 'vue' || name === '#studio/prototype') return true
+    // A component page's examples (`<name>.examples.vue`) mark each example
+    // with `<Example>`; only those system files may import it.
+    if (
+      name === '#studio/examples' &&
+      systemCode &&
+      file.endsWith('.examples.vue')
+    )
+      return true
     if (systemCode && policy.system) {
       const pkg = path.join(policy.system.dir, 'package.json')
       const dependencies = existsSync(pkg)

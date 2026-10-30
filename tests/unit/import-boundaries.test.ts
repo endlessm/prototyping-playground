@@ -40,6 +40,33 @@ test('[CL-117] system code cannot reach another system or Studio internals', () 
   ).toEqual([])
 })
 
+test('[CL-117] only a system component examples file imports #studio/examples', () => {
+  const system = {
+    dir: '/studio/src/systems/harbor',
+    spec: { libraries: [], app: {} },
+  } as unknown as InstalledSystem
+  const systemPolicy = { ...policy, system }
+  const source =
+    '<script setup>import { Example } from "#studio/examples"</script>'
+  expect(
+    sourceProblems(
+      source,
+      '/studio/src/systems/harbor/components/button/button.examples.vue',
+      systemPolicy,
+    ),
+  ).toEqual([])
+  expect(
+    sourceProblems(
+      source,
+      '/studio/src/systems/harbor/components/button/button.vue',
+      systemPolicy,
+    ).join(),
+  ).toContain('Forbidden import')
+  expect(sourceProblems(source, file, systemPolicy).join()).toContain(
+    'Forbidden import',
+  )
+})
+
 test('[PR-95] [CL-117] both Vue scripts, reexports and dynamic imports obey boundaries', () => {
   for (const source of [
     '<script>import x from "../../../ben/demo/data"</script><script setup>import { ref } from "vue"</script>',
