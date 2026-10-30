@@ -75,7 +75,7 @@ export function titleProblem(title: string) {
   return null
 }
 
-const localDate = (date = new Date()) =>
+export const localDate = (date = new Date()) =>
   [
     date.getFullYear(),
     String(date.getMonth() + 1).padStart(2, '0'),
@@ -91,7 +91,7 @@ function readJson(file: string): Record<string, unknown> {
 }
 
 /** The system's permanent ID, or null; refuses unknown and archived ones. */
-function systemFor(
+export function systemFor(
   root: string,
   config: Record<string, unknown>,
   wanted: unknown,

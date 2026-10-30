@@ -177,3 +177,16 @@ describe('a file type’s previews', () => {
       ])
   })
 })
+
+describe('a module’s prototype actions', () => {
+  test('[PR-47] a module may add items to the prototype menu from a file of its own', () => {
+    expect(
+      moduleProblems({ ...base, prototypeActions: 'actions.ts' }, 'notes'),
+    ).toEqual([])
+    expect(
+      moduleProblems({ ...base, prototypeActions: true }, 'notes'),
+    ).toEqual([
+      'notes/module.ts: "prototypeActions" names the .ts file whose default export lists its items for the prototype menu.',
+    ])
+  })
+})

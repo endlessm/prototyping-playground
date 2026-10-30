@@ -7,7 +7,7 @@ import { usePrototypeActions } from '../composables/usePrototypeActions'
 // not at all when there is nothing you may do.
 const props = defineProps<{ prototype: ManifestPrototype }>()
 const { t } = useI18n()
-const groups = usePrototypeActions(() => props.prototype)
+const { groups } = usePrototypeActions(() => props.prototype)
 </script>
 
 <template>
