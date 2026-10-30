@@ -14,6 +14,7 @@ import {
 import type { NuxtPage } from 'nuxt/schema'
 import type { Plugin } from 'vite'
 import type { ModulePage } from './contract.ts'
+import { guidanceData } from '../guidance/data.ts'
 import { buildDataStore } from './build-data.ts'
 import { loadRegistry, modulesForApp } from './registry.ts'
 
@@ -122,7 +123,10 @@ declare module '${DATA_MODULE}' {
       { nuxt: true, nitro: false, node: false },
     )
 
-    const store = buildDataStore(enabled, root, { dev: nuxt.options.dev })
+    const store = buildDataStore(enabled, root, {
+      dev: nuxt.options.dev,
+      studio: guidanceData,
+    })
     const base = nuxt.options.app.baseURL
     addVitePlugin(buildDataPlugin(store, base), { server: false })
   },

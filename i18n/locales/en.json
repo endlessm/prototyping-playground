@@ -479,5 +479,48 @@
       "fontFailed": "This font could not be previewed.",
       "pangram": "The quick brown fox jumps over the lazy dog."
     }
+  },
+  "documentation": {
+    "title": "Documentation",
+    "sections": "Documentation sections",
+    "manual": "Manual",
+    "context": "Context & Skills",
+    "chapters": "Chapters",
+    "loading": "Loading",
+    "noChapters": "The Manual has no chapters yet.",
+    "sharedBanner": "Shared platform documentation. Changes affect the studio for everyone on the team.",
+    "editSource": "Edit source",
+    "resources": "Resources",
+    "search": "Search",
+    "searchField": "Search context and skills",
+    "clear": "Clear search",
+    "noMatches": "No matching resources",
+    "modules": "Modules",
+    "toggle": "Show or hide {name}",
+    "kinds": {
+      "readme": "Document",
+      "context": "Context",
+      "skill": "Skill",
+      "reference": "Document"
+    },
+    "ownerIntro": {
+      "platform": "Shared knowledge and workflows for working in the studio.",
+      "module": "Knowledge and workflows that come with this module."
+    },
+    "ownerSections": {
+      "context": "Context",
+      "contextHint": "What agents should know when working here.",
+      "skills": "Skills",
+      "skillsHint": "Procedures agents follow for specific tasks.",
+      "noContext": "No context added.",
+      "noSkills": "No skills added."
+    },
+    "about": {
+      "title": "About this context",
+      "explanation": "This file owns the behavior it describes. Agents read it when it bears on their task; being listed here doesn’t mean an agent has read it.",
+      "related": "Documents that link here"
+    },
+    "skillFile": "Skill file",
+    "binary": "This file isn’t text. Open it in your editor."
   }
 }
