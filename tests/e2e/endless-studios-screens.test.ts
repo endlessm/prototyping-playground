@@ -185,6 +185,30 @@ function sharedScenarios(
     ).toBe(0)
   })
 
+  test('[SY-169] the app’s Nuxt UI colours apply inside the screen, and the studio keeps its own', async () => {
+    const page = await newPage()
+    await page.goto(address(studio(), DASHBOARD))
+    await ready(page)
+    await sees(view(page), 'Count 0')
+    // Primary is the app's orange: Tailwind's orange-500, #ff6900.
+    const orange = 'rgb(255, 105, 0)'
+    const button = await view(page)
+      .getByRole('button', { name: 'Count 0' })
+      .evaluate((element) => getComputedStyle(element).backgroundColor)
+    expect(button).toBe(orange)
+    // The studio's own primary, resolved on its page, is not.
+    const studioPrimary = await page.locator('body').evaluate(() => {
+      const probe = document.createElement('div')
+      probe.style.backgroundColor = 'var(--ui-primary)'
+      document.body.append(probe)
+      const value = getComputedStyle(probe).backgroundColor
+      probe.remove()
+      return value
+    })
+    expect(studioPrimary).not.toBe('rgba(0, 0, 0, 0)')
+    expect(studioPrimary).not.toBe(orange)
+  })
+
   test('[SY-184] signed out, the app shell shows the sign-up state', async () => {
     const page = await newPage()
     await page.goto(address(studio(), IN_THE_APP_SIGNED_OUT))
