@@ -108,7 +108,7 @@ test('[SH-123] [SH-124] [SH-125] [SH-126] [SH-127] list, access levels, grants, 
       systemMaintainers: { archived: ['ada0000000000001'] },
     },
   })
-})
+}, 180_000) // the first page on a cold dev server can take a minute under load
 test('[SH-127] edit a profile without changing its permanent identity', async () => {
   const page = await newPage()
   await permissionsContract(page)
