@@ -319,9 +319,9 @@ async function systemPlugins(system: InstalledSystem, root: string) {
   return plugins
 }
 
-// Development only: a view module tells the document its newest `states`
-// after each hot update, so a state's new props reach the open view without
-// a remount.
+// Development only: a view module tells the document its newest `states` and
+// `system` options after each hot update, so a state's new props reach the
+// open view without a remount, and new options rebuild it.
 function statesPlugin(options: PreviewOptions): Plugin {
   const folder = `${posix(options.prototypesDir)}/`
   return {
@@ -333,7 +333,7 @@ function statesPlugin(options: PreviewOptions): Plugin {
       const file = JSON.stringify(posix(id))
       return `${code}
 if (import.meta.hot) import.meta.hot.accept((next) => {
-  if (next) window.dispatchEvent(new CustomEvent('studio:states', { detail: { file: ${file}, states: next.states } }))
+  if (next) window.dispatchEvent(new CustomEvent('studio:exports', { detail: { file: ${file}, states: next.states, system: next.system } }))
 })
 `
     },

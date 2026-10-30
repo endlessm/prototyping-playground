@@ -1,0 +1,76 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "studioVersion": 1,
+  "studioId": "skp1an0000000001",
+  "elements": [
+    {
+      "id": "1",
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "width": 220,
+      "height": 45,
+      "seed": 1,
+      "version": 1,
+      "versionNonce": 1,
+      "index": "a1",
+      "text": "Sign-up flow",
+      "originalText": "Sign-up flow",
+      "fontSize": 36,
+      "fontFamily": 6
+    },
+    {
+      "id": "2",
+      "type": "rectangle",
+      "x": 0,
+      "y": 100,
+      "width": 320,
+      "height": 200,
+      "seed": 1,
+      "version": 1,
+      "versionNonce": 1,
+      "index": "a2",
+      "backgroundColor": "#a5d8ff",
+      "fillStyle": "solid"
+    },
+    {
+      "id": "3",
+      "type": "ellipse",
+      "x": 440,
+      "y": 100,
+      "width": 320,
+      "height": 200,
+      "seed": 1,
+      "version": 1,
+      "versionNonce": 1,
+      "index": "a3"
+    },
+    {
+      "id": "4",
+      "type": "arrow",
+      "x": 330,
+      "y": 200,
+      "width": 100,
+      "height": 0,
+      "seed": 1,
+      "version": 1,
+      "versionNonce": 1,
+      "index": "a4",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          100,
+          0
+        ]
+      ]
+    }
+  ],
+  "appState": {
+    "viewBackgroundColor": "#ffffff"
+  },
+  "files": {}
+}

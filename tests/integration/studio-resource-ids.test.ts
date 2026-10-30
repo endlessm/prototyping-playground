@@ -331,3 +331,46 @@ export const states = [
     )
   })
 })
+
+describe('documents', () => {
+  const folder = 'src/prototypes/ada/demo'
+  beforeEach(() => studio.withModule('document'))
+
+  test('[CL-49] [PR-115] identify gives a document its ID in the frontmatter, keeping its fields', () => {
+    prototype()
+    studio.write(`${folder}/Brief.md`, '---\ntitle: Brief\n---\n\n# Brief\n')
+    studio.write(`${folder}/Notes.md`, '# Notes\n')
+
+    const result = studio.studio('identify', folder, '--yes', '--json')
+    expect(result.status).toBe(0)
+    const plan: { assigned: { path: string; studioId: string }[] } = JSON.parse(
+      result.stdout,
+    )
+    const ids = Object.fromEntries(
+      plan.assigned.map(({ path, studioId }) => [path, studioId]),
+    )
+    expect(ids[`${folder}/Brief.md`]).toMatch(ID)
+    expect(studio.read(`${folder}/Brief.md`)).toBe(
+      `---\nstudioId: ${ids[`${folder}/Brief.md`]}\ntitle: Brief\n---\n\n# Brief\n`,
+    )
+    expect(studio.read(`${folder}/Notes.md`)).toBe(
+      `---\nstudioId: ${ids[`${folder}/Notes.md`]}\n---\n# Notes\n`,
+    )
+    expect(studio.studio('identity-audit').status).toBe(0)
+  })
+
+  test('[CL-48] [PR-114] the audit names a document missing its ID and one whose frontmatter is never closed', () => {
+    prototype()
+    studio.write(`${folder}/Brief.md`, '# Brief\n')
+    studio.write(
+      `${folder}/Open.md`,
+      '---\nstudioId: d0c5000000000001\n\nText\n',
+    )
+    const result = studio.studio('identity-audit')
+    expect(result.status).toBe(1)
+    expect(result.stdout + result.stderr).toContain(`${folder}/Brief.md`)
+    expect(result.stdout + result.stderr).toContain(
+      `${folder}/Open.md: close the frontmatter (the block at the top between --- lines) so the document’s permanent identity can be read.`,
+    )
+  })
+})

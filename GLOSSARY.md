@@ -1,4 +1,4 @@
-﻿# Endless Design Studio
+# Endless Design Studio
 
 The Endless team's language for building and reviewing product prototypes.
 
@@ -22,6 +22,10 @@ An addressable piece of a prototype, such as a view, named state, document, diag
 An interactive screen or flow within a prototype, using its assigned system's components.
 _Avoid_: VueScreen, Screen (as a separate artifact kind).
 
+**System options**:
+The locale, signed-in user and sample that describe the app around a view, with each named state able to override individual options.
+_Avoid_: screen props (props belong to the view).
+
 **Named state**:
 A titled variation of a view with its own permanent link, such as a signed-out or empty experience.
 
@@ -37,7 +41,7 @@ A local substitute for an app service that lets the product experience run witho
 _Avoid_: mock, shim.
 
 **Sample**:
-The chosen user, locale and example data that describe one demonstrated experience.
+The example store state, handlers and query responses a stand-in uses for one demonstrated experience.
 
 **Preview document**:
 The isolated presentation of a view or system example within the studio.

@@ -15,6 +15,7 @@ const MALFORMED =
   'A permanent identity must be 16 lowercase letters and digits (Crockford base32).'
 
 export const identity: IdentityAdapter = {
+  where: 'a leading <!-- @studio-id … --> comment',
   read(source) {
     const header = HEADER.exec(source)?.[0] ?? ''
     const ids = [...header.matchAll(/@studio-id\s+([^\s>]*?)\s*(?:-->|\s)/g)]

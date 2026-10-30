@@ -1,7 +1,11 @@
 // The identity adapters of modules' file types, loaded on Node.
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import type { FidelityAdapter, IdentityAdapter } from '../modules/contract.ts'
+import type {
+  FidelityAdapter,
+  FileCheck,
+  IdentityAdapter,
+} from '../modules/contract.ts'
 import type { InstalledModule } from '../modules/registry.ts'
 
 export interface IdentityFileType {
@@ -9,7 +13,7 @@ export interface IdentityFileType {
   extensions: string[]
   identity: IdentityAdapter
   /** The problems of one file's source, as sentences. */
-  check?: (source: string) => string[]
+  check?: FileCheck
   fidelity?: FidelityAdapter
 }
 

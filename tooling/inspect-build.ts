@@ -57,9 +57,17 @@ function scriptReferences(code: string) {
   ].map((match) => match[1]!)
   const lazy = [
     ...code.matchAll(/\bimport\(\s*["'`]([^"'`]+)["'`]\s*\)/g),
-    // Vite's preload dependency lists.
-    ...code.matchAll(/["'`](\.\.?\/[^"'`\s]+\.(?:js|mjs|css))["'`]/g),
-  ].map((match) => match[1]!)
+    // Vite's preload dependency lists: items of an array, unlike the keys
+    // and require calls of a bundled library's own module map (Mermaid's ELK).
+    ...code.matchAll(
+      /["'`](\.\.?\/[^"'`\s]+\.(?:js|mjs|css))["'`](?=\s*[,\]])/g,
+    ),
+  ]
+    .map((match) => match[1]!)
+    // A bundled dependency's module names from its own build, such as
+    // esbuild's CommonJS wrappers in Excalidraw, are paths into
+    // `node_modules`; a build never emits one.
+    .filter((reference) => !reference.includes('/node_modules/'))
   return { imports, lazy }
 }
 
