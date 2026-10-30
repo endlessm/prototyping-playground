@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest'
+import documentation from '../../src/modules/documentation/module'
 import { paletteGroups } from '../../app/utils/palette'
 
 test('[SY-03] [SH-42] [SH-43] [PR-19] enabled module data orders groups, preserves search terms and disables current destinations', () => {
@@ -124,4 +125,31 @@ test('[SY-03] a system remains disabled on its nested pages', () => {
     to: '/systems/sys',
     disabled: true,
   })
+})
+
+test('[PR-140] [SH-43] real Manual chapters precede later module groups and disable the current chapter', () => {
+  const groups = paletteGroups(
+    [
+      {
+        id: 'later',
+        label: 'Later',
+        paletteOrder: 40,
+        palette: [{ label: 'Later page', to: '/later', group: 'Later' }],
+      },
+      documentation,
+    ],
+    { prototypes: [], contributors: [], defaultSystem: null, systems: [] },
+    [],
+    { path: '/documentation/manual/agent' },
+    false,
+    { places: 'Places', home: 'Home', settings: 'Studio settings' },
+  )
+  expect(groups.map(({ label }) => label)).toEqual([
+    'Places',
+    'Manual',
+    'Later',
+  ])
+  expect(
+    groups[1]!.items.find(({ label }) => label === 'Working with your agent'),
+  ).toMatchObject({ to: '/documentation/manual/agent', disabled: true })
 })

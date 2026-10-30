@@ -96,6 +96,34 @@ for (const deployed of [false, true]) {
         .toContain('/artifacts/smbr000000000001')
     })
 
+    test('[PR-140] [SH-43] finds real Manual chapters and disables the current chapter', async () => {
+      const page = await newPage()
+      await page.goto(studio.url)
+      const search = page.getByRole('button', {
+        name: 'Search (Ctrl+K)',
+        exact: true,
+      })
+      await search.waitFor({ state: 'visible', timeout: 60_000 })
+      await search.click()
+      const input = page.getByPlaceholder('Search the studio')
+      await input.fill('Working with your agent')
+      const chapter = page.getByRole('option', {
+        name: 'Working with your agent',
+        exact: true,
+      })
+      await chapter.waitFor({ state: 'visible', timeout: 30_000 })
+      await chapter.click()
+      await expect
+        .poll(() => page.url(), { timeout: 30_000 })
+        .toContain('/documentation/manual/agent')
+      await expect.poll(() => input.isVisible()).toBe(false)
+      await search.click()
+      await input.fill('Working with your agent')
+      await expect
+        .poll(() => chapter.getAttribute('data-disabled'))
+        .not.toBeNull()
+    })
+
     test('[SY-03] [PR-19] systems, documents, canvases and diagrams join the palette and tree', async () => {
       const page = await newPage()
       for (const destination of [

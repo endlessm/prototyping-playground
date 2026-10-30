@@ -48,4 +48,3 @@ New system and the lifecycle actions (27), component pages and their editor (26)
 ## Command palette
 
 The Systems group lists registered systems as "<Name> system", in both the local studio and the deployed site (active systems only there). Choosing one opens its overview. The current system stays disabled on all its pages. The module declares paletteSource and paletteOrder; the studio builds the entries from the manifest.
-

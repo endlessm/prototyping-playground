@@ -31,6 +31,7 @@ const address = (slug: string) =>
 export default {
   id: 'documentation',
   label: 'Manual',
+  paletteOrder: 30,
   description: 'The Manual: how to use the studio, chapter by chapter.',
   rail: {
     position: 'top',
@@ -79,7 +80,7 @@ export default {
         )
         if (problems.length && !dev)
           throw new Error(
-            `The Manual has chapters that can’t be read:\n${problems.join('\n')}`,
+            `The Manual has chapters that canâ€™t be read:\n${problems.join('\n')}`,
           )
         for (const problem of problems)
           console.warn(`Warning: The Manual skipped ${problem}`)

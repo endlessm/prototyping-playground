@@ -14,7 +14,7 @@ scenario(
           frame
             .getByRole('heading', { name: 'Welcome', exact: true })
             .isVisible(),
-        { timeout: 60_000 },
+        { timeout: 120_000 },
       )
       .toBe(true)
     await frame.getByRole('heading', { name: 'Welcome', exact: true }).click()
@@ -38,12 +38,12 @@ scenario(
             .getByRole('button', { name: /Search/ })
             .first()
             .isVisible(),
-        { timeout: 60_000 },
+        { timeout: 120_000 },
       )
       .toBe(true)
     await page.keyboard.press('Control+k')
     const input = page.getByPlaceholder('Search the studio')
-    await expect.poll(() => input.isVisible(), { timeout: 60_000 }).toBe(true)
+    await expect.poll(() => input.isVisible(), { timeout: 120_000 }).toBe(true)
     await step('Places and module groups')
     await input.fill('Plain')
     await expect

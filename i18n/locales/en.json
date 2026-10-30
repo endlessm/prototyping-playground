@@ -1,532 +1,532 @@
 {
-    "rail":  {
-                 "label":  "Main",
-                 "search":  "Search ({shortcut})",
-                 "hideNavigation":  "Hide navigation ({shortcut})",
-                 "showNavigation":  "Show navigation ({shortcut})",
-                 "settings":  "Studio settings",
-                 "colorMode":  "Color mode"
-             },
-    "colorMode":  {
-                      "system":  "System",
-                      "light":  "Light",
-                      "dark":  "Dark"
-                  },
-    "sectionNav":  {
-                       "resize":  "Resize {section}",
-                       "resizeHint":  "Drag to resize. Double-click to reset."
-                   },
-    "home":  {
-                 "search":  "Search the studio",
-                 "welcome":  "Welcome back, {name}"
-             },
-    "navigation":  {
-                       "opening":  "Opening page"
-                   },
-    "notFound":  {
-                     "title":  "Page not found",
-                     "message":  "There’s nothing at this address.",
-                     "home":  "View all prototypes",
-                     "archived":  "If it was archived, it isn’t on the deployed site. Run the studio locally to open it."
-                 },
-    "loadError":  {
-                      "title":  "This page couldn’t load.",
-                      "retry":  "Try again"
-                  },
-    "fileError":  {
-                      "title":  "This page couldn’t load. Copy the error and give it to your agent.",
-                      "copy":  "Copy error",
-                      "copied":  "Copied"
-                  },
-    "settings":  {
-                     "title":  "Studio settings"
-                 },
-    "deployment":  {
-                       "unavailable":  "This viewing site could not load. Check your connection and refresh the page to try again."
-                   },
-    "prototypes":  {
-                       "system":  "System · {name}",
-                       "noSystem":  "None",
-                       "systemUnavailable":  "System unavailable",
-                       "openInTab":  "Open in a new tab",
-                       "makeLofi":  "Make lo-fi",
-                       "makeHifi":  "Make hi-fi",
-                       "actionsFor":  "Actions for {title}",
-                       "gallery":  {
-                                       "title":  "Prototypes",
-                                       "subtitle":  "Explore ideas, build interactive prototypes, and document your thinking.",
-                                       "search":  "Search prototypes",
-                                       "searchPlaceholder":  "Search",
-                                       "clear":  "Clear search",
-                                       "filters":  "Filters",
-                                       "filtersActive":  "Filters, {count} active",
-                                       "system":  "System",
-                                       "allSystems":  "All systems",
-                                       "emptyTitle":  "No prototypes yet",
-                                       "emptyLocal":  "A working sketch of an idea: real screens you can click through.",
-                                       "emptyDeployed":  "Prototypes your team makes will show up here.",
-                                       "noMatches":  "No matches",
-                                       "noMatchesHint":  "Try a different search or system.",
-                                       "viewAll":  "View all prototypes"
-                                   },
-                       "new":  {
-                                   "button":  "New prototype",
-                                   "title":  "New prototype",
-                                   "description":  "Give your idea a name and choose its design system.",
-                                   "titleLabel":  "Title",
-                                   "placeholder":  "Agent Config",
-                                   "system":  "System",
-                                   "noSystem":  "No system — custom styling",
-                                   "systemHelp":  "Provides components, styles, and guidance for this prototype.",
-                                   "noSystemHelp":  "Start with your own components and CSS. No existing system library or theme is assigned.",
-                                   "addTitle":  "Add a title.",
-                                   "letters":  "Use at least one letter or number in the title.",
-                                   "create":  "Create",
-                                   "creating":  "Creating",
-                                   "cancel":  "Cancel"
-                               },
-                       "home":  {
-                                    "yours":  "Your prototypes",
-                                    "team":  "Latest from the team",
-                                    "latest":  "Latest prototypes",
-                                    "prototypes":  "Prototypes",
-                                    "nothing":  "Nothing published yet."
-                                },
-                       "empty":  {
-                                     "title":  "This prototype is empty",
-                                     "description":  "Add a view to start. Ask your agent to build one, and describe what it’s for and who it’s for.",
-                                     "prompt":  "In {path}, build a view "
-                                 },
-                       "actions":  "Prototype actions"
-                   },
-    "collection":  {
-                       "viewAs":  "View as",
-                       "cards":  "Cards",
-                       "list":  "List",
-                       "noDescription":  "No description",
-                       "archived":  "Archived",
-                       "aboutArchived":  "About archived items",
-                       "archivedHint":  "Archived items are excluded from the deployed site."
-                   },
-    "actions":  {
-                    "copyLink":  "Copy link",
-                    "copyPath":  "Copy path",
-                    "linkCopied":  "Link copied",
-                    "pathCopied":  "Path copied",
-                    "failed":  "That didn’t work"
-                },
-    "view":  {
-                 "error":  "This page couldn\u0027t load. Copy the error and give it to your agent.",
-                 "copyError":  "Copy error",
-                 "copied":  "Copied",
-                 "loading":  "Loading preview",
-                 "opening":  "Opening view",
-                 "silent":  "Preview has not responded.",
-                 "outOfDate":  "This preview is out of date.",
-                 "couldNotRender":  "The latest changes could not render. Give the error to your agent.",
-                 "updating":  "Updating preview",
-                 "empty":  {
-                               "title":  "This view is empty",
-                               "description":  "Ask your agent to build something here. Describe what it\u0027s for and who it\u0027s for.",
-                               "prompt":  "In {path}, build ",
-                               "copy":  "Copy prompt"
-                           }
-             },
-    "artifact":  {
-                     "actions":  "File actions",
-                     "editSource":  "Edit source",
-                     "viewSource":  "View source",
-                     "openSource":  "Open source",
-                     "typeOff":  "{type} files can’t open here: the {module} module is turned off."
-                 },
-    "source":  {
-                   "label":  "Source of {path}",
-                   "loading":  "Loading source",
-                   "readOnly":  "Read-only",
-                   "unsaved":  "Unsaved changes",
-                   "save":  "Save",
-                   "saving":  "Saving",
-                   "saveHint":  "Save ({shortcut})",
-                   "done":  "Done",
-                   "doneHint":  "Return to the rendered page ({shortcut})",
-                   "saved":  "Saved",
-                   "changed":  "This file changed on disk while you were editing it.",
-                   "loadNew":  "Load the new version",
-                   "keepMine":  "Keep mine",
-                   "discard":  {
-                                   "title":  "Discard your changes?",
-                                   "description":  "You have unsaved changes to {path}. They’ll be lost if you leave.",
-                                   "keep":  "Keep editing",
-                                   "discard":  "Discard"
-                               }
-               },
-    "files":  {
-                  "artifacts":  "Artifacts",
-                  "files":  "Files",
-                  "filter":  "Filter",
-                  "filterKind":  {
-                                     "artifacts":  "Filter artifacts",
-                                     "files":  "Filter files"
-                                 },
-                  "clearFilter":  "Clear filter",
-                  "noMatches":  {
-                                    "artifacts":  "No matching artifacts.",
-                                    "files":  "No matching files."
-                                },
-                  "expandAll":  "Expand all",
-                  "collapseAll":  "Collapse all",
-                  "new":  "New",
-                  "newType":  "New {type}",
-                  "newFolder":  "New folder",
-                  "name":  "Name",
-                  "untitled":  "untitled",
-                  "newFolderName":  "new-folder",
-                  "rename":  "Rename",
-                  "renamedRelinked":  "Renamed. References updated.",
-                  "movedRelinked":  "Moved. References updated.",
-                  "showAll":  "Show all files",
-                  "openInEditor":  "Open in editor",
-                  "reveal":  {
-                                 "windows":  "Show in Explorer",
-                                 "apple":  "Reveal in Finder",
-                                 "other":  "Show in folder"
-                             },
-                  "hiddenHint":  "It’s hidden: choose Show all files in the … menu.",
-                  "trash":  {
-                                "recycle-bin":  "the Recycle Bin",
-                                "trash":  "the Trash"
-                            },
-                  "deleted":  "Moved “{name}” to {place}",
-                  "delete":  {
-                                 "action":  "Delete",
-                                 "title":  "Delete “{name}”?",
-                                 "file":  "It moves to {place}, where you can restore it.",
-                                 "folder":  "The folder and everything in it move to {place}, where you can restore them.",
-                                 "hidden":  "This includes {count} file the tree isn’t showing: {names}. | This includes {count} files the tree isn’t showing: {names}.",
-                                 "cancel":  "Cancel",
-                                 "confirm":  "Delete"
-                             }
-              },
-    "document":  {
-                     "loading":  "Loading document",
-                     "outOfDate":  "This document is out of date.",
-                     "updating":  "Updating document…"
-                 },
-    "markdown":  {
-                     "onThisPage":  "On this page",
-                     "diagramRendering":  "Rendering diagram…",
-                     "diagramError":  "Unable to render Mermaid diagram.",
-                     "diagramUpdating":  "Updating diagram…",
-                     "diagramTimeout":  "Diagram rendering took too long. Repair the source or reload this view."
-                 },
-    "diagram":  {
-                    "loading":  "Loading diagram…",
-                    "failed":  "This diagram could not load. Open it to inspect its source."
-                },
-    "embed":  {
-                  "open":  "Open",
-                  "openNamed":  "Open {name}",
-                  "file":  "File",
-                  "loading":  "Loading preview…",
-                  "failed":  "This preview could not render. Open the file to inspect it.",
-                  "viewError":  "This view has an error. Open it to see what is wrong.",
-                  "notFound":  "Not found",
-                  "missing":  "This file was moved or deleted. Ask your agent to fix the link.",
-                  "notOnSite":  "Not on this site. It may be archived. Run the studio locally to see it.",
-                  "elsewhere":  "Another prototype",
-                  "elsewhereDetail":  {
-                                          "document":  "A document shows only its own prototype. Copy the view here.",
-                                          "canvas":  "A canvas shows only its own prototype. Copy the view here."
-                                      },
-                  "elsewhereHint":  {
-                                        "document":  "A document shows only its own prototype. Copy the view into this prototype, then link that.",
-                                        "canvas":  "A canvas shows only its own prototype. Copy the view into this prototype, then link that."
-                                    },
-                  "invalid":  "Choose a file inside this prototype.",
-                  "unavailable":  "File unavailable. Check its path and whether its module is enabled.",
-                  "inactive":  "This artifact format is unavailable."
-              },
-    "canvas":  {
-                   "opening":  "Opening canvas",
-                   "error":  "This canvas couldn’t be opened. Ask your agent to fix the file.",
-                   "empty":  {
-                                 "title":  "This canvas is empty",
-                                 "editable":  "Drag a view or document from the navigation onto this canvas, press N for a sticky note, or ask your agent to lay it out for you.",
-                                 "readOnly":  "Nothing has been put on it yet."
-                             },
-                   "menu":  {
-                                "undo":  "Undo",
-                                "redo":  "Redo",
-                                "grid":  "Toggle grid",
-                                "snap":  "Snap to objects",
-                                "hideControls":  "Hide controls",
-                                "showControls":  "Show controls"
-                            },
-                   "save":  {
-                                "saved":  "Saved",
-                                "saving":  "Saving…",
-                                "unsaved":  "Unsaved changes",
-                                "failed":  "Couldn’t save",
-                                "retry":  "Retry",
-                                "keepsChanging":  "Couldn’t save: the file keeps changing.",
-                                "retrying":  "Couldn’t save this canvas. Trying again."
-                            },
-                   "leave":  {
-                                 "title":  "This canvas has unsaved changes",
-                                 "description":  "Saving hasn’t finished. Keep the canvas open to retry, or discard the unsaved changes.",
-                                 "keep":  "Keep editing",
-                                 "discard":  "Discard"
-                             }
-               },
-    "systems":  {
-                    "title":  "Systems",
-                    "description":  "Components, styles, assets, and guidance for your prototypes.",
-                    "genericDescription":  "Components, theme, assets, and guidance for your prototypes.",
-                    "search":  "Search systems",
-                    "searchPlaceholder":  "Search",
-                    "clearSearch":  "Clear search",
-                    "active":  "Systems",
-                    "archivedList":  "Archived systems",
-                    "default":  "Default",
-                    "defaultSystem":  "Default system",
-                    "usedBy":  "Used by {count} prototypes | Used by {count} prototype | Used by {count} prototypes",
-                    "noMatches":  "No matching systems",
-                    "noMatchesHint":  "Try a different search.",
-                    "viewAll":  "View all systems",
-                    "actions":  "Actions for {name}",
-                    "home":  {
-                                 "title":  "Systems",
-                                 "none":  "No systems yet."
-                             },
-                    "nav":  {
-                                "resources":  "Resources",
-                                "search":  "Search",
-                                "searchField":  "Search system",
-                                "clear":  "Clear search",
-                                "expandAll":  "Expand all",
-                                "collapseAll":  "Collapse all",
-                                "noMatches":  "No matching items.",
-                                "noTokens":  "No tokens yet",
-                                "emptyFolder":  "Empty folder",
-                                "toggle":  "Show or hide {name}"
-                            },
-                    "pages":  {
-                                  "overview":  "Overview",
-                                  "libraries":  "Libraries",
-                                  "context":  "Context",
-                                  "skills":  "Skills",
-                                  "theme":  "Theme",
-                                  "assets":  "Assets",
-                                  "components":  "Components",
-                                  "fonts":  "Fonts",
-                                  "icons":  "Icons",
-                                  "images":  "Images",
-                                  "colors":  "Colors",
-                                  "typography":  "Typography",
-                                  "radius":  "Radius",
-                                  "shadows":  "Shadows",
-                                  "spacing":  "Spacing",
-                                  "motion":  "Motion",
-                                  "effects":  "Effects",
-                                  "other":  "Other tokens"
-                              },
-                    "fileActions":  {
-                                        "editSource":  "Edit source",
-                                        "viewSource":  "View source"
-                                    },
-                    "overview":  {
-                                     "generic":  "The guidance and code included in {name}.",
-                                     "instructions":  "Instructions",
-                                     "contextDocuments":  "Context documents",
-                                     "skills":  "Skills",
-                                     "noInstructions":  "No system instructions have been added yet.",
-                                     "toolkit":  "Toolkit",
-                                     "components":  "Components",
-                                     "tokens":  "Theme tokens",
-                                     "assets":  "Assets",
-                                     "lightOnly":  "Color modes: Light only. This system stays in light mode while Studio follows its global color mode.",
-                                     "darkOnly":  "Color modes: Dark only. This system stays in dark mode while Studio follows its global color mode.",
-                                     "both":  "Color modes: Light and dark. Follows Studio’s global color mode.",
-                                     "usage":  "Where it’s used",
-                                     "prototypes":  "Active prototypes",
-                                     "viewPrototypes":  "View prototypes using this system",
-                                     "noUsage":  "No active prototypes use this system yet. Choose {name} when creating a prototype.",
-                                     "archived":  "This system is archived",
-                                     "archivedHint":  "Files are kept locally and excluded from deployment. Restore it to use it again."
-                                 },
-                    "libraries":  {
-                                      "title":  "Libraries",
-                                      "description":  "The sources and tools behind {name}.",
-                                      "list":  "System libraries",
-                                      "version":  "v{version}",
-                                      "notInstalled":  "Not installed",
-                                      "install":  "Ask your agent to install this dependency.",
-                                      "docs":  "Docs",
-                                      "docsLabel":  "{name} documentation",
-                                      "empty":  "No libraries added yet",
-                                      "emptyHint":  "Ask your agent to add a library when your system needs more capabilities."
-                                  },
-                    "section":  {
-                                    "context":  "Knowledge, principles, and standing requirements shared by people and agents.",
-                                    "skills":  "Procedures for tasks owned by this system. Each skill describes when to use it and how to perform the task.",
-                                    "select":  "Select a file in navigation to read or edit it.",
-                                    "empty":  "No files yet. Ask your agent to add useful material.",
-                                    "loading":  "Agent instructions must point to the relevant files. Being listed here does not automatically load them into a conversation."
-                                },
-                    "document":  {
-                                     "loadFailed":  "This document couldn’t load."
-                                 },
-                    "source":  {
-                                   "loadingEditor":  "Loading editor…",
-                                   "skillFile":  "Skill source file",
-                                   "binary":  "This supporting file cannot be edited as text in Studio."
-                               },
-                    "loadFailed":  "The systems couldn’t load.",
-                    "theme":  {
-                                  "frame":  "{page} of {name}",
-                                  "description":  {
-                                                      "colors":  "The colours {name}’s stylesheet sets, with their values in its own preview.",
-                                                      "typography":  "Font families, sizes and weights from {name}’s stylesheet.",
-                                                      "radius":  "Corner radii from {name}’s stylesheet.",
-                                                      "shadows":  "Shadows from {name}’s stylesheet.",
-                                                      "spacing":  "Spacing and container widths from {name}’s stylesheet.",
-                                                      "motion":  "Easing and animation from {name}’s stylesheet.",
-                                                      "effects":  "Blurs, perspective and aspect ratios from {name}’s stylesheet.",
-                                                      "other":  "Other custom properties {name}’s stylesheet sets."
-                                                  },
-                                  "notSet":  "not set",
-                                  "pangram":  "The quick brown fox jumps over the lazy dog",
-                                  "sample":  "Quick brown fox",
-                                  "families":  "Font families",
-                                  "sizes":  "Sizes",
-                                  "weights":  "Weights",
-                                  "other":  "Other",
-                                  "spacing":  "Spacing",
-                                  "containers":  "Container widths",
-                                  "containersNote":  "Maximum widths for content and layouts, separate from the spacing scale.",
-                                  "noSizes":  "This system does not declare font sizes in its theme.",
-                                  "noWeights":  "This system does not declare font weights in its theme.",
-                                  "otherColors":  "Other colors",
-                                  "sections":  {
-                                                   "text":  "Text",
-                                                   "surfaces":  "Surfaces",
-                                                   "borders":  "Borders",
-                                                   "actions":  "Theme colors"
-                                               },
-                                  "roles":  {
-                                                "ui-text-dimmed":  "Placeholders and disabled text",
-                                                "ui-text-muted":  "Secondary text",
-                                                "ui-text-toned":  "Subtitles and toned text",
-                                                "ui-text":  "Body text",
-                                                "ui-text-highlighted":  "Headings and emphasis",
-                                                "ui-text-inverted":  "Text on inverted surfaces",
-                                                "ui-bg":  "Page background",
-                                                "ui-bg-muted":  "Muted backgrounds",
-                                                "ui-bg-elevated":  "Raised surfaces: cards, menus, dialogs",
-                                                "ui-bg-accented":  "Hover and accented surfaces",
-                                                "ui-bg-inverted":  "Inverted surfaces",
-                                                "ui-border":  "Borders and dividers",
-                                                "ui-border-muted":  "Subtle borders",
-                                                "ui-border-accented":  "Accented borders",
-                                                "ui-border-inverted":  "Borders on inverted surfaces",
-                                                "ui-primary":  "Primary actions and brand",
-                                                "ui-secondary":  "Secondary actions",
-                                                "ui-success":  "Success states",
-                                                "ui-info":  "Information",
-                                                "ui-warning":  "Warnings",
-                                                "ui-error":  "Errors and destructive actions",
-                                                "ui-neutral":  "Neutral elements"
-                                            },
-                                  "colorRole":  "The {name} theme color"
-                              },
-                    "assets":  {
-                                   "description":  {
-                                                       "fonts":  "Fonts for your system’s typography.",
-                                                       "icons":  "Icons for your system’s interface.",
-                                                       "images":  "Logos and shared images for your prototypes."
-                                                   },
-                                   "libraries":  "{kind} libraries",
-                                   "libraryKind":  {
-                                                       "fonts":  "Font library",
-                                                       "icons":  "Icon library",
-                                                       "images":  "Image library"
-                                                   },
-                                   "inLibraries":  "{name} in Libraries",
-                                   "local":  {
-                                                 "fonts":  "Local fonts",
-                                                 "icons":  "Local icons",
-                                                 "images":  "Local images"
-                                             },
-                                   "localHint":  "Files added directly to this system.",
-                                   "app":  {
-                                               "fonts":  "App fonts",
-                                               "icons":  "App icons",
-                                               "images":  "App images"
-                                           },
-                                   "appHint":  "Copied with the app’s source, as the app uses them.",
-                                   "empty":  {
-                                                 "fonts":  "No local fonts added",
-                                                 "icons":  "No local icons added",
-                                                 "images":  "No local images added"
-                                             },
-                                   "emptyHint":  {
-                                                     "fonts":  "Ask your agent to bring in your product’s font files and connect them to this system’s theme.",
-                                                     "icons":  "Ask your agent to bring in your custom icons for this system’s components.",
-                                                     "images":  "Ask your agent to add logos and shared images for prototypes using this system."
-                                                 },
-                                   "browseIcons":  "Browse all icons",
-                                   "loadingFont":  "Loading font",
-                                   "fontFailed":  "This font could not be previewed.",
-                                   "pangram":  "The quick brown fox jumps over the lazy dog."
-                               }
-                },
-    "documentation":  {
-                          "title":  "Documentation",
-                          "sections":  "Documentation sections",
-                          "manual":  "Manual",
-                          "context":  "Context \u0026 Skills",
-                          "chapters":  "Chapters",
-                          "loading":  "Loading",
-                          "noChapters":  "The Manual has no chapters yet.",
-                          "sharedBanner":  "Shared platform documentation. Changes affect the studio for everyone on the team.",
-                          "editSource":  "Edit source",
-                          "resources":  "Resources",
-                          "search":  "Search",
-                          "searchField":  "Search context and skills",
-                          "clear":  "Clear search",
-                          "noMatches":  "No matching resources",
-                          "modules":  "Modules",
-                          "toggle":  "Show or hide {name}",
-                          "kinds":  {
-                                        "readme":  "Document",
-                                        "context":  "Context",
-                                        "skill":  "Skill",
-                                        "reference":  "Document"
-                                    },
-                          "ownerIntro":  {
-                                             "platform":  "Shared knowledge and workflows for working in the studio.",
-                                             "module":  "Knowledge and workflows that come with this module."
-                                         },
-                          "ownerSections":  {
-                                                "context":  "Context",
-                                                "contextHint":  "What agents should know when working here.",
-                                                "skills":  "Skills",
-                                                "skillsHint":  "Procedures agents follow for specific tasks.",
-                                                "noContext":  "No context added.",
-                                                "noSkills":  "No skills added."
-                                            },
-                          "about":  {
-                                        "title":  "About this context",
-                                        "explanation":  "This file owns the behavior it describes. Agents read it when it bears on their task; being listed here doesn’t mean an agent has read it.",
-                                        "related":  "Documents that link here"
-                                    },
-                          "skillFile":  "Skill file",
-                          "binary":  "This file isn’t text. Open it in your editor."
-                      },
-    "palette":  {
-                    "places":  "Places",
-                    "home":  "Home",
-                    "description":  "Find pages, prototypes and actions.",
-                    "empty":  "No results found."
-                }
+  "rail": {
+    "label": "Main",
+    "search": "Search ({shortcut})",
+    "hideNavigation": "Hide navigation ({shortcut})",
+    "showNavigation": "Show navigation ({shortcut})",
+    "settings": "Studio settings",
+    "colorMode": "Color mode"
+  },
+  "colorMode": {
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "sectionNav": {
+    "resize": "Resize {section}",
+    "resizeHint": "Drag to resize. Double-click to reset."
+  },
+  "home": {
+    "search": "Search the studio",
+    "welcome": "Welcome back, {name}"
+  },
+  "navigation": {
+    "opening": "Opening page"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "message": "There’s nothing at this address.",
+    "home": "View all prototypes",
+    "archived": "If it was archived, it isn’t on the deployed site. Run the studio locally to open it."
+  },
+  "loadError": {
+    "title": "This page couldn’t load.",
+    "retry": "Try again"
+  },
+  "fileError": {
+    "title": "This page couldn’t load. Copy the error and give it to your agent.",
+    "copy": "Copy error",
+    "copied": "Copied"
+  },
+  "settings": {
+    "title": "Studio settings"
+  },
+  "deployment": {
+    "unavailable": "This viewing site could not load. Check your connection and refresh the page to try again."
+  },
+  "prototypes": {
+    "system": "System · {name}",
+    "noSystem": "None",
+    "systemUnavailable": "System unavailable",
+    "openInTab": "Open in a new tab",
+    "makeLofi": "Make lo-fi",
+    "makeHifi": "Make hi-fi",
+    "actionsFor": "Actions for {title}",
+    "gallery": {
+      "title": "Prototypes",
+      "subtitle": "Explore ideas, build interactive prototypes, and document your thinking.",
+      "search": "Search prototypes",
+      "searchPlaceholder": "Search",
+      "clear": "Clear search",
+      "filters": "Filters",
+      "filtersActive": "Filters, {count} active",
+      "system": "System",
+      "allSystems": "All systems",
+      "emptyTitle": "No prototypes yet",
+      "emptyLocal": "A working sketch of an idea: real screens you can click through.",
+      "emptyDeployed": "Prototypes your team makes will show up here.",
+      "noMatches": "No matches",
+      "noMatchesHint": "Try a different search or system.",
+      "viewAll": "View all prototypes"
+    },
+    "new": {
+      "button": "New prototype",
+      "title": "New prototype",
+      "description": "Give your idea a name and choose its design system.",
+      "titleLabel": "Title",
+      "placeholder": "Agent Config",
+      "system": "System",
+      "noSystem": "No system — custom styling",
+      "systemHelp": "Provides components, styles, and guidance for this prototype.",
+      "noSystemHelp": "Start with your own components and CSS. No existing system library or theme is assigned.",
+      "addTitle": "Add a title.",
+      "letters": "Use at least one letter or number in the title.",
+      "create": "Create",
+      "creating": "Creating",
+      "cancel": "Cancel"
+    },
+    "home": {
+      "yours": "Your prototypes",
+      "team": "Latest from the team",
+      "latest": "Latest prototypes",
+      "prototypes": "Prototypes",
+      "nothing": "Nothing published yet."
+    },
+    "empty": {
+      "title": "This prototype is empty",
+      "description": "Add a view to start. Ask your agent to build one, and describe what it’s for and who it’s for.",
+      "prompt": "In {path}, build a view "
+    },
+    "actions": "Prototype actions"
+  },
+  "collection": {
+    "viewAs": "View as",
+    "cards": "Cards",
+    "list": "List",
+    "noDescription": "No description",
+    "archived": "Archived",
+    "aboutArchived": "About archived items",
+    "archivedHint": "Archived items are excluded from the deployed site."
+  },
+  "actions": {
+    "copyLink": "Copy link",
+    "copyPath": "Copy path",
+    "linkCopied": "Link copied",
+    "pathCopied": "Path copied",
+    "failed": "That didn’t work"
+  },
+  "view": {
+    "error": "This page couldn\u0027t load. Copy the error and give it to your agent.",
+    "copyError": "Copy error",
+    "copied": "Copied",
+    "loading": "Loading preview",
+    "opening": "Opening view",
+    "silent": "Preview has not responded.",
+    "outOfDate": "This preview is out of date.",
+    "couldNotRender": "The latest changes could not render. Give the error to your agent.",
+    "updating": "Updating preview",
+    "empty": {
+      "title": "This view is empty",
+      "description": "Ask your agent to build something here. Describe what it\u0027s for and who it\u0027s for.",
+      "prompt": "In {path}, build ",
+      "copy": "Copy prompt"
+    }
+  },
+  "artifact": {
+    "actions": "File actions",
+    "editSource": "Edit source",
+    "viewSource": "View source",
+    "openSource": "Open source",
+    "typeOff": "{type} files can’t open here: the {module} module is turned off."
+  },
+  "source": {
+    "label": "Source of {path}",
+    "loading": "Loading source",
+    "readOnly": "Read-only",
+    "unsaved": "Unsaved changes",
+    "save": "Save",
+    "saving": "Saving",
+    "saveHint": "Save ({shortcut})",
+    "done": "Done",
+    "doneHint": "Return to the rendered page ({shortcut})",
+    "saved": "Saved",
+    "changed": "This file changed on disk while you were editing it.",
+    "loadNew": "Load the new version",
+    "keepMine": "Keep mine",
+    "discard": {
+      "title": "Discard your changes?",
+      "description": "You have unsaved changes to {path}. They’ll be lost if you leave.",
+      "keep": "Keep editing",
+      "discard": "Discard"
+    }
+  },
+  "files": {
+    "artifacts": "Artifacts",
+    "files": "Files",
+    "filter": "Filter",
+    "filterKind": {
+      "artifacts": "Filter artifacts",
+      "files": "Filter files"
+    },
+    "clearFilter": "Clear filter",
+    "noMatches": {
+      "artifacts": "No matching artifacts.",
+      "files": "No matching files."
+    },
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all",
+    "new": "New",
+    "newType": "New {type}",
+    "newFolder": "New folder",
+    "name": "Name",
+    "untitled": "untitled",
+    "newFolderName": "new-folder",
+    "rename": "Rename",
+    "renamedRelinked": "Renamed. References updated.",
+    "movedRelinked": "Moved. References updated.",
+    "showAll": "Show all files",
+    "openInEditor": "Open in editor",
+    "reveal": {
+      "windows": "Show in Explorer",
+      "apple": "Reveal in Finder",
+      "other": "Show in folder"
+    },
+    "hiddenHint": "It’s hidden: choose Show all files in the … menu.",
+    "trash": {
+      "recycle-bin": "the Recycle Bin",
+      "trash": "the Trash"
+    },
+    "deleted": "Moved “{name}” to {place}",
+    "delete": {
+      "action": "Delete",
+      "title": "Delete “{name}”?",
+      "file": "It moves to {place}, where you can restore it.",
+      "folder": "The folder and everything in it move to {place}, where you can restore them.",
+      "hidden": "This includes {count} file the tree isn’t showing: {names}. | This includes {count} files the tree isn’t showing: {names}.",
+      "cancel": "Cancel",
+      "confirm": "Delete"
+    }
+  },
+  "document": {
+    "loading": "Loading document",
+    "outOfDate": "This document is out of date.",
+    "updating": "Updating document…"
+  },
+  "markdown": {
+    "onThisPage": "On this page",
+    "diagramRendering": "Rendering diagram…",
+    "diagramError": "Unable to render Mermaid diagram.",
+    "diagramUpdating": "Updating diagram…",
+    "diagramTimeout": "Diagram rendering took too long. Repair the source or reload this view."
+  },
+  "diagram": {
+    "loading": "Loading diagram…",
+    "failed": "This diagram could not load. Open it to inspect its source."
+  },
+  "embed": {
+    "open": "Open",
+    "openNamed": "Open {name}",
+    "file": "File",
+    "loading": "Loading preview…",
+    "failed": "This preview could not render. Open the file to inspect it.",
+    "viewError": "This view has an error. Open it to see what is wrong.",
+    "notFound": "Not found",
+    "missing": "This file was moved or deleted. Ask your agent to fix the link.",
+    "notOnSite": "Not on this site. It may be archived. Run the studio locally to see it.",
+    "elsewhere": "Another prototype",
+    "elsewhereDetail": {
+      "document": "A document shows only its own prototype. Copy the view here.",
+      "canvas": "A canvas shows only its own prototype. Copy the view here."
+    },
+    "elsewhereHint": {
+      "document": "A document shows only its own prototype. Copy the view into this prototype, then link that.",
+      "canvas": "A canvas shows only its own prototype. Copy the view into this prototype, then link that."
+    },
+    "invalid": "Choose a file inside this prototype.",
+    "unavailable": "File unavailable. Check its path and whether its module is enabled.",
+    "inactive": "This artifact format is unavailable."
+  },
+  "canvas": {
+    "opening": "Opening canvas",
+    "error": "This canvas couldn’t be opened. Ask your agent to fix the file.",
+    "empty": {
+      "title": "This canvas is empty",
+      "editable": "Drag a view or document from the navigation onto this canvas, press N for a sticky note, or ask your agent to lay it out for you.",
+      "readOnly": "Nothing has been put on it yet."
+    },
+    "menu": {
+      "undo": "Undo",
+      "redo": "Redo",
+      "grid": "Toggle grid",
+      "snap": "Snap to objects",
+      "hideControls": "Hide controls",
+      "showControls": "Show controls"
+    },
+    "save": {
+      "saved": "Saved",
+      "saving": "Saving…",
+      "unsaved": "Unsaved changes",
+      "failed": "Couldn’t save",
+      "retry": "Retry",
+      "keepsChanging": "Couldn’t save: the file keeps changing.",
+      "retrying": "Couldn’t save this canvas. Trying again."
+    },
+    "leave": {
+      "title": "This canvas has unsaved changes",
+      "description": "Saving hasn’t finished. Keep the canvas open to retry, or discard the unsaved changes.",
+      "keep": "Keep editing",
+      "discard": "Discard"
+    }
+  },
+  "systems": {
+    "title": "Systems",
+    "description": "Components, styles, assets, and guidance for your prototypes.",
+    "genericDescription": "Components, theme, assets, and guidance for your prototypes.",
+    "search": "Search systems",
+    "searchPlaceholder": "Search",
+    "clearSearch": "Clear search",
+    "active": "Systems",
+    "archivedList": "Archived systems",
+    "default": "Default",
+    "defaultSystem": "Default system",
+    "usedBy": "Used by {count} prototypes | Used by {count} prototype | Used by {count} prototypes",
+    "noMatches": "No matching systems",
+    "noMatchesHint": "Try a different search.",
+    "viewAll": "View all systems",
+    "actions": "Actions for {name}",
+    "home": {
+      "title": "Systems",
+      "none": "No systems yet."
+    },
+    "nav": {
+      "resources": "Resources",
+      "search": "Search",
+      "searchField": "Search system",
+      "clear": "Clear search",
+      "expandAll": "Expand all",
+      "collapseAll": "Collapse all",
+      "noMatches": "No matching items.",
+      "noTokens": "No tokens yet",
+      "emptyFolder": "Empty folder",
+      "toggle": "Show or hide {name}"
+    },
+    "pages": {
+      "overview": "Overview",
+      "libraries": "Libraries",
+      "context": "Context",
+      "skills": "Skills",
+      "theme": "Theme",
+      "assets": "Assets",
+      "components": "Components",
+      "fonts": "Fonts",
+      "icons": "Icons",
+      "images": "Images",
+      "colors": "Colors",
+      "typography": "Typography",
+      "radius": "Radius",
+      "shadows": "Shadows",
+      "spacing": "Spacing",
+      "motion": "Motion",
+      "effects": "Effects",
+      "other": "Other tokens"
+    },
+    "fileActions": {
+      "editSource": "Edit source",
+      "viewSource": "View source"
+    },
+    "overview": {
+      "generic": "The guidance and code included in {name}.",
+      "instructions": "Instructions",
+      "contextDocuments": "Context documents",
+      "skills": "Skills",
+      "noInstructions": "No system instructions have been added yet.",
+      "toolkit": "Toolkit",
+      "components": "Components",
+      "tokens": "Theme tokens",
+      "assets": "Assets",
+      "lightOnly": "Color modes: Light only. This system stays in light mode while Studio follows its global color mode.",
+      "darkOnly": "Color modes: Dark only. This system stays in dark mode while Studio follows its global color mode.",
+      "both": "Color modes: Light and dark. Follows Studio’s global color mode.",
+      "usage": "Where it’s used",
+      "prototypes": "Active prototypes",
+      "viewPrototypes": "View prototypes using this system",
+      "noUsage": "No active prototypes use this system yet. Choose {name} when creating a prototype.",
+      "archived": "This system is archived",
+      "archivedHint": "Files are kept locally and excluded from deployment. Restore it to use it again."
+    },
+    "libraries": {
+      "title": "Libraries",
+      "description": "The sources and tools behind {name}.",
+      "list": "System libraries",
+      "version": "v{version}",
+      "notInstalled": "Not installed",
+      "install": "Ask your agent to install this dependency.",
+      "docs": "Docs",
+      "docsLabel": "{name} documentation",
+      "empty": "No libraries added yet",
+      "emptyHint": "Ask your agent to add a library when your system needs more capabilities."
+    },
+    "section": {
+      "context": "Knowledge, principles, and standing requirements shared by people and agents.",
+      "skills": "Procedures for tasks owned by this system. Each skill describes when to use it and how to perform the task.",
+      "select": "Select a file in navigation to read or edit it.",
+      "empty": "No files yet. Ask your agent to add useful material.",
+      "loading": "Agent instructions must point to the relevant files. Being listed here does not automatically load them into a conversation."
+    },
+    "document": {
+      "loadFailed": "This document couldn’t load."
+    },
+    "source": {
+      "loadingEditor": "Loading editor…",
+      "skillFile": "Skill source file",
+      "binary": "This supporting file cannot be edited as text in Studio."
+    },
+    "loadFailed": "The systems couldn’t load.",
+    "theme": {
+      "frame": "{page} of {name}",
+      "description": {
+        "colors": "The colours {name}’s stylesheet sets, with their values in its own preview.",
+        "typography": "Font families, sizes and weights from {name}’s stylesheet.",
+        "radius": "Corner radii from {name}’s stylesheet.",
+        "shadows": "Shadows from {name}’s stylesheet.",
+        "spacing": "Spacing and container widths from {name}’s stylesheet.",
+        "motion": "Easing and animation from {name}’s stylesheet.",
+        "effects": "Blurs, perspective and aspect ratios from {name}’s stylesheet.",
+        "other": "Other custom properties {name}’s stylesheet sets."
+      },
+      "notSet": "not set",
+      "pangram": "The quick brown fox jumps over the lazy dog",
+      "sample": "Quick brown fox",
+      "families": "Font families",
+      "sizes": "Sizes",
+      "weights": "Weights",
+      "other": "Other",
+      "spacing": "Spacing",
+      "containers": "Container widths",
+      "containersNote": "Maximum widths for content and layouts, separate from the spacing scale.",
+      "noSizes": "This system does not declare font sizes in its theme.",
+      "noWeights": "This system does not declare font weights in its theme.",
+      "otherColors": "Other colors",
+      "sections": {
+        "text": "Text",
+        "surfaces": "Surfaces",
+        "borders": "Borders",
+        "actions": "Theme colors"
+      },
+      "roles": {
+        "ui-text-dimmed": "Placeholders and disabled text",
+        "ui-text-muted": "Secondary text",
+        "ui-text-toned": "Subtitles and toned text",
+        "ui-text": "Body text",
+        "ui-text-highlighted": "Headings and emphasis",
+        "ui-text-inverted": "Text on inverted surfaces",
+        "ui-bg": "Page background",
+        "ui-bg-muted": "Muted backgrounds",
+        "ui-bg-elevated": "Raised surfaces: cards, menus, dialogs",
+        "ui-bg-accented": "Hover and accented surfaces",
+        "ui-bg-inverted": "Inverted surfaces",
+        "ui-border": "Borders and dividers",
+        "ui-border-muted": "Subtle borders",
+        "ui-border-accented": "Accented borders",
+        "ui-border-inverted": "Borders on inverted surfaces",
+        "ui-primary": "Primary actions and brand",
+        "ui-secondary": "Secondary actions",
+        "ui-success": "Success states",
+        "ui-info": "Information",
+        "ui-warning": "Warnings",
+        "ui-error": "Errors and destructive actions",
+        "ui-neutral": "Neutral elements"
+      },
+      "colorRole": "The {name} theme color"
+    },
+    "assets": {
+      "description": {
+        "fonts": "Fonts for your system’s typography.",
+        "icons": "Icons for your system’s interface.",
+        "images": "Logos and shared images for your prototypes."
+      },
+      "libraries": "{kind} libraries",
+      "libraryKind": {
+        "fonts": "Font library",
+        "icons": "Icon library",
+        "images": "Image library"
+      },
+      "inLibraries": "{name} in Libraries",
+      "local": {
+        "fonts": "Local fonts",
+        "icons": "Local icons",
+        "images": "Local images"
+      },
+      "localHint": "Files added directly to this system.",
+      "app": {
+        "fonts": "App fonts",
+        "icons": "App icons",
+        "images": "App images"
+      },
+      "appHint": "Copied with the app’s source, as the app uses them.",
+      "empty": {
+        "fonts": "No local fonts added",
+        "icons": "No local icons added",
+        "images": "No local images added"
+      },
+      "emptyHint": {
+        "fonts": "Ask your agent to bring in your product’s font files and connect them to this system’s theme.",
+        "icons": "Ask your agent to bring in your custom icons for this system’s components.",
+        "images": "Ask your agent to add logos and shared images for prototypes using this system."
+      },
+      "browseIcons": "Browse all icons",
+      "loadingFont": "Loading font",
+      "fontFailed": "This font could not be previewed.",
+      "pangram": "The quick brown fox jumps over the lazy dog."
+    }
+  },
+  "documentation": {
+    "title": "Documentation",
+    "sections": "Documentation sections",
+    "manual": "Manual",
+    "context": "Context \u0026 Skills",
+    "chapters": "Chapters",
+    "loading": "Loading",
+    "noChapters": "The Manual has no chapters yet.",
+    "sharedBanner": "Shared platform documentation. Changes affect the studio for everyone on the team.",
+    "editSource": "Edit source",
+    "resources": "Resources",
+    "search": "Search",
+    "searchField": "Search context and skills",
+    "clear": "Clear search",
+    "noMatches": "No matching resources",
+    "modules": "Modules",
+    "toggle": "Show or hide {name}",
+    "kinds": {
+      "readme": "Document",
+      "context": "Context",
+      "skill": "Skill",
+      "reference": "Document"
+    },
+    "ownerIntro": {
+      "platform": "Shared knowledge and workflows for working in the studio.",
+      "module": "Knowledge and workflows that come with this module."
+    },
+    "ownerSections": {
+      "context": "Context",
+      "contextHint": "What agents should know when working here.",
+      "skills": "Skills",
+      "skillsHint": "Procedures agents follow for specific tasks.",
+      "noContext": "No context added.",
+      "noSkills": "No skills added."
+    },
+    "about": {
+      "title": "About this context",
+      "explanation": "This file owns the behavior it describes. Agents read it when it bears on their task; being listed here doesn’t mean an agent has read it.",
+      "related": "Documents that link here"
+    },
+    "skillFile": "Skill file",
+    "binary": "This file isn’t text. Open it in your editor."
+  },
+  "palette": {
+    "places": "Places",
+    "home": "Home",
+    "description": "Find pages, prototypes and actions.",
+    "empty": "No results found."
+  }
 }
