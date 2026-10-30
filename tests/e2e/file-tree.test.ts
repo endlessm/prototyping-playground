@@ -204,12 +204,12 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
       return app.config.globalProperties.$router.push(address)
     }, to)
 
-  test('[SH-68] [SH-71] [SH-73] [SH-61] [PR-48] [PR-49] the tree lists artifacts and their folders by readable name, the open one current', async () => {
+  test('[SH-68] [SH-71] [SH-73] [SH-61] [PR-48] [PR-49] [PR-59] the tree lists artifacts and their folders by readable name, the open one current', async () => {
     reset()
     const page = await open(SIGN_IN)
     await expect
       .poll(() => labels(page))
-      .toEqual(['Drafts', 'Flows', 'Details', 'Sign In', 'Home'])
+      .toEqual(['Home', 'Drafts', 'Flows', 'Details', 'Sign In'])
     expect(await page.getByRole('tree', { name: 'Artifacts' }).count()).toBe(1)
     const current = link(page, 'Sign In')
     expect(await current.getAttribute('aria-current')).toBe('page')
@@ -514,11 +514,11 @@ describe('the deployed site', { timeout: 300_000 }, () => {
     await site?.stop()
   })
 
-  test('[SH-67] [SH-69] [PR-64] the tree lists the published artifacts in order, with copy-only menus', async () => {
+  test('[SH-67] [SH-69] [PR-64] [PR-59] the tree lists the published artifacts in order, with copy-only menus', async () => {
     const page = await newPage()
     await page.goto(`${site.url}prototypes/${DEMO}/artifacts/${HOME}`)
     await visible(link(page, 'Home'))
-    expect(await labels(page)).toEqual(['Flows', 'Details', 'Sign In', 'Home'])
+    expect(await labels(page)).toEqual(['Home', 'Flows', 'Details', 'Sign In'])
     expect(await button(page, 'New').count()).toBe(0)
     expect(await button(page, 'Prototype actions').count()).toBe(1)
     await link(page, 'Details').click({ button: 'right' })
