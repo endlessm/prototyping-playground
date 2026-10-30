@@ -190,6 +190,18 @@ export function moduleProblems(spec: unknown, folderName: string): string[] {
           problems.push(
             `${where}: file type "${String(id)}" names its check and template files and its icon as text.`,
           )
+        const { embedIn } = (type ?? {}) as Record<string, unknown>
+        if (
+          embedIn !== undefined &&
+          (!Array.isArray(embedIn) ||
+            !embedIn.length ||
+            embedIn.some(
+              (surface) => surface !== 'document' && surface !== 'canvas',
+            ))
+        )
+          problems.push(
+            `${where}: file type "${String(id)}" names the surfaces its preview shows on: “document”, “canvas” or both.`,
+          )
       }
   }
   if (

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // How an artifact appears where it can't be shown itself (a type with no
-// preview there, such as a document in a document): its icon, name and
+// preview there, such as a document in a document or on a canvas): its icon, name and
 // type, and a link that opens it. Without an artifact, the card says why
 // nothing can be shown.
 defineProps<{
@@ -34,6 +34,7 @@ const { t } = useI18n()
     <UButton
       v-if="to"
       :to="to"
+      data-open
       size="xs"
       color="neutral"
       variant="ghost"

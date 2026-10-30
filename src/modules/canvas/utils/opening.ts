@@ -20,7 +20,7 @@ export function openingReady(
 
 /**
  * The embeds whose previews committed or failed, read from the readiness
- * markers embedded previews set. Unsupported or unresponsive previews fall
+ * markers embedded previews set (views, diagrams). Unsupported or unresponsive previews fall
  * through to the bounded wait.
  */
 export function settledEmbeds(container: HTMLElement) {
@@ -30,7 +30,7 @@ export function settledEmbeds(container: HTMLElement) {
   ))
     if (
       embed.querySelector(
-        '[data-preview-state="ready"], [data-preview-state="error"], [data-artifact-phase="ready"], [data-artifact-phase="error"], [role="alert"]',
+        '[data-preview-state="ready"], [data-preview-state="error"], [data-artifact-phase="ready"], [data-artifact-phase="error"], [data-diagram-state="ready"], [data-diagram-state="error"], [role="alert"]',
       )
     )
       settled.add(embed.dataset.canvasEmbedId!)

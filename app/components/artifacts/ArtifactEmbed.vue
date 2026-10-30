@@ -2,28 +2,42 @@
 import types from '#studio/file-types'
 import type { Component } from 'vue'
 import type { ManifestPrototype } from '../../composables/useManifest'
-import type { ReferenceResolution } from '../../utils/artifactReference'
+import type {
+  EmbedSurface,
+  ReferenceResolution,
+} from '../../utils/artifactReference'
 import ArtifactCard from './ArtifactCard.vue'
 import EmbedFrame from './EmbedFrame.vue'
 
-// An artifact shown inside another one (a document): a live preview in the
-// shared frame when its type has one, otherwise a card; or a card saying
-// why nothing can be shown. A preview that crashes says so in its frame and
-// leaves the rest of the page working.
-const props = defineProps<{
-  prototype: ManifestPrototype
-  resolution: ReferenceResolution
-  /** The author's description, used as the frame's title. */
-  label?: string
-  /** Where the embed sits: `document` or `canvas`. */
-  surface: 'document' | 'canvas'
-  width: number
-  height: number
-}>()
+// An artifact shown inside another one (a document, a canvas): a live
+// preview in the shared frame when its type has one there, otherwise a
+// card; or a card saying why nothing can be shown. A preview that crashes
+// says so in its frame, leaves the rest of the page working, and tries
+// again when its file changes.
+const props = withDefaults(
+  defineProps<{
+    prototype: ManifestPrototype
+    resolution: ReferenceResolution
+    /** The author's description, used as the frame's title. */
+    label?: string
+    /** Where the embed sits. */
+    surface: EmbedSurface
+    /** The preview's size, inside the frame. */
+    width: number
+    height: number
+    /** False keeps the frame with a quiet placeholder, not the preview. */
+    mounted?: boolean
+    /** Not painted, but the preview keeps running and updating. */
+    hidden?: boolean
+    /** A picture only: the preview takes no pointer, focus or keys. */
+    inert?: boolean
+  }>(),
+  { label: undefined, mounted: true, hidden: false, inert: false },
+)
 
 const { t } = useI18n()
 
-// One loaded component per type, shared by every embed of it.
+// One loaded component per type, shared by every embed of it here.
 const loaded = new Map<string, Component>()
 const embedOf = (type: string) => {
   const load = types[type]?.embed
@@ -80,10 +94,23 @@ const card = computed(() => {
 })
 
 const failure = ref<unknown>()
-watch(
-  () => [target.value?.id, target.value?.file],
-  () => (failure.value = undefined),
-)
+// Counts fresh attempts after a failure.
+const attempt = ref(0)
+function retry() {
+  if (!failure.value) return
+  if (target.value) loaded.delete(target.value.type)
+  failure.value = undefined
+  attempt.value++
+}
+watch(() => [target.value?.id, target.value?.file], retry)
+if (import.meta.hot) {
+  const hot = import.meta.hot
+  const changed = ({ files }: { files: string[] }) => {
+    if (target.value && files.includes(target.value.file)) retry()
+  }
+  hot.on('studio:source', changed)
+  onScopeDispose(() => hot.off('studio:source', changed))
+}
 onErrorCaptured((error) => {
   failure.value = error
   return false
@@ -92,32 +119,37 @@ onErrorCaptured((error) => {
 
 <template>
   <EmbedFrame v-if="preview && target" :title="label || target.title" :to="to">
-    <p
-      v-if="failure"
-      role="alert"
-      class="p-4 text-sm"
-      :style="{ height: `${height}px` }"
+    <div
+      class="min-h-0"
+      :class="{ 'pointer-events-none': inert }"
+      :inert="inert || undefined"
+      :style="{
+        height: `${height}px`,
+        ...(hidden
+          ? { visibility: 'hidden', contentVisibility: 'hidden' }
+          : {}),
+      }"
     >
-      {{ t('embed.failed') }}
-    </p>
-    <Suspense v-else>
-      <component
-        :is="preview"
-        :prototype="prototype"
-        :artifact="target"
-        :width="width"
-        :height="height"
-      />
-      <template #fallback>
-        <p
-          role="status"
-          class="p-4 text-sm text-muted"
-          :style="{ height: `${height}px` }"
-        >
-          {{ t('embed.loading') }}
-        </p>
-      </template>
-    </Suspense>
+      <div v-if="!mounted" class="h-full bg-muted/50" />
+      <p v-else-if="failure" role="alert" class="h-full p-4 text-sm">
+        {{ t('embed.failed') }}
+      </p>
+      <Suspense v-else :key="attempt">
+        <component
+          :is="preview"
+          :prototype="prototype"
+          :artifact="target"
+          :width="width"
+          :height="height"
+        />
+        <template #fallback>
+          <p role="status" class="h-full bg-muted/50 p-4 text-sm text-muted">
+            {{ t('embed.loading') }}
+          </p>
+        </template>
+      </Suspense>
+    </div>
+    <slot />
   </EmbedFrame>
   <ArtifactCard
     v-else

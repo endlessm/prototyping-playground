@@ -49,6 +49,7 @@ export default {
       icon: 'i-lucide-app-window',
       page: 'types/view/ViewPage.vue',
       embed: 'types/view/ViewEmbed.vue',
+      embedIn: ['document', 'canvas'],
     },
   ],
 } satisfies StudioModule
