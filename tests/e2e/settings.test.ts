@@ -65,6 +65,9 @@ test('[SH-112] [SH-113] [SH-119] optional Manual toggles persist across restart 
   ).toMatchObject({ required: false, enabled: true })
   expect(await manual.isEnabled()).toBe(true)
   for (const enabled of [false, true]) {
+    const previous = await page.evaluate(async () =>
+      (await fetch('/_studio/settings')).json(),
+    )
     await manual.click()
     await page.getByRole('button', { name: 'Save changes' }).click()
     await expect
@@ -74,7 +77,7 @@ test('[SH-112] [SH-113] [SH-119] optional Manual toggles persist across restart 
             .evaluate(async () => (await fetch('/_studio/settings')).json())
             .catch(() => null)
           return (
-            state?.instance !== snapshot.instance &&
+            state?.instance !== previous.instance &&
             state?.config.modules.documentation === enabled
           )
         },
@@ -86,7 +89,26 @@ test('[SH-112] [SH-113] [SH-119] optional Manual toggles persist across restart 
         timeout: 120000,
       })
       .toBe(0)
-    expect(await manual.getAttribute('aria-checked')).toBe(String(enabled))
+    await expect
+      .poll(
+        () =>
+          manual
+            .getAttribute('aria-checked', { timeout: 1000 })
+            .catch(() => null),
+        { timeout: 120000 },
+      )
+      .toBe(String(enabled))
+      .catch(async (error) => {
+        await page.screenshot({
+          path: '.scratch/28-manual-restart-failed.png',
+          fullPage: true,
+        })
+        writeFileSync(
+          '.scratch/28-manual-restart-failed.html',
+          await page.content(),
+        )
+        throw error
+      })
     await page.goto(`${server.url}documentation`)
     await expect
       .poll(() => page.url(), { timeout: 30000 })
