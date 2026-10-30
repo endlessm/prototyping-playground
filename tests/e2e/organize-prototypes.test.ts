@@ -564,11 +564,17 @@ describe('the deployed site', { timeout: 120_000 }, () => {
     expect(log).toContain(
       'Left out of the deployed site: 1 archived prototype.',
     )
-    const texts = emitted(site.directory)
-      .filter((file) => /\.(js|json|html|txt|css)$/.test(file))
-      .map((file) => readFileSync(file, 'utf8'))
+    const files = emitted(site.directory).filter((file) =>
+      /\.(js|json|html|txt|css)$/.test(file),
+    )
+    const texts = files.map((file) => readFileSync(file, 'utf8'))
     expect(texts.some((text) => text.includes(DEMO))).toBe(true)
-    expect(texts.some((text) => text.includes(OLD))).toBe(false)
+    // Only the active document that links to it names it.
+    expect(
+      files
+        .filter((file) => readFileSync(file, 'utf8').includes(OLD))
+        .map((file) => path.basename(file).split('.')[0]),
+    ).toEqual([NOTES])
     expect(texts.some((text) => text.includes('Old sketch heading'))).toBe(
       false,
     )
