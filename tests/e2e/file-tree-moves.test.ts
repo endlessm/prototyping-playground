@@ -184,6 +184,12 @@ describe('in the studio running locally', { timeout: 180_000 }, () => {
     await expect
       .poll(() => target.getAttribute('data-drop'), WAIT)
       .toBe('before')
+    // One line, on that row's top edge.
+    const lines = nav(page, 'Demo').locator('[data-drop-line]')
+    expect(await lines.count()).toBe(1)
+    expect(
+      await target.locator('[data-drop-line]').getAttribute('data-drop-line'),
+    ).toBe('before')
     await page.mouse.up()
     await expect
       .poll(() => labels(page), WAIT)

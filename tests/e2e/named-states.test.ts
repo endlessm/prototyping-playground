@@ -87,6 +87,9 @@ function sharedScenarios(
         'Sketch',
         'Details',
       ])
+    // State rows have no file of their own: nothing being dragged, none of
+    // them shows the line where a drop would land.
+    expect(await navigation(page).locator('[data-drop-line]').count()).toBe(0)
 
     const member = navigation(page).getByRole('link', { name: 'Member' }).nth(1)
     expect(await member.getAttribute('href')).toContain(`/artifacts/${MEMBER}`)
