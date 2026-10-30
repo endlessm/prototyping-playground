@@ -25,6 +25,8 @@ Profiles never hold roles. Emails and GitHub accounts are unique across profiles
 
 ## Roles
 
+Admins can preview and apply grants with `yarn studio configure --admins key,key --maintainers system=key,key --yes`. Repeat `--maintainers` to patch several systems; `system=` clears that system alone. Role holders are saved by permanent ID. `--recovery` explicitly uses repository access when Admin access is lost. The shared validation and optimistic revision check live in `tooling/settings/service.ts`, also used by the local Settings page. The CLI previews JSON changes and pinned prototypes before applying. Settings saves restart the running Nuxt child; the deployed site has no settings endpoint.
+
 `studio.config.json` names Admins (`admins`) and maintainers (`systemMaintainers`, per system ID) by contributors' studio IDs.
 
 - A contributor changes their own prototypes and profile.
@@ -49,5 +51,7 @@ Shared changes (`enable`, `disable`, `remove --yes`, `create-module --yes`) need
 ## In the browser
 
 In development, `/_studio/me` answers with your key, name, studio ID and role, and pages refresh it when a profile or the configuration changes (`useMe()`). The deployed site identifies nobody. Both receive `#studio/directory`: contributors' and systems' keys and studio IDs only, never profiles or preferences.
+
+Negative identity results are retried on the next request: a transient GitHub lookup failure cannot cache an unregistered identity for the lifetime of the server.
 
 [Use Contributors](skills/use-contributors/SKILL.md) is the agent procedure.
