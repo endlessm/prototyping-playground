@@ -14,6 +14,7 @@ export default {
       when: 'asks for a canvas (a page of views, documents, and notes arranged together)',
     },
   ],
+  references: 'references.ts',
   fileTypes: [
     {
       id: 'canvas',

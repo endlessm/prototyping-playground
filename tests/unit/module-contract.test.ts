@@ -127,3 +127,14 @@ describe('local-only modules', () => {
     ).toEqual(['systems'])
   })
 })
+
+describe('a module’s reference adapters', () => {
+  test('[PR-67] a module may name the file of its reference adapters, which repair references when files move', () => {
+    expect(
+      moduleProblems({ ...base, references: 'references.ts' }, 'notes'),
+    ).toEqual([])
+    expect(moduleProblems({ ...base, references: 42 }, 'notes')).toEqual([
+      'notes/module.ts: "references" names the .ts file whose “references” export lists its reference adapters.',
+    ])
+  })
+})
