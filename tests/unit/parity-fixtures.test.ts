@@ -37,8 +37,17 @@ describe('parity fixture studios', () => {
     )
   })
 
-  test('the fixtures have a prototype in Endless Studios with two views, one with an Endless Studios screen and its options, one with no system, one with an empty view, one with documents, one with named states, a link and a lo-fi view, one with canvases and one with a folder', () => {
+  test('the fixtures have a prototype in Endless Studios with two views, one with an Endless Studios screen and its options, one with no system, one with an empty view, one with diagrams, one with documents, one with named states, a link and a lo-fi view, one with canvases and one with a folder', () => {
     expect(describeFixtureStudio(PARITY_FIXTURES.vue, 'vue')).toEqual([
+      {
+        folder: 'bernardo/diagrams',
+        meta: expect.objectContaining({ title: 'Diagrams', systemId: null }),
+        artifacts: [
+          { path: 'Broken', id: 'd1a6000000000p03' },
+          { path: 'Guide', id: 'd1a6000000000p04' },
+          { path: 'Sign-in', id: 'd1a6000000000p02' },
+        ],
+      },
       {
         folder: 'bernardo/docs',
         meta: expect.objectContaining({ title: 'Docs', systemId: null }),

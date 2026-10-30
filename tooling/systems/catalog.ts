@@ -10,6 +10,7 @@ import { parse } from 'yaml'
 import { directories, posix, treeFiles } from '../manifest/build.ts'
 import type { SystemAssetKind, SystemLibrary } from './contract.ts'
 import type { InstalledSystem } from './registry.ts'
+import { isBinaryFile, isTextContent } from './text-files.ts'
 
 export type TokenGroup =
   | 'colors'
@@ -298,16 +299,22 @@ export function systemCatalog(
   }
 }
 
-/** The text of the system's Context and Skills Markdown, by repository path. */
+/**
+ * The text of the system's Context and Skills, by repository path: their
+ * Markdown, and the skills' other text files (a script), never binary ones.
+ */
 export function systemDocuments(system: InstalledSystem, root: string) {
   const documents: Record<string, string> = {}
   for (const section of ['context', 'skills']) {
     const dir = path.join(system.dir, section)
-    for (const file of filesIn(dir))
-      if (file.toLowerCase().endsWith('.md')) {
-        const at = path.join(dir, file)
-        documents[posix(path.relative(root, at))] = readFileSync(at, 'utf8')
-      }
+    for (const file of filesIn(dir)) {
+      const markdown = file.toLowerCase().endsWith('.md')
+      if (!markdown && (section === 'context' || isBinaryFile(file))) continue
+      const content = readFileSync(path.join(dir, file))
+      if (!markdown && !isTextContent(content)) continue
+      documents[posix(path.relative(root, path.join(dir, file)))] =
+        content.toString('utf8')
+    }
   }
   return documents
 }

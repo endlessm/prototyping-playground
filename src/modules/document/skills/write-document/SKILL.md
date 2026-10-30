@@ -29,7 +29,7 @@ The [Documents README](../../README.md) is the contract; read the sections you n
    ````
 
 7. Link to the prototype's files with paths relative to the document, with their extension so other Markdown readers follow them too: `[the brief](./notes/Brief.md)`.
-8. To show a view next to the text, link it with image syntax on its own line: `![Sign-in screen](./flows/Sign-in.vue)` (wrap a path with spaces in angle brackets: `![Sign-in screen](<./flows/Sign in.vue>)`). A named state is embedded by its permanent address, `![Signed in](/prototypes/<prototype-id>/artifacts/<state-id>)`. Documents embedded this way show as cards. Only files of the same prototype can be embedded; refer to the original view instead of copying its code into the document.
+8. To show a view next to the text, link it with image syntax on its own line: `![Sign-in screen](./flows/Sign-in.vue)` (wrap a path with spaces in angle brackets: `![Sign-in screen](<./flows/Sign in.vue>)`). A named state is embedded by its permanent address, `![Signed in](/prototypes/<prototype-id>/artifacts/<state-id>)`. A standalone diagram (`![Sign-in flow](./sign-in-flow.mermaid)`) shows as a compact drawing; documents embedded this way show as cards. Only files of the same prototype can be embedded; refer to the original view instead of copying its code into the document.
 
 ## Identity
 

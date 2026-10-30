@@ -5,6 +5,7 @@ import type {
   SystemCatalog,
   TokenGroup,
 } from '../../../../tooling/systems/catalog'
+import { isBinaryFile } from '../../../../tooling/systems/text-files'
 
 /** The theme's pages, in navigation order, each for one token group. */
 export const THEME_PAGES: { id: string; group: TokenGroup }[] = [
@@ -39,7 +40,10 @@ export const contextAddress = (system: SystemCatalog, file: string) =>
 export const skillAddress = (system: SystemCatalog, file: string) =>
   systemAddress(system.id, `skills/${withoutMarkdown(file)}`)
 
-/** The repository path of the document at a Context or Skills address. */
+/**
+ * The repository path of the document at a Context or Skills address. A
+ * skill's other text files (a script) keep their extension in theirs.
+ */
 export function documentFile(
   system: SystemCatalog,
   section: 'context' | 'skills',
@@ -48,11 +52,21 @@ export function documentFile(
   const file = `${address}.md`
   if (section === 'context')
     return system.context.find((document) => document.path === file)?.file
-  const [name, ...rest] = file.split('/')
+  const [name, ...rest] = address.split('/')
   const skill = system.skills.find((entry) => entry.name === name)
-  return skill?.files.includes(rest.join('/'))
-    ? `${system.folder}/skills/${file}`
+  const inside = rest.join('/')
+  if (skill?.files.includes(`${inside}.md`))
+    return `${system.folder}/skills/${file}`
+  return skill?.files.includes(inside) &&
+    !isDocument(inside) &&
+    !isBinaryFile(inside)
+    ? `${system.folder}/skills/${address}`
     : undefined
+}
+
+/** Whether a Context or Skills file is a document, rather than plain text. */
+export function isDocument(file: string) {
+  return /\.md$/i.test(file)
 }
 
 /**
@@ -85,7 +99,7 @@ export function documentLink(
 ): string | undefined {
   if (/^[a-z][a-z0-9+.-]*:|^\/|^#/i.test(href)) return undefined
   const [target, hash] = href.split('#')
-  if (!target?.toLowerCase().endsWith('.md')) return undefined
+  if (!target) return undefined
   const parts = from.split('/').slice(0, -1)
   for (const part of target.split('/'))
     if (part === '..') parts.pop()
@@ -95,6 +109,7 @@ export function documentLink(
   for (const section of ['context', 'skills'] as const)
     if (inside.startsWith(`${section}/`)) {
       const address = withoutMarkdown(inside.slice(section.length + 1))
+      if (section === 'context' && !isDocument(target)) return undefined
       if (documentFile(system, section, address) !== file) return undefined
       return `${systemAddress(system.id, `${section}/${address}`)}${hash ? `#${hash}` : ''}`
     }
