@@ -16,7 +16,10 @@ import PrototypeRebuildNotice from './PrototypeRebuildNotice.vue'
 const props = defineProps<{ prototype: ManifestPrototype }>()
 const { t } = useI18n()
 const toast = useStudioToast()
-const base = useRuntimeConfig().app.baseURL
+// Only the dev server has the route; the static build never names it.
+const route = import.meta.dev
+  ? `${useRuntimeConfig().app.baseURL}_studio/files/prototypes`
+  : ''
 const { systemOf } = await useSystems()
 const { groups, editable } = usePrototypeActions(() => props.prototype)
 const showAll = useShowAllFiles()
@@ -61,7 +64,7 @@ async function finishRename(save: boolean) {
   renaming.value = false
   try {
     if (!save || !title || title === props.prototype.title) return
-    await requestJson(`${base}_studio/files/prototypes`, {
+    await requestJson(route, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

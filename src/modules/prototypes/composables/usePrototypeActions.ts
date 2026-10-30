@@ -56,28 +56,23 @@ export function usePrototypeActions(prototype: () => ManifestPrototype) {
       body: JSON.stringify({ prototype: prototype().id, ...body }),
     })
 
-  // The dialogs, made when first opened.
+  // The dialogs, made when first opened. Only the studio running locally
+  // has them, so the deployed site carries neither them nor the service.
   const overlay = import.meta.dev ? useOverlay() : undefined
+  const loaders = import.meta.dev
+    ? {
+        rename: () => import('../components/PrototypeRenameModal.vue'),
+        duplicate: () => import('../components/PrototypeDuplicateModal.vue'),
+        delete: () => import('../components/PrototypeDeleteModal.vue'),
+      }
+    : undefined
   const dialogs = new Map<
     string,
     ReturnType<NonNullable<typeof overlay>['create']>
   >()
   function dialog(name: 'rename' | 'duplicate' | 'delete') {
-    if (!dialogs.has(name)) {
-      const component =
-        name === 'rename'
-          ? defineAsyncComponent(
-              () => import('../components/PrototypeRenameModal.vue'),
-            )
-          : name === 'duplicate'
-            ? defineAsyncComponent(
-                () => import('../components/PrototypeDuplicateModal.vue'),
-              )
-            : defineAsyncComponent(
-                () => import('../components/PrototypeDeleteModal.vue'),
-              )
-      dialogs.set(name, overlay!.create(component))
-    }
+    if (!dialogs.has(name))
+      dialogs.set(name, overlay!.create(defineAsyncComponent(loaders![name])))
     return dialogs.get(name)!
   }
 
