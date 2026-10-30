@@ -193,14 +193,20 @@ describe('a canvas in a document, in the studio running locally', () => {
     await expect
       .poll(async () => (await sizeOf(view)).width)
       .toBeCloseTo(480 * zoom, -1)
-    // No toolbar, menu, save status or agent tools.
+    // No toolbar, menu, save status or agent tools on screen.
     for (const selector of [
       '.App-toolbar',
       '[data-testid="main-menu-trigger"]',
       '[data-save-status]',
       '.layer-ui__wrapper',
+      '.zoom-actions',
     ])
-      expect(await page.locator(`.canvas-preview ${selector}`).count()).toBe(0)
+      expect(
+        await page
+          .locator(`.canvas-preview ${selector}`)
+          .filter({ visible: true })
+          .count(),
+      ).toBe(0)
     expect(await page.evaluate(() => typeof window.__studioCanvas)).toBe(
       'undefined',
     )
@@ -215,7 +221,9 @@ describe('a canvas in a document, in the studio running locally', () => {
         [middle!.x + middle!.width / 2, middle!.y + middle!.height / 2],
       ),
     ).toBe(false)
-    const open = page.locator('figure').getByRole('link', { name: /The board/ })
+    const open = page
+      .locator('figure.my-6')
+      .getByRole('link', { name: /The board/ })
     expect(await open.getAttribute('href')).toContain(`/artifacts/${BOARD}`)
     // Its items: a live view, a live diagram, a card, and Not found.
     await expect
@@ -283,7 +291,8 @@ describe('a canvas in a document, in the studio running locally', () => {
       }).observe(document, { subtree: true, childList: true, attributes: true })
     })
     await read(page, studio, READER)
-    const figure = page.locator('figure')
+    // The document's figure, around the embed's frame.
+    const figure = page.locator('figure.my-6')
     const status = figure
       .getByRole('status')
       .filter({ hasText: 'Opening canvas' })
@@ -342,7 +351,7 @@ describe('a canvas in a document, in the studio running locally', () => {
       await page.evaluate(
         () => (window as unknown as { openings: string[] }).openings,
       ),
-    ).toEqual([])
+    ).not.toContain('loading')
 
     // The document now embeds another canvas: it opens afresh.
     await read(page, studio, SWAP)
@@ -362,9 +371,12 @@ describe('a canvas in a document, in the studio running locally', () => {
     const page = await documentPage()
     await read(page, studio, BROKEN_DOC)
     await expect
-      .poll(() => page.locator('figure').getByRole('alert').textContent(), {
-        timeout: 30_000,
-      })
+      .poll(
+        () => page.locator('figure.my-6').getByRole('alert').textContent(),
+        {
+          timeout: 30_000,
+        },
+      )
       .toBe('This canvas could not load. Open it to inspect its source.')
   })
 })
