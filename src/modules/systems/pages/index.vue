@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import CollectionArchivedHeading from '../../../../app/components/CollectionArchivedHeading.vue'
 import CollectionViewToggle from '../../../../app/components/CollectionViewToggle.vue'
+import SystemNewButton from '../components/SystemNewButton.vue'
 import SystemsCollection from '../components/SystemsCollection.vue'
 import { useSystemCatalog } from '../composables/useSystemCatalog'
+import { useSystemTransition } from '../composables/useSystemTransition'
 
 // The collection: every system as a card or a row, the default first and
 // the others alphabetically, with archived ones in their own section. The
-// search is kept in the address (`?q=`).
+// search is kept in the address (`?q=`). Locally, Admins create systems
+// here.
 const { t } = useI18n()
 const route = useRoute()
 const studio = useStudioConfig()
@@ -14,6 +17,10 @@ const manifest = await useManifest()
 const { systems } = await useSystemCatalog()
 
 useHead({ title: () => `${t('systems.title')} — ${studio.name}` })
+useSystemTransition(
+  () => systems.value.map(({ id }) => id),
+  () => undefined,
+)
 
 const query = computed(() =>
   typeof route.query.q === 'string' ? route.query.q : '',
@@ -92,6 +99,7 @@ const archived = computed(() =>
                 </UInput>
               </form>
               <CollectionViewToggle />
+              <SystemNewButton />
             </div>
           </div>
         </header>

@@ -81,6 +81,42 @@ describe('a system’s catalog', () => {
     expect(authored.colorModes).toEqual(['light', 'dark'])
   })
 
+  test('[SY-47] [SY-79] carries the references a rename left to review, and whether an agent saved a setup record', async () => {
+    const fresh = systemCatalog(await harbor(), root)
+    expect(fresh.renameReview).toEqual([])
+    expect(fresh.setupRecorded).toBe(false)
+
+    const settled = systemCatalog(
+      await harbor({
+        renameReview: ['src/prototypes/ben/checkout/Notes.md'],
+        setup: {
+          stage: 'theme',
+          summary: 'Started from Nuxt UI with Harbor’s colours.',
+          next: 'Add the button and card.',
+          sources: ['https://ui.nuxt.com'],
+          record: 'context/setup.md',
+        },
+      }),
+      root,
+    )
+    expect(settled.renameReview).toEqual([
+      'src/prototypes/ben/checkout/Notes.md',
+    ])
+    expect(settled.setupRecorded).toBe(true)
+  })
+
+  test('[SY-79] a malformed setup record or review list is a problem with the declaration', async () => {
+    write(
+      'src/systems/harbor/system.ts',
+      `export default ${JSON.stringify(spec({ setup: { stage: 3 }, renameReview: 'x' }))}\n`,
+    )
+    const { problems } = await loadSystems(root, { systems: ['harbor'] })
+    expect(problems).toEqual([
+      'src/systems/harbor/system.ts: setup has a plain-text stage and summary, an optional next step and record file, and a list of sources.',
+      'src/systems/harbor/system.ts: renameReview lists repository paths.',
+    ])
+  })
+
   test('[SY-80] [SY-81] [SY-82] lists each library with its installed version, or none when it isn’t installed', async () => {
     write(
       'node_modules/@harbor/ui/package.json',

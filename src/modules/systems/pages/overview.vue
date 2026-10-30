@@ -2,12 +2,17 @@
 import type { SystemCatalog } from '../../../../tooling/systems/catalog'
 import SystemPage from '../components/SystemPage.vue'
 import SystemPageHeader from '../components/SystemPageHeader.vue'
+import SystemReferenceNotice from '../components/SystemReferenceNotice.vue'
+import SystemSetup from '../components/SystemSetup.vue'
 import { byNewest } from '../utils/pages'
 import directory from '#studio/directory'
 
 // A system's Overview: what it is for, then its Instructions (Context and
 // Skills), its Toolkit (components, theme tokens, local assets and colour
 // modes) and where it is used. Counts come from the system's files.
+// Locally, an active system no agent has set up offers its setup panel:
+// instead of the blocks while it is completely empty, in a disclosure
+// otherwise. After a rename, references left to review show first.
 const props = defineProps<{ system: SystemCatalog }>()
 const { t } = useI18n()
 const studio = useStudioConfig()
@@ -50,6 +55,22 @@ const colorModes = computed(() => {
     ? t('systems.overview.darkOnly')
     : t('systems.overview.lightOnly')
 })
+const local = import.meta.dev
+const settingUp = computed(
+  () =>
+    local && props.system.status === 'active' && !props.system.setupRecorded,
+)
+const empty = computed(
+  () =>
+    settingUp.value &&
+    [
+      props.system.tokens,
+      props.system.components,
+      props.system.assets,
+      props.system.context,
+      props.system.skills,
+    ].every((list) => list.length === 0),
+)
 const block = 'min-w-0 rounded-xl border border-default bg-elevated/40 p-6'
 </script>
 
@@ -61,6 +82,7 @@ const block = 'min-w-0 rounded-xl border border-default bg-elevated/40 p-6'
         system.summary ?? t('systems.overview.generic', { name: system.label })
       "
     />
+    <SystemReferenceNotice v-if="local" :system="system" />
     <UAlert
       v-if="system.status === 'archived'"
       icon="i-lucide-archive"
@@ -70,7 +92,28 @@ const block = 'min-w-0 rounded-xl border border-default bg-elevated/40 p-6'
       :description="t('systems.overview.archivedHint')"
       class="mb-6"
     />
-    <div class="grid gap-4">
+    <template v-if="empty">
+      <p class="mb-6 text-sm leading-6 text-default">
+        {{ t('systems.overview.empty') }}
+      </p>
+      <SystemSetup :system="system" />
+    </template>
+    <UCollapsible v-else-if="settingUp" class="mb-6">
+      <UButton
+        color="neutral"
+        variant="outline"
+        trailing-icon="i-lucide-chevron-down"
+        :label="t('systems.overview.curate')"
+        :ui="{
+          trailingIcon:
+            'group-data-[state=open]:rotate-180 transition-transform duration-200 motion-reduce:transition-none',
+        }"
+      />
+      <template #content>
+        <SystemSetup :system="system" class="mt-4" />
+      </template>
+    </UCollapsible>
+    <div v-if="!empty" class="grid gap-4">
       <section :class="block" aria-labelledby="system-instructions">
         <h2
           id="system-instructions"

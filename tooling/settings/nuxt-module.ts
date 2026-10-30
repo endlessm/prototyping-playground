@@ -1,5 +1,8 @@
 import path from 'node:path'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { addVitePlugin, defineNuxtModule } from 'nuxt/kit'
+import { systemsFolder } from '../systems/registry.ts'
+import { OPERATION_MARKER } from '../systems/lifecycle.ts'
 import { settingsSnapshot, saveSettings } from './service.ts'
 
 export default defineNuxtModule({
@@ -66,38 +69,62 @@ export default defineNuxtModule({
             },
           )
           let timer: ReturnType<typeof setTimeout> | undefined
+          const systems = path.resolve(root, systemsFolder())
+          // What this server started with: a change rolled back restores it,
+          // and needs no restart.
+          const snapshot = () => {
+            const text = (file: string) =>
+              existsSync(file) ? readFileSync(file, 'utf8') : ''
+            const declarations = existsSync(systems)
+              ? readdirSync(systems)
+                  .sort()
+                  .map((key) => [
+                    key,
+                    text(path.join(systems, key, 'system.ts')),
+                  ])
+              : []
+            return JSON.stringify([
+              text(path.resolve(root, options.configFile)),
+              declarations,
+            ])
+          }
+          const started = snapshot()
+          // A system change in progress (its marker) restarts once it is done.
+          const restart = () => {
+            if (existsSync(path.join(root, OPERATION_MARKER))) {
+              timer = setTimeout(restart, 250)
+              return
+            }
+            if (snapshot() === started) return
+            server.ws.send({
+              type: 'custom',
+              event: 'studio:restarting',
+              data: { instance },
+            })
+            setTimeout(() => void nuxt.callHook('restart', { hard: true }), 200)
+          }
           const changed = (file: string) => {
             const resolved = path.resolve(file)
             if (
               resolved !== path.resolve(root, options.configFile) &&
               !(
-                resolved.startsWith(
-                  path.resolve(root, 'src/systems') + path.sep,
-                ) && path.basename(file) === 'system.ts'
+                resolved.startsWith(systems + path.sep) &&
+                path.basename(file) === 'system.ts'
               )
             )
               return
             clearTimeout(timer)
-            timer = setTimeout(() => {
-              server.ws.send({
-                type: 'custom',
-                event: 'studio:restarting',
-                data: { instance },
-              })
-              setTimeout(
-                () => void nuxt.callHook('restart', { hard: true }),
-                200,
-              )
-            }, 150)
+            timer = setTimeout(restart, 150)
           }
-          server.watcher.add([
-            path.resolve(root, options.configFile),
-            path.resolve(root, 'src/systems'),
-          ])
-          server.watcher.on('change', changed)
+          server.watcher.add([path.resolve(root, options.configFile), systems])
+          // New and removed declarations count too: a system created or
+          // deleted.
+          for (const event of ['change', 'add', 'unlink'])
+            server.watcher.on(event, changed)
           server.httpServer?.once('close', () => {
             clearTimeout(timer)
-            server.watcher.off('change', changed)
+            for (const event of ['change', 'add', 'unlink'])
+              server.watcher.off(event, changed)
           })
         },
       },

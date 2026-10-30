@@ -98,6 +98,10 @@ export interface SystemCatalog {
   /** Every folder inside `context/`, in file-tree order, empty ones too. */
   contextFolders: string[]
   skills: CatalogSkill[]
+  /** Files a rename left naming the old folder, for review. */
+  renameReview: string[]
+  /** An agent saved a setup record: the Overview offers no setup. */
+  setupRecorded: boolean
 }
 
 export const SKILL_FILE = 'SKILL.md'
@@ -257,6 +261,8 @@ export function systemCatalog(
     summary: text(spec.overview?.summary),
     guidance: text(spec.overview?.guidance),
     code: text(spec.overview?.code),
+    renameReview: spec.renameReview ?? [],
+    setupRecorded: Boolean(spec.setup),
     icons: spec.icons ?? null,
     stylesheet:
       stylesheet && existsSync(stylesheet)

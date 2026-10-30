@@ -32,6 +32,19 @@ const scale = computed(() => props.width / VIEWPORT_WIDTH)
 
 <template>
   <div
+    v-if="prototype.systemMissing"
+    class="flex items-center justify-center bg-elevated p-4 text-center text-sm text-muted"
+    :style="{ width: `${width}px`, height: `${height}px` }"
+    :data-preview-artifact="artifact.id"
+  >
+    {{
+      t('prototypes.rebuildNeeded.embed', {
+        system: prototype.systemMissing.label,
+      })
+    }}
+  </div>
+  <div
+    v-else
     ref="boundary"
     class="relative overflow-hidden bg-default"
     :style="{ width: `${width}px`, height: `${height}px` }"

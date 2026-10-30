@@ -783,7 +783,9 @@ export async function applyPlan(
       temporary = mkdtempSync(path.join(os.tmpdir(), 'studio-system-delete-'))
       moveFolder(plan.remove, removed(), { ops: options.ops, describeHolder })
     }
-    if (plan.install) options.yarn?.(['install'])
+    // Only the lockfile: relinking node_modules under a running dev server
+    // could trip over files it holds.
+    if (plan.install) options.yarn?.(['install', '--mode=update-lockfile'])
     const after = await loadSystems(root, readConfig(configFile).config, folder)
     const problems = after.problems.filter((problem) => !before.has(problem))
     if (problems.length) throw new LifecycleError(problems.join(' '))

@@ -73,6 +73,20 @@ describe('the Systems areaâ€™s dropped parts', () => {
     ).toEqual([])
   })
 
+  test('[SY-74] [SY-75] [SY-77] [SY-152] [SY-158] [CL-163] setup offers no shadcn or React path, and systems never come as packs', () => {
+    expect(strings).not.toMatch(
+      /Curate from shadcn|Bring your own|shadcn|React project|preset/i,
+    )
+    expect(
+      tracked.filter((file) => /prepare-shadcn|shadcn-preset/.test(file)),
+    ).toEqual([])
+    const { scripts } = JSON.parse(readFileSync('package.json', 'utf8'))
+    expect(Object.keys(scripts)).not.toContain('prepare-shadcn')
+    const cli = readFileSync('tooling/studio/cli.ts', 'utf8')
+    expect(cli).not.toMatch(/^\s*(add|'prepare-shadcn'):/m)
+    expect(cli).not.toContain("'--out'")
+  })
+
   test('[SY-129] the build records no instruction routing map', () => {
     expect(containing('systemContentMaps')).toEqual([])
     expect(containing('contentMap')).toEqual([])

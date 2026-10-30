@@ -245,7 +245,47 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     await page.getByRole('menuitem', { name: 'Copy path' }).click()
     await expect
       .poll(() => page.evaluate(() => navigator.clipboard.readText()))
-      .toBe(systemsPath('harbor'))
+      .toBe(`${systemsPath('harbor')}/`)
+  })
+
+  test('[SY-20] [SY-61] only Admins create systems; Harbor’s maintainer may rename it, nothing more', async () => {
+    const page = await open()
+    await visible(page.getByRole('list', { name: 'Systems', exact: true }))
+    const items = async (name: string) => {
+      const trigger = button(page, `Actions for ${name}`)
+      // Who you are arrives after the page; the menu grows when it does.
+      await expect
+        .poll(
+          async () => {
+            await trigger.click()
+            const texts = await page.getByRole('menuitem').allTextContents()
+            await page.keyboard.press('Escape')
+            await expect.poll(() => page.getByRole('menu').count()).toBe(0)
+            return texts.length >= 4 ? texts : []
+          },
+          { timeout: 60_000 },
+        )
+        .not.toEqual([])
+      await trigger.click()
+      const texts = await page.getByRole('menuitem').allTextContents()
+      await page.keyboard.press('Escape')
+      await expect.poll(() => page.getByRole('menu').count()).toBe(0)
+      return texts
+    }
+    expect(await items('Harbor')).toEqual([
+      'Open in editor',
+      expect.stringMatching(/^(Show in|Reveal in)/),
+      'Copy link',
+      'Copy path',
+      'Rename',
+    ])
+    expect(await items('Lantern')).toEqual([
+      'Open in editor',
+      expect.stringMatching(/^(Show in|Reveal in)/),
+      'Copy link',
+      'Copy path',
+    ])
+    expect(await button(page, 'New system').count()).toBe(0)
   })
 
   test('[SY-04] Home links to up to three active systems and the whole collection', async () => {
@@ -1017,7 +1057,7 @@ describe('the deployed site', { timeout: 120_000 }, () => {
     expect(local).toEqual([])
   })
 
-  test('[SY-198] [SY-199] system pages read the same, with no editing or local actions', async () => {
+  test('[SY-198] [SY-199] [SY-30] [SY-62] system pages read the same, with no editing, creation or local actions', async () => {
     const page = await newPage()
     await page.goto(`${site.url}systems/${HARBOR}/context/voice?mode=source`)
     await visible(heading(page, 'Voice and tone'))
@@ -1038,9 +1078,11 @@ describe('the deployed site', { timeout: 120_000 }, () => {
     await page.goto(`${site.url}systems`)
     await button(page, 'Actions for Harbor').click()
     await visible(page.getByRole('menuitem', { name: 'Copy link' }))
-    expect(
-      await page.getByRole('menuitem', { name: 'Copy path' }).count(),
-    ).toBe(0)
+    // [SY-30] [SY-62] Only Copy link, and no New system.
+    expect(await page.getByRole('menuitem').allTextContents()).toEqual([
+      'Copy link',
+    ])
+    expect(await button(page, 'New system').count()).toBe(0)
 
     await page.goto(`${site.url}systems/${HARBOR}/skills/build-flow/SKILL`)
     await visible(heading(page, 'Build a flow'))

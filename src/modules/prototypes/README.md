@@ -35,7 +35,7 @@ From the terminal: `yarn new "Prototype Name" [--system <folder name or ID> | --
 
 ## Organizing prototypes
 
-The header (`components/PrototypeHeader.vue`) shows the title, "System · <name> ↗" linking to the system's page ("None", with "This prototype uses its own components and CSS", or "System unavailable"), "Rebuild needed" on a rebuild copy (`components/PrototypeRebuildNotice.vue`) and "Archived" ("The deployed site leaves this prototype out"). Its "…" menu ("Prototype actions"), also on right-click anywhere on the header locally, and the card and row menus come from `composables/usePrototypeActions.ts`; which actions show is `utils/actions.ts`:
+The header (`components/PrototypeHeader.vue`) shows the title, "System · <name> ↗" linking to the system's page ("None", with "This prototype uses its own components and CSS", or "System unavailable"), "Rebuild needed" on a rebuild copy (`components/PrototypeRebuildNotice.vue`), "System deleted" when its system was deleted (see below) and "Archived" ("The deployed site leaves this prototype out"). Its "…" menu ("Prototype actions"), also on right-click anywhere on the header locally, and the card and row menus come from `composables/usePrototypeActions.ts`; which actions show is `utils/actions.ts`:
 
 - Locally anyone gets Open in editor (the folder in a code editor, else shown in the file browser with what else to do), Show in Explorer (Reveal in Finder, Show in folder), Copy link ("Link copied", the full permanent address) and Copy path ("Path copied"); the deployed site only Copy link.
 - The owner or an Admin also gets Rename, Duplicate, Archive, the items other modules add, then Delete, alone and red. An archived prototype offers only Restore and Delete, and nothing to anyone else. The file service checks again on every change.
@@ -52,20 +52,25 @@ The operations are `tooling/files/organize.ts`, behind the file service's protot
 
 **Agents** delete with `yarn studio delete-prototype src/prototypes/<key>/<folder>` (`tooling/studio/delete-prototype.ts`, `tooling/files/deletion.ts`): it previews the links from other prototypes and the canvas and document references that would break, and the untracked and uncommitted files that would be lost (`--json` for data); `--yes` deletes the folder for good, refusing whole if another program holds it. Owner or Admin; `--as <key>` works. See the `organize-prototype` skill.
 
+### A deleted system
+
+When an Admin deletes a system (the systems README, "System lifecycle"), its prototypes keep their files and their `systemId` and get `systemMissing` in `meta.json`. They stay listed locally, with "System · <name> (deleted)" and the "System deleted" notice in their header ("<name> is unavailable. Documents, diagrams and canvas scenes remain readable locally. Rebuild the system-dependent views before publishing this prototype.", with **Copy rebuild instructions** locally). Their views can't render: a view's page shows "Rebuild needed" ("The <name> system was deleted. Your prototype’s files are preserved. Copy the rebuild instructions from the sidebar to get started with another system.") and an embedded view says the same in one line. Documents, diagrams and canvases open as usual. The deployed site leaves them out, with their canvases, as it does archived prototypes, and the build counts them ("… prototypes waiting for a rebuild"). Restoring such a prototype is refused until it is rebuilt.
+
 ## meta.json
 
-| Field                | Meaning                                                                                                                                  |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `formatVersion`      | `1`.                                                                                                                                     |
-| `title`              | Plain text.                                                                                                                              |
-| `created`            | The creation date, `YYYY-MM-DD`.                                                                                                         |
-| `studioId`           | The prototype's permanent ID: 16 lowercase Crockford base32 characters.                                                                  |
-| `ownerContributorId` | The owner's permanent contributor ID.                                                                                                    |
-| `systemId`           | The assigned system's permanent ID, or `null` for no system. A missing or unknown assignment is invalid, and the prototype is left out.  |
-| `status`             | Optional. `"archived"` sets it apart locally (read-only) and leaves it out of the deployed site. Active is the default, never written.   |
-| `rebuild`            | Optional. `{ targetSystemId, sourcePrototypeId }` on a rebuild copy: the system it waits for (or `null`) and the prototype it came from. |
-| `archivedBySystemId` | Optional. Set when archiving its system archived it; restoring removes it.                                                               |
-| `order`              | Optional. The tree's order: paths inside the prototype, files and folders (`tooling/manifest/order.ts`). Written by arranging the tree.  |
+| Field                | Meaning                                                                                                                                                                                                             |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `formatVersion`      | `1`.                                                                                                                                                                                                                |
+| `title`              | Plain text.                                                                                                                                                                                                         |
+| `created`            | The creation date, `YYYY-MM-DD`.                                                                                                                                                                                    |
+| `studioId`           | The prototype's permanent ID: 16 lowercase Crockford base32 characters.                                                                                                                                             |
+| `ownerContributorId` | The owner's permanent contributor ID.                                                                                                                                                                               |
+| `systemId`           | The assigned system's permanent ID, or `null` for no system. A missing or unknown assignment is invalid, and the prototype is left out.                                                                             |
+| `status`             | Optional. `"archived"` sets it apart locally (read-only) and leaves it out of the deployed site. Active is the default, never written.                                                                              |
+| `rebuild`            | Optional. `{ targetSystemId, sourcePrototypeId }` on a rebuild copy: the system it waits for (or `null`) and the prototype it came from.                                                                            |
+| `systemMissing`      | Set when its system was deleted: `{ systemId, label }`, the deleted system and its name. The prototype keeps its files and `systemId`; an agent removes this once it has rebuilt the prototype with another system. |
+| `archivedBySystemId` | Optional. Set when archiving its system archived it; restoring removes it.                                                                                                                                          |
+| `order`              | Optional. The tree's order: paths inside the prototype, files and folders (`tooling/manifest/order.ts`). Written by arranging the tree.                                                                             |
 
 ## Artifacts
 
