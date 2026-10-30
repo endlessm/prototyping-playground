@@ -494,14 +494,16 @@ export function createFileTree(options: TreeOptions) {
     },
 
     /**
-     * Opens a file in the person's code editor: `LAUNCH_EDITOR` first, then
-     * Cursor, VS Code, VSCodium, Zed and Sublime Text. Without one, the file
-     * is shown in the file browser and the reply says what else to do.
+     * Opens a file, or the prototype's own folder (path ''), in the person's
+     * code editor: `LAUNCH_EDITOR` first, then Cursor, VS Code, VSCodium,
+     * Zed and Sublime Text. Without one, it is shown in the file browser and
+     * the reply says what else to do.
      */
     async open(request: { prototype: unknown; path: unknown }) {
       const { dir } = prototypeOf(String(request.prototype ?? ''))
       const file = inside(dir, request.path)
-      if (!file || !lstatSync(file).isFile()) throw gone()
+      const folder = request.path === '' && file !== null
+      if (!file || (!folder && !lstatSync(file).isFile())) throw gone()
       const editors = options.editors ?? installedEditors(platform)
       for (const editor of editors) {
         try {
@@ -521,6 +523,11 @@ export function createFileTree(options: TreeOptions) {
           'Couldn’t open a code editor. Use Edit source, or copy the file’s path.',
         )
       }
+      if (folder)
+        return {
+          opened: false,
+          message: `${editors.length ? 'Your code editor didn’t open' : 'No supported code editor is installed'}, so the folder is shown in ${where}. Edit source is available in the studio, or copy its path.`,
+        }
       return {
         opened: false,
         message: editors.length

@@ -38,11 +38,13 @@ import {
   VIEWS_RESOLVED,
   viewsSignature,
 } from '../preview/pipeline.ts'
+import { registerWatcher } from '../files/watchers.ts'
 import { systemContentProblems } from '../systems/catalog.ts'
 import { loadSystems, systemsFolder } from '../systems/registry.ts'
 import { serveSystemAssets } from '../systems/serve-assets.ts'
 import {
   buildManifest,
+  forDeploy,
   PROTOTYPES_FOLDER,
   type BuiltManifest,
   type FileTypeReader,
@@ -102,7 +104,7 @@ export default defineNuxtModule({
         return registry.config.defaultSystem ?? null
       }
     }
-    const read = (): BuiltManifest =>
+    const readAll = (): BuiltManifest =>
       buildManifest({
         root,
         prototypesFolder,
@@ -111,6 +113,15 @@ export default defineNuxtModule({
         defaultSystem: defaultSystem(),
         contributors: readContributors(root, contributorsFolder).contributors,
       })
+    // The deployed site leaves archived prototypes and systems out
+    // entirely: they aren't listed, built or bundled.
+    const read = (): BuiltManifest =>
+      nuxt.options.dev ? readAll() : forDeploy(readAll(), root).built
+    if (!nuxt.options.dev && !nuxt.options._prepare) {
+      const { warnings, summary } = forDeploy(readAll(), root)
+      for (const warning of warnings) console.warn(`Warning: ${warning}`)
+      if (summary) console.log(summary)
+    }
     const problems = [
       ...systemProblems,
       ...systems.flatMap((system) => systemContentProblems(system, root)),
@@ -172,7 +183,11 @@ declare module '${MANIFEST_MODULE}' {
     )
 
     const workDir = path.join(nuxt.options.buildDir, 'studio-preview')
-    const documents = previewDocuments(systems)
+    const documents = previewDocuments(
+      nuxt.options.dev
+        ? systems
+        : systems.filter(({ spec }) => spec.status !== 'archived'),
+    )
     const preview = (document: PreviewDocument): PreviewOptions => ({
       root,
       workDir,
@@ -469,6 +484,11 @@ function previewPlugin(
           previewConfig(document, { ...options(document), hmrPort }, 'serve'),
         )
         .then(createServer)
+        .then((started) => {
+          // So a whole prototype's folder can be renamed or trashed.
+          registerWatcher(started.watcher)
+          return started
+        })
       servers.set(document.key, server)
     }
     return server

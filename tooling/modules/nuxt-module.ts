@@ -82,6 +82,25 @@ export default defineNuxtModule({
       getContents: () => `export default [${homeBlocks.join(',\n')}]\n`,
     })
     nuxt.options.alias['#studio/home-blocks'] = homeTemplate.dst
+    // What modules add to a prototype's menu, loaded with the menu.
+    const actionFiles = enabled.flatMap(({ spec, dir }) =>
+      spec.prototypeActions
+        ? [path.join(dir, spec.prototypeActions).split(path.sep).join('/')]
+        : [],
+    )
+    const actionsTemplate = addTemplate({
+      filename: 'studio-prototype-actions.mjs',
+      getContents: () =>
+        [
+          ...actionFiles.map(
+            (file, index) =>
+              `import actions${index} from ${JSON.stringify(file)}`,
+          ),
+          `export default [${actionFiles.map((_, index) => `actions${index}`).join(', ')}]`,
+          '',
+        ].join('\n'),
+    })
+    nuxt.options.alias['#studio/prototype-actions'] = actionsTemplate.dst
     const template = addTemplate({
       filename: 'studio-modules.mjs',
       getContents: () => `export default ${JSON.stringify(client, null, 2)}\n`,
@@ -101,6 +120,16 @@ declare module '#studio/modules' {
   }
   const modules: ClientModule[]
   export default modules
+}
+declare module '#studio/prototype-actions' {
+  /** A module's items for a prototype's menu, for whoever may change it. */
+  type PrototypeActions = (prototype: {
+    id: string
+    title: string
+    folder: string
+  }) => { label: string; icon?: string; onSelect: () => unknown }[]
+  const actions: PrototypeActions[]
+  export default actions
 }
 declare module '#studio/home-blocks' {
   import type { Component } from 'vue'

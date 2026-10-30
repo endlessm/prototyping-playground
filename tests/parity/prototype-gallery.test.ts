@@ -71,8 +71,12 @@ scenario(
     if (await create.count()) {
       await create.click()
       const dialog = page.getByRole('dialog', { name: 'New prototype' })
+      // The dialog loads on first use, from a cold dev server.
       await expect
-        .poll(() => dialog.getByRole('textbox', { name: 'Title' }).isVisible())
+        .poll(
+          () => dialog.getByRole('textbox', { name: 'Title' }).isVisible(),
+          { timeout: 30_000 },
+        )
         .toBe(true)
       await step('The New prototype dialog')
       await dialog.getByRole('button', { name: 'Cancel' }).click()

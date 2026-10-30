@@ -9,6 +9,7 @@
 // editor can reload or offer its conflict choice, and `studio:files` when
 // files or folders were added or removed, so file trees refresh. The static
 // build has none of it.
+import { randomBytes } from 'node:crypto'
 import path from 'node:path'
 import {
   addServerHandler,
@@ -22,6 +23,12 @@ import { posix, PROTOTYPES_FOLDER } from '../manifest/build.ts'
 import { platformFolder } from '../guidance/sources.ts'
 import { loadRegistry, MODULES_FOLDER } from '../modules/registry.ts'
 import { systemsFolder } from '../systems/registry.ts'
+import {
+  RELEASE_ROUTE,
+  registerWatcher,
+  releaseFolder,
+  restoreFolder,
+} from './watchers.ts'
 
 export const SOURCE_ROUTE = '_studio/files/source'
 export const SYSTEM_SOURCE_ROUTE = '_studio/files/system-source'
@@ -58,6 +65,8 @@ export interface FileServiceConfig {
    * browser scenarios.
    */
   launchLog?: string
+  /** Proves a release request comes from the file service. */
+  releaseToken: string
 }
 
 const SETTLE_MS = 50
@@ -95,6 +104,7 @@ export default defineNuxtModule({
         spec.references ? [path.join(dir, spec.references)] : [],
       ),
       launchLog: process.env.STUDIO_LAUNCH_LOG || undefined,
+      releaseToken: randomBytes(16).toString('hex'),
     }
     nuxt.options.runtimeConfig.studioFiles = config
     addServerHandler({
@@ -128,8 +138,56 @@ export default defineNuxtModule({
       ]),
       { server: false },
     )
+    addVitePlugin(
+      releaseRoute(
+        nuxt.options.app.baseURL,
+        config.releaseToken,
+        path.resolve(root, config.prototypesFolder),
+      ),
+      { server: false },
+    )
   },
 })
+
+/**
+ * Lets the file service ask the dev server's watchers to let go of a
+ * prototype's folder, and to watch it again (`./watchers.ts`).
+ */
+function releaseRoute(base: string, token: string, prototypes: string): Plugin {
+  return {
+    name: 'studio-release-folders',
+    configureServer(server) {
+      const unregister = registerWatcher(server.watcher)
+      server.httpServer?.once('close', unregister)
+      server.middlewares.use(`${base}${RELEASE_ROUTE}`, (req, res) => {
+        let body = ''
+        req.on('data', (chunk) => (body += chunk))
+        req.on('end', () => {
+          let request: { token?: string; folder?: string; restore?: boolean }
+          try {
+            request = JSON.parse(body)
+          } catch {
+            request = {}
+          }
+          const folder = path.resolve(String(request.folder ?? ''))
+          if (
+            req.method !== 'POST' ||
+            request.token !== token ||
+            !folder.startsWith(prototypes + path.sep)
+          ) {
+            res.statusCode = 403
+            res.end()
+            return
+          }
+          if (request.restore) restoreFolder(folder)
+          else releaseFolder(folder)
+          res.statusCode = 204
+          res.end()
+        })
+      })
+    },
+  }
+}
 
 /**
  * Tells open pages which content files changed, as the service names them,
