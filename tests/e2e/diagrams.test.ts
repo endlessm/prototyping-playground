@@ -207,7 +207,11 @@ describe('in the studio running locally', { timeout: 150_000 }, () => {
     await visible(alert.getByText('Unable to render Mermaid diagram.'))
     expect(await alert.locator('pre').innerText()).toMatch(/Parse error/)
 
-    await page.getByRole('button', { name: 'File actions' }).click()
+    // The file's menu in the navigation, as in React.
+    await page
+      .getByRole('navigation', { name: 'Flows' })
+      .getByRole('link', { name: 'Broken', exact: true })
+      .click({ button: 'right' })
     await page.getByRole('menuitem', { name: /Edit source/ }).click()
     const source = page.getByRole('textbox', {
       name: `Source of ${posix(content)}/ada/flows/Broken.mermaid`,

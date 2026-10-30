@@ -197,7 +197,9 @@ const address = (studio: RunningStudio, artifact: string) =>
   `${studio.url}prototypes/${PROTOTYPE}/artifacts/${artifact}`
 const canvas = (page: Page) => page.locator('.canvas')
 const pill = (page: Page) => page.locator('[data-save-status]')
-const hint = (page: Page) => page.getByText('This canvas is empty')
+// Whether the scene holds nothing, as the page reports it.
+const empty = (page: Page) =>
+  canvas(page).evaluate((node) => node.hasAttribute('data-canvas-empty'))
 async function open(page: Page, studio: RunningStudio, artifact: string) {
   await page.goto(address(studio, artifact))
   await expect
@@ -396,12 +398,12 @@ describe('saving a canvas in the studio running locally', () => {
   test('[CV-98] [CV-99] an outside edit comes in live, without a reload and outside the undo history', async () => {
     const page = await canvasPage()
     await open(page, studio, canvasId(6))
-    await expect.poll(() => hint(page).isVisible()).toBe(true)
+    await expect.poll(() => empty(page)).toBe(true)
     await page.evaluate(() => {
       ;(window as unknown as { marker: boolean }).marker = true
     })
     writeOutside(6, scene(canvasId(6), [shape('agent', 0, 0)]))
-    await expect.poll(() => hint(page).count(), { timeout: 15_000 }).toBe(0)
+    await expect.poll(() => empty(page), { timeout: 15_000 }).toBe(false)
     expect(
       await page.evaluate(
         () => (window as unknown as { marker?: boolean }).marker,
@@ -412,7 +414,7 @@ describe('saving a canvas in the studio running locally', () => {
     await page.mouse.click(box.x + box.width / 2, box.y + box.height - 60)
     await page.keyboard.press('Control+z')
     await settle(1000)
-    expect(await hint(page).count()).toBe(0)
+    expect(await empty(page)).toBe(false)
     // Taking it in is not an edit.
     await settle(1500)
     expect(page.requests).toEqual([])
@@ -421,16 +423,16 @@ describe('saving a canvas in the studio running locally', () => {
   test('[CV-100] a half-written file is skipped until the next change, and the canvas’s own saves are ignored', async () => {
     const page = await canvasPage()
     await open(page, studio, canvasId(7))
-    await expect.poll(() => hint(page).isVisible()).toBe(true)
+    await expect.poll(() => empty(page)).toBe(true)
     writeOutside(
       7,
       `{\n  "type": "excalidraw",\n  "studioId": "${canvasId(7)}",\n  "elements": [\n    {`,
     )
     await settle(2000)
-    expect(await hint(page).isVisible()).toBe(true)
+    expect(await empty(page)).toBe(true)
     expect(await page.getByText('couldn’t be opened').count()).toBe(0)
     writeOutside(7, scene(canvasId(7), [shape('agent', 0, 0)]))
-    await expect.poll(() => hint(page).count(), { timeout: 15_000 }).toBe(0)
+    await expect.poll(() => empty(page), { timeout: 15_000 }).toBe(false)
     // Its own save comes back as a change on disk, and is left alone.
     await draw(page)
     await says(page, 'Saved')
