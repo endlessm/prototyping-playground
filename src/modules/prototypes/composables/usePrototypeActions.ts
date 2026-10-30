@@ -1,6 +1,7 @@
 import contributedActions from '#studio/prototype-actions'
 import type { DropdownMenuItem } from '@nuxt/ui'
 import { useClipboard } from '@vueuse/core'
+import type { AsyncComponentLoader } from 'vue'
 import {
   refreshManifest,
   type ManifestPrototype,
@@ -59,7 +60,8 @@ export function usePrototypeActions(prototype: () => ManifestPrototype) {
   // The dialogs, made when first opened. Only the studio running locally
   // has them, so the deployed site carries neither them nor the service.
   const overlay = import.meta.dev ? useOverlay() : undefined
-  const loaders = import.meta.dev
+  type Loaders = Record<string, AsyncComponentLoader>
+  const loaders: Loaders | undefined = import.meta.dev
     ? {
         rename: () => import('../components/PrototypeRenameModal.vue'),
         duplicate: () => import('../components/PrototypeDuplicateModal.vue'),
