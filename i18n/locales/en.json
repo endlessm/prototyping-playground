@@ -239,7 +239,13 @@
   "markdown": {
     "onThisPage": "On this page",
     "diagramRendering": "Rendering diagram…",
-    "diagramError": "Unable to render Mermaid diagram."
+    "diagramError": "Unable to render Mermaid diagram.",
+    "diagramUpdating": "Updating diagram…",
+    "diagramTimeout": "Diagram rendering took too long. Repair the source or reload this view."
+  },
+  "diagram": {
+    "loading": "Loading diagram…",
+    "failed": "This diagram could not load. Open it to inspect its source."
   },
   "embed": {
     "open": "Open",
@@ -279,6 +285,21 @@
       "snap": "Snap to objects",
       "hideControls": "Hide controls",
       "showControls": "Show controls"
+    },
+    "save": {
+      "saved": "Saved",
+      "saving": "Saving…",
+      "unsaved": "Unsaved changes",
+      "failed": "Couldn’t save",
+      "retry": "Retry",
+      "keepsChanging": "Couldn’t save: the file keeps changing.",
+      "retrying": "Couldn’t save this canvas. Trying again."
+    },
+    "leave": {
+      "title": "This canvas has unsaved changes",
+      "description": "Saving hasn’t finished. Keep the canvas open to retry, or discard the unsaved changes.",
+      "keep": "Keep editing",
+      "discard": "Discard"
     }
   },
   "systems": {

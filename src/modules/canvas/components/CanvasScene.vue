@@ -3,17 +3,20 @@ import type {
   ManifestArtifact,
   ManifestPrototype,
 } from '../../../../app/composables/useManifest'
+import { useCanvasFile } from '../composables/useCanvasFile'
 import { useCanvasOpening } from '../composables/useCanvasOpening'
 import type { CanvasEditorProps, CanvasHandle } from '../island/mount'
 import { parseCanvas, type ParsedCanvas } from '../types/canvas/format'
 import { cameraKey } from '../utils/camera'
-import { readCanvas } from '../utils/readCanvas'
+import { readCanvas, type CanvasText } from '../utils/readCanvas'
 import CanvasError from './CanvasError.vue'
 import CanvasOpening from './CanvasOpening.vue'
+import CanvasSaveStatus from './CanvasSaveStatus.vue'
 
 // One open canvas. The editor's code, the file's text and whether you may
 // edit it are all ready before the editor mounts, so it never shows
-// read-only first. A quiet surface covers the scene until it reveals.
+// read-only first. A quiet surface covers the scene until it reveals. Your
+// edits save by themselves, and changes made to the file elsewhere come in.
 const props = defineProps<{
   prototype: ManifestPrototype
   artifact: ManifestArtifact
@@ -30,6 +33,13 @@ const scene = shallowRef<ParsedCanvas>()
 const editable = ref(false)
 const handle = shallowRef<CanvasHandle>()
 const empty = ref(false)
+let loaded: CanvasText | undefined
+
+const saving = useCanvasFile({
+  base,
+  prototype: () => props.prototype.id,
+  artifact: () => props.artifact.id,
+})
 
 const { revealed, statusVisible } = useCanvasOpening(
   container,
@@ -69,8 +79,13 @@ const editorProps = (): CanvasEditorProps => ({
     hideControls: t('canvas.menu.hideControls'),
     showControls: t('canvas.menu.showControls'),
   },
-  onReady: (ready) => (handle.value = ready),
+  onReady: (ready) => {
+    handle.value = ready
+    // A file from a newer format is never saved over.
+    if (loaded && !scene.value!.tooNew) saving.start(ready, loaded)
+  },
   onEmptyChange: (now) => (empty.value = now),
+  onSceneChange: saving.changed,
 })
 
 onMounted(async () => {
@@ -86,6 +101,7 @@ onMounted(async () => {
     failure.value = message(error)
     return
   }
+  loaded = file
   editable.value = file.editable
   empty.value = !scene.value.elements.some((element) => !element.isDeleted)
   await nextTick()
@@ -128,6 +144,11 @@ onBeforeUnmount(() => {
     >
       <div ref="mountPoint" class="absolute inset-0" />
     </div>
+    <CanvasSaveStatus
+      v-if="saving.active.value && revealed"
+      :state="saving.state.value"
+      @retry="saving.retry"
+    />
     <Transition
       enter-active-class="transition-opacity duration-300"
       enter-from-class="opacity-0"

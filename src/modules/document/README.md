@@ -56,7 +56,7 @@ A link to a file of the same prototype is relative to the document, with or with
 
 A file of the same prototype linked with image syntax on its own line is embedded: `![Sign-in screen](./flows/Sign in.vue)` (angle brackets around a path with spaces: `![Sign-in screen](<./flows/Sign in.vue>)`). A view's named state is embedded by its permanent address, `![Signed in](/prototypes/<prototype-id>/artifacts/<state-id>)`. The same reference inside a sentence stays a link, and ordinary pictures (`.png`, `.jpg`, `.svg`, …) stay images.
 
-An embed is as wide as the text, between 220 and 440 px tall. A type with a preview (views) shows it in a frame with rounded corners whose header names it and opens it ("Open <name>"; "Open" shows on hover and focus). Other types (documents) show as a card with their icon, name, type and an "Open" link. Something that can't be shown is a card that says why:
+An embed is as wide as the text, between 220 and 440 px tall. A type with a preview (views, diagrams) shows it in a frame with rounded corners whose header names it and opens it ("Open <name>"; "Open" shows on hover and focus). Other types (documents) show as a card with their icon, name, type and an "Open" link. Something that can't be shown is a card that says why:
 
 | Card                                                                                | When                                                                      |
 | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
