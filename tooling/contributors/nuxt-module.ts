@@ -15,6 +15,7 @@ import type { Plugin } from 'vite'
 import { readConfig } from '../modules/registry.ts'
 import { publicDirectory } from './directory.ts'
 import { resolveIdentity } from './identity.ts'
+import { identityCache } from './identity-cache.ts'
 import { readContributors } from './profiles.ts'
 import { roleOf, teamOf } from './roles.ts'
 
@@ -102,12 +103,12 @@ function identityPlugin(options: {
   base: string
   watched: string[]
   isWatched: (file: string) => boolean
-  me: () => unknown
+  me: () => { key: string | null }
   changed: () => Promise<void>
 }): Plugin {
   // Resolving runs Git (and perhaps the GitHub CLI), so the answer is kept
   // until a profile or the configuration changes.
-  let cached: string | undefined
+  const cached = identityCache(options.me)
   return {
     name: 'studio-identity',
     configureServer(server) {
@@ -120,8 +121,7 @@ function identityPlugin(options: {
         res.setHeader('Content-Type', 'application/json')
         res.setHeader('Cache-Control', 'no-store')
         try {
-          cached ??= JSON.stringify(options.me())
-          res.end(cached)
+          res.end(cached.read())
         } catch (error) {
           res.statusCode = 500
           res.end(JSON.stringify({ error: (error as Error).message }))
@@ -129,7 +129,7 @@ function identityPlugin(options: {
       })
       const stale = async (file: string) => {
         if (!options.isWatched(file)) return
-        cached = undefined
+        cached.clear()
         await options.changed()
         server.ws.send({ type: 'custom', event: 'studio:identity', data: {} })
       }
