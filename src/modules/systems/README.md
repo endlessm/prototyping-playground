@@ -50,7 +50,7 @@ The page reads, in order: the title and description; the Markdown page (the shar
 
 Documentation gaps (a component without a page or examples, a page without `title`, `description` or "When to use", an examples file without examples, two components with one address) are checked at dev start and in the build, as one warning per system listing the first five (`systemDocsReport`). A system's `docs` setting decides: `'warn'` warns, `'strict'` stops the build (and warns in dev), `'off'` stays silent.
 
-`yarn component-docs <system> [component] [--yes]` (also `yarn studio component-docs`) adds the examples file and page a component is missing, or every component's, from templates (`tooling/systems/scaffold.ts`): a flat component first moves into a folder of its own with an `index.ts`, the starter example fills required props (simple types with a value, others with `undefined` to replace), and files that exist are never touched. Without `--yes` it prints what it would do.
+`yarn component-docs <system> [component] [--yes]` (also `yarn studio component-docs`) adds the examples file and page a component is missing, or every component's, from templates (`tooling/systems/scaffold.ts`): a flat component first moves into a folder of its own with an `index.ts`, the first example fills required props (simple types with a value, others with `undefined` to replace), and files that exist are never touched. Without `--yes` it prints what it would do.
 
 ## Source mode
 

@@ -22,7 +22,7 @@ const describe = (step: ScaffoldStep) =>
     ? `Move ${step.from} to ${step.file}`
     : `Create ${step.file}`
 
-// Each component file's required props, for the starter example. Without
+// Each component file's required props, for the first example. Without
 // Vue's component metadata tooling the example starts without them.
 async function requiredProps(root: string, steps: ScaffoldStep[]) {
   const sources = new Set<string>()
@@ -48,7 +48,7 @@ async function requiredProps(root: string, steps: ScaffoldStep[]) {
           .map(({ name, type }) => ({ name, type }))
     }
   } catch {
-    // Not installed: the starter example has no props.
+    // Not installed: the first example has no props.
   }
   return required
 }

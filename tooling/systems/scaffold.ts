@@ -1,4 +1,4 @@
-// The starter files of a component's page: its examples file and its
+// Templates for a component's page: its examples file and its
 // Markdown page, from templates, written next to the component file. A flat
 // component (`button.vue`) first moves into a folder of its own with the
 // files that share its name and an `index.ts` that re-exports it. Files that
@@ -40,7 +40,7 @@ export const tagOf = (stem: string) =>
 
 const PLACEHOLDER = 'undefined'
 
-// A value for a required prop, so the starter example renders: a real one
+// A value for a required prop, so the first example renders: a real one
 // for the simple types, and a placeholder for the rest to fill in.
 function attribute({ name, type }: { name: string; type: string }) {
   if (type === 'string') return `${name}="${titleOf(name)}"`
@@ -183,7 +183,7 @@ export function planScaffold(
 
 /**
  * Does what `planScaffold` says. `required` gives each component file's
- * required props (by repository path), for the starter example.
+ * required props (by repository path), for the first example.
  */
 export function applyScaffold(
   root: string,
