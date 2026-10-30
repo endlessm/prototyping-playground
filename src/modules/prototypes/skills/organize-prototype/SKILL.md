@@ -5,7 +5,7 @@ description: Rename, move, duplicate, archive, restore or delete a prototype, pr
 
 # Organize a prototype
 
-The [prototypes README](../../README.md) is the contract; read "Organizing prototypes", "meta.json" and "References follow renames and moves". Run `yarn studio context src/prototypes/<key>/<folder> --json` first: it reports the owner, the system, a pending rebuild and whether you may change it (`canEdit`). Only a prototype's owner or an Admin changes it.
+The [prototypes README](../../README.md) is the contract; read "Organizing prototypes", "meta.json" and "References follow renames and moves". Run `yarn studio context src/prototypes/<key>/<folder> --json` first: it reports the owner, the system, a pending rebuild and whether you may change it (`canEdit`). Only a prototype's owner or an Admin changes it; apply the platform's [contributor scope](../../../../platform/context/contributor-scope.md) and [resource identity](../../../../platform/context/resource-identity.md) rules (moves keep IDs, copies get fresh ones).
 
 When the studio is running, the person can do each of these from the prototype's **…** menu; prefer pointing them there for a single prototype. The menu goes through the dev server's file service, which checks permissions and repairs references.
 
