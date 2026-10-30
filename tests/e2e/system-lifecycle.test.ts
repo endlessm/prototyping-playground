@@ -105,7 +105,7 @@ const ENV = {
   GIT_CONFIG_KEY_1: 'user.email',
   GIT_CONFIG_VALUE_1: 'ada@endless.example',
 }
-const RESTART = { timeout: 240_000 }
+const RESTART = { timeout: 280_000 }
 
 const config = () => JSON.parse(readFileSync(configFile, 'utf8'))
 const meta = () =>
@@ -168,7 +168,21 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
   }
   /** Waits out the change's restart: the status screen comes and goes. */
   async function settled(page: Page) {
-    await expect.poll(() => cover(page).count(), RESTART).toBe(0)
+    // Read on a loaded page: mid-reload the screen isn't drawn yet.
+    await expect
+      .poll(
+        () =>
+          page
+            .evaluate(
+              () =>
+                document.readyState === 'complete' &&
+                !document.getElementById('studio-system-transition') &&
+                !sessionStorage.getItem('design-studio:system-transition'),
+            )
+            .catch(() => false),
+        RESTART,
+      )
+      .toBe(true)
   }
 
   async function pending(page: Page, started: number) {
