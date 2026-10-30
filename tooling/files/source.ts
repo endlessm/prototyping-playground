@@ -153,10 +153,15 @@ export function fileAccess(options: FileServiceOptions) {
     throw notFound()
   }
 
-  /** Why you may not change the prototype, or null if you may. */
+  /**
+   * Why you may not change the prototype, or null if you may. Archived
+   * prototypes can't change, except to be restored or deleted
+   * (`archived: false`).
+   */
   function refusalFor(
     contributor: string,
     meta: Record<string, unknown>,
+    { archived = true } = {},
   ): { code: Refusal | 'archived'; message: string } | null {
     const { contributors } = readContributors(root, contributorsFolder)
     const identity = (options.identify ?? defaultIdentify(root))(contributors)
@@ -189,7 +194,7 @@ export function fileAccess(options: FileServiceOptions) {
           hint: identity.hint,
         }),
       }
-    if (meta.status === 'archived')
+    if (archived && meta.status === 'archived')
       return { code: 'archived', message: ARCHIVED }
     return null
   }

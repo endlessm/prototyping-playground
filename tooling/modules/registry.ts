@@ -62,6 +62,7 @@ const KEYS = new Set([
   'content',
   'fileTypes',
   'references',
+  'prototypeActions',
   'data',
   'preferences',
 ])
@@ -196,6 +197,14 @@ export function moduleProblems(spec: unknown, folderName: string): string[] {
   )
     problems.push(
       `${where}: "references" names the .ts file whose “references” export lists its reference adapters.`,
+    )
+  if (
+    module.prototypeActions !== undefined &&
+    (typeof module.prototypeActions !== 'string' ||
+      !module.prototypeActions.endsWith('.ts'))
+  )
+    problems.push(
+      `${where}: "prototypeActions" names the .ts file whose default export lists its items for the prototype menu.`,
     )
   const data = module.data
   if (data !== undefined) {

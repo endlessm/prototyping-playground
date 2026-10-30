@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url'
 import { nodeVersionWarning } from '../check-node.ts'
 import { componentDocs } from './component-docs.ts'
 import { join, profile, whoami } from './contributors.ts'
+import { deletePrototype } from './delete-prototype.ts'
 import { dev } from './dev.ts'
 import { identify, identityAudit } from './identity.ts'
 import {
@@ -68,6 +69,13 @@ const COMMANDS: Record<string, Command> = {
     summary:
       'create a prototype in your own space, with the default system unless you choose another or none',
     run: newPrototype,
+  },
+  'delete-prototype': {
+    usage:
+      'delete-prototype src/prototypes/<contributor>/<prototype> [--yes] [--json]',
+    summary:
+      'see what deleting a prototype would break or lose, then delete it for good with --yes (owner or Admin)',
+    run: deletePrototype,
   },
   whoami: {
     usage: 'whoami [--json]',
