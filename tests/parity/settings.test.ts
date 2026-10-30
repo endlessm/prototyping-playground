@@ -7,18 +7,13 @@ scenario(
     await page.goto(`${url}settings`)
     await expect
       .poll(
-        () =>
-          page
-            .getByRole('textbox', { name: 'Studio name', exact: true })
-            .isVisible(),
+        () => page.getByRole('textbox', { name: /^Studio name/ }).isVisible(),
         { timeout: 60000 },
       )
       .toBe(true)
     await step('General settings and role')
     await page
-      .getByText('Disabling a module keeps its files and content.', {
-        exact: true,
-      })
+      .getByText('Disabling a module keeps its files and content.')
       .scrollIntoViewIfNeeded()
     await step('Capabilities and required modules')
   },

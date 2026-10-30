@@ -50,6 +50,53 @@ beforeAll(async () => {
     GIT_CONFIG_VALUE_1: 'Ada Lovelace',
   })
 }, 300000)
+
+test('[SH-112] [SH-113] [SH-119] optional Manual toggles persist across restart while Context & Skills stays available', async () => {
+  await page.goto(`${server.url}settings`)
+  const manual = page.getByRole('switch', { name: 'Manual', exact: true })
+  await expect.poll(() => manual.isVisible(), { timeout: 60000 }).toBe(true)
+  const snapshot = await page.evaluate(async () =>
+    (await fetch('/_studio/settings')).json(),
+  )
+  expect(
+    snapshot.modules.find(
+      (module: { id: string }) => module.id === 'documentation',
+    ),
+  ).toMatchObject({ required: false, enabled: true })
+  expect(await manual.isEnabled()).toBe(true)
+  for (const enabled of [false, true]) {
+    await manual.click()
+    await page.getByRole('button', { name: 'Save changes' }).click()
+    await expect
+      .poll(
+        async () => {
+          const state = await page
+            .evaluate(async () => (await fetch('/_studio/settings')).json())
+            .catch(() => null)
+          return (
+            state?.instance !== snapshot.instance &&
+            state?.config.modules.documentation === enabled
+          )
+        },
+        { timeout: 120000 },
+      )
+      .toBe(true)
+    await expect
+      .poll(() => page.getByText('Applying changes', { exact: true }).count(), {
+        timeout: 120000,
+      })
+      .toBe(0)
+    expect(await manual.getAttribute('aria-checked')).toBe(String(enabled))
+    await page.goto(`${server.url}documentation`)
+    await expect
+      .poll(() => page.url(), { timeout: 30000 })
+      .toContain(
+        enabled ? '/documentation/manual' : '/documentation/context/platform',
+      )
+    await page.goto(`${server.url}settings`)
+    await expect.poll(() => manual.isVisible(), { timeout: 60000 }).toBe(true)
+  }
+}, 360000)
 afterAll(async () => {
   await server?.stop()
 })

@@ -11,3 +11,5 @@ The dev-only Vite endpoint `<base>_studio/settings` accepts same-origin GET and 
 The Nuxt module debounces configuration and `system.ts` file changes, sends `studio:restarting` before restarting the Nuxt child, and leaves the parent server and port intact. The client covers the page, polls for a changed instance, reloads, then uncovers after mount. An inline head script recreates the cover if the browser reloads during restart. The fallback appears at 15 seconds, with a longer-wait message at 30 seconds. Reduced motion stops the spinner and fade.
 
 Diagrams is an optional prototype tool. Text files (read-only supporting files in system skills) are included with Systems; Settings explains that relationship rather than offering an independent text-module switch.
+
+The optional Documentation module is labelled Manual in Settings. Turning it off removes Manual routes after restart; the studio-owned Context & Skills browser remains available.
