@@ -52,6 +52,15 @@ writeFileSync(
 
 const at = (file: string) => path.join(content, 'systems', file)
 const read = (file: string) => readFileSync(at(file), 'utf8')
+// Lantern is empty but already set up, so its Overview shows its (empty)
+// blocks rather than the setup panel (tests/e2e/system-lifecycle.test.ts).
+writeFileSync(
+  at('lantern/system.ts'),
+  read('lantern/system.ts').replace(
+    "status: 'active',",
+    "status: 'active',\n  setup: { stage: 'theme', summary: 'Started from Nuxt UI.' },",
+  ),
+)
 const VOICE = read('harbor/context/voice.md')
 const reset = () => writeFileSync(at('harbor/context/voice.md'), VOICE)
 const THEME = read('harbor/styles/theme.css')
