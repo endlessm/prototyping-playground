@@ -23,7 +23,7 @@ An interactive screen or flow within a prototype, using its assigned system's co
 _Avoid_: VueScreen, Screen (as a separate artifact kind).
 
 **System options**:
-The locale, signed-in user and sample that describe the app around a view, with each named state able to override individual options.
+The locale, signed-in user, sample and app shell that describe the app around a view, with each named state able to override individual options.
 _Avoid_: screen props (props belong to the view).
 
 **Named state**:
@@ -41,7 +41,7 @@ A local substitute for an app service that lets the product experience run witho
 _Avoid_: mock, shim.
 
 **Sample**:
-The example store state, handlers and query responses a stand-in uses for one demonstrated experience.
+The example store state, handlers and query responses a stand-in uses for one demonstrated experience. A sample supplies data; system options choose the app shell around the view.
 
 **Preview document**:
 The isolated presentation of a view or system example within the studio.
