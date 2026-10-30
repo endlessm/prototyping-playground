@@ -8,7 +8,9 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { nodeVersionWarning } from '../check-node.ts'
+import { componentDocs } from './component-docs.ts'
 import { join, profile, whoami } from './contributors.ts'
+import { deletePrototype } from './delete-prototype.ts'
 import { dev } from './dev.ts'
 import { identify, identityAudit } from './identity.ts'
 import {
@@ -83,6 +85,13 @@ const COMMANDS: Record<string, Command> = {
       'create a prototype in your own space, with the default system unless you choose another or none',
     run: newPrototype,
   },
+  'delete-prototype': {
+    usage:
+      'delete-prototype src/prototypes/<contributor>/<prototype> [--yes] [--json]',
+    summary:
+      'see what deleting a prototype would break or lose, then delete it for good with --yes (owner or Admin)',
+    run: deletePrototype,
+  },
   whoami: {
     usage: 'whoami [--json]',
     summary: 'the contributor your Git identity resolves to',
@@ -148,6 +157,13 @@ const COMMANDS: Record<string, Command> = {
     summary: "delete a module's folder; --content deletes its content too",
     run: removeModule,
     shared: 'yes',
+  },
+  'component-docs': {
+    usage:
+      'component-docs <system> [component] [--yes] (also yarn component-docs)',
+    summary:
+      'add the examples file and page a component is missing, from templates',
+    run: componentDocs,
   },
   'create-module': {
     usage: 'create-module <id> [--label <name>] [--yes]',

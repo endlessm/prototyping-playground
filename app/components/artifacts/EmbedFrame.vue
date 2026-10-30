@@ -1,7 +1,8 @@
 <script setup lang="ts">
-// One frame for previews in documents (and later canvases): rounded corners
-// and a full-width header with the artifact's name, which opens it.
-// Hovering or focusing the header reveals "Open".
+// One frame for previews in documents and on canvases: rounded corners and
+// a 36 px header with the artifact's name, which opens it. Hovering or
+// focusing the header reveals "Open". On a canvas only `data-open` takes
+// pointer input.
 defineProps<{
   title: string
   /** The artifact's page; without one the header is a plain label. */
@@ -17,6 +18,7 @@ const { t } = useI18n()
     <ULink
       v-if="to"
       :to="to"
+      data-open
       :aria-label="t('embed.openNamed', { name: title })"
       class="group/open flex h-9 shrink-0 items-center justify-between gap-2 border-b border-default bg-elevated/60 px-3 text-xs text-default transition-colors hover:bg-elevated focus-visible:bg-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inverted focus-visible:ring-inset"
     >

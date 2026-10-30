@@ -22,5 +22,9 @@
   ".agents/skills/studio-module-documentation-write-manual/SKILL.md": "4b585110e13ecb268888903387f0ab062f4f063ac6f16afcc1b00421cb1eaee5",
   ".claude/skills/studio-module-documentation-write-manual/SKILL.md": "4b585110e13ecb268888903387f0ab062f4f063ac6f16afcc1b00421cb1eaee5",
   ".agents/skills/studio-module-prototypes-build-prototype/SKILL.md": "912aa968de21b42de282b71857839d746e1593b232cc1c44ab7f2811579c8041",
-  ".claude/skills/studio-module-prototypes-build-prototype/SKILL.md": "912aa968de21b42de282b71857839d746e1593b232cc1c44ab7f2811579c8041"
+  ".claude/skills/studio-module-prototypes-build-prototype/SKILL.md": "912aa968de21b42de282b71857839d746e1593b232cc1c44ab7f2811579c8041",
+  ".agents/skills/studio-module-prototypes-organize-prototype/SKILL.md": "7833c060991e5181eb76ab68bd7a626a2a321c10eb46c4f833791386758dae95",
+  ".claude/skills/studio-module-prototypes-organize-prototype/SKILL.md": "7833c060991e5181eb76ab68bd7a626a2a321c10eb46c4f833791386758dae95",
+  ".agents/skills/studio-module-systems-document-component/SKILL.md": "08bc3d1ed68fdb5c1302057841bfbdad0bdb50718e004c8eb11623d69bd0ace5",
+  ".claude/skills/studio-module-systems-document-component/SKILL.md": "08bc3d1ed68fdb5c1302057841bfbdad0bdb50718e004c8eb11623d69bd0ace5"
 }

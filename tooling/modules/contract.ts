@@ -114,6 +114,11 @@ export interface ModuleFileType {
    * relative to the folder. A type without one shows as a card there.
    */
   embed?: string
+  /**
+   * Where `embed` previews the artifact: in documents, on canvases, or (by
+   * default) both. Elsewhere it shows as a card.
+   */
+  embedIn?: ('document' | 'canvas')[]
   /** An Iconify name for navigation, file lists and cards. */
   icon?: string
   /**
@@ -206,6 +211,13 @@ export interface StudioModule {
    * keep working while the module is turned off.
    */
   references?: string
+  /**
+   * A browser file, relative to the module's folder, whose default export
+   * (`PrototypeActions` in src/modules/prototypes/utils/actions.ts) gives
+   * the module's items for a prototype's menu, such as a publish action.
+   * They show only to whoever may change the prototype.
+   */
+  prototypeActions?: string
   data?: Record<string, ModuleBuildData>
   preferences?: ModulePreferences
   /** Public prototype imports through @module/<id>, relative to the module. */

@@ -40,6 +40,22 @@ export interface ReferenceOptions {
   extensions: string[]
 }
 
+/** Where one artifact is shown inside another. */
+export type EmbedSurface = 'document' | 'canvas'
+
+/**
+ * How an artifact of a type shows on a surface: a live preview where the
+ * type has one for it (every surface unless it names some), else a card.
+ */
+export function embedPresentation(
+  type: { embed?: unknown; embedIn?: readonly EmbedSurface[] } | undefined,
+  surface: EmbedSurface,
+): 'preview' | 'card' {
+  return type?.embed && (type.embedIn ?? [surface]).includes(surface)
+    ? 'preview'
+    : 'card'
+}
+
 const PERMANENT = /^\/prototypes\/([^/?#]+)\/artifacts\/([^/?#]+)\/?(?:[?#]|$)/
 
 const problem = (code: ReferenceProblem): ReferenceResolution => ({

@@ -141,7 +141,66 @@
       "description": "Add a view to start. Ask your agent to build one, and describe what it’s for and who it’s for.",
       "prompt": "In {path}, build a view "
     },
-    "actions": "Prototype actions"
+    "actions": "Prototype actions",
+    "organize": {
+      "doubleClickRename": "Double-click to rename",
+      "titleField": "Prototype title",
+      "openSystem": "Open {name} system",
+      "noSystemHint": "This prototype uses its own components and CSS",
+      "archived": "Archived",
+      "archivedHint": "The deployed site leaves this prototype out",
+      "rename": "Rename",
+      "duplicate": "Duplicate",
+      "archive": "Archive",
+      "restore": "Restore",
+      "delete": "Delete",
+      "archivedToast": "Archived. The deployed site leaves it out.",
+      "restoredToast": "Restored",
+      "renameDialog": {
+        "title": "Rename prototype",
+        "description": "Its folder is renamed to match. Its link stays the same.",
+        "titleLabel": "Title",
+        "contributor": "Contributor",
+        "created": "Created",
+        "cancel": "Cancel",
+        "save": "Rename",
+        "saving": "Renaming"
+      },
+      "duplicateDialog": {
+        "title": "Duplicate prototype",
+        "description": "Create a separate copy to explore another direction.",
+        "titleLabel": "Title",
+        "copyTitle": "{title} copy",
+        "system": "System",
+        "noSystem": "No system — custom styling",
+        "copyHelp": "Copies the existing artifacts, components, and styles.",
+        "rebuildHelp": "Choosing a different system creates a copy for your agent to rebuild. It does not convert the existing code.",
+        "confirmTitle": "Create a copy for a system rebuild?",
+        "confirmDescription": "The original prototype stays unchanged. Rebuilding the copy requires your coding agent.",
+        "translate": "Components and styles usually do not translate directly. Your agent will need to reconstruct the copy, and some details or behavior may change.",
+        "keeps": "The copy keeps its current system until the rebuild is complete. You can copy the rebuild instructions from its sidebar.",
+        "cancel": "Cancel",
+        "back": "Back",
+        "duplicate": "Duplicate",
+        "continue": "Continue",
+        "createRebuild": "Create rebuild copy",
+        "creating": "Creating"
+      },
+      "deleteDialog": {
+        "title": "Delete “{title}”?",
+        "description": "Everything in it moves to {place}, where you can restore it. Its link stops working until you do.",
+        "cancel": "Cancel",
+        "confirm": "Delete prototype",
+        "deleting": "Deleting"
+      },
+      "rebuild": {
+        "title": "Rebuild needed",
+        "description": "Target: {target}. The current system stays assigned until your agent rebuilds this copy.",
+        "copy": "Copy rebuild instructions",
+        "copied": "Rebuild instructions copied. Paste them into your coding agent.",
+        "failed": "Could not copy rebuild instructions."
+      }
+    }
   },
   "collection": {
     "viewAs": "View as",
@@ -522,6 +581,42 @@
       "loadingFont": "Loading font",
       "fontFailed": "This font could not be previewed.",
       "pangram": "The quick brown fox jumps over the lazy dog."
+    },
+    "component": {
+      "noPage": "No page yet. Add {file} next to the component to describe it and say when to use it.",
+      "examples": "Examples",
+      "noExamples": "No examples yet. Add {file} next to the component: each {example} in it is one example.",
+      "showCode": "Show code",
+      "exampleLoading": "Loading example…",
+      "exampleError": "This example couldn’t render.",
+      "pageError": "This page couldn’t render.",
+      "source": "Source",
+      "inLibraries": "{name} in Libraries",
+      "componentDocs": "Component docs",
+      "file": "File:",
+      "props": "Props",
+      "componentCount": "{count} components | {count} component | {count} components",
+      "propCount": "{count} props | {count} prop | {count} props",
+      "prop": "Prop",
+      "type": "Type",
+      "default": "Default",
+      "required": "Required",
+      "noProps": "No props.",
+      "native": "Also accepts every native attribute of the element it renders.",
+      "nativeOnly": "Accepts every native attribute of the element it renders.",
+      "loadErrors": "Some component files couldn’t load.",
+      "tryAgain": "Try again",
+      "overview": "{name}’s own overview"
+    },
+    "editor": {
+      "page": "Page",
+      "examples": "Examples",
+      "component": "Component",
+      "missing": "This component has no {file} yet.",
+      "createFiles": "Create files",
+      "createFilesHint": "Create the files this component is missing, from a template.",
+      "created": "Created {files}",
+      "createFailed": "Couldn’t create the files"
     }
   },
   "documentation": {

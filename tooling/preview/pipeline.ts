@@ -29,6 +29,9 @@ const RUNTIME = path.resolve(import.meta.dirname, 'runtime/mount.ts')
 /** What views import their navigation helpers from. */
 export const NAVIGATION_MODULE = '#studio/prototype'
 const NAVIGATION = path.resolve(import.meta.dirname, 'runtime/navigation.ts')
+/** What a system's examples files import `Example` from. */
+export const EXAMPLES_MODULE = '#studio/examples'
+const EXAMPLES = path.resolve(import.meta.dirname, 'runtime/example.ts')
 
 const posix = (file: string) => file.split(path.sep).join('/')
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -46,6 +49,8 @@ export interface PreviewView {
   state?: string
   /** Drawn in grayscale with a handwritten font. */
   lofi?: boolean
+  /** For a component page's example: its `<Example name>`. */
+  example?: string
 }
 
 // A view that holds nothing but comments (a new view, before the agent
@@ -128,7 +133,8 @@ function writeEntry(document: PreviewDocument, options: PreviewOptions) {
     if (app.stylesheet) {
       writeFileSync(
         path.join(dir, 'preview.css'),
-        `@import '${systemFile(app.stylesheet)}';\n@source '${relative(options.prototypesDir)}';\n`,
+        // The system's own files (its examples and overview), and the views.
+        `@import '${systemFile(app.stylesheet)}';\n@source '${relative(document.system!.dir)}';\n@source '${relative(options.prototypesDir)}';\n`,
       )
       lines.push(`import './preview.css'`)
     }
@@ -197,6 +203,7 @@ function viewsPlugin(options: PreviewOptions): Plugin {
           path: view.path,
           state: view.state ?? null,
           lofi: Boolean(view.lofi),
+          example: view.example ?? null,
         })
         return `${JSON.stringify(id)}: { ...${data}, load: ${load} }`
       })
@@ -386,7 +393,10 @@ export async function previewConfig(
     cacheDir: path.join(options.workDir, '.vite', document.key),
     plugins,
     resolve: {
-      alias: [{ find: NAVIGATION_MODULE, replacement: NAVIGATION }],
+      alias: [
+        { find: NAVIGATION_MODULE, replacement: NAVIGATION },
+        { find: EXAMPLES_MODULE, replacement: EXAMPLES },
+      ],
       // One Vue for the runtime, its navigation helpers and the views.
       dedupe: ['vue'],
     },

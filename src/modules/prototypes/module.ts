@@ -28,6 +28,10 @@ export default {
       path: 'skills/build-prototype/',
       when: 'asks to create a prototype, or to create or edit its interactive views',
     },
+    {
+      path: 'skills/organize-prototype/',
+      when: 'asks to rename, move, duplicate, archive, restore or delete a prototype',
+    },
   ],
   content: 'src/prototypes',
   references: 'references.ts',
@@ -42,6 +46,7 @@ export default {
       icon: 'i-lucide-app-window',
       page: 'types/view/ViewPage.vue',
       embed: 'types/view/ViewEmbed.vue',
+      embedIn: ['document', 'canvas'],
     },
   ],
 } satisfies StudioModule

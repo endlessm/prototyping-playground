@@ -185,3 +185,58 @@ describe('a system’s source', () => {
     expect(nobody.reason).toContain("doesn't match a contributor profile")
   })
 })
+
+describe('a component’s missing files', () => {
+  beforeEach(() => {
+    write(
+      'src/systems/harbor/components/button/button.vue',
+      '<script setup lang="ts">\ndefineProps<{ label: string }>()\n</script>\n<template><button>{{ label }}</button></template>\n',
+    )
+  })
+
+  test('[SY-117] Create files writes the missing examples file from a template and keeps the page', async () => {
+    const created = await service().create({
+      system: HARBOR,
+      component: 'button',
+    })
+    expect(created.files).toEqual([
+      'src/systems/harbor/components/button/button.examples.vue',
+    ])
+    const examples = fs.readFileSync(
+      at('src/systems/harbor/components/button/button.examples.vue'),
+      'utf8',
+    )
+    expect(examples).toContain('<Button label="Label" />')
+    expect(
+      fs.readFileSync(
+        at('src/systems/harbor/components/button/button.md'),
+        'utf8',
+      ),
+    ).toBe('# Button\n')
+    // Flat components are reachable too, now that they have pages.
+    write('src/systems/harbor/components/Badge.vue', '<template />\n')
+    const flat = await service().read({
+      system: HARBOR,
+      path: 'components/Badge.vue',
+    })
+    expect(flat.content).toBe('<template />\n')
+  }, 60_000)
+
+  test('[SY-117] only the system’s maintainers and Admins may create them', async () => {
+    actor = null
+    const error = await refusal(
+      service().create({ system: HARBOR, component: 'button' }),
+    )
+    expect(error.status).toBe(403)
+    expect(
+      fs.existsSync(
+        at('src/systems/harbor/components/button/button.examples.vue'),
+      ),
+    ).toBe(false)
+    actor = 'ben'
+    const unknown = await refusal(
+      service().create({ system: HARBOR, component: 'dialog' }),
+    )
+    expect(unknown.status).toBe(404)
+  })
+})

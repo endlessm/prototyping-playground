@@ -62,6 +62,7 @@ const KEYS = new Set([
   'content',
   'fileTypes',
   'references',
+  'prototypeActions',
   'data',
   'preferences',
   'library',
@@ -193,6 +194,18 @@ export function moduleProblems(spec: unknown, folderName: string): string[] {
           problems.push(
             `${where}: file type "${String(id)}" names its check and template files and its icon as text.`,
           )
+        const { embedIn } = (type ?? {}) as Record<string, unknown>
+        if (
+          embedIn !== undefined &&
+          (!Array.isArray(embedIn) ||
+            !embedIn.length ||
+            embedIn.some(
+              (surface) => surface !== 'document' && surface !== 'canvas',
+            ))
+        )
+          problems.push(
+            `${where}: file type "${String(id)}" names the surfaces its preview shows on: “document”, “canvas” or both.`,
+          )
       }
   }
   if (
@@ -202,6 +215,14 @@ export function moduleProblems(spec: unknown, folderName: string): string[] {
   )
     problems.push(
       `${where}: "references" names the .ts file whose “references” export lists its reference adapters.`,
+    )
+  if (
+    module.prototypeActions !== undefined &&
+    (typeof module.prototypeActions !== 'string' ||
+      !module.prototypeActions.endsWith('.ts'))
+  )
+    problems.push(
+      `${where}: "prototypeActions" names the .ts file whose default export lists its items for the prototype menu.`,
     )
   const data = module.data
   if (data !== undefined) {

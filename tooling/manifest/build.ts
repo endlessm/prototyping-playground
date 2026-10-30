@@ -2,7 +2,7 @@
 // tree's order (the first opens with the prototype), the installed systems, and the contributors' names for bylines. Each prototype's artifact list is kept
 // apart, so the main manifest stays small and a list loads when its
 // prototype opens. Problems are reported as sentences naming the file.
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { isResourceId } from '../identity/resource-id.ts'
 import { byOrder, compare, parseOrder } from './order.ts'
@@ -31,6 +31,25 @@ export interface ManifestPrototype {
   systemId: string | null
   /** Archived prototypes are left out of the deployed site. */
   status: 'active' | 'archived'
+  /**
+   * A copy waiting for an agent to rebuild it with another system (null for
+   * none); it keeps its current system until then.
+   */
+  rebuild?: ManifestRebuild
+}
+
+export interface ManifestRebuild {
+  targetSystemId: string | null
+  /** The prototype it was copied from. */
+  sourcePrototypeId: string
+}
+
+function rebuildOf(value: unknown): ManifestRebuild | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return
+  const { targetSystemId, sourcePrototypeId } = value as Record<string, unknown>
+  if (!isResourceId(sourcePrototypeId)) return
+  if (targetSystemId !== null && !isResourceId(targetSystemId)) return
+  return { targetSystemId, sourcePrototypeId }
 }
 
 /** What a byline shows of a contributor, and nothing more. */
@@ -297,6 +316,7 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
         created: typeof meta.created === 'string' ? meta.created : null,
         systemId: (meta.systemId as string | null) ?? null,
         status: meta.status === 'archived' ? 'archived' : 'active',
+        ...(rebuildOf(meta.rebuild) && { rebuild: rebuildOf(meta.rebuild) }),
       })
       artifacts[id] = []
       for (const file of arrangedFiles(dir, parseOrder(meta.order) ?? [])) {
@@ -399,5 +419,94 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
     },
     artifacts,
     problems,
+  }
+}
+
+/** What the deployed site keeps of a manifest, and what it leaves out. */
+export interface DeployedManifest {
+  built: BuiltManifest
+  left: { prototypes: ManifestPrototype[]; systems: ManifestSystem[] }
+  /** Active files that link to a prototype left out, as sentences. */
+  warnings: string[]
+  /** How much was left out, or null when nothing was. */
+  summary: string | null
+}
+
+const LARGEST_TEXT = 750 * 1024
+
+function* textFilesIn(dir: string): Generator<string> {
+  if (!existsSync(dir)) return
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name.startsWith('.') || entry.name === 'node_modules') continue
+    const file = path.join(dir, entry.name)
+    if (entry.isDirectory()) yield* textFilesIn(file)
+    else if (entry.isFile() && statSync(file).size <= LARGEST_TEXT) yield file
+  }
+}
+
+/**
+ * The manifest for the deployed site: archived prototypes, archived
+ * systems and the prototypes that use them are left out entirely, so they
+ * are not built, bundled, listed or searchable. Active files that link to
+ * one of them are named, since the site shows a placeholder there.
+ */
+export function forDeploy(
+  built: BuiltManifest,
+  root: string,
+): DeployedManifest {
+  const { manifest } = built
+  const archivedSystems = new Set(
+    manifest.systems
+      .filter(({ status }) => status === 'archived')
+      .map(({ id }) => id),
+  )
+  const leftOut = (prototype: ManifestPrototype) =>
+    prototype.status === 'archived' ||
+    (prototype.systemId !== null && archivedSystems.has(prototype.systemId))
+  const kept = manifest.prototypes.filter((prototype) => !leftOut(prototype))
+  const left = {
+    prototypes: manifest.prototypes.filter(leftOut),
+    systems: manifest.systems.filter(({ id }) => archivedSystems.has(id)),
+  }
+  const warnings: string[] = []
+  if (left.prototypes.length)
+    for (const prototype of kept)
+      for (const file of [
+        ...textFilesIn(path.resolve(root, prototype.folder)),
+      ].sort()) {
+        const text = readFileSync(file, 'utf8')
+        for (const target of left.prototypes)
+          if (new RegExp(`/prototypes/${target.id}(?![0-9a-z])`).test(text))
+            warnings.push(
+              `${posix(path.relative(root, file))} links to the archived prototype “${target.title}”; the deployed site leaves it out and shows a placeholder there.`,
+            )
+      }
+  const counted = (n: number, one: string, many: string) =>
+    n ? [`${n} ${n === 1 ? one : many}`] : []
+  const parts = [
+    ...counted(
+      left.prototypes.length,
+      'archived prototype',
+      'archived prototypes',
+    ),
+    ...counted(left.systems.length, 'archived system', 'archived systems'),
+  ]
+  return {
+    built: {
+      ...built,
+      manifest: {
+        ...manifest,
+        prototypes: kept,
+        systems: manifest.systems.filter(({ id }) => !archivedSystems.has(id)),
+      },
+      artifacts: Object.fromEntries(
+        kept.map(({ id }) => [id, built.artifacts[id] ?? []]),
+      ),
+    },
+    left,
+    warnings,
+    summary: parts.length
+      ? `Left out of the deployed site: ${parts.join(', ')}.`
+      : null,
   }
 }

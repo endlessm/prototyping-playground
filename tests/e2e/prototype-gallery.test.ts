@@ -272,7 +272,14 @@ describe('the gallery on the dev server, as Ben', () => {
     await page
       .getByRole('button', { name: 'Actions for Checkout Flow' })
       .click()
+    // Someone else's prototype: Ben may only reach it (ticket 13's menu).
     expect(await page.getByRole('menuitem').allTextContents()).toEqual([
+      'Open in editor',
+      process.platform === 'win32'
+        ? 'Show in Explorer'
+        : process.platform === 'darwin'
+          ? 'Reveal in Finder'
+          : 'Show in folder',
       'Copy link',
       'Copy path',
     ])

@@ -22,6 +22,7 @@ export default {
       template: 'types/diagram/template.ts',
       page: 'components/DiagramPage.vue',
       embed: 'components/DiagramEmbed.vue',
+      embedIn: ['document', 'canvas'],
       icon: 'i-lucide-workflow',
       text: true,
     },

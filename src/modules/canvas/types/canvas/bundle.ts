@@ -1,5 +1,6 @@
 // Every canvas's text by its permanent ID, for the deployed site, which has
-// no file service to read them from. Runs on Node.
+// no file service to read them from; archived prototypes' canvases stay
+// out, as their prototypes do. Runs on Node.
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import {
@@ -8,6 +9,14 @@ import {
   treeFiles,
 } from '../../../../../tooling/manifest/build.ts'
 import { identity } from './identity.ts'
+
+function archived(metaFile: string) {
+  try {
+    return JSON.parse(readFileSync(metaFile, 'utf8')).status === 'archived'
+  } catch {
+    return false
+  }
+}
 
 export function canvasFiles(
   root: string,
@@ -20,6 +29,7 @@ export function canvasFiles(
     for (const name of directories(path.join(base, contributor))) {
       const dir = path.join(base, contributor, name)
       if (!existsSync(path.join(dir, 'meta.json'))) continue
+      if (archived(path.join(dir, 'meta.json'))) continue
       for (const file of treeFiles(dir)) {
         if (path.extname(file).toLowerCase() !== '.excalidraw') continue
         const text = readFileSync(path.join(dir, file), 'utf8')

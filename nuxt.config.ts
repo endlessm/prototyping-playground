@@ -245,8 +245,6 @@ export default defineNuxtConfig({
           'codemirror-lang-mermaid',
           'mermaid',
           'yaml',
-          // Context and Skills documents.
-          'marked',
         ],
       },
     },

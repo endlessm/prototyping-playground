@@ -56,7 +56,12 @@ export function useCanvasOpening(
         subtree: true,
         childList: true,
         attributes: true,
-        attributeFilter: ['data-preview-state', 'data-artifact-phase', 'role'],
+        attributeFilter: [
+          'data-preview-state',
+          'data-artifact-phase',
+          'data-diagram-state',
+          'role',
+        ],
       })
       const cameraPainted = () => {
         if (waitingFor || revealed.value) return

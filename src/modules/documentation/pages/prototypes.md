@@ -72,7 +72,7 @@ Links use permanent IDs kept in each file, so a link to a prototype, view, state
 
 **Diagrams** are standalone Mermaid files, drawn in the studio's light or dark colours. A diagram with a syntax error shows the error instead.
 
-**Canvases** use Excalidraw. Drag an artifact from the file tree onto the canvas, or paste its link, to place a live picture of it next to your text, shapes and arrows. Documents show as cards. Other people's canvases and canvases on the deployed site are read-only.
+**Canvases** use Excalidraw. Drag an artifact from the file tree onto the canvas, or paste its link, to place it next to your text, shapes and arrows. Views, states and diagrams show as live pictures; documents and other canvases show as cards. Click an item's title bar to open it. A link to a deleted file, or to another prototype, shows a card that says so. Other people's canvases and canvases on the deployed site are read-only.
 
 A canvas saves itself a moment after you stop drawing, and when you leave it or switch tabs. The status at the bottom right says **Saved**, **Saving…**, **Unsaved changes** or **Couldn't save**, with **Retry**. When the agent edits the same canvas, its changes come in without a reload, merged with yours. If you leave while a save can't finish, the studio asks whether to keep editing or discard your changes.
 
@@ -84,13 +84,14 @@ To move a prototype to another system, choose **Duplicate** and pick the target 
 
 ## What do archive and delete do?
 
-Use a prototype's **…** menu. Your permissions decide which actions you see.
+Use a prototype's **…** menu, beside its title or on its card, or right-click its title. Your permissions decide which actions you see: anyone can copy its link, and in your own copy open it in your code editor or copy its path; its owner or an Admin can change it.
 
-| Action  | What happens                                                                                      |
-| ------- | ------------------------------------------------------------------------------------------------- |
-| Rename  | Changes its title and folder; its links keep working.                                             |
-| Archive | Keeps it in your copy, out of the deployed studio. Links to it show a placeholder.                |
-| Restore | Makes it active again.                                                                            |
-| Delete  | Moves its folder to your computer's trash (the Recycle Bin on Windows), where you can restore it. |
+| Action    | What happens                                                                                                                             |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Rename    | Changes its title and folder; its links keep working. You can also double-click the title.                                               |
+| Duplicate | Makes a copy with new links of its own, and opens it. An Admin can duplicate anyone's prototype; the copy is theirs.                     |
+| Archive   | Keeps it in your copy, out of the deployed studio. Links to it show a placeholder. An archived prototype offers only Restore and Delete. |
+| Restore   | Makes it active again. If its system was deleted or archived, rebuild it or restore the system first.                                    |
+| Delete    | Moves its folder to your computer's trash (the Recycle Bin on Windows), where you can restore it.                                        |
 
 Deleting a file from the file tree also moves it to the trash. Restore archived work before editing it. If something was deleted and emptied from the trash, ask your agent to look for it in Git's history.

@@ -21,6 +21,7 @@
     "check:scope": "node tooling/checks/run.ts scope",
     "check:assets": "node tooling/checks/run.ts assets",
     "new": "node tooling/studio/cli.ts new",
+    "component-docs": "node tooling/studio/cli.ts component-docs",
     "postinstall": "node tooling/check-node.ts && husky && nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
@@ -62,7 +63,6 @@
     "@vueuse/core": "^14.2.1",
     "@vueuse/nuxt": "^14.2.1",
     "codemirror-lang-mermaid": "^0.5.0",
-    "marked": "^17.0.1",
     "mermaid": "^12.2.0",
     "nuxt": "^4.4.8",
     "react": "^19.2.0",
@@ -87,6 +87,7 @@
     "prettier": "^3.5.3",
     "typescript": "^5.9.3",
     "vitest": "^4.1.4",
+    "vue-component-meta": "~3.3.13",
     "vue-tsc": "^3.2.7"
   },
   "lint-staged": {

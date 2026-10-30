@@ -38,12 +38,18 @@ import {
   VIEWS_RESOLVED,
   viewsSignature,
 } from '../preview/pipeline.ts'
-import { systemContentProblems } from '../systems/catalog.ts'
+import { registerWatcher } from '../files/watchers.ts'
+import {
+  systemContentProblems,
+  systemDocsReport,
+  systemPreviews,
+} from '../systems/catalog.ts'
 import { loadSystems, systemsFolder } from '../systems/registry.ts'
 import { moduleChecks } from '../checks/module-checks.ts'
 import { serveSystemAssets } from '../systems/serve-assets.ts'
 import {
   buildManifest,
+  forDeploy,
   PROTOTYPES_FOLDER,
   type BuiltManifest,
   type FileTypeReader,
@@ -103,7 +109,7 @@ export default defineNuxtModule({
         return registry.config.defaultSystem ?? null
       }
     }
-    const read = (): BuiltManifest =>
+    const readAll = (): BuiltManifest =>
       buildManifest({
         root,
         prototypesFolder,
@@ -112,6 +118,15 @@ export default defineNuxtModule({
         defaultSystem: defaultSystem(),
         contributors: readContributors(root, contributorsFolder).contributors,
       })
+    // The deployed site leaves archived prototypes and systems out
+    // entirely: they aren't listed, built or bundled.
+    const read = (): BuiltManifest =>
+      nuxt.options.dev ? readAll() : forDeploy(readAll(), root).built
+    if (!nuxt.options.dev && !nuxt.options._prepare) {
+      const { warnings, summary } = forDeploy(readAll(), root)
+      for (const warning of warnings) console.warn(`Warning: ${warning}`)
+      if (summary) console.log(summary)
+    }
     const problems = [
       ...systemProblems,
       ...systems.flatMap((system) => systemContentProblems(system, root)),
@@ -126,6 +141,17 @@ export default defineNuxtModule({
           )
       })
     for (const problem of problems) console.warn(`Warning: ${problem}`)
+    // Component documentation gaps: a warning per system, or, for a system
+    // that declares `docs: 'strict'`, a build that stops.
+    const building = !nuxt.options.dev && !nuxt.options._prepare
+    for (const system of systems) {
+      const { warning, fails } = systemDocsReport(system, root)
+      if (fails && building)
+        throw new Error(
+          `${warning}\n${system.folder}/system.ts declares docs: 'strict', so the build stops until they are fixed.`,
+        )
+      if (warning) console.warn(`Warning: ${warning}`)
+    }
 
     // Each file type's page, loaded when an artifact of it opens, and its
     // preview in documents, loaded when one appears.
@@ -139,6 +165,7 @@ export default defineNuxtModule({
         `icon: ${JSON.stringify(type.icon ?? null)}`,
         `page: ${load(type, type.page)}`,
         ...(type.embed ? [`embed: ${load(type, type.embed)}`] : []),
+        ...(type.embedIn ? [`embedIn: ${JSON.stringify(type.embedIn)}`] : []),
       ]
       return `${JSON.stringify(type.id)}: { ${fields.join(', ')} }`
     })
@@ -164,8 +191,10 @@ declare module '#studio/file-types' {
       /** An Iconify name; none shows no icon in the navigation. */
       icon: string | null
       page: Load
-      /** Its preview embedded in a document; without one, a card. */
+      /** Its preview embedded in a document or on a canvas; without one, a card. */
       embed?: Load
+      /** Where its preview shows; every surface when left out. */
+      embedIn?: ('document' | 'canvas')[]
     }
   >
   export default types
@@ -181,16 +210,30 @@ declare module '${MANIFEST_MODULE}' {
     )
 
     const workDir = path.join(nuxt.options.buildDir, 'studio-preview')
-    const documents = previewDocuments(systems)
+    const documents = previewDocuments(
+      nuxt.options.dev
+        ? systems
+        : systems.filter(({ spec }) => spec.status !== 'archived'),
+    )
     const preview = (document: PreviewDocument): PreviewOptions => ({
       root,
       workDir,
       baseURL: base,
       prototypesDir: path.resolve(root, prototypesFolder),
-      // Each view, then each of its named states.
+      // Each view, then each of its named states; then the system's own
+      // examples and Overview content.
       views: () => {
         const { manifest, artifacts } = read()
-        return manifest.prototypes
+        const own = document.system
+          ? systemPreviews(document.system).map(({ id, file, example }) => ({
+              id,
+              file,
+              prototype: '',
+              path: '',
+              ...(example === undefined ? {} : { example }),
+            }))
+          : []
+        const views = manifest.prototypes
           .filter(({ systemId }) => (systemId ?? NO_SYSTEM) === document.key)
           .flatMap(({ id: prototype }) =>
             (artifacts[prototype] ?? [])
@@ -212,6 +255,7 @@ declare module '${MANIFEST_MODULE}' {
                 ]
               }),
           )
+        return [...views, ...own]
       },
     })
 
@@ -244,6 +288,8 @@ declare module '${MANIFEST_MODULE}' {
         root,
         watch: [
           path.resolve(root, prototypesFolder),
+          // Systems' examples and Overview content reach their documents.
+          path.resolve(root, systemsFolder()),
           path.resolve(root, contributorsFolder),
           registry.configFile,
         ],
@@ -478,6 +524,11 @@ function previewPlugin(
           previewConfig(document, { ...options(document), hmrPort }, 'serve'),
         )
         .then(createServer)
+        .then((started) => {
+          // So a whole prototype's folder can be renamed or trashed.
+          registerWatcher(started.watcher)
+          return started
+        })
       servers.set(document.key, server)
     }
     return server

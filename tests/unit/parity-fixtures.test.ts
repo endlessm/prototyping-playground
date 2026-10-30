@@ -37,8 +37,17 @@ describe('parity fixture studios', () => {
     )
   })
 
-  test('the fixtures have a prototype in Endless Studios with two views, one with an Endless Studios screen and its options, one with no system, one with an empty view, one with diagrams, one with documents, one with named states, a link and a lo-fi view, one with canvases and one with a folder', () => {
+  test('the fixtures have a prototype in Endless Studios with two views, one with an Endless Studios screen and its options, one with no system, one with an empty view, one with diagrams, one with documents, one with named states, a link and a lo-fi view, one with canvases, one with items on a canvas, one with a folder and an archived one', () => {
     expect(describeFixtureStudio(PARITY_FIXTURES.vue, 'vue')).toEqual([
+      {
+        folder: 'bernardo/board',
+        meta: expect.objectContaining({ title: 'Board', systemId: null }),
+        artifacts: [
+          { path: 'Brief', id: 'b0ardd0c00000001' },
+          { path: 'Home', id: 'b0ardv1ew0000001' },
+          { path: 'Board', id: 'b0ardcnv00000001' },
+        ],
+      },
       {
         folder: 'bernardo/diagrams',
         meta: expect.objectContaining({ title: 'Diagrams', systemId: null }),
@@ -74,6 +83,15 @@ describe('parity fixture studios', () => {
           systemId: '8x5spen6xtvp96a9',
         }),
         artifacts: [{ path: 'Dashboard', id: 'vdashbard0000001' }],
+      },
+      {
+        folder: 'bernardo/shelf',
+        meta: expect.objectContaining({
+          title: 'Shelf',
+          systemId: null,
+          status: 'archived',
+        }),
+        artifacts: [{ path: 'Shelf', id: 'vshe1f0000000001' }],
       },
       {
         folder: 'bernardo/sketches',

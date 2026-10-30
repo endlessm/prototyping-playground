@@ -5,7 +5,7 @@ A `.mermaid` or `.mmd` file in a prototype is a diagram: one plain Mermaid diagr
 - `module.ts` declares the module, its skill and the diagram file type: `.mermaid` and `.mmd`, the identity adapter, the template, the page, the preview in documents and the icon (`i-lucide-workflow`). With `text: true`, the build ships each diagram's text beside the manifest.
 - `types/diagram/identity.ts` reads and writes the permanent identity, a leading `%% @studio-id <id>` comment (only the blank lines and `%%` comments before the diagram count). A new file gets it as its first line, keeping a byte order mark and the file's line endings; an existing one is never replaced.
 - `types/diagram/template.ts` is a new diagram ("New Diagram" in the file tree): a small flowchart whose `accTitle` is its name, with an `accDescr`.
-- `components/DiagramPage.vue` is the page; `components/DiagramEmbed.vue` the compact preview embedded in documents (`![Sign-in flow](./sign-in-flow.mermaid)` on its own line). Both read the file with `useArtifactText` (the dev server's file service locally, the shipped text on the deployed site) and draw it with the shared `app/components/MermaidDiagram.vue`.
+- `components/DiagramPage.vue` is the page; `components/DiagramEmbed.vue` the compact preview embedded in documents (`![Sign-in flow](./sign-in-flow.mermaid)` on its own line) and on canvases. Both read the file with `useArtifactText` (the dev server's file service locally, the shipped text on the deployed site) and draw it with the shared `app/components/MermaidDiagram.vue`.
 - `skills/create-diagram/` tells agents how to write diagrams, and when a fence in a document fits better.
 
 ## How a diagram draws
@@ -22,6 +22,6 @@ The shared renderer (`app/utils/mermaid.ts`, `app/components/MermaidDiagram.vue`
 
 Saving the file draws the new diagram in place, without reloading the page, and the previous drawing stays until the new one is ready. The figure carries `data-diagram-state` (`loading`, `ready`, `error`) and `data-diagram-freshness` (`current`, `stale`) for agents and browser tools.
 
-In a document, a preview sits in the shared embed frame: as wide as the text, between 220 and 440 px tall, the whole diagram scaled to fit, with a header naming it that opens its page ("Open <name>"). Canvas previews come with ticket 21.
+In a document, a preview sits in the shared embed frame: as wide as the text, between 220 and 440 px tall, the whole diagram scaled to fit, with a header naming it that opens its page ("Open <name>"). On a canvas the same preview fills the item below its header (the Canvases README, "Items").
 
 A diagram names no other files, so it has no reference adapter. A document that embeds or links it is updated when the diagram is renamed or moved (the Documents module's `references.ts`; the prototypes README, "References follow renames and moves").
