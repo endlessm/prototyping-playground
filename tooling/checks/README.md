@@ -13,3 +13,5 @@ Identity checks read document IDs from frontmatter, canvas IDs from the top-leve
 The preview guard runs before Vue compilation in development and production. It parses both script blocks, reexports, literal dynamic imports and TypeScript helpers. Views can use their prototype, assigned system, Vue, `#studio/prototype` and enabled modules declaring a public `library`. Computed imports, other prototypes, private tooling, undeclared packages, global CSS and public-path assets fail with a file and remedy. Use imported colocated assets, scoped styles or `.module.css`.
 
 `yarn typecheck` uses Nuxt's generated app, Node, server and shared projects. The app, tooling, modules and tests are included. Prototype and system content stay outside the Studio runtime's Nuxt types, including prototypes awaiting rebuild with a missing system. Their preview pipeline compiles them separately.
+
+CI also runs `yarn studio sync --check` to reject stale generated guidance and skill adapters without rewriting them.

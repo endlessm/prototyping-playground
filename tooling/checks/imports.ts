@@ -124,7 +124,9 @@ export function sourceProblems(
     for (const error of errors)
       report(
         `${typeof error === 'string' ? error : error.message} Fix the single-file component syntax.`,
-        typeof error === 'string' ? undefined : error.loc?.start,
+        typeof error !== 'string' && 'loc' in error
+          ? error.loc?.start
+          : undefined,
       )
     for (const block of [descriptor.script, descriptor.scriptSetup]) {
       if (block?.src && !allowed(block.src))

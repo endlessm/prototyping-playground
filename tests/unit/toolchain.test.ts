@@ -138,6 +138,7 @@ describe('CI workflow', () => {
       'yarn format:check',
       'yarn typecheck',
       'yarn check',
+      'yarn studio sync --check',
       'yarn build',
       'yarn build:inspect',
     ])
