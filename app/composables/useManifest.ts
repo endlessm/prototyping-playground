@@ -37,14 +37,18 @@ async function fetchManifest() {
   return (await response.json()) as ClientManifest
 }
 
+/** A file the manifest links to, relative to it. */
+export const manifestFile = (relative: string) =>
+  new URL(relative, new URL(url, location.href))
+
 function fetchList(current: ClientManifest, prototypeId: string) {
-  return fetch(
-    new URL(current.artifacts[prototypeId]!, new URL(url, location.href)),
-  ).then(async (response) => {
-    if (!response.ok)
-      throw new Error('The prototype’s artifacts failed to load.')
-    return (await response.json()) as ManifestArtifact[]
-  })
+  return fetch(manifestFile(current.artifacts[prototypeId]!)).then(
+    async (response) => {
+      if (!response.ok)
+        throw new Error('The prototype’s artifacts failed to load.')
+      return (await response.json()) as ManifestArtifact[]
+    },
+  )
 }
 
 function receive(

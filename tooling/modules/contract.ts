@@ -9,6 +9,12 @@ export interface ModulePage {
   path: string
   /** The Vue page, relative to the module's folder. */
   file: string
+  /**
+   * Pages shown inside this one (its `<NuxtPage />`), which stays on screen
+   * while they change. Their addresses continue this one's, with no leading
+   * slash; `''` is the page at this address.
+   */
+  children?: ModulePage[]
 }
 
 export interface ModuleRail {
@@ -42,6 +48,12 @@ export interface ModuleSkill {
  * metadata, never in executable code (ADR 0001).
  */
 export interface IdentityAdapter {
+  /**
+   * Where a file of this type declares it, completing "it belongs in …":
+   * "a top-level \"studioId\"". A leading `<!-- @studio-id … -->` comment
+   * by default.
+   */
+  where?: string
   /** The declared identity, or null; throws on a malformed declaration. */
   read: (source: string) => string | null
   /** The source with `id` declared; throws if it already declares one. */
@@ -80,9 +92,9 @@ export interface ModuleFileType {
    */
   identity: string
   /**
-   * A file whose `check` export lists the problems of one file's source as
-   * sentences, relative to the module's folder. It runs on Node, and the
-   * build fails on any problem.
+   * A file whose `check` export (`FileCheck`) lists the problems of one
+   * file's source as sentences, relative to the module's folder. It runs on
+   * Node, and the build fails on any problem.
    */
   check?: string
   /**
@@ -90,9 +102,36 @@ export interface ModuleFileType {
    * to the module's folder. Its artifacts get "Make lo-fi" and "Make hi-fi".
    */
   fidelity?: string
+  /**
+   * A file whose `template` export gives a new file's source from its title,
+   * relative to the module's folder. The studio adds the identity.
+   */
+  template?: string
   /** The Vue component an artifact page renders, relative to the folder. */
   page: string
+  /**
+   * The Vue component that previews an artifact embedded in a document,
+   * relative to the folder. A type without one shows as a card there.
+   */
+  embed?: string
+  /** An Iconify name for navigation, file lists and cards. */
+  icon?: string
+  /**
+   * Whether the page reads the file's text, which the deployed site then
+   * ships as a file of its own (documents do; views compile instead).
+   */
+  text?: boolean
 }
+
+/**
+ * Problems with one file's source, each completing "<file>: …" and saying
+ * how to fix it. `prototypeId` is the permanent ID of the prototype the file
+ * is in, when it is known.
+ */
+export type FileCheck = (
+  source: string,
+  context?: { prototypeId?: string },
+) => string[]
 
 export interface BuildDataContext {
   /** The studio's root folder. */
@@ -101,6 +140,8 @@ export interface BuildDataContext {
   dir: string
   /** The ids of the enabled modules. */
   enabled: string[]
+  /** Whether the data is for the dev server, rather than the build. */
+  dev: boolean
 }
 
 /**

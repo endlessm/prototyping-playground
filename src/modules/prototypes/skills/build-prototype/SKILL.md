@@ -1,11 +1,11 @@
 ---
 name: build-prototype
-description: Create a prototype, or create or edit a prototype view, a Vue file that renders in its assigned system's preview document, with its named states, links to other views and lo-fi marker.
+description: Create a prototype, or create or edit a prototype view, a Vue file that renders in its assigned system's preview document, with its named states, system options, links to other views and lo-fi marker.
 ---
 
 # Build a prototype view
 
-The [prototypes README](../../README.md) is the contract; read the sections you need (views, named states, navigation, lo-fi, permanent identities).
+The [prototypes README](../../README.md) is the contract; read the sections you need (views, named states, system options, navigation, lo-fi, permanent identities).
 
 ## Before you start
 
@@ -41,9 +41,27 @@ The [prototypes README](../../README.md) is the contract; read the sections you 
 
 9. Each state gets its own permanent ID as a comment at the top, `<!-- @studio-state <id> <title> -->`, matched by title. The dev server or `yarn studio identify` writes it; never write it yourself. Each state is listed under its view in the navigation and opens at its own address. To rename a state, change its title in the code and in its comment together: the comment keeps its link. A comment that names no state, a repeated title or one that isn't plain text stops the build, naming the file and title. Remove a state's comment only when removing the state.
 
+10. When states differ in what the system's app around the screen knows (the locale, who is signed in, the sample data its stand-ins answer with), export the view's choices as `system` from the same regular `<script>`, and give a state its own `system` with only the options it changes:
+
+    ```vue
+    <script lang="ts">
+    export const system = {
+      user: 'admin',
+      sample: { queries: { UpcomingEventInstances: events } },
+    }
+
+    export const states = [
+      { title: 'Spanish learner', system: { locale: 'es', user: 'learner' } },
+      { title: 'Signed out', system: { user: null } },
+    ]
+    </script>
+    ```
+
+    The system's `AGENTS.md` and README say which options it has and what its samples look like. A state's option replaces the view's whole, so to change one part of a sample, build the state's from the view's (`sample: { ...sample, queries: {} }`) with the shared parts as constants in that `<script>`. An edited option rebuilds the open screen.
+
 ## Links between views
 
-10. Link to another artifact of the prototype by its path, never by its ID or address. Import the helpers from `#studio/prototype`:
+11. Link to another artifact of the prototype by its path, never by its ID or address. Import the helpers from `#studio/prototype`:
 
     ```vue
     <script setup lang="ts">
@@ -61,13 +79,13 @@ The [prototypes README](../../README.md) is the contract; read the sections you 
 
 ## Lo-fi
 
-11. A lo-fi view keeps its components and behavior and is drawn in grayscale with a handwritten font. People switch it with "Make lo-fi" and "Make hi-fi" in the view's context menu in the navigation. In code, it is a comment at the top, `<!-- @lofi -->`; add or remove only that comment.
+12. A lo-fi view keeps its components and behavior and is drawn in grayscale with a handwritten font. People switch it with "Make lo-fi" and "Make hi-fi" in the view's context menu in the navigation. In code, it is a comment at the top, `<!-- @lofi -->`; add or remove only that comment.
 
 ## Check it
 
 Run `yarn studio check`. Both Vue script blocks and TypeScript helpers must stay within this prototype, its assigned system, Vue, `#studio/prototype` and enabled `@module/<id>` libraries. Use scoped/module CSS and imported colocated assets. Files over 750 KiB block commits; prefer smaller WebP images. A missing system remains rebuild source outside the Studio's Nuxt typecheck; rebuild it before treating its preview as verified. Scope/identity checks warn locally, while CI checks pushes against the previous revision's permissions.
 
-12. Open `/prototypes/<prototype-id>/artifacts/<artifact-id>` in the running studio, or a state's own ID. The view renders in its system's preview document; "Open in a new tab" opens that document alone. New, renamed and removed views and states appear without a restart, and edits update the open preview live.
-13. Before trusting what the preview shows, check its state: in the studio, the element with `data-preview-session` has `data-preview-state` (`ready`, `error`, `empty`, `loading`) and `data-preview-freshness` (`stale` means the latest save did not render yet or failed). In a document opened alone, read `data-preview-state` on `<html>`. On an error, read the message under "This page couldn't load" or the out-of-date notice; it names the file, line and column. Fix the file; the preview recovers by itself.
-14. Run `yarn studio identity-audit` after adding views or states; it must report no missing or duplicate IDs.
-15. The person may be editing the same file in the studio's source mode (`?mode=source` on the artifact's address, or ⌘' / Ctrl+'). Your writes reach their editor: a clean editor reloads, and one with unsaved changes offers "Load the new version" or "Keep mine". Their save never silently overwrites yours, and the studio refuses saves that change or drop the identity comment.
+13. Open `/prototypes/<prototype-id>/artifacts/<artifact-id>` in the running studio, or a state's own ID. The view renders in its system's preview document; "Open in a new tab" opens that document alone. New, renamed and removed views and states appear without a restart, and edits update the open preview live.
+14. Before trusting what the preview shows, check its state: in the studio, the element with `data-preview-session` has `data-preview-state` (`ready`, `error`, `empty`, `loading`) and `data-preview-freshness` (`stale` means the latest save did not render yet or failed). In a document opened alone, read `data-preview-state` on `<html>`. On an error, read the message under "This page couldn't load" or the out-of-date notice; it names the file, line and column. Fix the file; the preview recovers by itself.
+15. Run `yarn studio identity-audit` after adding views or states; it must report no missing or duplicate IDs.
+16. The person may be editing the same file in the studio's source mode (`?mode=source` on the artifact's address, or âŒ˜' / Ctrl+'). Your writes reach their editor: a clean editor reloads, and one with unsaved changes offers "Load the new version" or "Keep mine". Their save never silently overwrites yours, and the studio refuses saves that change or drop the identity comment.

@@ -79,4 +79,26 @@ describe('[CL-114] build inspection', () => {
     write('_nuxt/lazy.js', 'import"../../outside.js"')
     expect(() => inspectBuild(site, '/studio/')).toThrow(/escapes the build/)
   })
+
+  test('module names a bundled dependency keeps from its own build are not references', () => {
+    // esbuild's CommonJS wrappers name each module by its source path, as
+    // Excalidraw's bundled Mermaid does.
+    write(
+      '_nuxt/lazy.js',
+      'var m=s({"../../node_modules/.pnpm/a@1/node_modules/a/lib/main.js"(){}});',
+    )
+    expect(() => inspectBuild(site, '/studio/')).not.toThrow()
+  })
+
+  test('module names in a bundled library’s own require map are not references', () => {
+    // Browserify's module map and require calls, as Mermaid's bundled ELK
+    // layout keeps them.
+    write(
+      '_nuxt/lazy.js',
+      'var a={"./elk-api.js":1,"./elk-worker.min.js":2};n(e("./elk-api.js").default);',
+    )
+    expect(() => inspectBuild(site, '/studio/')).not.toThrow()
+    write('_nuxt/lazy.js', 'const d=["./missing.js","./also.css"];')
+    expect(() => inspectBuild(site, '/studio/')).toThrow(/missing\.js/)
+  })
 })

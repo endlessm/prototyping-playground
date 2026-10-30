@@ -95,8 +95,24 @@ describe('module build data', () => {
         root,
         dir: path.join(root, 'src/modules/manual'),
         enabled: ['manual'],
+        dev: false,
       },
     ])
+  })
+
+  test('[SY-198] tells the loader whether it runs for the dev server or the build', async () => {
+    const seen: boolean[] = []
+    const data = {
+      pages: {
+        watch: ['x.md'],
+        load: ({ dev }: { dev: boolean }) => seen.push(dev),
+      },
+    }
+    await buildDataStore([module('manual', data)], root, { dev: true }).read(
+      'manual/pages',
+    )
+    await buildDataStore([module('manual', data)], root).read('manual/pages')
+    expect(seen).toEqual([true, false])
   })
 
   test('[CL-118] refuses values that are not JSON, and unknown names', async () => {

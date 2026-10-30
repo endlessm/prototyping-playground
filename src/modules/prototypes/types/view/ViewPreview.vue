@@ -1,18 +1,10 @@
 <script setup lang="ts">
-import {
-  acceptsPreview,
-  PREVIEW_CHANNEL,
-  PREVIEW_VERSION,
-  previewAddress,
-  type HostMessage,
-  type PreviewPhase,
-  type PreviewShortcut,
-  type PreviewState,
-} from '../../../../../tooling/preview/protocol'
+import type { PreviewShortcut } from '../../../../../tooling/preview/protocol'
 import type {
   ManifestArtifact,
   ManifestPrototype,
 } from '../../../../../app/composables/useManifest'
+import { usePreviewFrame } from '../../composables/usePreviewFrame'
 import ViewEmpty from './ViewEmpty.vue'
 import ViewError from './ViewError.vue'
 
@@ -33,8 +25,6 @@ const props = defineProps<{
 
 const { t } = useI18n()
 const base = useRuntimeConfig().app.baseURL
-const SLOW_MS = 200
-const SILENT_MS = 15_000
 
 const SHORTCUT_KEYS = {
   palette: { key: 'k', code: 'KeyK' },
@@ -43,147 +33,41 @@ const SHORTCUT_KEYS = {
   grid: { key: '"', code: 'Quote', shiftKey: true },
 } satisfies Record<PreviewShortcut, KeyboardEventInit>
 
-const session =
-  Math.random().toString(36).slice(2, 10) + Date.now().toString(36)
-// Fixed for the frame's life: later views travel by message, not address.
-const src = previewAddress(props.document, props.artifact.id, session)
 const frame = useTemplateRef('frame')
 const boundary = useTemplateRef('boundary')
-let runtime: string | null = null
-let render = -1
-let sequence = -1
-
-const state = ref<PreviewState>('loading')
-const detail = ref('')
-const phase = ref<PreviewPhase>('current')
-const phaseDetail = ref('')
-// Whether the frame has shown a view, which stays until the next is ready.
-const shown = ref(false)
-const slow = ref(false)
-const silent = ref(false)
-const freshness = computed(() =>
-  phase.value === 'current' ? 'current' : 'stale',
-)
-
-const slowTimer = useTimeoutFn(() => (slow.value = true), SLOW_MS, {
-  immediate: false,
-})
-const watchdog = useTimeoutFn(() => (silent.value = true), SILENT_MS, {
-  immediate: false,
-})
-const waitForPreview = () => {
-  watchdog.stop()
-  watchdog.start()
-}
-
-function configure() {
-  if (!runtime) return
-  const message: HostMessage = {
-    channel: PREVIEW_CHANNEL,
-    version: PREVIEW_VERSION,
-    session,
-    runtime,
-    artifact: props.artifact.id,
-    kind: 'configure',
-  }
-  frame.value?.contentWindow?.postMessage(message, location.origin)
-}
-
-function opening() {
-  state.value = 'loading'
-  detail.value = ''
-  phase.value = 'current'
-  render = -1
-  sequence = -1
-  slow.value = false
-  slowTimer.stop()
-  slowTimer.start()
-  waitForPreview()
-}
-
-const announce = (name: string, extra: Record<string, unknown>) =>
-  boundary.value?.dispatchEvent(
-    new CustomEvent(name, {
-      bubbles: true,
-      detail: { session, runtime, artifact: props.artifact.id, ...extra },
-    }),
-  )
-
-watch(
-  () => props.artifact.id,
-  () => {
-    opening()
-    configure()
+const {
+  session,
+  src,
+  state,
+  detail,
+  phase,
+  phaseDetail,
+  shown,
+  slow,
+  silent,
+  freshness,
+} = usePreviewFrame({
+  frame,
+  boundary,
+  document: props.document,
+  artifact: () => props.artifact.id,
+  onMessage(message) {
+    if (message.kind === 'navigate') {
+      if (message.href.startsWith(base))
+        void navigateTo(`/${message.href.slice(base.length)}`, {
+          replace: message.replace,
+        })
+      return
+    }
+    if (message.kind === 'shortcut') {
+      // The studio's own handlers decide, as if pressed here.
+      const key = SHORTCUT_KEYS[message.action as PreviewShortcut]
+      window.dispatchEvent(
+        new KeyboardEvent('keydown', { ...key, ctrlKey: true, bubbles: true }),
+      )
+    }
   },
-)
-
-useEventListener(window, 'message', (event: MessageEvent) => {
-  if (
-    !acceptsPreview(
-      event,
-      frame.value?.contentWindow ?? null,
-      location.origin,
-      {
-        session,
-        runtime,
-        artifact: props.artifact.id,
-      },
-    )
-  )
-    return
-  const message = event.data
-  silent.value = false
-  if (message.kind === 'navigate') {
-    if (message.href.startsWith(base))
-      void navigateTo(`/${message.href.slice(base.length)}`, {
-        replace: message.replace,
-      })
-    return
-  }
-  if (message.kind === 'shortcut') {
-    // The studio's own handlers decide, as if pressed here.
-    const key = SHORTCUT_KEYS[message.action as PreviewShortcut]
-    window.dispatchEvent(
-      new KeyboardEvent('keydown', { ...key, ctrlKey: true, bubbles: true }),
-    )
-    return
-  }
-  if (message.kind === 'ready') {
-    // A new load of the document, the first or after it reloaded.
-    runtime = message.runtime
-    opening()
-    configure()
-    return
-  }
-  if (message.kind === 'lifecycle') {
-    if (message.sequence <= sequence) return
-    sequence = message.sequence
-    phase.value = message.phase
-    phaseDetail.value = message.detail
-    announce('studio:artifact-lifecycle', {
-      phase: message.phase,
-      freshness: freshness.value,
-    })
-    return
-  }
-  if (message.render < render) return
-  render = message.render
-  state.value = message.state
-  detail.value = message.detail
-  if (message.state === 'loading') waitForPreview()
-  else {
-    watchdog.stop()
-    slowTimer.stop()
-    slow.value = false
-    shown.value = message.state === 'ready'
-  }
-  announce('studio:preview-state', {
-    state: message.state,
-    render: message.render,
-  })
 })
-
-onMounted(opening)
 
 const shortFile = computed(() => {
   const folder = props.prototype.folder

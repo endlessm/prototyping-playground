@@ -91,3 +91,35 @@ test('[CL-131] [CL-147] CLI warns locally, flags PRs, and fails out-of-scope pus
   expect(push.stdout).toContain('outside scope: private.ts')
   expect(run('--ci', 'HEAD~1', 'HEAD', '--review').status).toBe(0)
 })
+
+test('[CL-131] document frontmatter and canvas identities cannot change unnoticed', () => {
+  write(
+    'src/prototypes/ben/demo/Brief.md',
+    '---\nstudioId: abc0000000000003\n---\nText',
+  )
+  write(
+    'src/prototypes/ben/demo/Sketch.excalidraw',
+    '{"studioId":"abc0000000000004"}',
+  )
+  git(root, 'add', '.')
+  execFileSync('git', ['-c', 'core.hooksPath=', 'commit', '-m', 'artifacts'], {
+    cwd: root,
+    stdio: 'ignore',
+  })
+  write(
+    'src/prototypes/ben/demo/Brief.md',
+    '---\nstudioId: abc0000000000005\n---\nText',
+  )
+  write(
+    'src/prototypes/ben/demo/Sketch.excalidraw',
+    '{"studioId":"abc0000000000006"}',
+  )
+  git(root, 'add', '.')
+  const report = scopeReport(root, changedFiles(root))
+  expect(report.identity.join()).toContain(
+    'Brief.md: permanent ID abc0000000000003 was removed',
+  )
+  expect(report.identity.join()).toContain(
+    'Sketch.excalidraw: permanent ID abc0000000000004 was removed',
+  )
+})

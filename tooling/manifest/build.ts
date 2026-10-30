@@ -5,7 +5,12 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { isResourceId } from '../identity/resource-id.ts'
-import type { FidelityAdapter, IdentityAdapter } from '../modules/contract.ts'
+import { artifactTitle } from './titles.ts'
+import type {
+  FidelityAdapter,
+  FileCheck,
+  IdentityAdapter,
+} from '../modules/contract.ts'
 import { PLAIN_TEXT } from '../modules/registry.ts'
 import type { InstalledSystem } from '../systems/registry.ts'
 
@@ -75,6 +80,12 @@ export interface ManifestArtifact {
    * turned off. Its source can still be opened locally.
    */
   unavailable?: ArtifactUnavailable
+  /**
+   * In the deployed site, where the file's text is, relative to the main
+   * manifest, for a type whose page reads it. Locally the file service
+   * reads it.
+   */
+  text?: string
 }
 
 /** A turned-off file type, by its label and its module's. */
@@ -94,7 +105,7 @@ export interface FileTypeReader {
   extensions: string[]
   identity: IdentityAdapter
   /** The problems of one file's source, as sentences. */
-  check?: (source: string) => string[]
+  check?: FileCheck
   fidelity?: FidelityAdapter
   /** Set for a type whose module is turned off. */
   off?: ArtifactUnavailable
@@ -121,7 +132,7 @@ export interface BuiltManifest {
 }
 
 export const posix = (file: string) => file.split(path.sep).join('/')
-const compare = (a: string, b: string) =>
+export const compare = (a: string, b: string) =>
   a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }) ||
   (a < b ? -1 : a > b ? 1 : 0)
 // Leading underscores mark a prototype's helpers; dot files are hidden.
@@ -271,7 +282,7 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
         }
         if (!artifactId) {
           problems.push(
-            `${where}: the permanent identity is missing; it belongs in a leading <!-- @studio-id … --> comment.`,
+            `${where}: the permanent identity is missing; it belongs in ${type.identity.where ?? 'a leading <!-- @studio-id … --> comment'}.`,
           )
           continue
         }
@@ -286,13 +297,13 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
         const inside = file.slice(0, -extension.length)
         const artifact: ManifestArtifact = {
           id: artifactId,
-          title: path.posix.basename(inside),
+          title: artifactTitle(path.posix.basename(inside)),
           path: inside,
           file: where,
           type: type.id,
           ...(type.off ? { unavailable: type.off } : {}),
         }
-        for (const problem of type.check?.(source) ?? [])
+        for (const problem of type.check?.(source, { prototypeId: id }) ?? [])
           problems.push(`${where}: ${problem}`)
         if (type.identity.children) {
           artifact.states = []

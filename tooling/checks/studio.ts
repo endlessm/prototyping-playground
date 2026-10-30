@@ -110,7 +110,9 @@ export async function studioProblems(root: string): Promise<string[]> {
         ...(spec.fileTypes ?? []).flatMap((type) => [
           type.page,
           type.identity,
-          ...(type.check ? [type.check] : []),
+          ...[type.check, type.fidelity, type.template, type.embed].filter(
+            (file): file is string => Boolean(file),
+          ),
         ]),
       ])
         if (!existsSync(path.join(dir, file)))

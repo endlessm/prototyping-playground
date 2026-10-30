@@ -133,14 +133,14 @@ export function scopeReport(
   const markers = (source: string) =>
     [
       ...source.matchAll(
-        /(?:@studio-(?:id|state)\s+|["']?studioId["']?\s*:\s*["'])([0-9a-z]{16})/g,
+        /(?:@studio-(?:id|state)\s+|["']?studioId["']?\s*:\s*["']?)([0-9a-z]{16})/g,
       ),
     ].map((match) => match[1]!)
   for (const file of all.filter(
     (file) =>
       /^(src\/prototypes\/|src\/systems\/[^/]+\/system\.ts$|contributors\/)/.test(
         file,
-      ) && /\.(vue|md|json|ts|mmd)$/.test(file),
+      ) && /\.(vue|md|json|ts|mmd|excalidraw)$/.test(file),
   )) {
     const current = contentAt(root, file, after)
     for (const id of markers(current)) {
