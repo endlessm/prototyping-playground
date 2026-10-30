@@ -73,3 +73,13 @@ test('[CL-117] [PR-96] global CSS and public path assets are refused', () => {
       .length,
   ).toBe(1)
 })
+
+test('[PR-96] scoped Vue styles cannot load assets from outside their prototype', () => {
+  expect(
+    sourceProblems(
+      '<style scoped>.x { background: url(/private.png) }</style>',
+      file,
+      policy,
+    ).join(),
+  ).toContain('Forbidden asset')
+})

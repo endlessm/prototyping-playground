@@ -128,6 +128,11 @@ export function sourceProblems(
       if (block) scripts.push(block.content)
     }
     for (const style of descriptor.styles) {
+      for (const match of style.content.matchAll(/url\(\s*["']?([^)'"\s]+)/g))
+        if (!match[1]!.startsWith('data:') && !allowed(match[1]!))
+          report(
+            `Forbidden asset "${match[1]}". Import an asset inside this prototype.`,
+          )
       if (prototypeCode && !style.scoped && !style.module)
         report(
           'Styles must be scoped or module CSS. Add scoped to the style block.',
