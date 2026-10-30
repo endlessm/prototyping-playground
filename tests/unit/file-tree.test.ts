@@ -98,9 +98,11 @@ async function refusal(promise: Promise<unknown>) {
 }
 
 describe('listing', () => {
-  test('[SH-68] [CL-123] the tree lists every file and folder, folders first, without dot files', async () => {
+  test('[SH-68] [CL-123] [PR-59] the tree lists every file and folder, files first, without dot files', async () => {
     const listed = await tree().list({ prototype: BEN_DEMO })
     expect(listed.nodes).toEqual([
+      { name: 'logo.png', path: 'logo.png', dir: false },
+      { name: 'meta.json', path: 'meta.json', dir: false },
       {
         name: '_parts',
         path: '_parts',
@@ -116,8 +118,6 @@ describe('listing', () => {
         dir: true,
         children: [{ name: 'Start.vue', path: 'flows/Start.vue', dir: false }],
       },
-      { name: 'logo.png', path: 'logo.png', dir: false },
-      { name: 'meta.json', path: 'meta.json', dir: false },
     ])
     expect(listed.folder).toBe('src/prototypes/ben/demo')
   })
@@ -234,7 +234,7 @@ describe('renaming', () => {
       path: 'flows/Start.vue',
       name: 'Begin',
     })
-    expect(renamed).toEqual({ path: 'flows/Begin.vue' })
+    expect(renamed).toEqual({ path: 'flows/Begin.vue', relinked: 0 })
     expect(view.read(read('src/prototypes/ben/demo/flows/Begin.vue'))).toBe(
       BEN_VIEW,
     )
@@ -247,7 +247,7 @@ describe('renaming', () => {
         path: 'flows',
         name: 'Flows',
       }),
-    ).toEqual({ path: 'Flows' })
+    ).toEqual({ path: 'Flows', relinked: 0 })
     expect(fs.readdirSync(at('src/prototypes/ben/demo'))).toContain('Flows')
   })
 

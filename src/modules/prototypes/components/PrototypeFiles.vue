@@ -30,9 +30,12 @@ import { artifactTitle } from '../../../../tooling/manifest/titles'
 // A prototype's files in its navigation. Locally, the real files and
 // folders, live from the dev server's file service; artifacts open here,
 // other files (shown with "Show all files") in your code editor. Where you
-// may change the prototype you can create, rename and delete, and switch a
-// view to lo-fi. On the deployed site, the published artifacts with their
-// folders, in order, with menus to copy their links and paths.
+// may change the prototype you can create, rename and delete, drag rows to
+// arrange or move them (the order is saved in meta.json), and switch a view
+// to lo-fi; renames and moves repair the references in other files. On the
+// deployed site, the published artifacts with their folders, in order, with
+// menus to copy their links and paths. Anywhere, an artifact's row dragged
+// out carries its web address, as for a canvas.
 const props = defineProps<{
   prototype: ManifestPrototype
   artifacts: ManifestArtifact[]
@@ -57,6 +60,9 @@ const pathOf = (artifact: ManifestArtifact) =>
   artifact.file.slice(props.prototype.folder.length + 1)
 const address = (id: string) =>
   `/prototypes/${props.prototype.id}/artifacts/${id}`
+/** An address in the app as a full web address. */
+const webAddress = (to: string) =>
+  new URL(`${base}${to.slice(1)}`, location.href).href
 
 const entries = computed(
   () =>
@@ -165,11 +171,7 @@ function actions(node: FileNode) {
       label: t('actions.copyLink'),
       icon: 'i-lucide-link',
       onSelect: later(() =>
-        copied(
-          new URL(`${base}${address(artifact!.id).slice(1)}`, location.href)
-            .href,
-          t('actions.linkCopied'),
-        ),
+        copied(webAddress(address(artifact!.id)), t('actions.linkCopied')),
       ),
     },
     {
@@ -228,8 +230,24 @@ async function create(parent: string, type: string, name: string) {
   }
 }
 
+// The open page's address is its permanent ID, so it stays across renames
+// and moves, wherever they are made.
 async function rename(node: FileNode, name: string) {
-  await run({ op: 'rename', path: node.path, name })
+  const reply = await run<{ relinked: number }>({
+    op: 'rename',
+    path: node.path,
+    name,
+  })
+  if (reply?.relinked) toast.success(t('files.renamedRelinked'))
+}
+
+async function arrange(node: FileNode, to: string, before?: string) {
+  const reply = await run<{ moved: boolean; relinked: number }>(
+    before === undefined
+      ? { op: 'move', path: node.path, to }
+      : { op: 'reorder', path: node.path, to, before },
+  )
+  if (reply?.moved && reply.relinked) toast.success(t('files.movedRelinked'))
 }
 
 async function remove(node: FileNode) {
@@ -285,6 +303,8 @@ const trash = /Win/.test(navigator.userAgent) ? 'recycle-bin' : 'trash'
       :create="create"
       :rename="rename"
       :remove="remove"
+      :arrange="arrange"
+      :link-of="webAddress"
       :open-file="open"
     />
   </nav>

@@ -19,11 +19,30 @@ const harbor: SystemCatalog = {
   summary: null,
   guidance: null,
   code: null,
+  icons: null,
   stylesheet: 'src/systems/harbor/styles/theme.css',
   libraries: [],
   tokens: [
-    { name: '--color-sea', group: 'colors' },
-    { name: '--radius-card', group: 'radius' },
+    {
+      name: '--color-sea',
+      value: '1',
+      group: 'colors',
+      section: null,
+      ramp: null,
+      palette: false,
+      utility: null,
+      dark: false,
+    },
+    {
+      name: '--radius-card',
+      value: '1',
+      group: 'radius',
+      section: null,
+      ramp: null,
+      palette: false,
+      utility: null,
+      dark: false,
+    },
   ],
   components: [],
   assets: [],
@@ -57,8 +76,13 @@ const harbor: SystemCatalog = {
 }
 
 describe('a system’s pages', () => {
-  test('[SY-37] the theme has a page for each token group it fills, in order', () => {
-    expect(themePages(harbor).map(({ id }) => id)).toEqual(['colors', 'radius'])
+  test('[SY-37] [SY-89] the theme has a page for each token group it fills, in order, and always Typography', () => {
+    expect(themePages(harbor).map(({ id }) => id)).toEqual([
+      'colors',
+      'typography',
+      'radius',
+    ])
+    expect(themePages({ ...harbor, stylesheet: null, tokens: [] })).toEqual([])
   })
 
   test('[SY-115] the Overview and Icons open the declaration; theme pages the stylesheet; documents themselves', () => {

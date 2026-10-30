@@ -50,7 +50,7 @@ The shared reader (`app/markdown/`, `app/components/markdown/`) parses at run ti
 
 ### Links
 
-A link to a file of the same prototype is relative to the document, with or without its extension (`[the notes](./notes/Interview.md)`, `[the notes](./notes/Interview)`). It opens the artifact at its permanent address, so it survives renaming the prototype's folder. `/…` addresses navigate inside the studio, `#anchors` stay on the page, and other sites open in a new tab.
+A link to a file of the same prototype is relative to the document, with or without its extension (`[the notes](./notes/Interview.md)`, `[the notes](./notes/Interview)`). It opens the artifact at its permanent address, so it survives renaming the prototype's folder. Renaming or moving the file, or the document, in the studio or outside it while `yarn dev` runs updates the link (`references.ts`, see the prototypes README, "References follow renames and moves"); links and images inside code stay as written. `/…` addresses navigate inside the studio, `#anchors` stay on the page, and other sites open in a new tab.
 
 ### Embeds
 

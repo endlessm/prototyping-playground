@@ -71,7 +71,7 @@ function sharedScenarios(
   studio: () => RunningStudio,
   newPage: () => Promise<Page>,
 ) {
-  test('[SH-72] [PR-51] [PR-89] a view’s states are listed under it and each opens at its own permanent address', async () => {
+  test('[SH-72] [PR-51] [PR-89] [PR-59] a view’s states are listed under it and each opens at its own permanent address', async () => {
     const page = await newPage()
     await page.goto(address(studio(), HOME))
     await ready(page)
@@ -79,13 +79,13 @@ function sharedScenarios(
     await expect
       .poll(() => links.allTextContents(), { timeout: 30_000 })
       .toEqual([
-        'Details',
         'Gone',
         'Member',
         'Home',
         'Member',
         'New user',
         'Sketch',
+        'Details',
       ])
 
     const member = navigation(page).getByRole('link', { name: 'Member' }).nth(1)
