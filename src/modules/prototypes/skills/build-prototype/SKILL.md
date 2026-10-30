@@ -41,7 +41,7 @@ The [prototypes README](../../README.md) is the contract; read the sections you 
 
 9. Each state gets its own permanent ID as a comment at the top, `<!-- @studio-state <id> <title> -->`, matched by title. The dev server or `yarn studio identify` writes it; never write it yourself. Each state is listed under its view in the navigation and opens at its own address. To rename a state, change its title in the code and in its comment together: the comment keeps its link. A comment that names no state, a repeated title or one that isn't plain text stops the build, naming the file and title. Remove a state's comment only when removing the state.
 
-10. When states differ in what the system's app around the screen knows (the locale, who is signed in, the sample data its stand-ins answer with), export the view's choices as `system` from the same regular `<script>`, and give a state its own `system` with only the options it changes:
+10. When states differ in what the system's app around the screen knows (the locale, who is signed in, the sample data its stand-ins answer with, whether the app's own layout surrounds it), export the view's choices as `system` from the same regular `<script>`, and give a state its own `system` with only the options it changes:
 
     ```vue
     <script lang="ts">
