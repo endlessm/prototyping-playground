@@ -6,6 +6,7 @@ import { basePathFromEnv, publicUrlFromEnv } from './tooling/deployment.ts'
 import { COLOR_MODE_KEY } from './tooling/preview/constants.ts'
 import { deploymentRecoveryScript } from './tooling/deployment-recovery.ts'
 import en from './i18n/locales/en.json'
+import { restartScript } from './tooling/settings/restart.ts'
 
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
 const warning = nodeVersionWarning(process.version, pkg.engines.node)
@@ -128,6 +129,7 @@ export default defineNuxtConfig({
     './tooling/modules/nuxt-module.ts',
     './tooling/dev-server/nuxt-module.ts',
     './tooling/contributors/nuxt-module.ts',
+    './tooling/settings/nuxt-module.ts',
     './tooling/identity/nuxt-module.ts',
     './tooling/manifest/nuxt-module.ts',
     './tooling/files/nuxt-module.ts',
@@ -154,6 +156,20 @@ export default defineNuxtConfig({
   // The source editor loads on first use; bundled ahead, so opening it
   // doesn't make Vite reload the page.
   $development: {
+    app: {
+      head: {
+        script: [
+          {
+            innerHTML: restartScript(
+              { ...en.settings, reload: en.settings.reloadStudio },
+              baseURL,
+            ),
+            tagPosition: 'head',
+            tagPriority: 'critical',
+          },
+        ],
+      },
+    },
     vite: {
       optimizeDeps: {
         include: [
