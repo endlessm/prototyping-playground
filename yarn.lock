@@ -8220,7 +8220,6 @@ __metadata:
     eslint-plugin-prettier: "npm:^5.4.1"
     husky: "npm:^9.1.7"
     lint-staged: "npm:^16.4.0"
-    marked: "npm:^17.0.1"
     mermaid: "npm:^12.2.0"
     nuxt: "npm:^4.4.8"
     playwright: "npm:^1.61.0"
@@ -8233,7 +8232,7 @@ __metadata:
     vite: "npm:^8.3.5"
     vitest: "npm:^4.1.4"
     vue: "npm:^3.5.44"
-    vue-component-meta: "npm:3.3.13"
+    vue-component-meta: "npm:~3.3.13"
     vue-tsc: "npm:^3.2.7"
     yaml: "npm:^2.8.0"
   languageName: unknown
@@ -16592,7 +16591,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vue-component-meta@npm:3.3.13":
+"vue-component-meta@npm:~3.3.13":
   version: 3.3.13
   resolution: "vue-component-meta@npm:3.3.13"
   dependencies:
