@@ -2,6 +2,7 @@ import path from 'node:path'
 import type { StudioModule } from '../../../tooling/modules/contract.ts'
 import { CONFIG_FILE, readConfig } from '../../../tooling/modules/registry.ts'
 import {
+  componentPages,
   systemCatalog,
   systemDocuments,
 } from '../../../tooling/systems/catalog.ts'
@@ -33,6 +34,12 @@ export default {
     'Each design system’s overview, libraries, theme, assets, components, context and skills.',
   required: true,
   rail: { position: 'top', icon: 'i-lucide-shapes', order: 20 },
+  skills: [
+    {
+      path: 'skills/document-component/',
+      when: 'asks to document a system component, or add its page and examples',
+    },
+  ],
   home: {
     component: 'components/SystemsHome.vue',
     order: { local: 30, deployed: 30 },
@@ -53,6 +60,7 @@ export default {
           path: ':page(colors|typography|radius|shadows|spacing|motion|effects|tokens)',
           file: 'pages/theme.vue',
         },
+        { path: 'components/:component', file: 'pages/component.vue' },
         { path: ':kind(fonts|icons|images)', file: 'pages/assets.vue' },
         {
           path: ':kind(fonts|icons|images)/:path(.+)',
@@ -81,6 +89,13 @@ export default {
             systemDocuments(system, root),
           ),
         ),
+    },
+    // Each component page's Markdown, examples text and props, read from
+    // the component's code when a component page first opens.
+    components: {
+      watch: [`${folder}/*/components/**`],
+      load: async ({ root, dev }) =>
+        componentPages(await systemsFor(root, dev)),
     },
   },
 } satisfies StudioModule

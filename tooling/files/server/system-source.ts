@@ -4,6 +4,9 @@
 //   GET <base>_studio/files/system-source?system=<id>&path=<inside its folder>
 //       the file's text, its version, and whether you may save it (and why
 //       not)
+//   POST <base>_studio/files/system-source  { system, component }
+//       creates the examples file and page the component is missing, from
+//       templates; the files created
 //   PUT <base>_studio/files/system-source   { system, path, content, base }
 //       saves it over version `base`; 409 `changed` if the file changed on
 //       disk since, 403 with the reason if you may not change the system
@@ -44,6 +47,13 @@ export default defineEventHandler(async (event) => {
         path: String(path ?? ''),
       })
     }
+    if (event.method === 'POST') {
+      const body = (await readBody(event)) ?? {}
+      return await files.create({
+        system: String(body.system ?? ''),
+        component: String(body.component ?? ''),
+      })
+    }
     if (event.method === 'PUT') {
       const body = (await readBody(event)) ?? {}
       return await files.save({
@@ -53,7 +63,7 @@ export default defineEventHandler(async (event) => {
         base: body.base,
       })
     }
-    throw new FileServiceError(405, 'method', 'Use GET or PUT.')
+    throw new FileServiceError(405, 'method', 'Use GET, POST or PUT.')
   } catch (error) {
     if (!(error instanceof FileServiceError)) throw error
     event.node.res.statusCode = error.status

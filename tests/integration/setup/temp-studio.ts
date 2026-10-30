@@ -65,8 +65,17 @@ export interface TempStudio {
   remove: () => void
 }
 
-export function tempStudio(): TempStudio {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'studio-cli-'))
+/**
+ * `inside`: make the copy inside the checkout's `.e2e/` folder, so the
+ * studio's installed packages resolve from it (commands that load them).
+ */
+export function tempStudio(options: { inside?: boolean } = {}): TempStudio {
+  if (options.inside) fs.mkdirSync(path.resolve('.e2e'), { recursive: true })
+  const root = fs.mkdtempSync(
+    options.inside
+      ? path.resolve('.e2e/studio-cli-')
+      : path.join(os.tmpdir(), 'studio-cli-'),
+  )
   for (const entry of COPIED)
     fs.cpSync(path.resolve(entry), path.join(root, entry), { recursive: true })
   fs.cpSync(
