@@ -40,6 +40,8 @@ const DASHBOARD = 'dsbd00000000e001'
 const SPANISH = 'st5p00000000e001'
 const SIGNED_OUT = 'st5g00000000e001'
 const NO_EVENTS = 'st5e00000000e001'
+const IN_THE_APP = 'st5a00000000e001'
+const IN_THE_APP_SIGNED_OUT = 'st5s00000000e001'
 
 const address = (studio: RunningStudio, artifact: string) =>
   `${studio.url}prototypes/${SCREENS}/artifacts/${artifact}`
@@ -140,6 +142,86 @@ function sharedScenarios(
     expect(
       lines.filter((line) => line.includes('"loadDashboard"')),
     ).toHaveLength(1)
+  })
+
+  test('[SY-184] [SY-195] the app shell option shows the screen inside the app’s sidebar, top bar and footer, with the app’s images', async () => {
+    const page = await newPage()
+    await page.goto(address(studio(), IN_THE_APP))
+    await ready(page)
+    const screen = view(page)
+    await sees(screen, 'Welcome Back!')
+    await expect
+      .poll(() => screen.getByText(/All rights reserved/).isVisible())
+      .toBe(true)
+    await expect
+      .poll(() =>
+        screen
+          .getByRole('link', { name: 'Community', exact: true })
+          .isVisible(),
+      )
+      .toBe(true)
+    // The top bar's, sidebar's and footer's logos come from template
+    // `src="~/assets/…"` URLs; the avatar from a script import.
+    await expect
+      .poll(() =>
+        screen
+          .locator('img[alt="Endless Studios"], img[alt="Profile"]')
+          .evaluateAll((images) =>
+            (images as HTMLImageElement[]).map(
+              (image) => image.complete && image.naturalWidth > 0,
+            ),
+          ),
+      )
+      .toEqual([true, true, true, true, true])
+
+    // Without the option, the screen stands alone.
+    await page.goto(address(studio(), DASHBOARD))
+    await ready(page)
+    await sees(view(page), 'Welcome Back!')
+    expect(
+      await view(page)
+        .getByText(/All rights reserved/)
+        .count(),
+    ).toBe(0)
+  })
+
+  test('[SY-169] the app’s Nuxt UI colours apply inside the screen, and the studio keeps its own', async () => {
+    const page = await newPage()
+    await page.goto(address(studio(), DASHBOARD))
+    await ready(page)
+    await sees(view(page), 'Count 0')
+    // Primary is the app's orange: Tailwind's orange-500, #ff6900.
+    const orange = 'rgb(255, 105, 0)'
+    const button = await view(page)
+      .getByRole('button', { name: 'Count 0' })
+      .evaluate((element) => getComputedStyle(element).backgroundColor)
+    expect(button).toBe(orange)
+    // The studio's own primary, resolved on its page, is not.
+    const studioPrimary = await page.locator('body').evaluate(() => {
+      const probe = document.createElement('div')
+      probe.style.backgroundColor = 'var(--ui-primary)'
+      document.body.append(probe)
+      const value = getComputedStyle(probe).backgroundColor
+      probe.remove()
+      return value
+    })
+    expect(studioPrimary).not.toBe('rgba(0, 0, 0, 0)')
+    expect(studioPrimary).not.toBe(orange)
+  })
+
+  test('[SY-184] signed out, the app shell shows the sign-up state', async () => {
+    const page = await newPage()
+    await page.goto(address(studio(), IN_THE_APP_SIGNED_OUT))
+    await ready(page)
+    await sees(view(page), 'User: nobody')
+    await expect
+      .poll(() =>
+        view(page)
+          .getByRole('button', { name: 'Sign up' })
+          .filter({ visible: true })
+          .count(),
+      )
+      .toBeGreaterThan(0)
   })
 }
 

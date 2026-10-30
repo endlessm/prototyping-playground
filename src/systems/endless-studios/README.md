@@ -17,11 +17,15 @@ Views of prototypes assigned to this system render in its preview document: a sa
 - `factory`: `createStudiosApp` in `libraries/vue-app.ts`, the single entry point to the Vue runtime. The preview document and the system's tests create every app through it.
 - `stylesheet`: `styles/studios.css`, the app's stylesheet and fonts. The studio compiles it with Tailwind for the preview document, adding the prototypes' views as sources.
 - `nuxtUi`: Nuxt UI in its Vue mode with the app's `app.config` (`nuxt-ui.config.ts`) and theme colours.
-- `standIns`: the names auto-imported into views and system code, as Nuxt auto-imports them in the app (`studios/nuxt-shims.ts`). They are never the studio's own Nuxt composables.
-- `source`: `studios`, which `~/` points at, so copied components keep the app's import paths.
-- `aliases`: bare modules answered by stand-ins.
+- `standIns`: `studios/nuxt-shims.ts`; every name it exports is auto-imported into views and system code, as Nuxt auto-imports them in the app. They are never the studio's own Nuxt composables.
+- `source`: `studios`, which `~/` (and, for template URLs such as `src="~/assets/images/logo.svg"`, `assets/`) points at, so copied components keep the app's import paths and images.
+- `aliases`: module paths and packages answered by stand-ins, matched whole.
+
+A stand-in is one file in `runtime/` plus its registration: an export line in `studios/nuxt-shims.ts`, or an `aliases` entry. `studios/README.md` lists them and describes how to refresh the copied source.
 
 `createStudiosApp({ component, props, system })` installs:
+
+- with `system.shell`, the app's page frame around the screen (`runtime/AppShell.vue`): the copied `StudioSidebar`, `StudioTopBar` and `StudioFooter` as `StudioLayout` arranges them, without the app's global modals and onboarding;
 
 - Nuxt UI with the app's configuration, inside `UApp`, with a `Suspense` boundary for components that `await` in setup;
 - the Lucide icon collection;
@@ -43,13 +47,14 @@ A view declares the options in `export const system`, in its regular `<script>` 
 | -------- | ----------- | ----------------------------------------------------------------------------------------------------------- |
 | `locale` | `'en'`      | A locale code from `i18n/locales/` (`en`, `es`).                                                           |
 | `user`   | `'learner'` | `'learner'` (Ana), `'mentor'` (Marco), `'admin'` (Alex), a user object shaped like the app's `User`, or `null` for signed out. |
+| `shell`  | `false`     | `true` shows the screen inside the app's sidebar, top bar and footer. Signed out, the top bar shows Log in and Sign up. |
 | `sample` | `{}`        | `{ state, getters, mutations, actions, queries }`: store state merged over the app's initial state, store handlers by name, and GraphQL `data` objects (or functions of the variables) keyed by operation name. |
 
 ```vue
 <script lang="ts">
 const events = { upcomingEventInstances: [{ id: 1, title: 'Game jam kickoff', start: '2026-11-04T15:00:00Z', event: { id: 9 } }] }
 
-export const system = { user: 'admin', sample: { queries: { UpcomingEventInstances: events } } }
+export const system = { user: 'admin', shell: true, sample: { queries: { UpcomingEventInstances: events } } }
 
 export const states = [
   { title: 'Spanish learner', system: { locale: 'es', user: 'learner' } },
@@ -58,7 +63,7 @@ export const states = [
 </script>
 ```
 
-An app is created for each screen with its own runtime, so screens never share a user, store or `useState`. A changed option creates the app again; changed props reach the same app. The app shell (the app's sidebar, top bar and footer around a screen, `runtime/AppShell.vue`) is not an option yet.
+An app is created for each screen with its own runtime, so screens never share a user, store or `useState`. A changed option creates the app again; changed props reach the same app.
 
 `tests/integration/endless-studios-app.test.ts` renders copied components and test screens (`tests/fixtures/endless-studios/`) with Vue's server renderer through the factory, loaded by this system's own preview pipeline: `yarn vitest run tests/integration/endless-studios-app.test.ts`.
 
