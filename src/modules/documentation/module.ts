@@ -80,7 +80,7 @@ export default {
         )
         if (problems.length && !dev)
           throw new Error(
-            `The Manual has chapters that canâ€™t be read:\n${problems.join('\n')}`,
+            `The Manual has chapters that can’t be read:\n${problems.join('\n')}`,
           )
         for (const problem of problems)
           console.warn(`Warning: The Manual skipped ${problem}`)

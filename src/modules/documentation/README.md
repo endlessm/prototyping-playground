@@ -13,7 +13,7 @@ Chapters are the Markdown files in `pages/` (the folder only; subfolders aren't 
 - `toc: true`: "On this page", when the chapter has two headings or more.
 - `module: <id>`: the chapter shows (reading, sidebar, palette) only while that module is on. Off, the chapter is hidden, not broken.
 
-The file name is the chapter's address (lowercase letters, numbers and dashes): `pages/<slug>.md` opens at `/documentation/manual/<slug>`, and `index.md` at `/documentation/manual`. The tab title is "<chapter> â€” Manual â€” <studio>". There is no previous/next sequence: the Manual is a reference, in its set order.
+The file name is the chapter's address (lowercase letters, numbers and dashes): `pages/<slug>.md` opens at `/documentation/manual/<slug>`, and `index.md` at `/documentation/manual`. The tab title is "<chapter> — Manual — <studio>". There is no previous/next sequence: the Manual is a reference, in its set order.
 
 Link between chapters by file (`[Help](questions.md#where-is-my-work)`); the reader opens the chapter at its heading. Links to guidance files (`../../prototypes/README.md`) open in Context & Skills.
 
@@ -37,7 +37,7 @@ An owner without a README lists its Context and Skills ("No context added." when
 
 Right-click a chapter or guidance entry for **Edit source**, **Open in editor**, **Show in Explorer** (**Reveal in Finder**, **Show in folder**), **Copy link** and **Copy path**. There is no create, drag, rename or delete here. The deployed site keeps Copy link and Copy path.
 
-Source mode (`?mode=source`, âŒ˜' / Ctrl+') uses the shared source editor under a banner: "Shared platform documentation. Changes affect the studio for everyone on the team." A skill's source has a picker for its supporting files. The dev-only file route `_studio/files/guidance-source` (`tooling/files/guidance-source.ts`) reads any listed guidance file, a skill's files and every chapter file while the Manual is on, and saves over the version read; only an Admin saves, since these are the studio's own files. It also shows a file in the file browser or a code editor.
+Source mode (`?mode=source`, ⌘' / Ctrl+') uses the shared source editor under a banner: "Shared platform documentation. Changes affect the studio for everyone on the team." A skill's source has a picker for its supporting files. The dev-only file route `_studio/files/guidance-source` (`tooling/files/guidance-source.ts`) reads any listed guidance file, a skill's files and every chapter file while the Manual is on, and saves over the version read; only an Admin saves, since these are the studio's own files. It also shows a file in the file browser or a code editor.
 
 ## Files
 
