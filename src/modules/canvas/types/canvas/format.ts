@@ -131,20 +131,26 @@ const address = (path: string) => {
  * studio runs. Any other link is kept as it is.
  */
 export function storedLink(link: string, origin: string, base: string) {
-  if (link.startsWith('/')) return address(link) ?? link
+  return itemAddress(link, origin, base) ?? link
+}
+
+/**
+ * The app address of an artifact of this studio a link points at, or null
+ * for anything else (another site, a studio page that isn't an artifact).
+ * Only these links become items on a canvas.
+ */
+export function itemAddress(link: string, origin: string, base: string) {
+  if (link.startsWith('/')) return link.startsWith('//') ? null : address(link)
   let url: URL
   try {
     url = new URL(link)
   } catch {
-    return link
+    return null
   }
   const prefix = base.replace(/\/$/, '')
   if (url.origin !== origin || !url.pathname.startsWith(`${prefix}/`))
-    return link
-  return (
-    address(`${url.pathname.slice(prefix.length)}${url.search}${url.hash}`) ??
-    link
-  )
+    return null
+  return address(`${url.pathname.slice(prefix.length)}${url.search}${url.hash}`)
 }
 
 /**

@@ -4,7 +4,7 @@ import type {
   ManifestArtifact,
   ManifestPrototype,
 } from '../../tooling/manifest/build'
-import { resolveReference } from '../utils/artifactReference'
+import { embedPresentation, resolveReference } from '../utils/artifactReference'
 
 /** The prototype artifact a Markdown reader shows, for its links and embeds. */
 export interface MarkdownOrigin {
@@ -40,7 +40,7 @@ export function useMarkdownOrigin() {
       return resolveReference(reference, current, current.artifacts, {
         extension,
         extensions,
-        presentation: (type) => (types[type]?.embed ? 'preview' : 'card'),
+        presentation: (type) => embedPresentation(types[type], 'document'),
       })
     },
   }

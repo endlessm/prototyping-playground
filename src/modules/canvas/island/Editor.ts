@@ -23,6 +23,7 @@ import type {
 } from '@excalidraw/excalidraw/types'
 import {
   createElement as h,
+  memo,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -30,8 +31,19 @@ import {
   useState,
   type RefObject,
 } from 'react'
-import type { ParsedCanvas, Stored } from '../types/canvas/format'
+import {
+  itemAddress,
+  type ParsedCanvas,
+  type Stored,
+} from '../types/canvas/format'
 import type { CanvasFileOptions, CanvasSnapshot } from '../utils/canvasFile'
+import { normalizedItem, openingEmbedIds, renderFlags } from '../utils/embeds'
+import {
+  MOUNT_INTERVAL_MS,
+  SWEEP_INTERVAL_MS,
+  createMountGate,
+  pickEvictions,
+} from '../utils/liveViews'
 import { mergeRemote } from '../utils/mergeRemote'
 import {
   CAMERA_SAVE_DELAY_MS,
@@ -49,13 +61,39 @@ import { STICKY_IDS, STICKY_LIBRARY } from './stickyNotes'
 export interface CanvasHandle {
   /**
    * The live previews visible in the first view, which may hold the reveal
-   * for a moment. None until canvases show live previews.
+   * for a moment.
    */
   openingEmbeds: () => string[]
   /** The scene version of the file as loaded, before any edit. */
   loadedVersion: number
   /** Puts a newer file into the scene, outside the undo history. */
   take: CanvasFileOptions['take']
+}
+
+/** How an item on the canvas is drawn, as the Vue page renders it. */
+export interface CanvasItemState {
+  /** The item's link, a whole URL into this studio. */
+  link: string
+  width: number
+  height: number
+  /** Far off screen: not painted, but still running. */
+  offscreen: boolean
+  /** Zoomed out too far to read: its name instead. */
+  overview: boolean
+  /** Its preview is live; before that, a sized placeholder. */
+  mounted: boolean
+}
+
+/**
+ * Where the Vue page draws items: Excalidraw gives each item a box, and the
+ * page renders the item into it with the studio's own context (router,
+ * i18n, manifest, colour mode).
+ */
+export interface CanvasItemHost {
+  show: (id: string, box: HTMLElement, state: CanvasItemState) => void
+  hide: (id: string, box: HTMLElement) => void
+  /** Whether a link shows as a live preview, rather than a card. */
+  preview: (link: string) => boolean
 }
 
 export interface CanvasEditorProps {
@@ -70,6 +108,7 @@ export interface CanvasEditorProps {
   /** Where this browser remembers the camera. */
   cameraKey: string
   labels: MenuLabels
+  items: CanvasItemHost
   onReady: (handle: CanvasHandle) => void
   onEmptyChange: (empty: boolean) => void
   /** Every change Excalidraw reports, with its scene version. */
@@ -99,11 +138,19 @@ const snapshotOf = (
   },
 })
 
-// A file's elements as Excalidraw holds them.
-const restored = (elements: Stored[], base: string) =>
-  restoreElements(withOrigin(elements, base) as never, null, {
-    refreshDimensions: true,
-  }) as ExcalidrawElement[]
+// A file's elements as Excalidraw holds them. Items get their look as
+// items (an agent may have written them plainly) without a new version:
+// that alone is never an edit.
+const restored = (elements: Stored[], base: string, items: CanvasItemHost) =>
+  (
+    restoreElements(withOrigin(elements, base) as never, null, {
+      refreshDimensions: true,
+    }) as ExcalidrawElement[]
+  ).map((element) => {
+    if (element.type !== 'embeddable' || !element.link) return element
+    const look = normalizedItem(element, items.preview(element.link), false)
+    return look ? ({ ...element, ...look } as ExcalidrawElement) : element
+  })
 
 // Takes a newer file into the scene: merged with unsaved edits when
 // `lastIds` is given, replacing the scene otherwise.
@@ -112,8 +159,11 @@ function takeFile(
   file: ParsedCanvas,
   lastIds: ReadonlySet<string> | null,
   base: string,
+  items: CanvasItemHost,
+  fromFile: Set<string>,
 ) {
-  const remote = restored(file.elements, base)
+  const remote = restored(file.elements, base, items)
+  for (const element of remote) fromFile.add(element.id)
   let elements = remote
   let needsWriteBack = false
   if (lastIds)
@@ -163,6 +213,145 @@ const onlyItemsSelected = (
     selected.length > 0 &&
     selected.every((element) => element.type === 'embeddable')
   )
+}
+
+// Items get their look as items without an undo step of their own. One the
+// person just dropped or pasted is also sized and centered, in the same
+// step as its placing, so one undo takes it away. Items that came with the
+// file (`fromFile`: on opening, or written by an agent meanwhile) keep their
+// place and size and get their look outside the history.
+function normalizeItems(
+  api: ExcalidrawImperativeAPI,
+  items: CanvasItemHost,
+  fromFile: ReadonlySet<string>,
+) {
+  let changed = false
+  let placed = false
+  const next = api.getSceneElementsIncludingDeleted().map((element) => {
+    if (element.type !== 'embeddable' || element.isDeleted || !element.link)
+      return element
+    const patch = normalizedItem(
+      element,
+      items.preview(element.link),
+      !fromFile.has(element.id),
+    )
+    if (!patch) return element
+    changed = true
+    if ('width' in patch) placed = true
+    return newElementWith(element, patch as never)
+  })
+  if (changed)
+    api.updateScene({
+      elements: next,
+      captureUpdate: placed
+        ? CaptureUpdateAction.IMMEDIATELY
+        : CaptureUpdateAction.NEVER,
+    })
+}
+
+// The box Excalidraw gives an item. The Vue page draws the item into it.
+// It re-renders only when the item's own link, size or flags change, never
+// on a pan or zoom frame.
+const ItemBox = memo(function ItemBox(
+  props: CanvasItemState & { id: string; host: CanvasItemHost },
+) {
+  const { id, host, link, width, height, offscreen, overview, mounted } = props
+  const box = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    host.show(id, box.current!, {
+      link,
+      width,
+      height,
+      offscreen,
+      overview,
+      mounted,
+    })
+  }, [id, host, link, width, height, offscreen, overview, mounted])
+  useLayoutEffect(() => {
+    const element = box.current!
+    return () => host.hide(id, element)
+  }, [id, host])
+  return h('div', {
+    ref: box,
+    className: 'size-full',
+    'data-canvas-embed-id': id,
+  })
+})
+
+// Previews go live as they come near the view, one every 150 ms, and stay
+// live until the canvas holds more than MAX_LIVE; then those seen longest
+// ago are unloaded, keeping their sized frame. A still canvas doesn't
+// re-render, so what is visible is also read on a timer.
+function useLiveItems(api: ExcalidrawImperativeAPI | null) {
+  const lastSeen = useRef(new Map<string, number>())
+  const gate = useRef(createMountGate())
+  const admitTimer = useRef(0)
+  const [epoch, setEpoch] = useState(0)
+
+  // An item in view: live if it already is or its turn has come.
+  const seen = useCallback((id: string) => {
+    const now = Date.now()
+    if (lastSeen.current.has(id) || gate.current(now))
+      lastSeen.current.set(id, now)
+    else if (!admitTimer.current)
+      admitTimer.current = window.setTimeout(() => {
+        admitTimer.current = 0
+        setEpoch((n) => n + 1)
+      }, MOUNT_INTERVAL_MS)
+  }, [])
+  const isLive = useCallback((id: string) => lastSeen.current.has(id), [])
+
+  useEffect(() => {
+    if (!api) return undefined
+    const timer = window.setInterval(() => {
+      const live = lastSeen.current
+      const state = api.getAppState()
+      const items = api
+        .getSceneElements()
+        .filter((element) => element.type === 'embeddable')
+      const visible = new Set<string>()
+      const now = Date.now()
+      for (const element of items) {
+        const { offscreen, overview } = renderFlags(element, state)
+        if (offscreen || overview) continue
+        visible.add(element.id)
+        if (live.has(element.id)) live.set(element.id, now)
+      }
+      const evict = pickEvictions({
+        lastSeen: live,
+        visible,
+        onCanvas: new Set(items.map((element) => element.id)),
+        now,
+      })
+      if (!evict.length) return
+      for (const id of evict) live.delete(id)
+      setEpoch((n) => n + 1)
+    }, SWEEP_INTERVAL_MS)
+    return () => {
+      window.clearInterval(timer)
+      window.clearTimeout(admitTimer.current)
+      admitTimer.current = 0
+    }
+  }, [api])
+
+  return { epoch, seen, isLive }
+}
+
+// A read-only canvas takes nothing dropped on it.
+function useNoDrops(
+  container: RefObject<HTMLDivElement | null>,
+  editable: boolean,
+) {
+  useEffect(() => {
+    const element = container.current
+    if (!element || editable) return undefined
+    const refuse = (event: DragEvent) => {
+      event.preventDefault()
+      event.stopPropagation()
+    }
+    element.addEventListener('drop', refuse, true)
+    return () => element.removeEventListener('drop', refuse, true)
+  }, [container, editable])
 }
 
 // Remembers the camera a moment after it stops moving, and on leaving.
@@ -246,19 +435,26 @@ export function CanvasEditor(props: CanvasEditorProps) {
   const { controlsHidden, toggleControls, onPointerUpdate } =
     useCanvasShortcuts(api, container, { editable })
   useWheelOverTitleBars(container, api)
+  useNoDrops(container, editable)
   useEffect(pruneHelpDialog, [])
+  const { items, base } = props
+  const { epoch, seen, isLive } = useLiveItems(api)
 
   // The opening camera needs the container's size, so Excalidraw mounts
   // once that is known.
   const [initialData, setInitialData] =
     useState<ExcalidrawInitialDataState | null>(null)
   const loadedVersion = useRef(0)
+  // The elements that came with the file, as opposed to placed here.
+  const fromFile = useRef(new Set<string>())
   useLayoutEffect(() => {
     const elements = restored(
       props.elements,
       props.base,
+      props.items,
     ) as NonDeleted<ExcalidrawElement>[]
     loadedVersion.current = getSceneVersion(elements)
+    for (const element of elements) fromFile.current.add(element.id)
     const rect = container.current?.getBoundingClientRect()
     let saved: string | null = null
     try {
@@ -285,15 +481,23 @@ export function CanvasEditor(props: CanvasEditorProps) {
     // The editor opens once; a new file starts a new editor.
   }, [])
 
-  const { onReady, onEmptyChange, onSceneChange, base } = props
+  const { onReady, onEmptyChange, onSceneChange } = props
+  // Until the editor is ready, scene changes are Excalidraw's own loading.
+  const ready = useRef(false)
   useEffect(() => {
     if (!api) return
+    ready.current = true
     onReady({
-      openingEmbeds: () => [],
+      openingEmbeds: () =>
+        openingEmbedIds(
+          api.getSceneElements(),
+          api.getAppState(),
+          items.preview,
+        ),
       loadedVersion: loadedVersion.current,
       take: (file, lastIds) => {
         try {
-          return takeFile(api, file, lastIds, base)
+          return takeFile(api, file, lastIds, base, items, fromFile.current)
         } catch {
           // The canvas closed meanwhile.
           return null
@@ -302,10 +506,18 @@ export function CanvasEditor(props: CanvasEditorProps) {
     })
   }, [api, onReady, base])
 
+  const lastVersion = useRef(0)
   const onChange = useCallback(
     (elements: readonly ExcalidrawElement[], state: AppState) => {
       if (!api) return
-      onSceneChange(snapshotOf(elements, state), getSceneVersion(elements))
+      const version = getSceneVersion(elements)
+      onSceneChange(snapshotOf(elements, state), version)
+      // A new or restyled item becomes an item again. Before the editor is
+      // ready, changes are Excalidraw's own loading.
+      if (editable && ready.current && version !== lastVersion.current) {
+        lastVersion.current = version
+        normalizeItems(api, items, fromFile.current)
+      }
       // Previews are pictures: never activate one for interaction.
       if (state.activeEmbeddable)
         api.updateScene({ appState: { activeEmbeddable: null } })
@@ -316,14 +528,40 @@ export function CanvasEditor(props: CanvasEditorProps) {
         onEmptyChange(now)
       }
     },
-    [api, onEmptyChange, onSceneChange],
+    [api, onEmptyChange, onSceneChange, editable, items],
+  )
+
+  const validateEmbeddable = useCallback(
+    (link: string) => itemAddress(link, window.location.origin, base) !== null,
+    [base],
+  )
+  // Called on every render, including each pan and zoom frame; the item
+  // boxes it returns re-render only when their own state changes. A new
+  // epoch admits or unloads previews.
+  const renderEmbeddable = useCallback(
+    (element: NonDeleted<ExcalidrawElement>, state: AppState) => {
+      const { offscreen, overview } = renderFlags(element, state)
+      if (!offscreen && !overview) seen(element.id)
+      return h(ItemBox, {
+        key: element.id,
+        id: element.id,
+        host: items,
+        link: element.link ?? '',
+        width: element.width,
+        height: element.height,
+        offscreen,
+        overview,
+        mounted: isLive(element.id),
+      })
+    },
+    [items, seen, isLive, epoch],
   )
 
   // Only the studio's sticky notes are in the library: anything else added
   // is dropped.
   const onLibraryChange = useCallback(
-    (items: LibraryItems) => {
-      if (!api || items.every((entry) => STICKY_IDS.has(entry.id))) return
+    (library: LibraryItems) => {
+      if (!api || library.every((entry) => STICKY_IDS.has(entry.id))) return
       void api.updateLibrary({
         libraryItems: STICKY_LIBRARY as unknown as LibraryItems,
         merge: false,
@@ -350,13 +588,10 @@ export function CanvasEditor(props: CanvasEditorProps) {
           onPointerUpdate,
           onScrollChange,
           onLibraryChange,
-          // Live previews and cards come with canvas embeds; until then an
-          // item shows as a quiet placeholder rather than a page of its own.
-          validateEmbeddable: true,
-          renderEmbeddable: () =>
-            h('div', {
-              className: 'size-full rounded-md border border-default bg-muted',
-            }),
+          // Only links to this studio's artifacts are items; the Vue page
+          // draws each into the box Excalidraw gives it.
+          validateEmbeddable,
+          renderEmbeddable,
           UIOptions: UI_OPTIONS,
           viewModeEnabled: !editable,
           theme: dark ? 'dark' : 'light',

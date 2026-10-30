@@ -129,6 +129,7 @@ export default defineNuxtModule({
         `icon: ${JSON.stringify(type.icon ?? null)}`,
         `page: ${load(type, type.page)}`,
         ...(type.embed ? [`embed: ${load(type, type.embed)}`] : []),
+        ...(type.embedIn ? [`embedIn: ${JSON.stringify(type.embedIn)}`] : []),
       ]
       return `${JSON.stringify(type.id)}: { ${fields.join(', ')} }`
     })
@@ -154,8 +155,10 @@ declare module '#studio/file-types' {
       /** An Iconify name; none shows no icon in the navigation. */
       icon: string | null
       page: Load
-      /** Its preview embedded in a document; without one, a card. */
+      /** Its preview embedded in a document or on a canvas; without one, a card. */
       embed?: Load
+      /** Where its preview shows; every surface when left out. */
+      embedIn?: ('document' | 'canvas')[]
     }
   >
   export default types
