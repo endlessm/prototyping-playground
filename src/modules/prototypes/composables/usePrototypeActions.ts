@@ -60,7 +60,7 @@ export function usePrototypeActions(prototype: () => ManifestPrototype) {
   // The dialogs, made when first opened. Only the studio running locally
   // has them, so the deployed site carries neither them nor the service.
   const overlay = import.meta.dev ? useOverlay() : undefined
-  type Loaders = Record<string, AsyncComponentLoader>
+  type Loaders = Record<'rename' | 'duplicate' | 'delete', AsyncComponentLoader>
   const loaders: Loaders | undefined = import.meta.dev
     ? {
         rename: () => import('../components/PrototypeRenameModal.vue'),
