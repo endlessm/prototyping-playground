@@ -392,6 +392,9 @@ describe('a canvas in a document, in the studio running locally', () => {
 describe('a canvas in a document on the deployed site', () => {
   let site: RunningStudio & { directory: string }
   beforeAll(async () => {
+    // The build refuses a broken canvas, as it should.
+    for (const file of ['Broken.excalidraw', 'BrokenDoc.md'])
+      rmSync(path.join(prototypeDir, file), { force: true })
     site = await startStaticSite('/studio-canvas-docs/', {
       STUDIO_PROTOTYPES: posix(dir),
     })
