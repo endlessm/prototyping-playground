@@ -147,9 +147,6 @@ useHead({
 
 <template>
   <UDashboardPanel id="settings">
-    <template v-if="local" #header
-      ><UDashboardNavbar :title="t('settings.title')" :toggle="false"
-    /></template>
     <template #body>
       <AppNotFound v-if="!local" />
       <div v-else class="mx-auto w-full max-w-3xl space-y-6 py-6">

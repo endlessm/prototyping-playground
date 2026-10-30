@@ -3,3 +3,9 @@
 @import '@fontsource-variable/inter';
 @import '@fontsource-variable/figtree';
 @import '../studios/assets/css/main.css';
+
+/* The app's layout (layouts/new.vue) puts every page on bg-slate-50 through
+   <body>'s class; base.css alone leaves a screen white. */
+body {
+  @apply bg-slate-50;
+}

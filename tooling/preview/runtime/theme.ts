@@ -401,7 +401,12 @@ const Specimen = defineComponent({
         'div',
         {
           'data-theme-specimen': state.page ?? '',
-          style: { padding: '8px 4px 24px' },
+          // On the system's page colour token, not on whatever its
+          // stylesheet paints a screen's page with.
+          style: {
+            padding: '8px 4px 24px',
+            background: 'var(--ui-bg, transparent)',
+          },
         },
         content(),
       )

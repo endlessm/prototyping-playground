@@ -164,6 +164,10 @@ test('[SH-104] [SH-107] [SH-108] [SH-109] [SH-111] [SH-112] [SH-113] [SH-115] [S
   await page.goto(`${server.url}settings`)
   const name = page.getByRole('textbox', { name: 'Studio name' })
   await expect.poll(() => name.isVisible(), { timeout: 60000 }).toBe(true)
+  // One header, the page's own: no top bar repeating the title above it.
+  expect(
+    await page.getByRole('heading', { name: 'Studio settings' }).count(),
+  ).toBe(1)
   expect(await page.getByText('Admin', { exact: true }).isVisible()).toBe(true)
   expect(
     await page

@@ -19,6 +19,18 @@ scenario(
     await expect
       .poll(() => title('Overview').isVisible(), { timeout: 120_000 })
       .toBe(true)
+    // The chapter's text renders a moment after its title on a cold server:
+    // wait for its first section ("What is …?" in both studios).
+    await expect
+      .poll(
+        () =>
+          page
+            .getByRole('heading', { name: /^What is/, level: 2 })
+            .first()
+            .isVisible(),
+        { timeout: 60_000 },
+      )
+      .toBe(true)
     await step('The Manual opens on its Overview')
 
     await page
