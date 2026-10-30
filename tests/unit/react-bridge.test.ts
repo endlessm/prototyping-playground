@@ -20,6 +20,7 @@ const sources = () =>
   )
 
 describe('the React bridge', () => {
+  // Reading every source file can pass 5 s while the other test files run.
   test('[SY-186] [SY-187] [CL-126] has no VueInline, VueScreen, shadow-root mount or React wrappers', () => {
     expect(files(system).filter((file) => file.endsWith('.tsx'))).toEqual([])
     for (const file of sources()) {
@@ -27,7 +28,7 @@ describe('the React bridge', () => {
       expect(text, file).not.toMatch(/\bVueInline\b|\bVueScreen\b/)
       expect(text, file).not.toMatch(/attachShadow|adoptedStyleSheets/)
     }
-  })
+  }, 30_000)
 
   test('[SY-188] has no stylesheet mapping studio names onto the app’s roles', () => {
     expect(existsSync(path.join(system, 'styles/theme.css'))).toBe(false)

@@ -67,6 +67,26 @@ const KEYS = new Set([
 ])
 const RAIL = new Set(['top', 'bottom', 'none'])
 
+/** Whether a page's children are malformed, at any depth. */
+function childPagesProblem(children: unknown): boolean {
+  if (children === undefined) return false
+  if (!Array.isArray(children)) return true
+  return children.some((child) => {
+    const {
+      path: address,
+      file,
+      children: nested,
+    } = (child ?? {}) as Record<string, unknown>
+    return (
+      typeof address !== 'string' ||
+      address.startsWith('/') ||
+      typeof file !== 'string' ||
+      !file.endsWith('.vue') ||
+      childPagesProblem(nested)
+    )
+  })
+}
+
 /** Problems with one declaration, each a sentence naming the module. */
 export function moduleProblems(spec: unknown, folderName: string): string[] {
   const where = `${folderName}/module.ts`
@@ -99,6 +119,10 @@ export function moduleProblems(spec: unknown, folderName: string): string[] {
         )
       if (typeof file !== 'string' || !file.endsWith('.vue'))
         problems.push(`${where}: each page names its .vue file.`)
+      if (childPagesProblem((page as Record<string, unknown>)?.children))
+        problems.push(
+          `${where}: a child page’s address continues its parent’s, without a leading slash, and names its .vue file.`,
+        )
     }
   const rail = module.rail as Record<string, unknown> | undefined
   if (rail !== undefined) {
@@ -150,6 +174,18 @@ export function moduleProblems(spec: unknown, folderName: string): string[] {
         )
           problems.push(
             `${where}: file type "${String(id)}" needs a lowercase id, a plain-text label, lowercase extensions such as ".vue", an identity reader file and a .vue page.`,
+          )
+        const { check, template, icon } = (type ?? {}) as Record<
+          string,
+          unknown
+        >
+        if (
+          [check, template, icon].some(
+            (value) => value !== undefined && typeof value !== 'string',
+          )
+        )
+          problems.push(
+            `${where}: file type "${String(id)}" names its check and template files and its icon as text.`,
           )
       }
   }

@@ -90,6 +90,30 @@ describe('the system registry', () => {
     ])
   })
 
+  test('[SY-63] [SY-82] the Overview’s texts are plain text, and libraries name only asset pages', async () => {
+    system('harbor', {
+      ...valid('hrbr000000000001', 'Harbor'),
+      overview: { summary: '<b>Bold</b>', guidance: 3 },
+      libraries: [
+        {
+          kind: 'package',
+          id: 'icons',
+          label: 'Icons',
+          package: 'icons',
+          assets: ['icons', 'sounds'],
+        },
+      ],
+    })
+    const { systems, problems } = await loadSystems(root, {
+      systems: ['harbor'],
+    })
+    expect(systems).toEqual([])
+    expect(problems).toEqual([
+      'src/systems/harbor/system.ts: a library’s assets are "fonts", "icons" and "images".',
+      'src/systems/harbor/system.ts: overview.summary, overview.guidance and overview.code are plain text.',
+    ])
+  })
+
   test('[SY-131] two systems may not share a permanent ID', async () => {
     system('harbor', valid('hrbr000000000001', 'Harbor'))
     system('copy', valid('hrbr000000000001', 'Copy'))

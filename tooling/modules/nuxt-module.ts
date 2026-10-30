@@ -11,7 +11,9 @@ import {
   defineNuxtModule,
   extendPages,
 } from 'nuxt/kit'
+import type { NuxtPage } from 'nuxt/schema'
 import type { Plugin } from 'vite'
+import type { ModulePage } from './contract.ts'
 import { buildDataStore } from './build-data.ts'
 import { loadRegistry, modulesForApp } from './registry.ts'
 
@@ -31,14 +33,23 @@ export default defineNuxtModule({
     // Local-only modules stay off the deployed site.
     const enabled = modulesForApp(registry.enabled, { dev: nuxt.options.dev })
 
+    // Child pages render inside their parent's `<NuxtPage />`.
+    const nuxtPage = (
+      page: ModulePage,
+      dir: string,
+      name: string,
+    ): NuxtPage => ({
+      ...(page.children?.some((child) => child.path === '') ? {} : { name }),
+      path: page.path,
+      file: path.join(dir, page.file),
+      children: (page.children ?? []).map((child, index) =>
+        nuxtPage(child, dir, `${name}-${index}`),
+      ),
+    })
     extendPages((pages) => {
       for (const { spec, dir } of enabled)
         for (const [index, page] of (spec.pages ?? []).entries())
-          pages.push({
-            name: `${spec.id}-${index}`,
-            path: page.path,
-            file: path.join(dir, page.file),
-          })
+          pages.push(nuxtPage(page, dir, `${spec.id}-${index}`))
     })
 
     // Only what the browser needs; loaders stay on Node.
@@ -115,7 +126,7 @@ declare module '${DATA_MODULE}' {
       { nuxt: true, nitro: false, node: false },
     )
 
-    const store = buildDataStore(enabled, root)
+    const store = buildDataStore(enabled, root, { dev: nuxt.options.dev })
     const base = nuxt.options.app.baseURL
     addVitePlugin(buildDataPlugin(store, base), { server: false })
   },

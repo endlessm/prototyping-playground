@@ -9,6 +9,9 @@ export default {
   styling: 'tailwind',
   colorModes: ['light'],
   docs: 'warn',
+  overview: {
+    summary: 'The Endless Studios frontend in Vue: Nuxt UI with the app’s own theme and components, for screens that look like the real platform.',
+  },
   libraries: [
     {
       kind: 'package',
@@ -26,6 +29,7 @@ export default {
       package: '@iconify-json/lucide',
       description: 'Icon catalog, used as i-lucide-* names',
       docs: 'https://lucide.dev/icons/',
+      assets: ['icons'],
     },
   ],
   origin: null,
@@ -39,11 +43,29 @@ export default {
     },
     standIns: {
       from: 'studios/nuxt-shims.ts',
-      imports: ['useRouter', 'useRoute', 'navigateTo', 'useNuxtApp', 'useI18n', 'useState'],
+      imports: [
+        'useRouter',
+        'useRoute',
+        'navigateTo',
+        'useNuxtApp',
+        'useI18n',
+        'useGraphQLQuery',
+        'useStore',
+        'useState',
+        'useNotificationsCount',
+      ],
     },
     source: 'studios',
     aliases: {
+      'graphql-request': 'runtime/graphql-request.ts',
+      vuex: 'runtime/store.ts',
       'vue-i18n': 'runtime/nuxt-app.ts',
+      '~/composables/useGraphQLQuery': 'runtime/graphql.ts',
+      '~/composables/useStreamingGraphQLQuery.js': 'runtime/streaming-graphql.ts',
+      '~/composables/useBackendError': 'runtime/composables.ts',
+      '~/components/Generic/InfiniteScroll.vue': 'runtime/InfiniteScroll.vue',
+      '~/utils/dashboardRoute': 'runtime/app-modules.ts',
+      '~/graphql_schemas/notifications': 'runtime/app-modules.ts',
     },
   },
 } satisfies SystemSpec;
