@@ -44,10 +44,14 @@ for (const deployed of [false, true]) {
           .getAttribute('data-disabled'),
       ).not.toBeNull()
       await input.fill('overview')
+      await expect.poll(() => page.getByRole('option').count()).toBe(1)
       expect(
         await page.getByRole('option', { name: 'Home', exact: true }).count(),
       ).toBe(1)
       await input.fill('configuration')
+      await expect
+        .poll(() => page.getByRole('option').count())
+        .toBe(deployed ? 0 : 1)
       expect(
         await page
           .getByRole('option', { name: 'Studio settings', exact: true })

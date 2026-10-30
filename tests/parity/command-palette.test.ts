@@ -2,6 +2,32 @@ import { expect } from 'vitest'
 import { scenario } from './setup/scenario'
 
 scenario(
+  '[SH-39] [SH-46] [PR-83] opening the palette from a view preview',
+  async ({ page, url, step }) => {
+    await page.goto(
+      `${url}prototypes/st4tes0000000001/artifacts/vwe1c0me00000001`,
+    )
+    const frame = page.locator('iframe').first().contentFrame()
+    await expect
+      .poll(
+        () =>
+          frame
+            .getByRole('heading', { name: 'Welcome', exact: true })
+            .isVisible(),
+        { timeout: 60_000 },
+      )
+      .toBe(true)
+    await frame.getByRole('heading', { name: 'Welcome', exact: true }).click()
+    await page.keyboard.press('Control+k')
+    const input = page.getByPlaceholder('Search the studio')
+    await expect.poll(() => input.isVisible(), { timeout: 30_000 }).toBe(true)
+    await step('Palette opened from the preview')
+    await input.press('Control+k')
+    await expect.poll(() => input.isVisible()).toBe(false)
+  },
+)
+
+scenario(
   '[SH-39] [SH-41] [SH-42] [SH-43] [SH-44] [PR-19] searching the studio from the palette',
   async ({ page, url, step }) => {
     await page.goto(url)
