@@ -31,7 +31,7 @@ const rows = [
 test.each(rows)('[%s] %s has current shared guidance', (_id, name, term) => {
   const text = read(`src/platform/context/${name}.md`)
   expect(text).toContain(term)
-  expect(text).toMatch(/^---\ntitle:/)
+  expect(text).toMatch(/^---\r?\ntitle:/)
   expect(text).not.toMatch(
     /shadcn|ownership tiers|upstream updates|React view|pnpm |src\/platform\/modules/,
   )
