@@ -140,6 +140,18 @@ describe('the gallery on the dev server, as Ben', () => {
       .toEqual(['Settings Panel', 'Onboarding', 'Checkout Flow', 'Empty Box'])
   })
 
+  test('[SH-123] contributor links filter active and archived prototypes locally', async () => {
+    const page = await newPage()
+    await openGallery(page, studio.url, '?contributor=ada')
+    await expect.poll(() => titles(gallery(page))).toEqual(['Checkout Flow'])
+    await expect.poll(() => titles(archived(page))).toEqual(['Old Ideas'])
+    await openGallery(page, studio.url, '?contributor=ben')
+    await expect
+      .poll(() => titles(gallery(page)))
+      .toEqual(['Settings Panel', 'Onboarding', 'Empty Box'])
+    expect(await archived(page).count()).toBe(0)
+  })
+
   test('[PR-01] [PR-02] [PR-04] [SH-100] [SH-103] cards, newest first, show who made each and when', async () => {
     const page = await offline(await newPage())
     await openGallery(page, studio.url)
@@ -395,6 +407,16 @@ describe('the gallery on the deployed site', () => {
   })
   afterAll(async () => {
     await site?.stop()
+  })
+
+  test('[SH-123] [PR-73] deployed contributor filters exclude archived prototypes', async () => {
+    const page = await newPage()
+    await openGallery(page, site.url, '?contributor=ada')
+    await expect.poll(() => titles(gallery(page))).toEqual(['Checkout Flow'])
+    expect(await archived(page).count()).toBe(0)
+    expect(
+      await page.getByRole('link', { name: 'Old Ideas', exact: true }).count(),
+    ).toBe(0)
   })
 
   test('[PR-08] [PR-12] [PR-11] lists active prototypes only, with nothing to create and only Copy link', async () => {
