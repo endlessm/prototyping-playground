@@ -1,0 +1,66 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "studioVersion": 1,
+  "studioId": "b0ardcnv00000001",
+  "elements": [
+    {
+      "customData": {
+        "frame": true,
+        "hideLinkIcon": true
+      },
+      "height": 338,
+      "id": "home",
+      "index": "ahome",
+      "link": "/prototypes/b0ardp0000000001/artifacts/b0ardv1ew0000001",
+      "seed": 1,
+      "strokeColor": "transparent",
+      "type": "embeddable",
+      "version": 1,
+      "versionNonce": 1,
+      "width": 480,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "customData": {
+        "frame": true,
+        "hideLinkIcon": true
+      },
+      "height": 88,
+      "id": "brief",
+      "index": "abrief",
+      "link": "/prototypes/b0ardp0000000001/artifacts/b0ardd0c00000001",
+      "seed": 1,
+      "strokeColor": "transparent",
+      "type": "embeddable",
+      "version": 1,
+      "versionNonce": 1,
+      "width": 480,
+      "x": 560,
+      "y": 0
+    },
+    {
+      "customData": {
+        "frame": true,
+        "hideLinkIcon": true
+      },
+      "height": 88,
+      "id": "gone",
+      "index": "agone",
+      "link": "/prototypes/b0ardp0000000001/artifacts/b0ardg0ne0000001",
+      "seed": 1,
+      "strokeColor": "transparent",
+      "type": "embeddable",
+      "version": 1,
+      "versionNonce": 1,
+      "width": 480,
+      "x": 560,
+      "y": 140
+    }
+  ],
+  "appState": {
+    "viewBackgroundColor": "#ffffff"
+  },
+  "files": {}
+}

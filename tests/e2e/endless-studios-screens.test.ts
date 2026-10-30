@@ -236,6 +236,98 @@ function sharedScenarios(
         (element) => getComputedStyle(element).backgroundColor,
       ),
     ).toBe('rgb(255, 255, 255)')
+
+    // A component's example is staged on that colour too, as React staged
+    // it on the studio's page.
+    await page.goto(
+      `${studio().url}systems/${ENDLESS_STUDIOS}/components/button`,
+    )
+    const example = page.frameLocator('iframe[title="Default"]')
+    await expect
+      .poll(
+        () => example.getByRole('button', { name: 'Invite Learners' }).count(),
+        { timeout: 120_000 },
+      )
+      .toBeGreaterThan(0)
+    expect(
+      await example
+        .locator('body')
+        .evaluate((element) => getComputedStyle(element).backgroundColor),
+    ).toBe('rgb(255, 255, 255)')
+  }, 300_000)
+
+  test('[SY-167] [SY-168] the Button and Card pages show their guidance, live examples in the app’s look, and props', async () => {
+    const pages = [
+      {
+        slug: 'button',
+        guidance: [
+          'When to use',
+          'Studios variants',
+          'Accessibility',
+          'In Vue screens',
+        ],
+        examples: [
+          'Default',
+          'Common pairs',
+          'Variants',
+          'Colors',
+          'Sizes',
+          'With icons',
+          'States',
+          'Kids gating',
+          'Contrast',
+          'Block',
+        ],
+        props: '1 component · 12 props',
+      },
+      {
+        slug: 'card',
+        guidance: ['When to use', 'Parts', 'In Vue screens'],
+        examples: [
+          'Default',
+          'Variants',
+          'Header and footer',
+          'Soft inside outline',
+          'Flush body',
+        ],
+        props: '1 component · 5 props',
+      },
+    ]
+    for (const component of pages) {
+      const page = await newPage()
+      await page.goto(
+        `${studio().url}systems/8x5spen6xtvp96a9/components/${component.slug}`,
+      )
+      for (const name of [...component.guidance, ...component.examples])
+        await expect
+          .poll(
+            () => page.getByRole('heading', { name, exact: true }).isVisible(),
+            { timeout: 120_000 },
+          )
+          .toBe(true)
+      const frames = page.locator('[data-preview-artifact]')
+      await expect.poll(() => frames.count()).toBe(component.examples.length)
+      for (let index = 0; index < component.examples.length; index++)
+        await expect
+          .poll(() => frames.nth(index).getAttribute('data-preview-state'), {
+            timeout: 120_000,
+          })
+          .toBe('ready')
+      const props = page.getByRole('button', { name: /^Props/ })
+      expect(await props.textContent()).toContain(component.props)
+      await expect
+        .poll(() => page.getByText('Nuxt UI 4.8').first().isVisible())
+        .toBe(true)
+      if (component.slug === 'button') {
+        // The app's primary orange, inside the example's own document.
+        const background = await page
+          .frameLocator('iframe[title="Default"]')
+          .getByRole('button', { name: 'Invite Learners' })
+          .evaluate((element) => getComputedStyle(element).backgroundColor)
+        expect(background).toBe('rgb(255, 105, 0)')
+      }
+      await page.close()
+    }
   })
 
   test('[SY-184] signed out, the app shell shows the sign-up state', async () => {

@@ -1,15 +1,31 @@
 <script setup lang="ts">
+import types from '#studio/file-types'
+import {
+  embedPresentation,
+  resolveReference,
+  type ReferenceResolution,
+} from '../../../../app/utils/artifactReference'
 import type {
   ManifestArtifact,
   ManifestPrototype,
 } from '../../../../app/composables/useManifest'
 import { useCanvasFile } from '../composables/useCanvasFile'
 import { useCanvasOpening } from '../composables/useCanvasOpening'
-import type { CanvasEditorProps, CanvasHandle } from '../island/mount'
-import { parseCanvas, type ParsedCanvas } from '../types/canvas/format'
+import type {
+  CanvasEditorProps,
+  CanvasHandle,
+  CanvasItemHost,
+  CanvasItemState,
+} from '../island/mount'
+import {
+  itemAddress,
+  parseCanvas,
+  type ParsedCanvas,
+} from '../types/canvas/format'
 import { cameraKey } from '../utils/camera'
 import { readCanvas, type CanvasText } from '../utils/readCanvas'
 import CanvasError from './CanvasError.vue'
+import CanvasItem from './CanvasItem.vue'
 import CanvasOpening from './CanvasOpening.vue'
 import CanvasSaveStatus from './CanvasSaveStatus.vue'
 
@@ -17,6 +33,8 @@ import CanvasSaveStatus from './CanvasSaveStatus.vue'
 // edit it are all ready before the editor mounts, so it never shows
 // read-only first. A quiet surface covers the scene until it reveals. Your
 // edits save by themselves, and changes made to the file elsewhere come in.
+// Items (views, states, diagrams, cards) are drawn here, in the studio's own
+// context, into the boxes Excalidraw gives them.
 const props = defineProps<{
   prototype: ManifestPrototype
   artifact: ManifestArtifact
@@ -25,6 +43,57 @@ const props = defineProps<{
 const { t } = useI18n()
 const base = useRuntimeConfig().app.baseURL
 const colorMode = useColorMode()
+const artifacts = await usePrototypeArtifacts(() => props.prototype.id)
+
+// What each link shows, kept while the prototype's artifacts stay the same,
+// so an item re-renders only when its own artifact changes.
+const extensions = Object.values(types).flatMap((type) => type.extensions)
+const resolutions = computed(() => {
+  void artifacts.value
+  void props.prototype
+  return new Map<string, ReferenceResolution>()
+})
+function resolve(link: string): ReferenceResolution {
+  const cache = resolutions.value
+  let found = cache.get(link)
+  if (!found) {
+    found = resolveReference(
+      itemAddress(link, location.origin, base) ?? link,
+      { prototype: props.prototype, artifact: props.artifact },
+      artifacts.value,
+      {
+        extension: 'required',
+        extensions,
+        presentation: (type) => embedPresentation(types[type], 'canvas'),
+      },
+    )
+    cache.set(link, found)
+  }
+  return found
+}
+
+// The items Excalidraw has boxes for, by element ID.
+const items = shallowReactive(
+  new Map<string, CanvasItemState & { box: HTMLElement }>(),
+)
+const same = (a: CanvasItemState, b: CanvasItemState) =>
+  (Object.keys(b) as (keyof CanvasItemState)[]).every(
+    (key) => a[key] === b[key],
+  )
+const itemHost: CanvasItemHost = {
+  show(id, box, state) {
+    const current = items.get(id)
+    if (current?.box === box && same(current, state)) return
+    items.set(id, { ...state, box })
+  },
+  hide(id, box) {
+    if (items.get(id)?.box === box) items.delete(id)
+  },
+  preview(link) {
+    const found = resolve(link)
+    return found.state === 'resolved' && found.presentation === 'preview'
+  },
+}
 
 const container = useTemplateRef<HTMLElement>('container')
 const mountPoint = useTemplateRef<HTMLElement>('mountPoint')
@@ -71,6 +140,7 @@ const editorProps = (): CanvasEditorProps => ({
   dark: colorMode.value === 'dark',
   base,
   cameraKey: cameraKey(props.artifact.id),
+  items: itemHost,
   labels: {
     undo: t('canvas.menu.undo'),
     redo: t('canvas.menu.redo'),
@@ -144,6 +214,17 @@ onBeforeUnmount(() => {
     >
       <div ref="mountPoint" class="absolute inset-0" />
     </div>
+    <Teleport v-for="[id, item] of items" :key="id" :to="item.box">
+      <CanvasItem
+        :prototype="prototype"
+        :resolution="resolve(item.link)"
+        :width="item.width"
+        :height="item.height"
+        :mounted="item.mounted"
+        :offscreen="item.offscreen"
+        :overview="item.overview"
+      />
+    </Teleport>
     <CanvasSaveStatus
       v-if="saving.active.value && revealed"
       :state="saving.state.value"
