@@ -7,36 +7,36 @@
 //   POST <base>_studio/files/tree   { op, prototype, … }
 //       create   { parent, name, type }  a folder (type "folder") or a file
 //                                        of that type → { path, artifact }
-//       rename   { path, name }          → { path }
+//       rename   { path, name }          → { path, relinked }
+//       move     { path, to }            into the folder `to` ('' for the top
+//                                        level) → { path, moved, relinked }
+//       reorder  { path, before, to? }   before a sibling, or last for '',
+//                                        after moving into `to` if given; the
+//                                        order is saved in meta.json
+//                                        → { path, moved, relinked }
 //       delete   { path }                to the computer's trash → { trashedTo }
 //       lofi     { artifact, lofi }      → { lofi }
 //       reveal   { path }                in the computer's file browser
 //       open     { path }                in a code editor → { opened, message }
 //
-// Changes answer 403 with the reason if you may not change the prototype,
+// Renames and moves repair the references to and in what moved, and say
+// how many files changed (`relinked`); if they can't, nothing moves (409
+// `references`). Changes answer 403 with the reason if you may not change the prototype,
 // 409 for a name that is taken, 400 for one that isn't allowed. Only the
 // studio's own pages may call it.
 import { appendFileSync } from 'node:fs'
 import { createError, defineEventHandler, getQuery, readBody } from 'h3'
 import { useRuntimeConfig } from 'nitropack/runtime'
-import { defaultIdentify, FileServiceError } from '../source.ts'
+import { FileServiceError } from '../source.ts'
 import { createFileTree } from '../tree.ts'
 import type { FileServiceConfig } from '../nuxt-module.ts'
-import { loadFileTypes, sameOrigin } from './common.ts'
-
-// Finding out who you are runs Git and perhaps the GitHub CLI, which hold
-// up the dev server, and every open tree asks. As with the studio's own
-// "who are you", the answer is kept until the profiles change.
-type Identify = ReturnType<typeof defaultIdentify>
-let known: { profiles: string; identity: ReturnType<Identify> } | undefined
-const remembered =
-  (root: string): Identify =>
-  (contributors) => {
-    const profiles = JSON.stringify(contributors)
-    if (known?.profiles !== profiles)
-      known = { profiles, identity: defaultIdentify(root)(contributors) }
-    return known.identity
-  }
+import {
+  loadFileTypes,
+  loadReferences,
+  remembered,
+  sameOrigin,
+} from './common.ts'
+import { settleMoves } from './moves.ts'
 
 export default defineEventHandler(async (event) => {
   if (!sameOrigin(event))
@@ -46,6 +46,7 @@ export default defineEventHandler(async (event) => {
   const tree = createFileTree({
     ...config,
     fileTypes: await loadFileTypes(config),
+    references: await loadReferences(config),
     identify: remembered(config.root),
     // Noted instead of started, and as if no code editor is installed, so
     // the scenarios go the same on every computer.
@@ -66,11 +67,22 @@ export default defineEventHandler(async (event) => {
     if (event.method !== 'POST')
       throw new FileServiceError(405, 'method', 'Use GET or POST.')
     const body = (await readBody(event)) ?? {}
+    // The studio's own moves repair their references as they happen; then
+    // the watcher of outside moves takes things as they are, so it doesn't
+    // repair them again, even when a reorder fails after its move.
+    if (['rename', 'move', 'reorder'].includes(body.op))
+      try {
+        return await (body.op === 'rename'
+          ? tree.rename(body)
+          : body.op === 'move'
+            ? tree.move(body)
+            : tree.reorder(body))
+      } finally {
+        settleMoves()
+      }
     switch (body.op) {
       case 'create':
         return await tree.create(body)
-      case 'rename':
-        return await tree.rename(body)
       case 'delete':
         return await tree.remove(body)
       case 'lofi':

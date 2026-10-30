@@ -143,8 +143,8 @@ describe('a system’s catalog', () => {
       'src/systems/harbor/styles/tokens.css',
       `@theme static {\n  --font-sans: 'Inter', sans-serif;\n  --spacing-4: 1rem;\n  --shadow-card: 0 1px 2px #0003;\n  --ease-out: cubic-bezier(0, 0, 0.2, 1);\n  --tab-width: 4;\n}\n`,
     )
-    const catalog = systemCatalog(await harbor(), root)
-    expect(catalog.tokens).toEqual([
+    const catalog = systemCatalog(await harbor({ themeClass: 'harbor' }), root)
+    expect(catalog.tokens.map(({ name, group }) => ({ name, group }))).toEqual([
       { name: '--color-sea', group: 'colors' },
       { name: '--font-sans', group: 'typography' },
       { name: '--radius-card', group: 'radius' },
@@ -196,9 +196,54 @@ describe('a system’s catalog', () => {
       },
     ])
     expect(catalog.assets).toEqual([
-      { path: 'fonts/Harbor.woff2', kind: 'fonts' },
-      { path: 'icons/anchor.svg', kind: 'icons' },
-      { path: 'logo.png', kind: 'images' },
+      {
+        path: 'fonts/Harbor.woff2',
+        kind: 'fonts',
+        origin: 'local',
+        file: 'assets/fonts/Harbor.woff2',
+      },
+      {
+        path: 'icons/anchor.svg',
+        kind: 'icons',
+        origin: 'local',
+        file: 'assets/icons/anchor.svg',
+      },
+      {
+        path: 'logo.png',
+        kind: 'images',
+        origin: 'local',
+        file: 'assets/logo.png',
+      },
+    ])
+  })
+
+  test('[SY-170] [SY-101] the copied app source’s images are listed too, its Icons folders as icons', async () => {
+    write('src/systems/harbor/app/assets/images/logo.svg', '<svg/>')
+    write('src/systems/harbor/app/assets/images/Icons/bell.svg', '<svg/>')
+    write('src/systems/harbor/app/assets/css/main.css', ':root {}')
+    write('src/systems/harbor/app/components/Thing.vue', '<template/>')
+    const catalog = systemCatalog(
+      await harbor({
+        app: {
+          factory: { from: 'app.ts', name: 'createApp' },
+          source: 'app',
+        },
+      }),
+      root,
+    )
+    expect(catalog.assets).toEqual([
+      {
+        path: 'assets/images/Icons/bell.svg',
+        kind: 'icons',
+        origin: 'app',
+        file: 'app/assets/images/Icons/bell.svg',
+      },
+      {
+        path: 'assets/images/logo.svg',
+        kind: 'images',
+        origin: 'app',
+        file: 'app/assets/images/logo.svg',
+      },
     ])
   })
 

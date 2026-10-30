@@ -24,6 +24,7 @@ import {
   type PreviewState,
 } from '../protocol.ts'
 import { COMPILE_ROUTE, PREVIEW_ROUTE } from '../constants.ts'
+import { THEME_QUERY } from '../theme.ts'
 import { PROTOTYPE_SCOPE, type PrototypeScope } from './navigation.ts'
 
 interface ViewModule {
@@ -161,6 +162,13 @@ const describe = (error: unknown) =>
 export function mountPreview({ create, views }: MountOptions) {
   const address = readAddress(location.search)
   const session = window.parent !== window ? address.session : null
+  // A Theme page: the system's tokens, drawn by its own app.
+  if (new URLSearchParams(location.search).has(THEME_QUERY)) {
+    void import('./theme.ts').then(({ mountTheme }) =>
+      mountTheme(create, session),
+    )
+    return
+  }
   const runtime = randomId()
   const root = document.documentElement
   const host = document.getElementById('app')!

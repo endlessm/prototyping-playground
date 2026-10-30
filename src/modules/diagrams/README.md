@@ -23,3 +23,5 @@ The shared renderer (`app/utils/mermaid.ts`, `app/components/MermaidDiagram.vue`
 Saving the file draws the new diagram in place, without reloading the page, and the previous drawing stays until the new one is ready. The figure carries `data-diagram-state` (`loading`, `ready`, `error`) and `data-diagram-freshness` (`current`, `stale`) for agents and browser tools.
 
 In a document, a preview sits in the shared embed frame: as wide as the text, between 220 and 440 px tall, the whole diagram scaled to fit, with a header naming it that opens its page ("Open <name>"). Canvas previews come with ticket 21.
+
+A diagram names no other files, so it has no reference adapter. A document that embeds or links it is updated when the diagram is renamed or moved (the Documents module's `references.ts`; the prototypes README, "References follow renames and moves").

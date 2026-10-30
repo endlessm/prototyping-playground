@@ -108,9 +108,8 @@ export function fileAccess(options: FileServiceOptions) {
     return posix(relative.startsWith('..') ? file : relative)
   }
 
-  /** The prototype's folder and metadata, found by its permanent ID. */
-  function prototypeOf(id: string) {
-    if (!isResourceId(id)) throw notFound()
+  /** Every prototype's folder and metadata. */
+  function* prototypes() {
     for (const contributor of directories(prototypesDir))
       for (const name of directories(path.join(prototypesDir, contributor))) {
         const dir = path.join(prototypesDir, contributor, name)
@@ -122,8 +121,15 @@ export function fileAccess(options: FileServiceOptions) {
         } catch {
           continue
         }
-        if (meta.studioId === id) return { dir, contributor, meta }
+        yield { dir, contributor, meta }
       }
+  }
+
+  /** The prototype's folder and metadata, found by its permanent ID. */
+  function prototypeOf(id: string) {
+    if (!isResourceId(id)) throw notFound()
+    for (const found of prototypes())
+      if (found.meta.studioId === id) return found
     throw notFound()
   }
 
@@ -196,6 +202,7 @@ export function fileAccess(options: FileServiceOptions) {
     prototypeOf,
     artifactOf,
     refusalFor,
+    prototypes,
   }
 }
 

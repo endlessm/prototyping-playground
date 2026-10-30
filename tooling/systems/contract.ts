@@ -70,6 +70,16 @@ export interface SystemApp {
   aliases?: Record<string, string>
 }
 
+/** The Icons page's sample of the system's icon library. */
+export interface SystemIcons {
+  /** How to use an icon, as code. */
+  snippet: string
+  /** Where to browse all of them. */
+  href: string
+  /** Iconify names to show, such as `i-lucide-anchor`. */
+  names: string[]
+}
+
 export interface SystemSpec {
   label: string
   status: SystemStatus
@@ -82,6 +92,7 @@ export interface SystemSpec {
   docs: 'warn' | 'strict' | 'off'
   libraries: SystemLibrary[]
   overview?: SystemOverview
+  icons?: SystemIcons
   /** Where the system came from, if imported. */
   origin: string | null
   /** The permanent ID prototypes store as `systemId`. */

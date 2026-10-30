@@ -526,6 +526,9 @@ describe('the deployed site', () => {
       })
     const leaks = files(site.directory).filter((file) => {
       if (!/\.(m?js|html|json)$/.test(file)) return false
+      // Context & Skills ships the modules' READMEs, whose prose names the
+      // dev route; that text is documentation, not the service.
+      if (/studio-guidance-documents\.[^\\/]*\.json$/.test(file)) return false
       const text = readFileSync(file, 'utf8')
       return text.includes('_studio/files') || text.includes('cm-gutters')
     })
