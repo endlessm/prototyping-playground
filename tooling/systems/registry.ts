@@ -95,6 +95,23 @@ export function systemProblems(spec: unknown, where: string): string[] {
     problems.push(
       `${where}: overview.summary, overview.guidance and overview.code are plain text.`,
     )
+  const icons = system.icons as Record<string, unknown> | null | undefined
+  if (
+    icons !== undefined &&
+    (!icons ||
+      typeof icons !== 'object' ||
+      typeof icons.snippet !== 'string' ||
+      typeof icons.href !== 'string' ||
+      !/^https?:\/\//.test(icons.href) ||
+      !Array.isArray(icons.names) ||
+      icons.names.some(
+        (name: unknown) =>
+          typeof name !== 'string' || !/^i-[a-z0-9-]+$/.test(name),
+      ))
+  )
+    problems.push(
+      `${where}: icons has a snippet, an http(s) href and a list of Iconify names (i-lucide-…).`,
+    )
   if (!isResourceId(system.studioId))
     problems.push(
       `${where}: the studioId must be 16 lowercase letters and digits (Crockford base32).`,
