@@ -45,6 +45,7 @@ const harbor: SystemCatalog = {
     },
   ],
   components: [],
+  overview: null,
   assets: [],
   context: [
     {
