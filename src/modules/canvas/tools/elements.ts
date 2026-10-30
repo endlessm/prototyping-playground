@@ -93,7 +93,7 @@ const NUNITO = [
 const SAFETY = 1.04
 const charEm = (ch: string) => {
   const c = ch.charCodeAt(0)
-  return c >= 32 && c <= 126 ? NUNITO[c - 32] / 100 : 0.6
+  return c >= 32 && c <= 126 ? NUNITO[c - 32]! / 100 : 0.6
 }
 export const lineWidth = (line: string, fontSize: number) =>
   [...line].reduce((sum, ch) => sum + charEm(ch), 0) * fontSize * SAFETY

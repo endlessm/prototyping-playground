@@ -551,8 +551,8 @@ function head(
 
 // The points of an arrow or line, relative to its start, and the box around them.
 function pointsBox(points: number[][]) {
-  const xs = points.map(([x]) => x)
-  const ys = points.map(([, y]) => y)
+  const xs = points.map(([x]) => x!)
+  const ys = points.map(([, y]) => y!)
   return {
     width: Math.max(...xs) - Math.min(...xs),
     height: Math.max(...ys) - Math.min(...ys),
@@ -956,11 +956,11 @@ function create(input: El[], args: any, ctx: Ctx): Run {
       }
       made = made.map(inSection)
       add(...made)
-      created.push(made[0].id)
+      created.push(made[0]!.id)
       if (spec.ref !== undefined) {
         if (typeof spec.ref !== 'string' || !spec.ref)
           throw new ToolError('ref must be a name')
-        refs[spec.ref] = made[0].id
+        refs[spec.ref] = made[0]!.id
       }
     } catch (error) {
       if (error instanceof ToolError)

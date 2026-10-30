@@ -17,8 +17,16 @@ import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest'
 import { toolContext } from '../../src/modules/canvas/tools/context'
 import { help, run } from '../../src/modules/canvas/tools/tools'
 import type { ManifestArtifact } from '../../tooling/manifest/build'
+import type { CanvasAgent } from '../../src/modules/canvas/island/agent'
 import { useBrowser } from './setup/browser'
 import { startDevServer, type RunningStudio } from './setup/studio'
+
+declare global {
+  interface Window {
+    /** The canvas tools in the open canvas (`island/agent.ts`). */
+    __studioCanvas?: CanvasAgent
+  }
+}
 
 const posix = (file: string) => file.split(path.sep).join('/')
 mkdirSync('.e2e', { recursive: true })

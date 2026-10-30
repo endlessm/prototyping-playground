@@ -72,7 +72,9 @@ function session(context = ctx) {
       scene = out.elements
       return out.result
     },
-    live: () => scene.filter((el) => !el.isDeleted),
+    // Any, so a scenario can take elements apart by position.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    live: (): any[] => scene.filter((el) => !el.isDeleted),
   }
 }
 

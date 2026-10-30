@@ -216,7 +216,7 @@ export function createCanvasAgent(options: CanvasAgentOptions) {
         mimeType: 'image/png',
         exportPadding: 40,
         // `exportScale` alone doesn't size the picture.
-        getDimensions: (width, height) => ({
+        getDimensions: (width: number, height: number) => ({
           width: width * exportScale,
           height: height * exportScale,
           scale: exportScale,

@@ -17,12 +17,20 @@ import {
 import path from 'node:path'
 import type { Locator, Page } from 'playwright'
 import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest'
+import type { CanvasAgent } from '../../src/modules/canvas/island/agent'
 import { useBrowser } from './setup/browser'
 import {
   startDevServer,
   startStaticSite,
   type RunningStudio,
 } from './setup/studio'
+
+declare global {
+  interface Window {
+    /** The canvas tools in the open canvas (`island/agent.ts`). */
+    __studioCanvas?: CanvasAgent
+  }
+}
 
 const posix = (file: string) => file.split(path.sep).join('/')
 mkdirSync('.e2e', { recursive: true })
