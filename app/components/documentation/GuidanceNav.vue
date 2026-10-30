@@ -200,7 +200,7 @@ const open = (id: string) => searching.value || Boolean(branches.value[id])
               :aria-label="t('documentation.toggle', { name: owner.label })"
               :aria-expanded="open(owner.id)"
               class="shrink-0"
-              @click="branches[owner.id] = !open(owner.id)"
+              @click="() => void (branches[owner.id] = !open(owner.id))"
             />
             <ULink
               :to="guidanceHref(owner.id)"
