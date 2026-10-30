@@ -6,6 +6,7 @@ import os from 'node:os'
 import { defineNuxtModule } from 'nuxt/kit'
 import { resolveIdentity } from '../contributors/identity.ts'
 import { readContributors } from '../contributors/profiles.ts'
+import { syncInFreshProcess } from '../studio/sync.ts'
 import {
   clearDevServer,
   describeDevServer,
@@ -38,6 +39,8 @@ export default defineNuxtModule({
   setup(_options, nuxt) {
     if (!nuxt.options.dev) return
     const root = nuxt.options.rootDir
+    if (!process.env.STUDIO_CONFIG && !process.env.STUDIO_MODULES)
+      syncInFreshProcess(root)
     const owner =
       process.env.__NUXT__FORK === 'true' ? process.ppid : process.pid
     const current = readDevServer(root)
