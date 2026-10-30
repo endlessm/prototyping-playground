@@ -19,6 +19,8 @@
   ".claude/skills/studio-module-diagrams-create-diagram/SKILL.md": "6e53bf3a2828c1e718cbb5171ca9e2b325912f16bd54d06709723732b98c7cb6",
   ".agents/skills/studio-module-document-write-document/SKILL.md": "4261d546db81a3cda9a65abba524d8cc09e26fdd69e01767a6c8fcd0eb2cafee",
   ".claude/skills/studio-module-document-write-document/SKILL.md": "4261d546db81a3cda9a65abba524d8cc09e26fdd69e01767a6c8fcd0eb2cafee",
+  ".agents/skills/studio-module-documentation-write-manual/SKILL.md": "4b585110e13ecb268888903387f0ab062f4f063ac6f16afcc1b00421cb1eaee5",
+  ".claude/skills/studio-module-documentation-write-manual/SKILL.md": "4b585110e13ecb268888903387f0ab062f4f063ac6f16afcc1b00421cb1eaee5",
   ".agents/skills/studio-module-prototypes-build-prototype/SKILL.md": "912aa968de21b42de282b71857839d746e1593b232cc1c44ab7f2811579c8041",
   ".claude/skills/studio-module-prototypes-build-prototype/SKILL.md": "912aa968de21b42de282b71857839d746e1593b232cc1c44ab7f2811579c8041"
 }
