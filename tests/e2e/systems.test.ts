@@ -226,7 +226,7 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     await expect.poll(() => query(page)).toBe('')
   })
 
-  test('[SY-19] each card has its actions menu: copy its link and, locally, its folder', async () => {
+  test('[SY-19] [SY-42] [SY-44] each card has its actions menu: copy its link and, locally, its folder', async () => {
     const page = await open()
     await page
       .context()

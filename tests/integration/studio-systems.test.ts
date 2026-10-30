@@ -79,7 +79,7 @@ describe('yarn studio create-system', () => {
     expect(studio.config().systems).toEqual(['endless-studios'])
   })
 
-  test('[SY-28] [CL-29] [CL-28] creates an empty Vue system with a fresh permanent id, registered and installed', () => {
+  test('[SY-28] [SY-157] [CL-29] [CL-28] creates an empty Vue system with a fresh permanent id, registered and installed', () => {
     const result = studio.studio(
       'create-system',
       'harbor',

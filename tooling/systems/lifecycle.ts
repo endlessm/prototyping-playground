@@ -19,7 +19,6 @@ import {
 } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { newStudioId, studioIdsInUse } from '../contributors/studio-ids.ts'
 import {
   describeDevServer,
@@ -39,9 +38,8 @@ import { editConfig } from '../settings/config-file.ts'
 import { loadSystems, SYSTEMS_FOLDER } from './registry.ts'
 
 export const OPERATION_MARKER = '.studio-system-operation'
-const TEMPLATE = fileURLToPath(
-  new URL('../studio/templates/system/', import.meta.url),
-)
+// From the studio's root: the dev server runs this file bundled elsewhere.
+const TEMPLATE = 'tooling/studio/templates/system'
 /** A marker older than this belongs to an operation that died. */
 const STALE_MARKER = 10 * 60_000
 
@@ -404,10 +402,11 @@ export function planCreate(
       .replaceAll('__VUE__', vue)
       .replaceAll('__ID__', key)
   const dir = path.join(systemsDir, key)
-  const edits: Edit[] = templateFiles(TEMPLATE).map((file) => ({
+  const template = path.join(root, TEMPLATE)
+  const edits: Edit[] = templateFiles(template).map((file) => ({
     file: path.join(dir, file.replace(/\.tpl$/, '')),
     before: null,
-    after: fill(read(path.join(TEMPLATE, file))),
+    after: fill(read(path.join(template, file))),
   }))
   edits.push({
     file: configFile,

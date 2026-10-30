@@ -29,6 +29,27 @@ cpSync('tests/fixtures/systems-area/systems', path.join(content, 'systems'), {
   recursive: true,
 })
 
+// Harbor has references left to review after a rename; Lantern has a
+// setup record, so it offers no setup.
+const declare = (key: string, change: (source: string) => string) => {
+  const file = path.join(content, 'systems', key, 'system.ts')
+  writeFileSync(file, change(readFileSync(file, 'utf8')))
+}
+declare('harbor', (source) =>
+  source.replace(
+    "status: 'active',",
+    "status: 'active',\n  renameReview: ['prototypes/ada/beacon/Notes.md'],",
+  ),
+)
+declare('lantern', (source) =>
+  source.replace(
+    "status: 'active',",
+    "status: 'active',\n  setup: { stage: 'theme', summary: 'Started from Nuxt UI.' },",
+  ),
+)
+const launchLog = path.resolve(content, '..', `${path.basename(content)}.log`)
+writeFileSync(launchLog, '')
+
 const HARBOR = 'hrbr000000000001'
 const LANTERN = '1ntrn00000000002'
 const BEACON = 'bcn0000000000001'
@@ -77,6 +98,7 @@ const ENV = {
   STUDIO_PROTOTYPES: posix(path.join(content, 'prototypes')),
   STUDIO_CONTRIBUTORS: 'tests/fixtures/contributors',
   STUDIO_GITHUB: '',
+  STUDIO_LAUNCH_LOG: launchLog,
   GIT_CONFIG_COUNT: '2',
   GIT_CONFIG_KEY_0: 'user.name',
   GIT_CONFIG_VALUE_0: 'Ada Lovelace',
@@ -93,6 +115,7 @@ const systemsAt = (...parts: string[]) =>
 
 afterAll(() => {
   rmSync(content, { recursive: true, force: true })
+  rmSync(launchLog, { force: true })
 })
 
 async function visible(locator: { isVisible: () => Promise<boolean> }) {
@@ -195,6 +218,81 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
         .locator('[data-transition-spinner]')
         .evaluate((spinner) => getComputedStyle(spinner).animationName),
     ).toBe('none')
+  })
+
+  test('[SY-43] Open in editor and Show in Explorer open the system’s folder', async () => {
+    const page = await open('systems')
+    await menuOf(page, 'Harbor')
+    await choose(page, 'Open in editor')
+    // As if no code editor were installed: the folder is shown instead.
+    await visible(toast(page, 'No supported code editor is installed'))
+    const launched = () =>
+      readFileSync(launchLog, 'utf8')
+        .trim()
+        .split('\n')
+        .filter(Boolean)
+        .map((line) => JSON.parse(line) as { args: string[] })
+    await expect
+      .poll(() => launched().at(-1)?.args.at(-1), { timeout: 30_000 })
+      .toBe(path.resolve(systemsAt('harbor')))
+    await menuOf(page, 'Harbor')
+    await page.getByRole('menuitem', { name: /^(Show in|Reveal in)/ }).click()
+    await expect.poll(() => launched().length, { timeout: 30_000 }).toBe(2)
+  })
+
+  test('[SY-47] [SY-71] [SY-76] [SY-78] a populated system offers setup behind a disclosure, and lists references left to review', async () => {
+    const page = await open(`systems/${HARBOR}`)
+    await page
+      .context()
+      .grantPermissions(['clipboard-read', 'clipboard-write'], {
+        origin: studio.url,
+      })
+    const notice = page.getByRole('note', {
+      name: 'Some references need review',
+    })
+    await visible(notice)
+    await visible(notice.getByText('prototypes/ada/beacon/Notes.md'))
+    await button(notice, 'Copy cleanup instructions').click()
+    await visible(toast(page, 'Cleanup instructions copied'))
+    await expect
+      .poll(() => page.evaluate(() => navigator.clipboard.readText()))
+      .toContain('remove renameReview')
+
+    expect(
+      await page.getByRole('heading', { name: 'Instructions' }).count(),
+    ).toBe(1)
+    await button(page, 'Curate or bring in a system').click()
+    const build = page.getByRole('textbox', {
+      name: /^What do you want to build/,
+    })
+    await visible(build)
+    await build.fill('A berth planner')
+    await page.getByRole('tab', { name: 'Start from Nuxt UI' }).click()
+    await expect.poll(() => build.inputValue()).toBe('')
+    await page.getByRole('tab', { name: 'Bring in a Vue app' }).click()
+    await expect.poll(() => build.inputValue()).toBe('A berth planner')
+    await expect
+      .poll(() => page.locator('[data-setup-prompt]').textContent())
+      .toContain('A berth planner')
+    await button(page, 'Copy prompt').click()
+    await visible(button(page, 'Prompt copied'))
+    await visible(
+      page.getByText('Paste into your agent’s chat and send to continue.'),
+    )
+    await expect
+      .poll(() => page.evaluate(() => navigator.clipboard.readText()))
+      .toContain('Bring my existing Vue app into “Harbor” (system “harbor”)')
+  })
+
+  test('[SY-79] a system with a setup record offers no setup', async () => {
+    const page = await open(`systems/${LANTERN}`)
+    await visible(page.getByRole('heading', { name: 'Instructions' }))
+    expect(await button(page, 'Curate or bring in a system').count()).toBe(0)
+    expect(
+      await page
+        .getByText('This system is empty. Choose how you want to build it.')
+        .count(),
+    ).toBe(0)
   })
 
   test('[SY-20] [SY-21] [SY-22] New system opens its dialog; a name in use is refused there', async () => {
@@ -325,7 +423,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
       ),
     )
     expect(await button(dialog(page), 'Archive system').count()).toBe(0)
-    await button(dialog(page), 'Close').click()
+    await button(dialog(page), 'Close').last().click()
   })
 
   test('[SY-41] [SY-49] [SY-51] [SY-52] [SY-53] archiving takes the system’s prototypes along and returns to the collection', async () => {

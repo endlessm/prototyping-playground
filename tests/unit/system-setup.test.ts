@@ -1,6 +1,7 @@
 // The prompt a new system's setup panel builds for the agent: the system by
 // name and key, one of the two Vue paths (bring a Vue app in, or start from
 // Nuxt UI), and whatever optional details were given. No shadcn or React.
+import { readFileSync } from 'node:fs'
 import { describe, expect, test } from 'vitest'
 import { setupPrompt } from '../../src/modules/systems/utils/setup'
 
@@ -56,6 +57,31 @@ describe('the setup prompt', () => {
         'Use the setup-design-system skill for system “harbor”. Start with the theme and assets, and show them in Studio for my review.',
       ].join('\n'),
     )
+  })
+
+  test('[SY-153] [SY-156] agents are routed to the setup-design-system skill, which covers the two Vue paths only', () => {
+    expect(readFileSync('AGENTS.md', 'utf8')).toContain(
+      '(src/modules/systems/skills/setup-design-system/SKILL.md)',
+    )
+    const skill = [
+      'SKILL.md',
+      'references/bring-in-vue-app.md',
+      'references/start-from-nuxt-ui.md',
+    ]
+      .map((file) =>
+        readFileSync(
+          `src/modules/systems/skills/setup-design-system/${file}`,
+          'utf8',
+        ),
+      )
+      .join(' ')
+    expect(skill).toContain('Bring in a Vue app')
+    expect(skill).toContain('Start from Nuxt UI')
+    expect(skill).toContain('yarn studio create-system')
+    expect(skill).toContain('setup: {')
+    expect(skill).not.toMatch(/\bpnpm\b|\.tsx\b/)
+    // Only to say there is no such path.
+    expect(skill.match(/shadcn/gi)).toEqual(['shadcn'])
   })
 
   test('[SY-74] [SY-75] [SY-77] neither path mentions shadcn or React', () => {

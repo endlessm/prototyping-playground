@@ -33,6 +33,12 @@ export default {
     'Each design system’s overview, libraries, theme, assets, components, context and skills.',
   required: true,
   rail: { position: 'top', icon: 'i-lucide-shapes', order: 20 },
+  skills: [
+    {
+      path: 'skills/setup-design-system/',
+      when: 'asks to set up a new design system by bringing a Vue app in or starting from Nuxt UI, or to adapt, replace or retire one',
+    },
+  ],
   home: {
     component: 'components/SystemsHome.vue',
     order: { local: 30, deployed: 30 },
