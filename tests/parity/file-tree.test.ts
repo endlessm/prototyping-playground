@@ -2,7 +2,8 @@ import { expect } from 'vitest'
 import { scenario } from './setup/scenario'
 
 // The parity fixture Tree (tests/fixtures/parity), with no system: Home, and
-// Details and sign-in in a folder "flows". Only what anyone may do: who
+// Details and sign-in in a folder "flows" (shown as Flows › Details, Sign In:
+// files before folders, PR-59). Only what anyone may do: who
 // runs the parity studios isn't fixed, so creating, renaming and deleting
 // are left to the browser scenarios (tests/e2e/file-tree.test.ts).
 const TREE = 'tree000000000001'
@@ -18,6 +19,13 @@ scenario(
       .toBe(true)
     await expect.poll(() => link('Details').isVisible()).toBe(true)
     expect(await link('Home').getAttribute('aria-current')).toBe('page')
+    // Both studios hold Details in Flows, so both indent it under Flows. A
+    // scenario that moved it on one side (file-tree-drag, which runs first
+    // against the same React copy) would show here.
+    const left = async (name: string) =>
+      (await page.getByText(name, { exact: true }).first().boundingBox())!.x
+    expect(await left('Details')).toBeGreaterThan(await left('Flows'))
+    expect(await left('Sign In')).toBeGreaterThan(await left('Flows'))
     await step('The file tree, the open artifact current')
 
     await link('Home').hover()
