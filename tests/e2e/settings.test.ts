@@ -120,6 +120,16 @@ test('[SH-104] [SH-107] [SH-108] [SH-109] [SH-111] [SH-112] [SH-113] [SH-115] [S
       .getByRole('switch', { name: 'Contributors & Permissions' })
       .isDisabled(),
   ).toBe(true)
+  expect(
+    await page
+      .getByRole('switch', { name: 'Diagrams', exact: true })
+      .isVisible(),
+  ).toBe(true)
+  expect(
+    await page
+      .getByText('Text files are included with Systems.', { exact: true })
+      .isVisible(),
+  ).toBe(true)
   await name.fill('')
   expect(
     await page.getByRole('button', { name: 'Save changes' }).isDisabled(),

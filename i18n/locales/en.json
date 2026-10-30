@@ -61,6 +61,7 @@
     "modules": "Modules",
     "prototypeTools": "Prototype tools",
     "systemResources": "System resources",
+    "textFiles": "Text files are included with Systems.",
     "studioTeam": "Studio & team",
     "other": "Other modules",
     "keepsFiles": "Disabling a module keeps its files and content.",

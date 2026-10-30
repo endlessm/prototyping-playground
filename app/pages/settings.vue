@@ -246,6 +246,12 @@ useHead({
                       />
                     </p>
                     <p class="text-sm text-muted">{{ module.description }}</p>
+                    <p
+                      v-if="module.id === 'systems'"
+                      class="text-sm text-muted"
+                    >
+                      {{ t('settings.textFiles') }}
+                    </p>
                   </div>
                   <USwitch
                     v-model="draft.modules[module.id]"
