@@ -8,6 +8,7 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { nodeVersionWarning } from '../check-node.ts'
+import { componentDocs } from './component-docs.ts'
 import { join, profile, whoami } from './contributors.ts'
 import { deletePrototype } from './delete-prototype.ts'
 import { dev } from './dev.ts'
@@ -183,6 +184,13 @@ const COMMANDS: Record<string, Command> = {
       "delete a system's files for good; its prototypes keep theirs and wait for a rebuild",
     run: deleteSystem,
     shared: 'yes',
+  },
+  'component-docs': {
+    usage:
+      'component-docs <system> [component] [--yes] (also yarn component-docs)',
+    summary:
+      'add the examples file and page a component is missing, from templates',
+    run: componentDocs,
   },
   'create-module': {
     usage: 'create-module <id> [--label <name>] [--yes]',

@@ -4,12 +4,14 @@ import SystemPage from '../components/SystemPage.vue'
 import SystemPageHeader from '../components/SystemPageHeader.vue'
 import SystemReferenceNotice from '../components/SystemReferenceNotice.vue'
 import SystemSetup from '../components/SystemSetup.vue'
+import SystemPreview from '../components/SystemPreview.vue'
 import { byNewest } from '../utils/pages'
 import directory from '#studio/directory'
 
 // A system's Overview: what it is for, then its Instructions (Context and
 // Skills), its Toolkit (components, theme tokens, local assets and colour
-// modes) and where it is used. Counts come from the system's files.
+// modes) and where it is used. Counts come from the system's files. A
+// system's own Overview content (`overview.vue`) follows, in its own look.
 // Locally, an active system no agent has set up offers its setup panel:
 // instead of the blocks while it is completely empty, in a disclosure
 // otherwise. After a rename, references left to review show first.
@@ -221,5 +223,13 @@ const block = 'min-w-0 rounded-xl border border-default bg-elevated/40 p-6'
         </p>
       </section>
     </div>
+    <SystemPreview
+      v-if="system.overview"
+      :key="system.overview"
+      class="mt-4"
+      :system-id="system.id"
+      :artifact="system.overview"
+      :title="t('systems.component.overview', { name: system.label })"
+    />
   </SystemPage>
 </template>

@@ -2,6 +2,7 @@ import path from 'node:path'
 import type { StudioModule } from '../../../tooling/modules/contract.ts'
 import { CONFIG_FILE, readConfig } from '../../../tooling/modules/registry.ts'
 import {
+  componentPages,
   systemCatalog,
   systemDocuments,
 } from '../../../tooling/systems/catalog.ts'
@@ -35,6 +36,10 @@ export default {
   rail: { position: 'top', icon: 'i-lucide-shapes', order: 20 },
   skills: [
     {
+      path: 'skills/document-component/',
+      when: 'asks to document a system component, or add its page and examples',
+    },
+    {
       path: 'skills/setup-design-system/',
       when: 'asks to set up a new design system by bringing a Vue app in or starting from Nuxt UI, or to adapt, replace or retire one',
     },
@@ -59,6 +64,7 @@ export default {
           path: ':page(colors|typography|radius|shadows|spacing|motion|effects|tokens)',
           file: 'pages/theme.vue',
         },
+        { path: 'components/:component', file: 'pages/component.vue' },
         { path: ':kind(fonts|icons|images)', file: 'pages/assets.vue' },
         {
           path: ':kind(fonts|icons|images)/:path(.+)',
@@ -87,6 +93,13 @@ export default {
             systemDocuments(system, root),
           ),
         ),
+    },
+    // Each component page's Markdown, examples text and props, read from
+    // the component's code when a component page first opens.
+    components: {
+      watch: [`${folder}/*/components/**`],
+      load: async ({ root, dev }) =>
+        componentPages(await systemsFor(root, dev)),
     },
   },
 } satisfies StudioModule

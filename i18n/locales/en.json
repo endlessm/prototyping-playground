@@ -716,6 +716,42 @@
       },
       "slow": "This is taking longer than expected. Reload to check the studio. Your request will not be repeated.",
       "reload": "Reload studio"
+    },
+    "component": {
+      "noPage": "No page yet. Add {file} next to the component to describe it and say when to use it.",
+      "examples": "Examples",
+      "noExamples": "No examples yet. Add {file} next to the component: each {example} in it is one example.",
+      "showCode": "Show code",
+      "exampleLoading": "Loading example…",
+      "exampleError": "This example couldn’t render.",
+      "pageError": "This page couldn’t render.",
+      "source": "Source",
+      "inLibraries": "{name} in Libraries",
+      "componentDocs": "Component docs",
+      "file": "File:",
+      "props": "Props",
+      "componentCount": "{count} components | {count} component | {count} components",
+      "propCount": "{count} props | {count} prop | {count} props",
+      "prop": "Prop",
+      "type": "Type",
+      "default": "Default",
+      "required": "Required",
+      "noProps": "No props.",
+      "native": "Also accepts every native attribute of the element it renders.",
+      "nativeOnly": "Accepts every native attribute of the element it renders.",
+      "loadErrors": "Some component files couldn’t load.",
+      "tryAgain": "Try again",
+      "overview": "{name}’s own overview"
+    },
+    "editor": {
+      "page": "Page",
+      "examples": "Examples",
+      "component": "Component",
+      "missing": "This component has no {file} yet.",
+      "createFiles": "Create files",
+      "createFilesHint": "Create the files this component is missing, from a template.",
+      "created": "Created {files}",
+      "createFailed": "Couldn’t create the files"
     }
   },
   "documentation": {

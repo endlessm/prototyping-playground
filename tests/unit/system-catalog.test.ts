@@ -10,8 +10,10 @@ import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 import {
   systemCatalog,
   systemContentProblems,
+  systemDocsReport,
   systemDocuments,
 } from '../../tooling/systems/catalog'
+import { exampleId, overviewId } from '../../tooling/systems/preview-ids'
 import { loadSystems } from '../../tooling/systems/registry'
 
 let root: string
@@ -201,36 +203,88 @@ describe('a system’s catalog', () => {
     expect(catalog.stylesheet).toBeNull()
   })
 
-  test('[SY-38] [SY-65] lists documented components by title, and local assets by kind', async () => {
+  test('[SY-38] [SY-65] [SY-102] lists components by title, and local assets by kind', async () => {
     write(
       'src/systems/harbor/components/button/button.md',
-      '---\ntitle: Button\ndescription: Starts an action.\n---\n\n## When to use\n',
+      '---\ntitle: Button\ndescription: Starts an action.\nsource: Harbor 2\ndocs: https://example.com/button\n---\n\n## When to use\n',
     )
     write('src/systems/harbor/components/button/Button.vue', '<template/>')
+    write(
+      'src/systems/harbor/components/button/Button.examples.vue',
+      '<template><Example name="Default">x</Example><Example name="WithIcon">y</Example></template>',
+    )
     write(
       'src/systems/harbor/components/card/card.md',
       '---\ndescription: No title.\n---\n',
     )
+    write('src/systems/harbor/components/IconButton.vue', '<template/>')
     write('src/systems/harbor/assets/icons/anchor.svg', '<svg/>')
     write('src/systems/harbor/assets/logo.png', 'png')
     write('src/systems/harbor/assets/fonts/Harbor.woff2', 'font')
     write('src/systems/harbor/assets/notes.txt', 'not an asset')
     const catalog = systemCatalog(await harbor(), root)
+    const at = (file: string) => `src/systems/harbor/components/${file}`
     expect(catalog.components).toEqual([
       {
         slug: 'button',
+        name: 'Button',
         title: 'Button',
+        description: 'Starts an action.',
+        sourceNote: 'Harbor 2',
+        docsUrl: 'https://example.com/button',
         files: [
-          'src/systems/harbor/components/button/button.md',
-          'src/systems/harbor/components/button/Button.vue',
+          at('button/button.md'),
+          at('button/Button.examples.vue'),
+          at('button/Button.vue'),
+        ],
+        doc: at('button/button.md'),
+        examplesFile: at('button/Button.examples.vue'),
+        source: at('button/Button.vue'),
+        examples: [
+          {
+            name: 'Default',
+            title: 'Default',
+            id: exampleId('hrbr000000000001', 'button', 'Default'),
+          },
+          {
+            name: 'WithIcon',
+            title: 'With icon',
+            id: exampleId('hrbr000000000001', 'button', 'WithIcon'),
+          },
         ],
       },
       {
         slug: 'card',
+        name: 'card',
         title: 'Card',
-        files: ['src/systems/harbor/components/card/card.md'],
+        description: 'No title.',
+        sourceNote: null,
+        docsUrl: null,
+        files: [at('card/card.md')],
+        doc: at('card/card.md'),
+        examplesFile: null,
+        source: null,
+        examples: [],
+      },
+      {
+        slug: 'icon-button',
+        name: 'IconButton',
+        title: 'Icon button',
+        description: null,
+        sourceNote: null,
+        docsUrl: null,
+        files: [at('IconButton.vue')],
+        doc: null,
+        examplesFile: null,
+        source: at('IconButton.vue'),
+        examples: [],
       },
     ])
+    expect(catalog.overview).toBeNull()
+    write('src/systems/harbor/overview.vue', '<template><p>Ours</p></template>')
+    expect(systemCatalog(await harbor(), root).overview).toBe(
+      overviewId('hrbr000000000001'),
+    )
     expect(catalog.assets).toEqual([
       {
         path: 'fonts/Harbor.woff2',
@@ -391,4 +445,62 @@ describe('the checks of a system’s Context and Skills', () => {
       'src/systems/harbor/skills/notes.md is loose in skills/. A skill is a folder with a SKILL.md in it.',
     ])
   })
+})
+
+describe('component documentation', () => {
+  const gaps = () => {
+    for (const name of ['a', 'b', 'c', 'd', 'e', 'f'])
+      write(`src/systems/harbor/components/${name}/${name}.vue`, '<template/>')
+  }
+
+  test('[CL-106] [SY-113] docs: warn lists the first five gaps in one warning and lets the build go on', async () => {
+    gaps()
+    const report = systemDocsReport(await harbor({ docs: 'warn' }), root)
+    expect(report.fails).toBe(false)
+    expect(report.warning).toContain(
+      'Harbor has 6 component documentation gaps',
+    )
+    expect(report.warning).toContain(
+      'src/systems/harbor/components/a/a.vue has no examples or page yet',
+    )
+    expect(report.warning).not.toContain('f/f.vue')
+    expect(report.warning).toContain('and 1 more')
+  })
+
+  test('[CL-106] [SY-113] docs: strict fails the build; docs: off is silent', async () => {
+    gaps()
+    expect(systemDocsReport(await harbor({ docs: 'strict' }), root).fails).toBe(
+      true,
+    )
+    expect(systemDocsReport(await harbor({ docs: 'off' }), root)).toEqual({
+      warning: null,
+      fails: false,
+    })
+  })
+
+  test('[SY-104] a complete page has no gaps', async () => {
+    write(
+      'src/systems/harbor/components/button/button.md',
+      '---\ntitle: Button\ndescription: Starts an action.\n---\n\n## When to use\n',
+    )
+    write('src/systems/harbor/components/button/button.vue', '<template/>')
+    write(
+      'src/systems/harbor/components/button/button.examples.vue',
+      '<template><Example name="Default">x</Example></template>',
+    )
+    expect(systemDocsReport(await harbor({ docs: 'strict' }), root)).toEqual({
+      warning: null,
+      fails: false,
+    })
+  })
+})
+
+test('[SY-109] no system comes from shadcn, so nothing links components to its docs', async () => {
+  write(
+    'src/systems/harbor/system.ts',
+    `export default ${JSON.stringify(spec({ origin: 'shadcn' }))}\n`,
+  )
+  const { systems, problems } = await loadSystems(root, { systems: ['harbor'] })
+  expect(systems).toEqual([])
+  expect(problems.join(' ')).toContain('shadcn systems are not supported')
 })
