@@ -102,6 +102,7 @@ export function createAuth(option: UserOption | undefined) {
     isCohortAdmin: signedIn(() => has(COHORT_ADMIN)),
   };
   const login = () => console.info('[Endless Studios] login requested (sample auth stays as chosen)');
+  const logout = () => console.info('[Endless Studios] logout requested (sample auth stays as chosen)');
   return {
     token: readonly(token),
     userData: readonly(userData),
@@ -147,7 +148,8 @@ export function createAuth(option: UserOption | undefined) {
     consumeAuthError: () => null,
     startLogin: async () => login(),
     startSignup: async () => navigateTo('/signup/'),
-    logout: async () => login(),
+    startLogout: async () => logout(),
+    logout: async () => logout(),
     check: () => !!token.value,
     mounted: async () => {},
     reset() {},

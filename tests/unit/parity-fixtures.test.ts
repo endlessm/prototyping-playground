@@ -37,8 +37,17 @@ describe('parity fixture studios', () => {
     )
   })
 
-  test('the fixtures have a prototype in Endless Studios with two views, one with no system, one with an empty view and one with named states, a link and a lo-fi view', () => {
+  test('the fixtures have a prototype in Endless Studios with two views, one with an Endless Studios screen and its options, one with no system, one with an empty view, one with documents, one with named states, a link and a lo-fi view, one with canvases and one with a folder', () => {
     expect(describeFixtureStudio(PARITY_FIXTURES.vue, 'vue')).toEqual([
+      {
+        folder: 'bernardo/docs',
+        meta: expect.objectContaining({ title: 'Docs', systemId: null }),
+        artifacts: [
+          { path: 'Brief', id: 'd0c5000000000p02' },
+          { path: 'Home', id: 'd0c5000000000p04' },
+          { path: 'more/Notes', id: 'd0c5000000000p03' },
+        ],
+      },
       {
         folder: 'bernardo/drafts',
         meta: expect.objectContaining({ title: 'Drafts', systemId: null }),
@@ -48,6 +57,22 @@ describe('parity fixture studios', () => {
         folder: 'bernardo/plain',
         meta: expect.objectContaining({ title: 'Plain', systemId: null }),
         artifacts: [{ path: 'Plain', id: 'vp1an00000000001' }],
+      },
+      {
+        folder: 'bernardo/screens',
+        meta: expect.objectContaining({
+          title: 'Screens',
+          systemId: '8x5spen6xtvp96a9',
+        }),
+        artifacts: [{ path: 'Dashboard', id: 'vdashbard0000001' }],
+      },
+      {
+        folder: 'bernardo/sketches',
+        meta: expect.objectContaining({ title: 'Sketches', systemId: null }),
+        artifacts: [
+          { path: 'Empty', id: 'emp1an0000000001' },
+          { path: 'Sketch', id: 'skp1an0000000001' },
+        ],
       },
       {
         folder: 'bernardo/states',
@@ -67,6 +92,15 @@ describe('parity fixture studios', () => {
         artifacts: [
           { path: 'Home', id: 'vhme000000000001' },
           { path: 'Notes', id: 'vnts000000000001' },
+        ],
+      },
+      {
+        folder: 'bernardo/tree',
+        meta: expect.objectContaining({ title: 'Tree', systemId: null }),
+        artifacts: [
+          { path: 'flows/Details', id: 'vtrdeta1s0000001' },
+          { path: 'flows/sign-in', id: 'vtrs1gn000000001' },
+          { path: 'Home', id: 'vtrhme0000000001' },
         ],
       },
     ])

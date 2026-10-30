@@ -26,12 +26,14 @@ export function useSourceMode(rendered: Ref<HTMLElement | null | undefined>) {
       'keydown',
       (event: KeyboardEvent) => {
         if (event.defaultPrevented) return
-        // A dialog or menu inside an inert, hidden page doesn't count.
+        // A dialog or menu inside an inert, hidden page doesn't count, nor
+        // one that is part of a page (`data-inline-dialogs`), such as a
+        // canvas's colour pickers.
         const overlay = [
           ...document.querySelectorAll(
             '[role="dialog"], [role="alertdialog"], [role="menu"]',
           ),
-        ].some((element) => !element.closest('[inert]'))
+        ].some((element) => !element.closest('[inert], [data-inline-dialogs]'))
         if (!sourceShortcut(event, { source: source.value, overlay })) return
         event.preventDefault()
         event.stopImmediatePropagation()

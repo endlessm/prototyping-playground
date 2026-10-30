@@ -1,0 +1,2 @@
+# Yarn applies these to the installed packages; their bytes must not change.
+.yarn/patches/*.patch -text

@@ -1,0 +1,33 @@
+/* "Opening canvas": a subtle, theme-aware text shimmer, static muted text
+   when reduced motion is preferred. Loaded with the canvas page, before the
+   editor's own code. */
+.canvas-opening-shimmer {
+  background: linear-gradient(
+    100deg,
+    var(--ui-text-muted) 35%,
+    var(--ui-text) 50%,
+    var(--ui-text-muted) 65%
+  );
+  background-size: 250% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: canvas-opening-shimmer 1800ms linear infinite;
+}
+
+@keyframes canvas-opening-shimmer {
+  from {
+    background-position: 180% 0;
+  }
+  to {
+    background-position: -80% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas-opening-shimmer {
+    animation: none;
+    background: none;
+    color: var(--ui-text-muted);
+  }
+}

@@ -1,5 +1,7 @@
 // Stand-in for the `graphql-request` package, which copied components import for the `gql` tag. Queries never leave
-// the prototype; `GraphQLClient` answers from the screen's sample responses like `$graphqlRequest`.
+// the prototype; `GraphQLClient` resolves empty and is reported once: screens use `$graphqlRequest` or useGraphQLQuery.
+import { noticeOnce } from './notice';
+
 export type RequestDocument = string;
 export type Variables = Record<string, unknown>;
 
@@ -15,7 +17,7 @@ export class GraphQLClient {
     this.url = url;
   }
   async request(): Promise<Record<string, never>> {
-    console.warn('[Endless Studios] GraphQLClient.request is not stood in; use $graphqlRequest or useGraphQLQuery');
+    noticeOnce('GraphQLClient', 'GraphQLClient.request is not stood in; use $graphqlRequest or useGraphQLQuery');
     return {};
   }
 }

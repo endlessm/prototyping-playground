@@ -2,12 +2,15 @@
 // installed file types' identity adapters, loaded once.
 import { pathToFileURL } from 'node:url'
 import { getRequestHeader, type H3Event } from 'h3'
-import type { IdentityAdapter } from '../../modules/contract.ts'
 import type { FileServiceConfig } from '../nuxt-module.ts'
+import type { FileServiceOptions } from '../source.ts'
 
-let fileTypes: Promise<
-  { id: string; extensions: string[]; identity: IdentityAdapter }[]
->
+let fileTypes: Promise<FileServiceOptions['fileTypes']>
+
+async function exported<T>(file: string | undefined, name: string) {
+  if (!file) return undefined
+  return ((await import(pathToFileURL(file).href)) as Record<string, T>)[name]
+}
 
 /** Only the studio's own pages may call the service. */
 export function sameOrigin(event: H3Event) {
@@ -21,12 +24,13 @@ export function sameOrigin(event: H3Event) {
 export function loadFileTypes(config: FileServiceConfig) {
   fileTypes ??= Promise.all(
     config.fileTypes.map(async (type) => ({
-      ...type,
-      identity: (
-        (await import(pathToFileURL(type.identity).href)) as {
-          identity: IdentityAdapter
-        }
-      ).identity,
+      id: type.id,
+      extensions: type.extensions,
+      identity: (await exported<
+        FileServiceOptions['fileTypes'][number]['identity']
+      >(type.identity, 'identity'))!,
+      fidelity: await exported(type.fidelity, 'fidelity'),
+      template: await exported(type.template, 'template'),
     })),
   )
   return fileTypes

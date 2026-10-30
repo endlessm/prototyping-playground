@@ -2,8 +2,9 @@ import type { Page } from 'playwright'
 import { expect } from 'vitest'
 import { scenario } from './setup/scenario'
 
-// The parity fixtures (tests/fixtures/parity): Bernardo's Drafts, Tracer
-// and Plain. Nothing is created: the dialog is opened and cancelled.
+// The parity fixtures (tests/fixtures/parity): Bernardo's Drafts, Tracer,
+// Plain, States and Screens. Nothing is created: the dialog is opened and
+// cancelled.
 const card = (page: Page, title: string) =>
   page.getByRole('listitem').filter({ hasText: title }).first()
 
@@ -79,13 +80,14 @@ scenario(
   },
 )
 
+// Home lists your three newest: Screens, States and Drafts, not Tracer.
 scenario('[PR-18] [SH-101] Home’s prototypes', async ({ page, url, step }) => {
   await page.goto(url)
   await expect
     .poll(
       () =>
         page
-          .getByRole('link', { name: /Tracer/ })
+          .getByRole('link', { name: /Screens/ })
           .first()
           .isVisible(),
       {
