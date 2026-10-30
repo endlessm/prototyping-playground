@@ -97,3 +97,23 @@ test('[PR-146] the write-manual skill points agents at the Vue studio’s chapte
   expect(skill).toContain('tests/unit/manual-content.test.ts')
   expect(skill).not.toMatch(/src\/platform\/modules|pnpm/)
 })
+
+test('[CV-157] the Manual says how canvases work', () => {
+  const prototypes = read('prototypes')
+  for (const point of [
+    /Excalidraw's own tools/,
+    /\*\*T\*\* for text/,
+    /Library/,
+    /Drag an artifact from the file tree onto the canvas, or paste its link/,
+    /follow their source/,
+    /documents and other canvases show as cards/,
+    /only artifacts from its own prototype/,
+    /no images/,
+    /saves itself/,
+    /Other people's canvases and canvases on the deployed site are read-only/,
+    /Mermaid to Excalidraw.*separate shapes/,
+    /picture of the whole canvas/,
+  ])
+    expect(prototypes).toMatch(point)
+  expect(read('agent')).toMatch(/lay out a canvas.*undo/s)
+})

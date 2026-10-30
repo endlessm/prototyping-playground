@@ -159,5 +159,7 @@ export function useCanvasFile(address: {
     start,
     changed,
     retry: () => file?.retry(),
+    /** Writes the file now; resolves whether nothing is left unsaved. */
+    persist: async () => (file ? file.persist() : false),
   }
 }

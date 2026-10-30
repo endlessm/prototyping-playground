@@ -352,6 +352,7 @@
   "canvas": {
     "opening": "Opening canvas",
     "error": "This canvas couldn’t be opened. Ask your agent to fix the file.",
+    "embedFailed": "This canvas could not load. Open it to inspect its source.",
     "empty": {
       "title": "This canvas is empty",
       "editable": "Drag a view or document from the navigation onto this canvas, press N for a sticky note, or ask your agent to lay it out for you.",

@@ -1,27 +1,14 @@
 <script setup lang="ts">
-import types from '#studio/file-types'
-import {
-  embedPresentation,
-  resolveReference,
-  type ReferenceResolution,
-} from '../../../../app/utils/artifactReference'
 import type {
   ManifestArtifact,
   ManifestPrototype,
 } from '../../../../app/composables/useManifest'
+import { useCanvasAgent } from '../composables/useCanvasAgent'
 import { useCanvasFile } from '../composables/useCanvasFile'
+import { useCanvasItems } from '../composables/useCanvasItems'
 import { useCanvasOpening } from '../composables/useCanvasOpening'
-import type {
-  CanvasEditorProps,
-  CanvasHandle,
-  CanvasItemHost,
-  CanvasItemState,
-} from '../island/mount'
-import {
-  itemAddress,
-  parseCanvas,
-  type ParsedCanvas,
-} from '../types/canvas/format'
+import type { CanvasEditorProps, CanvasHandle } from '../island/mount'
+import { parseCanvas, type ParsedCanvas } from '../types/canvas/format'
 import { cameraKey } from '../utils/camera'
 import { readCanvas, type CanvasText } from '../utils/readCanvas'
 import CanvasError from './CanvasError.vue'
@@ -45,55 +32,16 @@ const base = useRuntimeConfig().app.baseURL
 const colorMode = useColorMode()
 const artifacts = await usePrototypeArtifacts(() => props.prototype.id)
 
-// What each link shows, kept while the prototype's artifacts stay the same,
-// so an item re-renders only when its own artifact changes.
-const extensions = Object.values(types).flatMap((type) => type.extensions)
-const resolutions = computed(() => {
-  void artifacts.value
-  void props.prototype
-  return new Map<string, ReferenceResolution>()
+const {
+  items,
+  host: itemHost,
+  resolve,
+} = useCanvasItems({
+  prototype: () => props.prototype,
+  artifact: () => props.artifact,
+  artifacts,
+  base,
 })
-function resolve(link: string): ReferenceResolution {
-  const cache = resolutions.value
-  let found = cache.get(link)
-  if (!found) {
-    found = resolveReference(
-      itemAddress(link, location.origin, base) ?? link,
-      { prototype: props.prototype, artifact: props.artifact },
-      artifacts.value,
-      {
-        extension: 'required',
-        extensions,
-        presentation: (type) => embedPresentation(types[type], 'canvas'),
-      },
-    )
-    cache.set(link, found)
-  }
-  return found
-}
-
-// The items Excalidraw has boxes for, by element ID.
-const items = shallowReactive(
-  new Map<string, CanvasItemState & { box: HTMLElement }>(),
-)
-const same = (a: CanvasItemState, b: CanvasItemState) =>
-  (Object.keys(b) as (keyof CanvasItemState)[]).every(
-    (key) => a[key] === b[key],
-  )
-const itemHost: CanvasItemHost = {
-  show(id, box, state) {
-    const current = items.get(id)
-    if (current?.box === box && same(current, state)) return
-    items.set(id, { ...state, box })
-  },
-  hide(id, box) {
-    if (items.get(id)?.box === box) items.delete(id)
-  },
-  preview(link) {
-    const found = resolve(link)
-    return found.state === 'resolved' && found.presentation === 'preview'
-  },
-}
 
 const container = useTemplateRef<HTMLElement>('container')
 const mountPoint = useTemplateRef<HTMLElement>('mountPoint')
@@ -108,6 +56,17 @@ const saving = useCanvasFile({
   base,
   prototype: () => props.prototype.id,
   artifact: () => props.artifact.id,
+})
+
+useCanvasAgent({
+  handle,
+  prototype: () => props.prototype,
+  artifact: () => props.artifact,
+  artifacts,
+  base,
+  // A file from a newer format is never saved over.
+  editable: () => editable.value && !scene.value?.tooNew,
+  persist: saving.persist,
 })
 
 const { revealed, statusVisible } = useCanvasOpening(

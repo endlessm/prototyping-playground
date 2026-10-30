@@ -67,3 +67,46 @@ describe('the canvas module', () => {
     ).toMatch(/"isMobileBreakpoint", \(width, height\) => \{\s*return false;/)
   })
 })
+
+describe('the use-canvas skill', () => {
+  test('[CV-156] is offered for canvases while Canvases is on, and says how to lay one out with the tools', async () => {
+    const { modules } = await loadRegistry(process.cwd())
+    const canvas = modules.find(({ spec }) => spec.id === 'canvas')!
+    expect(canvas.spec.skills).toEqual([
+      {
+        path: 'skills/use-canvas/',
+        when: 'asks for a canvas (a page of views, documents, and notes arranged together)',
+      },
+    ])
+    const skill = readFileSync(
+      'src/modules/canvas/skills/use-canvas/SKILL.md',
+      'utf8',
+    )
+    expect(skill).toMatch(/Use only when the Canvases module is enabled/)
+    for (const point of [
+      /yarn studio context src\/prototypes\/<key>\/<id> --json/,
+      /owner or an Admin/,
+      /\+ → New canvas/,
+      /`template`/,
+      /yarn studio identify <prototype folder>/,
+      /yarn canvas help/,
+      /yarn canvas <file\.excalidraw> <tool> '<json>'/,
+      /--json-file <path>/,
+      /`--identify`/,
+      /window\.__studioCanvas/,
+      /Prefer the tools over editing the JSON/,
+      /`describe` before changing anything/,
+      /canvas's own prototype/,
+      /Prefer native elements/,
+      /Sticky `note`s are optional/,
+      /`states`/,
+      /Preserve the person's arrangement/,
+      /small, reviewable steps/,
+      /`point`/,
+      /Never store images/,
+      /canvas's link/,
+    ])
+      expect(skill).toMatch(point)
+    expect(skill).not.toMatch(/pnpm|\.tsx|not in the Vue studio yet/)
+  })
+})
