@@ -11,6 +11,7 @@ import { pathToFileURL } from 'node:url'
 import vue from '@vitejs/plugin-vue'
 import type { InlineConfig, Plugin, PluginOption, ViteDevServer } from 'vite'
 import type { InstalledSystem } from '../systems/registry.ts'
+import { standInNames } from './stand-ins.ts'
 
 import {
   colorModeScript,
@@ -265,8 +266,9 @@ async function compileError(
 }
 
 // The system's own Vue setup: Nuxt UI in its Vue mode with the app's
-// configuration, auto-imports of Vue, Nuxt UI and the stand-ins, `~/` at the
-// copied app source and the stand-ins' exact aliases.
+// configuration, auto-imports of Vue, Nuxt UI and the stand-ins, `~/` and
+// `assets/` at the copied app source (as Nuxt's own aliases) and the
+// stand-ins' exact aliases.
 async function systemPlugins(system: InstalledSystem, root: string) {
   const { app } = system.spec
   const plugins: PluginOption[] = []
@@ -274,11 +276,15 @@ async function systemPlugins(system: InstalledSystem, root: string) {
     find: new RegExp(`^${escape(name)}$`),
     replacement: posix(path.resolve(system.dir, target)),
   }))
-  if (app.source)
-    aliases.push({
-      find: /^~\//,
-      replacement: `${posix(path.resolve(system.dir, app.source))}/`,
-    })
+  if (app.source) {
+    const source = posix(path.resolve(system.dir, app.source))
+    aliases.push(
+      { find: /^~\//, replacement: `${source}/` },
+      // A template's `src="~/assets/…"` compiles to an import of `assets/…`,
+      // which Nuxt answers with its `assets` alias; so does this, for any file.
+      { find: /^assets\//, replacement: `${source}/assets/` },
+    )
+  }
   plugins.push({
     name: `studio-preview-aliases:${system.key}`,
     enforce: 'pre',
@@ -295,11 +301,10 @@ async function systemPlugins(system: InstalledSystem, root: string) {
     const NuxtUI = await importDefault(path.join(ui, 'dist/vite.mjs'))
     const config = await importDefault(path.join(system.dir, app.nuxtUi.config))
     const imports: (string | { from: string; imports: string[] })[] = ['vue']
-    if (app.standIns)
-      imports.push({
-        from: posix(path.resolve(system.dir, app.standIns.from)),
-        imports: app.standIns.imports,
-      })
+    if (app.standIns) {
+      const from = path.resolve(system.dir, app.standIns.from)
+      imports.push({ from: posix(from), imports: standInNames(from) })
+    }
     plugins.push(
       NuxtUI({
         router: false,

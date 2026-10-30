@@ -12,6 +12,7 @@ import { mixin } from '../runtime/mixin';
 import { NuxtLink } from '../runtime/navigation';
 import { createDayjs, NUXT_APP_KEY, type NuxtAppStandIn } from '../runtime/nuxt-app';
 import { createSampleStore, type StoreSample } from '../runtime/store';
+import AppShell from '../runtime/AppShell.vue';
 
 addCollection(lucide);
 
@@ -34,6 +35,8 @@ export type StudiosOptions = {
   /** `learner` (default), `mentor`, `admin`, a user object, or `null` for signed out. */
   user?: UserOption;
   sample?: StudiosSample;
+  /** Wrap the screen in the app's sidebar, top bar and footer (`runtime/AppShell.vue`). Off by default. */
+  shell?: boolean;
 };
 
 export type StudiosAppOptions = {
@@ -48,7 +51,7 @@ export type StudiosAppOptions = {
 export type StudiosApp = App & { runtime: NuxtAppStandIn };
 
 export function createStudiosApp({ component, props, system = {}, ssr = false }: StudiosAppOptions): StudiosApp {
-  const { locale = defaultLocale, user, sample = {} } = system;
+  const { locale = defaultLocale, user, sample = {}, shell = false } = system;
   const i18n = createI18n(locale);
   const auth = createAuth(user);
   const store = createSampleStore(sample);
@@ -65,7 +68,8 @@ export function createStudiosApp({ component, props, system = {}, ssr = false }:
 
   // Suspense lets copied components that `await` in setup (such as useGraphQLQuery) render.
   const screen = () => h(component, { ...props });
-  const root = { render: () => h(UApp, null, () => h(Suspense, null, { default: screen })) };
+  const content = shell ? () => h(AppShell, null, { default: screen }) : screen;
+  const root = { render: () => h(UApp, null, () => h(Suspense, null, { default: content })) };
   const app = (ssr ? createSSRApp(root) : createApp(root)) as StudiosApp;
   app.use(ui);
   app.use(store);
