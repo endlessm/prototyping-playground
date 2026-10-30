@@ -21,8 +21,10 @@ export interface PendingTransition {
   studioId?: string
   started: number
   appearance?: Record<string, string>
-  /** Page loads since the change began: a restart reloads the page. */
-  loads?: number
+  /** The dev server said it is restarting for the change. */
+  restarting?: boolean
+  /** A page loaded after that: the restarted studio. */
+  restarted?: boolean
 }
 
 export interface TransitionText {
@@ -52,9 +54,10 @@ export function systemTransition(
     }
   }
   const pending = read()
-  if (pending) {
-    // A fresh page while a change is pending: the restart reloaded it.
-    pending.loads = (pending.loads ?? 0) + 1
+  if (pending?.restarting && !pending.restarted) {
+    // The first page after the dev server's restart; a reload before it
+    // (a file change) doesn't count.
+    pending.restarted = true
     sessionStorage.setItem(names.key, JSON.stringify(pending))
   }
   function show() {
