@@ -1,6 +1,12 @@
 # Endless Design Studio
 
-A prototyping sandbox for the Endless team, rewritten in Nuxt and Vue (ADR 0003, `docs/adr/0003-rewrite-in-vue-as-an-independent-studio.md`). This branch holds the rewrite. The React studio it replaces stays on `main`, and its code, platform context and skills are the reference for what each part must do.
+A prototyping sandbox for the Endless team, built in Nuxt and Vue. [ADR 0003](docs/adr/0003-rewrite-in-vue-as-an-independent-studio.md) records the independent studio's architecture.
+
+Read [working context](src/platform/context/working-in-studio.md) at the start of each session. Use the [platform index](src/platform/README.md) for shared guidance. For product or architecture decisions read [Principles](src/platform/context/principles.md) and [Personas](src/platform/context/personas.md). For Studio interface copy read [UI copy](src/platform/context/ui-copy.md).
+
+For configuration use [configure-studio](src/platform/skills/configure-studio/SKILL.md); registration uses [setup-contributor](src/platform/skills/setup-contributor/SKILL.md). For module or system availability use [manage-modules](src/platform/skills/manage-modules/SKILL.md). Context and skills use [maintain-context](src/platform/skills/maintain-context/SKILL.md); README or guidance audits use [maintain-documentation](src/platform/skills/maintain-documentation/SKILL.md). Explicit design-system audits use [check-design-system](src/platform/skills/check-design-system/SKILL.md).
+
+Edit this file directly outside the `studio:modules` markers. `yarn studio sync` owns only that block and generated adapters. `yarn studio sync --check` verifies drift without writing. Module instructions remain canonical in `src/modules/`.
 
 ## Layout
 
@@ -53,3 +59,9 @@ The five default triage roles, recorded as a `Status:` line in each issue file. 
 ### Domain docs
 
 Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+<!-- studio:modules -->
+
+When the person asks to join the studio, change their profile, or review who may change what, read [Contributors & Permissions: use-contributors](src/modules/contributors/skills/use-contributors/SKILL.md).
+When the person asks to create a prototype, or to create or edit its interactive views, read [Prototypes: build-prototype](src/modules/prototypes/skills/build-prototype/SKILL.md).
+<!-- /studio:modules -->

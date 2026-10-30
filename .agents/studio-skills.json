@@ -1,0 +1,18 @@
+{
+  ".agents/skills/studio-platform-check-design-system/SKILL.md": "b1c9a28d2e766fa76f9a5284d15219b8d2c4766aef30d371c9fddcfc687363bc",
+  ".claude/skills/studio-platform-check-design-system/SKILL.md": "b1c9a28d2e766fa76f9a5284d15219b8d2c4766aef30d371c9fddcfc687363bc",
+  ".agents/skills/studio-platform-configure-studio/SKILL.md": "e9877ffb4eda79aaa535c0d4a507c52e1243887430f6f265b6a266655192d94a",
+  ".claude/skills/studio-platform-configure-studio/SKILL.md": "e9877ffb4eda79aaa535c0d4a507c52e1243887430f6f265b6a266655192d94a",
+  ".agents/skills/studio-platform-maintain-context/SKILL.md": "42f531d51cc7adc82cfd0b60906ae3f22c6e6dd021850781ab91b485f315eaaf",
+  ".claude/skills/studio-platform-maintain-context/SKILL.md": "42f531d51cc7adc82cfd0b60906ae3f22c6e6dd021850781ab91b485f315eaaf",
+  ".agents/skills/studio-platform-maintain-documentation/SKILL.md": "06e1646db15acc4d7652eae58a45dc3962c5e9ab3bc800a6fc665e67d4619d80",
+  ".claude/skills/studio-platform-maintain-documentation/SKILL.md": "06e1646db15acc4d7652eae58a45dc3962c5e9ab3bc800a6fc665e67d4619d80",
+  ".agents/skills/studio-platform-manage-modules/SKILL.md": "5dec8131f0d26b26ef13922693b72497970b8828f7ec2b8652c35dbed2790652",
+  ".claude/skills/studio-platform-manage-modules/SKILL.md": "5dec8131f0d26b26ef13922693b72497970b8828f7ec2b8652c35dbed2790652",
+  ".agents/skills/studio-platform-setup-contributor/SKILL.md": "cbb29086ab93a1052ad833084c9dd8b9db4bda300d6f3f82f02f99c0d0436b9c",
+  ".claude/skills/studio-platform-setup-contributor/SKILL.md": "cbb29086ab93a1052ad833084c9dd8b9db4bda300d6f3f82f02f99c0d0436b9c",
+  ".agents/skills/studio-module-contributors-use-contributors/SKILL.md": "e0b5f31cabd8af04c69e079050838bdd9d28ae17299c6035d038930773549e3b",
+  ".claude/skills/studio-module-contributors-use-contributors/SKILL.md": "e0b5f31cabd8af04c69e079050838bdd9d28ae17299c6035d038930773549e3b",
+  ".agents/skills/studio-module-prototypes-build-prototype/SKILL.md": "fe360293a621fe09fa98288fa78ada8fd02809e85e250edd82aa2a532d735631",
+  ".claude/skills/studio-module-prototypes-build-prototype/SKILL.md": "fe360293a621fe09fa98288fa78ada8fd02809e85e250edd82aa2a532d735631"
+}

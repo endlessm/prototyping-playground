@@ -1,23 +1,53 @@
-# Glossary
+﻿# Endless Design Studio
 
-This studio's domain language. The Design Studio platform documents its own terms in `src/platform/context/`; don't repeat them here.
+The Endless team's language for building and reviewing product prototypes.
 
-**Endless Studios**: Endless Access's learning platform, whose real screens prototypes use. It is being renamed Workshop, and this glossary will follow the rename. _Avoid_: the Studio, studio ("Studio" is the Design Studio's own interface).
+## Language
 
-**Vue system**: a team system whose screens are Vue code from a real app, rendered inside the studio. Endless Studios is the only one today. _Avoid_: Vue project (the app outside the studio), Nuxt system.
+**Endless Design Studio**:
+The team's shared environment for exploring and reviewing product experiences with agents.
+_Avoid_: Endless Studios (the product being prototyped).
 
-**Vue declaration**: the part of a system's declaration that says it renders Vue and how: where its copied app source lives, its Nuxt UI configuration and colours, its stand-ins and its stylesheet. The platform finds Vue systems through it.
+**Endless Studios**:
+Endless Access's learning platform, whose real screens and components inform the team's prototypes.
+_Avoid_: the Studio, Workshop (until the product is renamed).
 
-**Copied app source**: the app's own files, copied unchanged into a Vue system so prototypes use the real code. Refreshing them from the app stays mechanical because they are never edited in the studio.
+**Prototype**:
+A contributor's exploration of a product experience, with its views and supporting artifacts.
 
-**Stand-in**: studio code that replaces something the real app gets from Nuxt or its backend (`$t`, `$auth`, the store, GraphQL, navigation) so copied app source runs without a server. _Avoid_: mock, shim.
+**Artifact**:
+An addressable piece of a prototype, such as a view, named state, document, diagram or canvas.
 
-**Sample**: the per-screen data a stand-in answers with: the signed-in user, store state, query responses, the locale.
+**View**:
+An interactive screen or flow within a prototype, using its assigned system's components.
+_Avoid_: VueScreen, Screen (as a separate artifact kind).
 
-**App factory**: the one function a Vue system uses to create its Vue app with every stand-in installed. Screens, inline components and tests all use it.
+**Named state**:
+A titled variation of a view with its own permanent link, such as a signed-out or empty experience.
 
-**Vue mount**: the platform's browser-side piece that renders a Vue screen or component inside a React view, isolated in a shadow root with its system's styles.
+**System**:
+The product's components, visual language and context available to an assigned prototype.
+_Avoid_: Vue project, Nuxt system.
 
-**Screen**: a `.vue` file in a prototype that a view renders through the Vue mount. The view stays a `.tsx` artifact; the screen is its content.
+**Copied app source**:
+Product code preserved from the real app so prototypes can use its actual components and screens.
 
-**App shell**: the app's own sidebar, top bar and footer, rendered around a screen on request.
+**Stand-in**:
+A local substitute for an app service that lets the product experience run without its backend.
+_Avoid_: mock, shim.
+
+**Sample**:
+The chosen user, locale and example data that describe one demonstrated experience.
+
+**Preview document**:
+The isolated presentation of a view or system example within the studio.
+_Avoid_: Vue mount.
+
+**App shell**:
+The product's sidebar, top bar and footer surrounding its content.
+
+**Admin**:
+A contributor authorized to manage the shared studio and its roles.
+
+**System maintainer**:
+A contributor authorized to maintain a particular system's code and guidance.
