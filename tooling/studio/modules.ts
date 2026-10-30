@@ -20,6 +20,7 @@ import {
 } from '../modules/registry.ts'
 import { NOTHING_CHANGED, Refusal, RESTART, say, type Flags } from './output.ts'
 import { removable, removeFolder } from './protected.ts'
+import { writeConfigChanges } from '../settings/config-file.ts'
 
 const TEMPLATE = fileURLToPath(new URL('./templates/module/', import.meta.url))
 
@@ -44,7 +45,7 @@ function find(studio: Registry, id: string | undefined, usage: string) {
 }
 
 function writeConfig(studio: Registry, config: StudioConfig) {
-  writeFileSync(studio.configFile, `${JSON.stringify(config, null, 2)}\n`)
+  writeConfigChanges(studio.configFile, config)
 }
 
 function withModule(config: StudioConfig, id: string, on: boolean | null) {

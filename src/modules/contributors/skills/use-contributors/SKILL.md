@@ -10,7 +10,7 @@ Read this module's [README](../../README.md) first.
 3. After a Git email change, `join` proposes linking the email to the one matching profile; with several matches, ask which one and pass `--link <key>`. Never link to a profile that matches neither the name nor the GitHub account.
 4. To change a profile, preview `yarn studio profile` with the requested flags, then apply with `--yes`. Use `--as <key>` only for the person's own unlinked profile.
 5. Before editing a prototype, run `yarn studio context src/prototypes/<key>/<id> --json` and respect `canEdit` and `refusal`.
-6. Roles live in `studio.config.json` by studio ID. Only an Admin applies shared changes; for anyone else, propose the change in a pull request. Keep at least one Admin.
+6. Roles live in `studio.config.json` by studio ID. Preview `yarn studio configure --admins key,key --maintainers system=key,key`, then apply the requested grants with `--yes`. Repeat `--maintainers` to patch several systems; `system=` clears just one. Keep at least one registered Admin. Use `--recovery` only when restoring lost Admin access through repository access; it prints that fact. The shared backend is `tooling/settings/service.ts`; reuse its validation and revision check for any role editor.
 7. When a module with preferences is turned on for older profiles, an Admin runs `yarn studio preferences --plan <file>`, reviews it with the person, then `--apply <file>`.
 
 Report what changed and which files were written. Profiles never hold roles; don't add them there.
