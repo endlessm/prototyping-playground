@@ -27,6 +27,9 @@ export default defineConfig({
           // Windows.
           hookTimeout: 600_000,
           testTimeout: 60_000,
+          // A cold page takes seconds to load on Windows, so waits for an address,
+          // a title or an element get 15 s instead of Vitest's 1 s default.
+          expect: { poll: { timeout: 15_000 } },
           // The scenarios share the dev server and the static build.
           fileParallelism: false,
         },
