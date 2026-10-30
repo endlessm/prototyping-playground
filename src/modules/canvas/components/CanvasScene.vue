@@ -175,7 +175,6 @@ watch(
 )
 
 onBeforeUnmount(() => {
-  window.clearTimeout(hintTimer)
   island?.unmount()
 })
 </script>
