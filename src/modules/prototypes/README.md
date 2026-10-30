@@ -131,7 +131,7 @@ export const states = [
 </script>
 ```
 
-The preview runtime (`tooling/preview/runtime/mount.ts`) merges them and passes the result to the system's app factory as `system`, beside `component` and `props`. What the options mean is the system's own (Endless Studios: `locale`, `user` and `sample`; see its README); a document with no system ignores them. In development, a hot update that changes the options, compared by value with functions by their source, builds the screen again with a new app in the same document; one that changes only props updates them in place.
+The preview runtime (`tooling/preview/runtime/mount.ts`) merges them and passes the result to the system's app factory as `system`, beside `component` and `props`. What the options mean is the system's own (Endless Studios: `locale`, `user`, `sample` and `shell`; see its README); a document with no system ignores them. In development, a hot update that changes the options, compared by value with functions by their source, builds the screen again with a new app in the same document; one that changes only props updates them in place.
 
 ## Links and navigation inside a view
 
