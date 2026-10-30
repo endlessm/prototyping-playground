@@ -136,3 +136,28 @@ test('[CL-131] documentation examples and canvas element data are not resource i
   git(root, 'add', '.')
   expect(scopeReport(root, changedFiles(root)).identity).toEqual([])
 })
+
+test.each(['mermaid', 'mmd'])(
+  '[CL-131] .%s protects leading identities and ignores diagram labels',
+  (extension) => {
+    write(
+      `src/prototypes/ben/demo/Flow.${extension}`,
+      '%% @studio-id abc0000000000003\nflowchart TD\nA["@studio-id abc0000000000001"]',
+    )
+    git(root, 'add', '.')
+    const initial = scopeReport(root, changedFiles(root))
+    expect(initial.identity).toEqual([])
+    execFileSync('git', ['-c', 'core.hooksPath=', 'commit', '-m', extension], {
+      cwd: root,
+      stdio: 'ignore',
+    })
+    write(
+      `src/prototypes/ben/demo/Flow.${extension}`,
+      '%% @studio-id abc0000000000004\nflowchart TD\nA["@studio-id abc0000000000001"]',
+    )
+    git(root, 'add', '.')
+    expect(scopeReport(root, changedFiles(root)).identity.join()).toContain(
+      `Flow.${extension}: permanent ID abc0000000000003 was removed`,
+    )
+  },
+)

@@ -142,6 +142,13 @@ export function scopeReport(
     if (file.endsWith('.md'))
       source =
         /^\uFEFF?---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(source)?.[1] ?? ''
+    if (/\.(mermaid|mmd)$/.test(file)) {
+      const header =
+        /^\uFEFF?(?:[ \t]*(?:%%[^\r\n]*)?(?:\r?\n|$))*/.exec(source)?.[0] ?? ''
+      return [
+        ...header.matchAll(/^[ \t]*%%[ \t]*@studio-id\s+([0-9a-z]{16})\s*$/gm),
+      ].map((match) => match[1]!)
+    }
     return [
       ...source.matchAll(
         /(?:@studio-(?:id|state)\s+|["']?studioId["']?\s*:\s*["']?)([0-9a-z]{16})/g,
@@ -152,7 +159,7 @@ export function scopeReport(
     (file) =>
       /^(src\/prototypes\/|src\/systems\/[^/]+\/system\.ts$|contributors\/)/.test(
         file,
-      ) && /\.(vue|md|json|ts|mmd|excalidraw)$/.test(file),
+      ) && /\.(vue|md|json|ts|mermaid|mmd|excalidraw)$/.test(file),
   )) {
     const current = contentAt(root, file, after)
     for (const id of markers(current, file)) {

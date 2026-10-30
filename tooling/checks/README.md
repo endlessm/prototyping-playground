@@ -8,6 +8,8 @@
 
 Pre-commit runs identity/scope warnings, blocking assets and studio checks, then lint-staged. Pre-push gives a scope summary, without a build.
 
+Identity checks read document IDs from frontmatter, canvas IDs from the top-level object, and diagram IDs from leading `%% @studio-id` comments in `.mermaid` and `.mmd` files. Examples in document bodies, diagram labels and canvas element data are not resource declarations.
+
 The preview guard runs before Vue compilation in development and production. It parses both script blocks, reexports, literal dynamic imports and TypeScript helpers. Views can use their prototype, assigned system, Vue, `#studio/prototype` and enabled modules declaring a public `library`. Computed imports, other prototypes, private tooling, undeclared packages, global CSS and public-path assets fail with a file and remedy. Use imported colocated assets, scoped styles or `.module.css`.
 
 `yarn typecheck` uses Nuxt's generated app, Node, server and shared projects. The app, tooling, modules and tests are included. Prototype and system content stay outside the Studio runtime's Nuxt types, including prototypes awaiting rebuild with a missing system. Their preview pipeline compiles them separately.
