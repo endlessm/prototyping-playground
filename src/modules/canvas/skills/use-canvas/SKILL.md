@@ -11,7 +11,7 @@ Read this module's [README](../../README.md) first; it describes the file, how a
 4. Keep items within the canvas's own prototype: link them as `/prototypes/<prototype-id>/artifacts/<artifact-id>`. To show another prototype's view, copy it into this prototype first.
 5. Never store images; put the working view on the canvas instead. Keep `"files": {}` and `"studioVersion": 1`.
 6. Prefer native Excalidraw elements: text for annotations, with shapes, lines, arrows and frames. The Library's sticky notes are optional.
-7. Preserve the person's arrangement; move existing content only when the request needs it, and keep changes small enough to review.
+7. Preserve the person's arrangement; move existing content only when the request needs it, and keep changes small enough to review. You can edit the file while the canvas is open: the studio takes your change in live and merges it with the person's unsaved edits, per element by `version`. Keep each element's `id`, and raise its `version` (with a new `versionNonce`) when you change it, or the open canvas may keep its own copy. Write the file in one go.
 8. Check the result: `yarn build` refuses a canvas with invalid JSON, no `elements` list, images, stored files, links to another prototype or an unknown `studioVersion`, and names the file. Then open the canvas in the studio.
 
 Report which canvas changed and what you placed. Canvas tools for agents (`yarn canvas`, `window.__studioCanvas`) are not in the Vue studio yet; edit the JSON directly until they are.
