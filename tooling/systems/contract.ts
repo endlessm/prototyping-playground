@@ -59,10 +59,11 @@ export interface SystemApp {
     colors: string[]
   }
   /**
-   * Names auto-imported into views and system code, as Nuxt auto-imports
-   * them in the app, answered by the system's stand-ins.
+   * A module whose exports are auto-imported into views and system code, as
+   * Nuxt auto-imports them in the app: the system's stand-ins. Every name it
+   * exports is imported; there is no separate list.
    */
-  standIns?: { from: string; imports: string[] }
+  standIns?: { from: string }
   /** The copied app source, which `~/` points at. */
   source?: string
   /** Bare specifiers answered by stand-ins, matched whole. */

@@ -15,6 +15,14 @@ export default {
   libraries: [
     {
       kind: 'package',
+      id: 'vue',
+      label: 'Vue',
+      package: 'vue',
+      description: 'Renders the Endless Studios screens: each view is a Vue component in the system’s own preview document',
+      docs: 'https://vuejs.org/guide/introduction.html',
+    },
+    {
+      kind: 'package',
       id: 'nuxt-ui',
       label: 'Nuxt UI',
       package: '@nuxt/ui',
@@ -41,20 +49,7 @@ export default {
       config: 'nuxt-ui.config.ts',
       colors: ['primary', 'secondary', 'kids', 'info', 'success', 'warning', 'error', 'neutral'],
     },
-    standIns: {
-      from: 'studios/nuxt-shims.ts',
-      imports: [
-        'useRouter',
-        'useRoute',
-        'navigateTo',
-        'useNuxtApp',
-        'useI18n',
-        'useGraphQLQuery',
-        'useStore',
-        'useState',
-        'useNotificationsCount',
-      ],
-    },
+    standIns: { from: 'studios/nuxt-shims.ts' },
     source: 'studios',
     aliases: {
       'graphql-request': 'runtime/graphql-request.ts',
