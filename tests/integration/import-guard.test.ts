@@ -46,3 +46,30 @@ test('[CL-117] [PR-95] actual dev transforms and production builds refuse privat
     }),
   ).rejects.toThrow('Forbidden import')
 })
+
+test('[PR-84] [SH-139] the guard preserves Vue syntax details and source locations', async () => {
+  const dir = path.join(root, 'src/prototypes/ada/demo')
+  mkdirSync(dir, { recursive: true })
+  writeFileSync(path.join(dir, 'Broken.vue'), '<template>\n<div>\n</template>')
+  const server = await createServer({
+    configFile: false,
+    root,
+    plugins: [
+      importGuard({
+        root,
+        prototypesDir: path.join(root, 'src/prototypes'),
+        system: null,
+        modules: [],
+      }),
+    ],
+    server: { middlewareMode: true, ws: false },
+    logLevel: 'silent',
+  })
+  try {
+    await expect(
+      server.transformRequest('/src/prototypes/ada/demo/Broken.vue'),
+    ).rejects.toThrow(/Broken\.vue:2:1: Element is missing end tag/)
+  } finally {
+    await server.close()
+  }
+})

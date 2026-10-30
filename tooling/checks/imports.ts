@@ -44,9 +44,12 @@ export function sourceProblems(
     ? path.join(policy.prototypesDir, ...parts.slice(0, 2))
     : policy.system!.dir
   const problems: string[] = []
-  const report = (message: string) =>
+  const report = (
+    message: string,
+    location?: { line: number; column: number },
+  ) =>
     problems.push(
-      `${path.relative(policy.root, file).split(path.sep).join('/')}: ${message}`,
+      `${path.relative(policy.root, file).split(path.sep).join('/')}:${location ? `${location.line}:${location.column}:` : ''} ${message}`,
     )
   const allowed = (specifier: string) => {
     const name = specifier.split('?')[0]!
@@ -118,8 +121,11 @@ export function sourceProblems(
   }
   if (file.endsWith('.vue')) {
     const { descriptor, errors } = parse(source)
-    if (errors.length)
-      report('Invalid Vue source. Fix the single-file component syntax.')
+    for (const error of errors)
+      report(
+        `${typeof error === 'string' ? error : error.message} Fix the single-file component syntax.`,
+        typeof error === 'string' ? undefined : error.loc?.start,
+      )
     for (const block of [descriptor.script, descriptor.scriptSetup]) {
       if (block?.src && !allowed(block.src))
         report(
