@@ -24,10 +24,25 @@ export const ASSET_PAGES = ['fonts', 'icons', 'images'] as const
 export const systemAddress = (id: string, page = '') =>
   `/systems/${id}${page ? `/${page}` : ''}`
 
-/** The theme pages the system's tokens fill. */
+/**
+ * The theme pages the system's tokens fill. A system with a stylesheet
+ * always has Typography, which says what it doesn't declare.
+ */
 export const themePages = (system: SystemCatalog) =>
-  THEME_PAGES.filter(({ group }) =>
-    system.tokens.some((token) => token.group === group),
+  THEME_PAGES.filter(
+    ({ group }) =>
+      (group === 'typography' && system.stylesheet) ||
+      system.tokens.some((token) => token.group === group),
+  )
+
+/** `/systems/<id>/icons/<path>`, each part of the path encoded. */
+export const assetAddress = (
+  system: SystemCatalog,
+  asset: SystemCatalog['assets'][number],
+) =>
+  systemAddress(
+    system.id,
+    `${asset.kind}/${asset.path.split('/').map(encodeURIComponent).join('/')}`,
   )
 
 const withoutMarkdown = (file: string) => file.replace(/\.md$/i, '')

@@ -21,6 +21,8 @@ Views of prototypes assigned to this system render in its preview document: a sa
 - `source`: `studios`, which `~/` (and, for template URLs such as `src="~/assets/images/logo.svg"`, `assets/`) points at, so copied components keep the app's import paths and images.
 - `aliases`: module paths and packages answered by stand-ins, matched whole.
 
+The Systems area reads this system from the same files, with nothing kept by hand beside them. Its Theme pages list the tokens `styles/studios.css` and what it imports set (the copied `main.css`, Tailwind's theme and Nuxt UI's roles, plus the eight theme colours and palettes Nuxt UI adds at runtime), drawn and measured in this system's preview document. Its Images and Icons pages list the copied app images in `studios/assets/images/` (the `Icons` folders on Icons), and `icons` in `system.ts` is the Icons page's Lucide sample. The Inter and Figtree families come from the Fontsource packages the stylesheet imports.
+
 A stand-in is one file in `runtime/` plus its registration: an export line in `studios/nuxt-shims.ts`, or an `aliases` entry. `studios/README.md` lists them and describes how to refresh the copied source.
 
 `createStudiosApp({ component, props, system })` installs:

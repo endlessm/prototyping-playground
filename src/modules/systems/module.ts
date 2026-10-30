@@ -61,6 +61,11 @@ export default {
           file: 'pages/theme.vue',
         },
         { path: 'components/:component', file: 'pages/component.vue' },
+        { path: ':kind(fonts|icons|images)', file: 'pages/assets.vue' },
+        {
+          path: ':kind(fonts|icons|images)/:path(.+)',
+          file: 'pages/asset.vue',
+        },
         { path: ':page(.*)', file: 'pages/missing.vue' },
       ],
     },

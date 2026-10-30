@@ -343,7 +343,7 @@
       "toolkit": "Toolkit",
       "components": "Components",
       "tokens": "Theme tokens",
-      "assets": "Local assets",
+      "assets": "Assets",
       "lightOnly": "Color modes: Light only. This system stays in light mode while Studio follows its global color mode.",
       "darkOnly": "Color modes: Dark only. This system stays in dark mode while Studio follows its global color mode.",
       "both": "Color modes: Light and dark. Follows Studio’s global color mode.",
@@ -382,6 +382,103 @@
       "binary": "This supporting file cannot be edited as text in Studio."
     },
     "loadFailed": "The systems couldn’t load.",
+    "theme": {
+      "frame": "{page} of {name}",
+      "description": {
+        "colors": "The colours {name}’s stylesheet sets, with their values in its own preview.",
+        "typography": "Font families, sizes and weights from {name}’s stylesheet.",
+        "radius": "Corner radii from {name}’s stylesheet.",
+        "shadows": "Shadows from {name}’s stylesheet.",
+        "spacing": "Spacing and container widths from {name}’s stylesheet.",
+        "motion": "Easing and animation from {name}’s stylesheet.",
+        "effects": "Blurs, perspective and aspect ratios from {name}’s stylesheet.",
+        "other": "Other custom properties {name}’s stylesheet sets."
+      },
+      "notSet": "not set",
+      "pangram": "The quick brown fox jumps over the lazy dog",
+      "sample": "Quick brown fox",
+      "families": "Font families",
+      "sizes": "Sizes",
+      "weights": "Weights",
+      "other": "Other",
+      "spacing": "Spacing",
+      "containers": "Container widths",
+      "containersNote": "Maximum widths for content and layouts, separate from the spacing scale.",
+      "noSizes": "This system does not declare font sizes in its theme.",
+      "noWeights": "This system does not declare font weights in its theme.",
+      "otherColors": "Other colors",
+      "sections": {
+        "text": "Text",
+        "surfaces": "Surfaces",
+        "borders": "Borders",
+        "actions": "Theme colors"
+      },
+      "roles": {
+        "ui-text-dimmed": "Placeholders and disabled text",
+        "ui-text-muted": "Secondary text",
+        "ui-text-toned": "Subtitles and toned text",
+        "ui-text": "Body text",
+        "ui-text-highlighted": "Headings and emphasis",
+        "ui-text-inverted": "Text on inverted surfaces",
+        "ui-bg": "Page background",
+        "ui-bg-muted": "Muted backgrounds",
+        "ui-bg-elevated": "Raised surfaces: cards, menus, dialogs",
+        "ui-bg-accented": "Hover and accented surfaces",
+        "ui-bg-inverted": "Inverted surfaces",
+        "ui-border": "Borders and dividers",
+        "ui-border-muted": "Subtle borders",
+        "ui-border-accented": "Accented borders",
+        "ui-border-inverted": "Borders on inverted surfaces",
+        "ui-primary": "Primary actions and brand",
+        "ui-secondary": "Secondary actions",
+        "ui-success": "Success states",
+        "ui-info": "Information",
+        "ui-warning": "Warnings",
+        "ui-error": "Errors and destructive actions",
+        "ui-neutral": "Neutral elements"
+      },
+      "colorRole": "The {name} theme color"
+    },
+    "assets": {
+      "description": {
+        "fonts": "Fonts for your system’s typography.",
+        "icons": "Icons for your system’s interface.",
+        "images": "Logos and shared images for your prototypes."
+      },
+      "libraries": "{kind} libraries",
+      "libraryKind": {
+        "fonts": "Font library",
+        "icons": "Icon library",
+        "images": "Image library"
+      },
+      "inLibraries": "{name} in Libraries",
+      "local": {
+        "fonts": "Local fonts",
+        "icons": "Local icons",
+        "images": "Local images"
+      },
+      "localHint": "Files added directly to this system.",
+      "app": {
+        "fonts": "App fonts",
+        "icons": "App icons",
+        "images": "App images"
+      },
+      "appHint": "Copied with the app’s source, as the app uses them.",
+      "empty": {
+        "fonts": "No local fonts added",
+        "icons": "No local icons added",
+        "images": "No local images added"
+      },
+      "emptyHint": {
+        "fonts": "Ask your agent to bring in your product’s font files and connect them to this system’s theme.",
+        "icons": "Ask your agent to bring in your custom icons for this system’s components.",
+        "images": "Ask your agent to add logos and shared images for prototypes using this system."
+      },
+      "browseIcons": "Browse all icons",
+      "loadingFont": "Loading font",
+      "fontFailed": "This font could not be previewed.",
+      "pangram": "The quick brown fox jumps over the lazy dog."
+    },
     "component": {
       "noPage": "No page yet. Add {file} next to the component to describe it and say when to use it.",
       "examples": "Examples",
