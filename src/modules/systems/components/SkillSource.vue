@@ -3,6 +3,7 @@ import type {
   CatalogSkill,
   SystemCatalog,
 } from '../../../../tooling/systems/catalog'
+import { isBinaryFile } from '../../../../tooling/systems/text-files'
 import SystemSource from './SystemSource.vue'
 
 // A skill's source: its SKILL.md and, through the picker, its supporting
@@ -18,11 +19,9 @@ const props = defineProps<{
 const emit = defineEmits<{ done: [] }>()
 const { t } = useI18n()
 
-const TEXT =
-  /\.(md|markdown|txt|json|ya?ml|toml|csv|js|mjs|cjs|ts|vue|css|html|sh|py)$/i
 const current = ref(props.file)
 const editor = useTemplateRef<{ mayLeave: () => Promise<boolean> }>('editor')
-const text = computed(() => TEXT.test(current.value))
+const text = computed(() => !isBinaryFile(current.value))
 const choices = computed(() => props.skill.files)
 
 async function choose(next: string) {

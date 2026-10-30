@@ -257,6 +257,22 @@ describe('a system’s catalog', () => {
       'src/systems/harbor/skills/build-flow/references/steps.md': 'Steps',
     })
   })
+
+  test('[PR-124] documents carry a skill’s other text files too, never binary ones', async () => {
+    write(
+      'src/systems/harbor/skills/build-flow/SKILL.md',
+      '---\nname: build-flow\ndescription: Builds.\n---\n',
+    )
+    write('src/systems/harbor/skills/build-flow/scripts/check.mjs', 'run()\n')
+    write('src/systems/harbor/skills/build-flow/NOTES', 'Plain notes\n')
+    write('src/systems/harbor/skills/build-flow/logo.png', 'png')
+    write('src/systems/harbor/skills/build-flow/blob', 'a\u0000b')
+    expect(Object.keys(systemDocuments(await harbor(), root)).sort()).toEqual([
+      'src/systems/harbor/skills/build-flow/NOTES',
+      'src/systems/harbor/skills/build-flow/SKILL.md',
+      'src/systems/harbor/skills/build-flow/scripts/check.mjs',
+    ])
+  })
 })
 
 describe('the checks of a system’s Context and Skills', () => {
