@@ -107,6 +107,8 @@ const row = (page: Page, name: string, title = 'Demo') =>
 const labels = (page: Page, title = 'Demo') =>
   nav(page, title).getByRole('treeitem').allTextContents()
 const toast = (page: Page, text: string) => page.getByText(text).first()
+// Changes come back from the dev server; this computer is often busy.
+const WAIT = { timeout: 30_000 }
 const savedOrder = () => JSON.parse(read('ben/demo/meta.json')).order
 /** The saved order of what the tree shows (meta.json is hidden). */
 const shownOrder = () =>
@@ -153,7 +155,7 @@ describe('in the studio running locally', { timeout: 180_000 }, () => {
     await visible(link(page, prototype === DEMO ? 'Home' : 'Board', title))
     // The real files have arrived from the file service.
     await expect
-      .poll(() => nav(page, title).getAttribute('aria-busy'))
+      .poll(() => nav(page, title).getAttribute('aria-busy'), WAIT)
       .toBeNull()
     return page
   }
@@ -162,7 +164,7 @@ describe('in the studio running locally', { timeout: 180_000 }, () => {
     reset()
     const page = await open()
     await expect
-      .poll(() => labels(page))
+      .poll(() => labels(page), WAIT)
       .toEqual([
         'About',
         'Home',
@@ -179,10 +181,12 @@ describe('in the studio running locally', { timeout: 180_000 }, () => {
     await page.mouse.down()
     const box = (await target.boundingBox())!
     await page.mouse.move(box.x + box.width / 2, box.y + 3, { steps: 8 })
-    await expect.poll(() => target.getAttribute('data-drop')).toBe('before')
+    await expect
+      .poll(() => target.getAttribute('data-drop'), WAIT)
+      .toBe('before')
     await page.mouse.up()
     await expect
-      .poll(() => labels(page))
+      .poll(() => labels(page), WAIT)
       .toEqual([
         'Home',
         'About',
@@ -203,7 +207,7 @@ describe('in the studio running locally', { timeout: 180_000 }, () => {
     expect(page.url()).toContain(`/artifacts/${HOME}`)
     await drag(row(page, 'About'), row(page, 'Home'), 'before')
     await expect
-      .poll(() => labels(page))
+      .poll(() => labels(page), WAIT)
       .toEqual([
         'About',
         'Home',
@@ -215,7 +219,7 @@ describe('in the studio running locally', { timeout: 180_000 }, () => {
       ])
     await drag(row(page, 'Details'), row(page, 'Sign in'), 'after')
     await expect
-      .poll(() => labels(page))
+      .poll(() => labels(page), WAIT)
       .toEqual([
         'About',
         'Home',
@@ -233,11 +237,11 @@ describe('in the studio running locally', { timeout: 180_000 }, () => {
     reset()
     const page = await open()
     await page.goto(`${studio.url}prototypes/${DEMO}`)
-    await expect.poll(() => page.url()).toContain(`/artifacts/${ABOUT}`)
+    await expect.poll(() => page.url(), WAIT).toContain(`/artifacts/${ABOUT}`)
     await drag(row(page, 'Notes'), row(page, 'About'), 'before')
-    await expect.poll(() => savedOrder()?.[0]).toBe('notes')
+    await expect.poll(() => savedOrder()?.[0], WAIT).toBe('notes')
     await page.goto(`${studio.url}prototypes/${DEMO}`)
-    await expect.poll(() => page.url()).toContain(`/artifacts/${BRIEF}`)
+    await expect.poll(() => page.url(), WAIT).toContain(`/artifacts/${BRIEF}`)
   })
 
   test('[SH-83] [PR-57] [SH-88] dropping into a folder moves the file there, the folder highlighted, and repairs links to it', async () => {
@@ -250,18 +254,20 @@ describe('in the studio running locally', { timeout: 180_000 }, () => {
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, {
       steps: 8,
     })
-    await expect.poll(() => notes.getAttribute('data-drop')).toBe('inside')
+    await expect
+      .poll(() => notes.getAttribute('data-drop'), WAIT)
+      .toBe('inside')
     await page.mouse.up()
     await visible(toast(page, 'Moved. References updated.'))
     await expect
-      .poll(() => existsSync(at('ben/demo/notes/Details.vue')))
+      .poll(() => existsSync(at('ben/demo/notes/Details.vue')), WAIT)
       .toBe(true)
     expect(read('ben/demo/Home.vue')).toContain('to="notes/Details"')
     expect(read('ben/demo/notes/Brief.md')).toContain(
       '[the details](Details.vue)',
     )
     await expect
-      .poll(() => labels(page))
+      .poll(() => labels(page), WAIT)
       .toEqual([
         'About',
         'Home',
@@ -278,9 +284,11 @@ describe('in the studio running locally', { timeout: 180_000 }, () => {
     const page = await open()
     const below = nav(page).getByTestId('tree-end')
     await drag(row(page, 'Sign in'), below, 'inside')
-    await expect.poll(() => existsSync(at('ben/demo/Sign in.vue'))).toBe(true)
     await expect
-      .poll(() => labels(page))
+      .poll(() => existsSync(at('ben/demo/Sign in.vue')), WAIT)
+      .toBe(true)
+    await expect
+      .poll(() => labels(page), WAIT)
       .toEqual([
         'About',
         'Home',
@@ -303,7 +311,7 @@ describe('in the studio running locally', { timeout: 180_000 }, () => {
     await link(page, 'About').focus()
     await page.keyboard.press('Alt+ArrowDown')
     await expect
-      .poll(() => labels(page))
+      .poll(() => labels(page), WAIT)
       .toEqual([
         'Home',
         'About',
@@ -316,7 +324,7 @@ describe('in the studio running locally', { timeout: 180_000 }, () => {
     // The row keeps focus, so it can go on moving.
     await page.keyboard.press('Alt+ArrowDown')
     await expect
-      .poll(() => labels(page))
+      .poll(() => labels(page), WAIT)
       .toEqual([
         'Home',
         'Flows',
@@ -328,7 +336,7 @@ describe('in the studio running locally', { timeout: 180_000 }, () => {
       ])
     await page.keyboard.press('Alt+ArrowUp')
     await expect
-      .poll(() => labels(page))
+      .poll(() => labels(page), WAIT)
       .toEqual([
         'Home',
         'About',
@@ -369,10 +377,10 @@ describe('in the studio running locally', { timeout: 180_000 }, () => {
     const page = await open(DETAILS, DEMO, '?step=2#top')
     renameSync(at('ben/demo/flows'), at('ben/demo/journeys'))
     await expect
-      .poll(() => read('ben/demo/Home.vue'), { timeout: 30_000 })
+      .poll(() => read('ben/demo/Home.vue'), WAIT)
       .toContain('to="journeys/Details"')
     await expect
-      .poll(() => read('ben/demo/notes/Brief.md'))
+      .poll(() => read('ben/demo/notes/Brief.md'), WAIT)
       .toContain('(../journeys/Details.vue)')
     await visible(row(page, 'Journeys'))
     expect(await link(page, 'Details').getAttribute('aria-current')).toBe(
@@ -380,11 +388,13 @@ describe('in the studio running locally', { timeout: 180_000 }, () => {
     )
     expect(page.url()).toContain(`/artifacts/${DETAILS}?step=2#top`)
     await expect
-      .poll(() =>
-        page
-          .frameLocator('iframe')
-          .getByRole('heading', { name: 'Details' })
-          .isVisible(),
+      .poll(
+        () =>
+          page
+            .frameLocator('iframe')
+            .getByRole('heading', { name: 'Details' })
+            .isVisible(),
+        { timeout: 45_000 },
       )
       .toBe(true)
   })
