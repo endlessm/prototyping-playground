@@ -1,10 +1,14 @@
 // The canvas editor: Excalidraw with the studio's menu, shortcuts, sticky
 // notes, tooltips and look. The Vue page around it owns the opening, the
-// empty hint and the colour mode; this owns the scene. Saving comes with the
-// canvas's file service.
+// empty hint, the colour mode and saving; this owns the scene, reports its
+// changes and takes in the file when it changes on disk.
 import {
+  CaptureUpdateAction,
   Excalidraw,
   FONT_FAMILY,
+  getSceneVersion,
+  newElementWith,
+  reconcileElements,
   restoreElements,
 } from '@excalidraw/excalidraw'
 import type {
@@ -26,7 +30,9 @@ import {
   useState,
   type RefObject,
 } from 'react'
-import type { Stored } from '../types/canvas/format'
+import type { ParsedCanvas, Stored } from '../types/canvas/format'
+import type { CanvasFileOptions, CanvasSnapshot } from '../utils/canvasFile'
+import { mergeRemote } from '../utils/mergeRemote'
 import {
   CAMERA_SAVE_DELAY_MS,
   initialCamera,
@@ -46,6 +52,10 @@ export interface CanvasHandle {
    * for a moment. None until canvases show live previews.
    */
   openingEmbeds: () => string[]
+  /** The scene version of the file as loaded, before any edit. */
+  loadedVersion: number
+  /** Puts a newer file into the scene, outside the undo history. */
+  take: CanvasFileOptions['take']
 }
 
 export interface CanvasEditorProps {
@@ -62,6 +72,8 @@ export interface CanvasEditorProps {
   labels: MenuLabels
   onReady: (handle: CanvasHandle) => void
   onEmptyChange: (empty: boolean) => void
+  /** Every change Excalidraw reports, with its scene version. */
+  onSceneChange: (snapshot: CanvasSnapshot, sceneVersion: number) => void
 }
 
 // Stored links are addresses in the studio; Excalidraw wants whole URLs.
@@ -74,6 +86,66 @@ function withOrigin(elements: Stored[], base: string): Stored[] {
       ? { ...element, link: `${prefix}${element.link}` }
       : element,
   )
+}
+
+const snapshotOf = (
+  elements: readonly ExcalidrawElement[],
+  state: AppState,
+): CanvasSnapshot => ({
+  elements: elements as unknown as Stored[],
+  appState: {
+    viewBackgroundColor: state.viewBackgroundColor,
+    gridSize: state.gridSize,
+  },
+})
+
+// A file's elements as Excalidraw holds them.
+const restored = (elements: Stored[], base: string) =>
+  restoreElements(withOrigin(elements, base) as never, null, {
+    refreshDimensions: true,
+  }) as ExcalidrawElement[]
+
+// Takes a newer file into the scene: merged with unsaved edits when
+// `lastIds` is given, replacing the scene otherwise.
+function takeFile(
+  api: ExcalidrawImperativeAPI,
+  file: ParsedCanvas,
+  lastIds: ReadonlySet<string> | null,
+  base: string,
+) {
+  const remote = restored(file.elements, base)
+  let elements = remote
+  let needsWriteBack = false
+  if (lastIds)
+    ({ elements, needsWriteBack } = mergeRemote(
+      api.getSceneElementsIncludingDeleted(),
+      remote,
+      lastIds,
+      {
+        reconcile: (local, theirs) =>
+          // Excalidraw's own elements carry their fractional index.
+          reconcileElements(
+            local as never,
+            theirs as never,
+            api.getAppState(),
+          ) as ExcalidrawElement[],
+        deleted: (element) => newElementWith(element, { isDeleted: true }),
+      },
+    ))
+  api.updateScene({
+    elements,
+    appState: {
+      viewBackgroundColor: file.background,
+      gridSize: file.gridSize ?? api.getAppState().gridSize,
+    },
+    captureUpdate: CaptureUpdateAction.NEVER,
+  })
+  const now = api.getSceneElementsIncludingDeleted()
+  return {
+    needsWriteBack,
+    sceneVersion: getSceneVersion(now),
+    snapshot: snapshotOf(now, api.getAppState()),
+  }
 }
 
 const live = (elements: readonly ExcalidrawElement[]) =>
@@ -180,12 +252,13 @@ export function CanvasEditor(props: CanvasEditorProps) {
   // once that is known.
   const [initialData, setInitialData] =
     useState<ExcalidrawInitialDataState | null>(null)
+  const loadedVersion = useRef(0)
   useLayoutEffect(() => {
-    const elements = restoreElements(
-      withOrigin(props.elements, props.base) as never,
-      null,
-      { refreshDimensions: true },
+    const elements = restored(
+      props.elements,
+      props.base,
     ) as NonDeleted<ExcalidrawElement>[]
+    loadedVersion.current = getSceneVersion(elements)
     const rect = container.current?.getBoundingClientRect()
     let saved: string | null = null
     try {
@@ -212,14 +285,27 @@ export function CanvasEditor(props: CanvasEditorProps) {
     // The editor opens once; a new file starts a new editor.
   }, [])
 
-  const { onReady, onEmptyChange } = props
+  const { onReady, onEmptyChange, onSceneChange, base } = props
   useEffect(() => {
-    if (api) onReady({ openingEmbeds: () => [] })
-  }, [api, onReady])
+    if (!api) return
+    onReady({
+      openingEmbeds: () => [],
+      loadedVersion: loadedVersion.current,
+      take: (file, lastIds) => {
+        try {
+          return takeFile(api, file, lastIds, base)
+        } catch {
+          // The canvas closed meanwhile.
+          return null
+        }
+      },
+    })
+  }, [api, onReady, base])
 
   const onChange = useCallback(
     (elements: readonly ExcalidrawElement[], state: AppState) => {
       if (!api) return
+      onSceneChange(snapshotOf(elements, state), getSceneVersion(elements))
       // Previews are pictures: never activate one for interaction.
       if (state.activeEmbeddable)
         api.updateScene({ appState: { activeEmbeddable: null } })
@@ -230,7 +316,7 @@ export function CanvasEditor(props: CanvasEditorProps) {
         onEmptyChange(now)
       }
     },
-    [api, onEmptyChange],
+    [api, onEmptyChange, onSceneChange],
   )
 
   // Only the studio's sticky notes are in the library: anything else added

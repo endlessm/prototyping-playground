@@ -27,6 +27,9 @@ const IDENTITY = /^\s*(?:<!--|\/\*\*)\s*@studio-id\s+(\S+)/
 // Documents are the same `.md` files on both sides, with `studioId` in their
 // frontmatter.
 const DOCUMENT = '.md'
+// Diagrams too, with a leading `%% @studio-id` comment.
+const DIAGRAMS = ['.mermaid', '.mmd']
+const DIAGRAM_IDENTITY = /^\s*%%\s*@studio-id\s+(\S+)/
 const DOCUMENT_IDENTITY = /^---\r?\n(?:[^\r\n]*\r?\n)*?studioId:[ \t]*(\S+)/
 
 export interface FixturePrototype {
@@ -34,7 +37,7 @@ export interface FixturePrototype {
   folder: string
   meta: Record<string, unknown>
   /**
-   * Views and documents, then canvases (the same `.excalidraw` files on
+   * Views, documents and diagrams, then canvases (the same `.excalidraw` files on
    * both sides), by path inside the prototype, without the extension.
    */
   artifacts: { path: string; id: string | null }[]
@@ -73,13 +76,19 @@ export function describeFixtureStudio(
         meta: JSON.parse(readFileSync(path.join(dir, 'meta.json'), 'utf8')),
         artifacts: files(dir)
           .flatMap((file) => {
-            const extension = [VIEW_EXTENSION[side], DOCUMENT].find((end) =>
-              file.endsWith(end),
-            )
+            const extension = [
+              VIEW_EXTENSION[side],
+              DOCUMENT,
+              ...DIAGRAMS,
+            ].find((end) => file.endsWith(end))
             if (!extension) return []
             const source = readFileSync(path.join(dir, file), 'utf8')
             const identity =
-              extension === DOCUMENT ? DOCUMENT_IDENTITY : IDENTITY
+              extension === DOCUMENT
+                ? DOCUMENT_IDENTITY
+                : DIAGRAMS.includes(extension)
+                  ? DIAGRAM_IDENTITY
+                  : IDENTITY
             return [
               {
                 path: file.slice(0, -extension.length),

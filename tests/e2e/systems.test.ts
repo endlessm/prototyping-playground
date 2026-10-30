@@ -699,6 +699,39 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
       ),
     )
   })
+
+  test('[PR-124] a skill’s script opens read-only as its text, highlighted, under its path; binary files are no page', async () => {
+    const page = await open(`systems/${HARBOR}/skills/build-flow/SKILL`)
+    await visible(heading(page, 'Build a flow'))
+    await link(page.getByRole('article'), 'the check').click()
+    const file = systemsPath('harbor/skills/build-flow/scripts/check.mjs')
+    await visible(editor(page, file))
+    expect(new URL(page.url()).pathname).toBe(
+      `/systems/${HARBOR}/skills/build-flow/scripts/check.mjs`,
+    )
+    await visible(page.getByText(file, { exact: true }))
+    await visible(page.getByText('Read-only', { exact: true }))
+    expect(
+      await editor(page, file).evaluate(
+        (node) => (node as HTMLElement).isContentEditable,
+      ),
+    ).toBe(false)
+    // JavaScript: the keyword is coloured, unlike plain text.
+    const plain = await editor(page, file).evaluate(
+      (node) => getComputedStyle(node).color,
+    )
+    await expect
+      .poll(() =>
+        editor(page, file)
+          .getByText('const', { exact: true })
+          .evaluate((node) => getComputedStyle(node).color),
+      )
+      .not.toBe(plain)
+    await expect.poll(() => page.title()).toContain('check.mjs')
+
+    await page.goto(`${studio.url}systems/${HARBOR}/skills/build-flow/logo.png`)
+    await visible(page.getByText('Page not found'))
+  })
 })
 
 describe('the deployed site', { timeout: 120_000 }, () => {
@@ -771,5 +804,22 @@ describe('the deployed site', { timeout: 120_000 }, () => {
     await visible(heading(page, 'Build a flow'))
     await page.goto(`${site.url}systems/${HARBOR}/libraries`)
     await visible(page.getByText('The sources and tools behind Harbor.'))
+  })
+  test('[PR-124] a skill’s script reads as plain monospace text under its path', async () => {
+    const page = await newPage()
+    await page.goto(
+      `${site.url}systems/${HARBOR}/skills/build-flow/scripts/check.mjs`,
+    )
+    const file = systemsPath('harbor/skills/build-flow/scripts/check.mjs')
+    await visible(page.getByText(file, { exact: true }))
+    const text = page.locator('pre', { hasText: 'const steps' })
+    await visible(text)
+    expect(await text.innerText()).toContain(
+      '// Checks a Harbor flow before it is shared.',
+    )
+    expect(
+      await text.evaluate((node) => getComputedStyle(node).fontFamily),
+    ).toMatch(/mono/i)
+    expect(await page.getByRole('textbox').count()).toBe(0)
   })
 })
