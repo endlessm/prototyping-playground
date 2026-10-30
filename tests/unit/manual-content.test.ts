@@ -86,3 +86,14 @@ describe('what the chapters say', () => {
     )
   })
 })
+
+test('[PR-146] the write-manual skill points agents at the Vue studio’s chapters and checks', () => {
+  const skill = readFileSync(
+    'src/modules/documentation/skills/write-manual/SKILL.md',
+    'utf8',
+  )
+  expect(skill).toMatch(/^name: write-manual\r?$/m)
+  expect(skill).toContain('src/modules/documentation/pages/*.md')
+  expect(skill).toContain('tests/unit/manual-content.test.ts')
+  expect(skill).not.toMatch(/src\/platform\/modules|pnpm/)
+})
