@@ -23,6 +23,7 @@ import { newPrototype } from './new.ts'
 import { requireAdmin } from './permissions.ts'
 import { preferences } from './preferences.ts'
 import { context, status } from './status.ts'
+import { configure } from './configure.ts'
 import { sync, syncInFreshProcess } from './sync.ts'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
@@ -36,6 +37,13 @@ interface Command {
 }
 
 const COMMANDS: Record<string, Command> = {
+  configure: {
+    usage:
+      'configure [--name <name>] [--tagline <text>] [--system <key|id|none>] [--admins <key,key>] [--maintainers <system=key,key>] [--recovery] [--yes]',
+    summary:
+      'preview or apply studio settings and roles; recovery uses repository access',
+    run: configure,
+  },
   sync: {
     usage: 'sync [--check]',
     summary:
@@ -135,6 +143,7 @@ const COMMANDS: Record<string, Command> = {
 }
 
 const SWITCHES = new Set([
+  '--recovery',
   '--check',
   '--yes',
   '--content',
@@ -143,6 +152,8 @@ const SWITCHES = new Set([
   '--no-system',
 ])
 const VALUES = new Set([
+  '--tagline',
+  '--admins',
   '--label',
   '--key',
   '--name',
@@ -156,7 +167,7 @@ const VALUES = new Set([
   '--module',
   '--system',
 ])
-const LISTS = new Set(['--add-email', '--remove-email'])
+const LISTS = new Set(['--add-email', '--remove-email', '--maintainers'])
 
 function usage() {
   return [

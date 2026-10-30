@@ -1,5 +1,5 @@
 {
-  "$schema": "./src/platform/core/studio.config.schema.json",
+  "$schema": "./tooling/settings/studio.config.schema.json",
   "formatVersion": 1,
   "name": "Endless Design Studio",
   "tagline": "Prototyping Sandbox",

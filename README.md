@@ -13,7 +13,13 @@ yarn install
 yarn dev
 ```
 
-## Check it
+## Configure it
+
+Open **Studio settings** locally to change the name, tagline, default design system and module switches. Admins can save; contributors can read. Saving checks for concurrent edits, preserves unrelated JSON lines, and restarts Nuxt behind an Applying changes screen. Editing `studio.config.json` or `src/systems/*/system.ts` also restarts it. The deployed site has no settings editor or write endpoint.
+
+Agents use `yarn studio configure --name "Studio name" --tagline "Tagline" --system <key|id|none> --admins key,key --maintainers system=key,key`. It previews changes and prototypes that keep their assignment; add `--yes` to apply. Repeat `--maintainers` for several systems; `system=` clears only that grant. `--recovery` restores lost Admin access using repository access. The editor schema is `tooling/settings/studio.config.schema.json`; shared validation lives in `tooling/settings/service.ts`.
+
+## Checks
 
 ```sh
 yarn lint
