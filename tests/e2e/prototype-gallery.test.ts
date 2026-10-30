@@ -158,10 +158,11 @@ describe('the gallery on the dev server, as Ben', () => {
     // The GitHub photo failed to load: the initials stand in.
     await visible(card.getByText('BO', { exact: true }))
 
-    // The whole card is the link.
+    // The whole card is the link. The address changes only once the
+    // prototype's page has loaded, which on a cold dev server takes seconds.
     await card.click()
     await expect
-      .poll(() => new URL(page.url()).pathname)
+      .poll(() => new URL(page.url()).pathname, { timeout: 30_000 })
       .toBe(`/prototypes/${ONBOARDING}/artifacts/gv00000000000002`)
   })
 
