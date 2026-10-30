@@ -116,6 +116,37 @@ export function slimElement(
   return stable(out) as Stored
 }
 
+// The permanent address of an item in the studio, without a trailing slash.
+const ITEM_ADDRESS = /^(\/prototypes\/[^/?#]+\/artifacts\/[^/?#]+)\/?([?#].*)?$/
+const address = (path: string) => {
+  const found = ITEM_ADDRESS.exec(path)
+  return found ? `${found[1]}${found[2] ?? ''}` : null
+}
+
+/**
+ * How a link is stored: a link to an item in this studio becomes its app
+ * address (`/prototypes/<prototype-id>/artifacts/<artifact-id>`), so the
+ * canvas works on any host and under any base path, and link repair can
+ * find it. Excalidraw holds whole URLs; `origin` and `base` are where this
+ * studio runs. Any other link is kept as it is.
+ */
+export function storedLink(link: string, origin: string, base: string) {
+  if (link.startsWith('/')) return address(link) ?? link
+  let url: URL
+  try {
+    url = new URL(link)
+  } catch {
+    return link
+  }
+  const prefix = base.replace(/\/$/, '')
+  if (url.origin !== origin || !url.pathname.startsWith(`${prefix}/`))
+    return link
+  return (
+    address(`${url.pathname.slice(prefix.length)}${url.search}${url.hash}`) ??
+    link
+  )
+}
+
 /**
  * The canvas file's text. Of the app state only the background and the grid
  * are kept; the camera is per person.
