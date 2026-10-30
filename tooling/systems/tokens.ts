@@ -134,7 +134,11 @@ function declarationsOf(body: string): [string, string][] {
 const COLOR_VALUE =
   /^(#[0-9a-f]{3,8}$|(?:rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch|color|color-mix|light-dark)\(|(?:transparent|currentcolor|white|black)$)/i
 
-function isColor(value: string, values: Map<string, string>, depth = 0) {
+function isColor(
+  value: string,
+  values: Map<string, string>,
+  depth = 0,
+): boolean {
   const v = value.trim()
   if (COLOR_VALUE.test(v)) return true
   const ref = /^var\(\s*(--[\w-]+)/.exec(v)?.[1]

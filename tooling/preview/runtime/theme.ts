@@ -412,7 +412,11 @@ const Specimen = defineComponent({
 export function mountTheme(create: Create, session: string | null) {
   const host = document.getElementById('app')!
   const post = (
-    message: Omit<ThemeDocumentMessage, 'channel' | 'version' | 'session'>,
+    message: ThemeDocumentMessage extends infer M
+      ? M extends ThemeDocumentMessage
+        ? Omit<M, 'channel' | 'version' | 'session'>
+        : never
+      : never,
   ) => {
     if (!session || window.parent === window) return
     window.parent.postMessage(

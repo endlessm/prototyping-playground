@@ -85,6 +85,18 @@ scenario(
 
     await page.goto(`${url}systems/${ENDLESS}/images`)
     await shows(heading('Images'))
+    // The copied app images' thumbnails.
+    if (side === 'vue')
+      await expect
+        .poll(
+          () =>
+            page
+              .locator('img')
+              .first()
+              .evaluate((image: HTMLImageElement) => image.naturalWidth),
+          { timeout: 60_000 },
+        )
+        .toBeGreaterThan(0)
     await step('Images')
   },
 )
