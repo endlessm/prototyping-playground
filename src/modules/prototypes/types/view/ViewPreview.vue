@@ -92,7 +92,7 @@ const { copy, copied } = useClipboard({ copiedDuring: 1500, legacy: true })
       :src="src"
       :title="artifact.title"
       :data-preview-state="state"
-      class="min-h-0 w-full flex-1 rounded-md border border-default bg-white"
+      class="min-h-0 w-full flex-1 bg-white"
       :class="{ hidden: state === 'error' || state === 'empty' }"
     />
     <ViewError v-if="state === 'error'" :detail="detail" />
@@ -104,21 +104,21 @@ const { copy, copied } = useClipboard({ copiedDuring: 1500, legacy: true })
     <div
       v-if="silent"
       role="status"
-      class="absolute inset-x-0 bottom-0 rounded-b-md border-t border-default bg-default p-3 text-sm"
+      class="absolute inset-x-0 bottom-0 border-t border-default bg-default p-3 text-sm"
     >
       {{ t('view.silent') }}
     </div>
     <div
       v-else-if="state === 'loading' && slow"
       role="status"
-      class="pointer-events-none absolute inset-x-0 bottom-0 rounded-b-md border-t border-default bg-default p-3 text-sm"
+      class="pointer-events-none absolute inset-x-0 bottom-0 border-t border-default bg-default p-3 text-sm"
     >
       {{ shown ? t('view.opening') : t('view.loading') }}
     </div>
     <div
       v-else-if="state === 'ready' && freshness === 'stale'"
       role="status"
-      class="absolute inset-x-0 bottom-0 max-h-1/2 space-y-2 overflow-auto rounded-b-md border-t border-default bg-default p-3 text-sm"
+      class="absolute inset-x-0 bottom-0 max-h-1/2 space-y-2 overflow-auto border-t border-default bg-default p-3 text-sm"
     >
       <p>
         {{ t('view.outOfDate') }}

@@ -6,9 +6,9 @@ import type {
 } from '../../../../../app/composables/useManifest'
 import ViewPreview from './ViewPreview.vue'
 
-// A view's page: its preview, a link that opens the preview document on its
-// own in a new tab (a fresh runtime, for people and browser tools), and the
-// artifact page's file menu.
+// A view's page: its preview, filling the page, under a link that opens the
+// preview document on its own in a new tab (a fresh runtime, for people and
+// browser tools).
 const props = defineProps<{
   prototype: ManifestPrototype
   artifact: ManifestArtifact
@@ -23,8 +23,8 @@ const standalone = computed(() =>
 </script>
 
 <template>
-  <div class="flex h-full min-h-0 flex-col gap-2">
-    <div class="flex items-center justify-end gap-1">
+  <div class="flex h-full min-h-0 flex-col">
+    <div class="flex items-center justify-end gap-1 px-4 py-2 sm:px-6">
       <UButton
         :to="standalone"
         external
@@ -33,8 +33,6 @@ const standalone = computed(() =>
         size="sm"
         :label="t('prototypes.openInTab')"
       />
-      <!-- The artifact page's file menu. -->
-      <slot name="actions" />
     </div>
     <ViewPreview
       :key="document"

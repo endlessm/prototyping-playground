@@ -116,17 +116,6 @@ const { revealed, statusVisible } = useCanvasOpening(
   () => handle.value?.openingEmbeds() ?? [],
 )
 
-// The hint shows only once the canvas has stayed empty for a moment, so a
-// scene that is still arriving never flashes it.
-const hintReady = ref(false)
-let hintTimer = 0
-watch([empty, revealed], ([isEmpty, isRevealed]) => {
-  window.clearTimeout(hintTimer)
-  hintReady.value = false
-  if (isEmpty && isRevealed)
-    hintTimer = window.setTimeout(() => (hintReady.value = true), 500)
-})
-
 const message = (error: unknown) =>
   error instanceof Error ? error.message : String(error)
 
@@ -198,14 +187,15 @@ onBeforeUnmount(() => {
   <div
     v-else
     ref="container"
-    class="canvas relative min-h-0 flex-1 overflow-hidden overscroll-none rounded-md border border-default bg-muted/30"
+    class="canvas relative min-h-0 flex-1 overflow-hidden overscroll-none bg-muted/30"
     data-inline-dialogs
     :data-canvas-opening="revealed ? 'ready' : 'loading'"
+    :data-canvas-empty="empty || undefined"
     :aria-busy="!revealed || undefined"
   >
     <CanvasOpening v-if="!revealed" :visible="statusVisible" />
     <!-- A stacking context of its own keeps Excalidraw's layers under the
-         empty hint. -->
+         save status. -->
     <div
       class="canvas-scene absolute inset-0 isolate transition-opacity duration-160 ease-out motion-reduce:transition-none"
       :class="revealed ? 'opacity-100' : 'opacity-0'"
@@ -230,29 +220,5 @@ onBeforeUnmount(() => {
       :state="saving.state.value"
       @retry="saving.retry"
     />
-    <Transition
-      enter-active-class="transition-opacity duration-300"
-      enter-from-class="opacity-0"
-    >
-      <div
-        v-if="empty && revealed && hintReady"
-        class="pointer-events-none absolute inset-0 flex items-center justify-center p-8"
-      >
-        <div
-          class="max-w-sm rounded-xl border border-dashed border-default bg-default/80 p-8 text-center"
-        >
-          <p class="text-sm font-medium text-highlighted">
-            {{ t('canvas.empty.title') }}
-          </p>
-          <p class="mt-1.5 text-sm text-muted">
-            {{
-              editable && !scene?.tooNew
-                ? t('canvas.empty.editable')
-                : t('canvas.empty.readOnly')
-            }}
-          </p>
-        </div>
-      </div>
-    </Transition>
   </div>
 </template>
