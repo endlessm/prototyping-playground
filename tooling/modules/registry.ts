@@ -5,6 +5,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import type { ModulePreferences, StudioModule } from './contract.ts'
+import { parseConfig } from '../settings/config-file.ts'
 
 export const MODULES_FOLDER = 'src/modules'
 export const CONFIG_FILE = 'studio.config.json'
@@ -323,7 +324,7 @@ export function pageAddresses(root: string, modules: InstalledModule[]) {
 }
 
 export function readConfig(file: string): StudioConfig {
-  return JSON.parse(readFileSync(file, 'utf8'))
+  return parseConfig(readFileSync(file, 'utf8'), file).config
 }
 
 /** Reads the configuration and every module's declaration. */

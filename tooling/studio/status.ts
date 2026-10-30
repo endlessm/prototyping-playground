@@ -56,7 +56,10 @@ function configProblems(
           problems.push(
             `${CONFIG_FILE}: maintainer ${id} of system ${system} is not a registered contributor.`,
           )
-  if (!systems.some(({ studioId }) => studioId === config.defaultSystem))
+  if (
+    config.defaultSystem !== null &&
+    !systems.some(({ studioId }) => studioId === config.defaultSystem)
+  )
     problems.push(
       `${CONFIG_FILE}: defaultSystem ${String(config.defaultSystem)} isn't one of the registered systems.`,
     )
