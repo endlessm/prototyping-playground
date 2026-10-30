@@ -158,5 +158,31 @@
       "keep": "Keep editing",
       "discard": "Discard"
     }
+  },
+  "people": {
+    "title": "Contributors",
+    "loading": "Loading permissions",
+    "shared": "Permissions are shared through Git. Changes save to your local repository and reach colleagues when you commit and share them.",
+    "readonly": "You can view permissions. An Admin can change them.",
+    "register": "Ask your agent to register you with yarn studio join.",
+    "you": "You",
+    "admin": "Admin",
+    "fullAccess": "Full studio access",
+    "maintainer": "{system} maintainer",
+    "edit": "Edit profile",
+    "save": "Save changes",
+    "discard": "Discard",
+    "reload": "Reload permissions",
+    "saved": "Permissions saved",
+    "restartTitle": "Restart the studio",
+    "restartDescription": "Permissions were saved. Ask your agent to run yarn studio dev restart, then reload this page.",
+    "levels": "Access levels",
+    "contributorAccess": "Contributor: edit your own prototypes and profile.",
+    "maintainerAccess": "System maintainer: also edit and rename your assigned active systems.",
+    "adminAccess": "Admin: manage every prototype, system, module and permission.",
+    "repository": "Repository access is managed separately through your Git provider.",
+    "name": "Name",
+    "email": "Primary email",
+    "github": "GitHub username"
   }
 }

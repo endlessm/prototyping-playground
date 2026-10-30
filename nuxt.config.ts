@@ -128,6 +128,7 @@ export default defineNuxtConfig({
     './tooling/modules/nuxt-module.ts',
     './tooling/dev-server/nuxt-module.ts',
     './tooling/contributors/nuxt-module.ts',
+    './tooling/contributors/pages-module.ts',
     './tooling/identity/nuxt-module.ts',
     './tooling/manifest/nuxt-module.ts',
     './tooling/files/nuxt-module.ts',

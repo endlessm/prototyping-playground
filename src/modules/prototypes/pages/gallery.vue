@@ -43,6 +43,8 @@ const shown = computed(() =>
   all.value
     .filter(
       (prototype) =>
+        (!route.query.contributor ||
+          prototype.contributor === route.query.contributor) &&
         matchesSystem(manifest.value, prototype, system.value) &&
         matchesSearch(manifest.value, prototype, text.value),
     )
