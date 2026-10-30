@@ -112,14 +112,33 @@ describe('the manifest', () => {
         type,
       ]),
     ).toEqual([
-      ['vstp000000000001', 'Step', 'flows/deep/Step', 'view'],
-      ['vsgn000000000001', 'Sign in', 'flows/Sign in', 'view'],
       ['va1p000000000001', 'Alpha', 'Alpha', 'view'],
       ['vzbr000000000001', 'Zebra', 'Zebra', 'view'],
+      ['vsgn000000000001', 'Sign in', 'flows/Sign in', 'view'],
+      ['vstp000000000001', 'Step', 'flows/deep/Step', 'view'],
     ])
-    expect(artifacts['tracer0000000001']![2]!.file).toBe(
+    expect(artifacts['tracer0000000001']![0]!.file).toBe(
       'src/prototypes/bernardo/tracer/Alpha.vue',
     )
+  })
+
+  test('[PR-59] [SH-85] artifacts follow the order saved in meta.json, so the first arranged one opens the prototype', () => {
+    prototype('bernardo/tracer', {
+      studioId: 'tracer0000000001',
+      order: ['flows', 'Zebra.vue', 'flows/deep', 'flows/Sign in.vue'],
+    })
+    write('bernardo/tracer/Zebra.vue', view('vzbr000000000001'))
+    write('bernardo/tracer/Alpha.vue', view('va1p000000000001'))
+    write('bernardo/tracer/flows/Sign in.vue', view('vsgn000000000001'))
+    write('bernardo/tracer/flows/deep/Step.vue', view('vstp000000000001'))
+    const { artifacts, problems } = build()
+    expect(problems).toEqual([])
+    expect(artifacts['tracer0000000001']!.map(({ path }) => path)).toEqual([
+      'flows/deep/Step',
+      'flows/Sign in',
+      'Zebra',
+      'Alpha',
+    ])
   })
 
   test('[PR-28] files of a turned-off module’s type stay listed, marked unavailable with the type and module', () => {

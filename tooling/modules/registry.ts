@@ -60,6 +60,7 @@ const KEYS = new Set([
   'skills',
   'content',
   'fileTypes',
+  'references',
   'data',
   'preferences',
 ])
@@ -187,6 +188,14 @@ export function moduleProblems(spec: unknown, folderName: string): string[] {
           )
       }
   }
+  if (
+    module.references !== undefined &&
+    (typeof module.references !== 'string' ||
+      !module.references.endsWith('.ts'))
+  )
+    problems.push(
+      `${where}: "references" names the .ts file whose “references” export lists its reference adapters.`,
+    )
   const data = module.data
   if (data !== undefined) {
     if (!data || typeof data !== 'object' || Array.isArray(data))
