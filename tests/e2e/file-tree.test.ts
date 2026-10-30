@@ -104,7 +104,13 @@ function revealed(file: string) {
   return { command: 'xdg-open', args: [path.dirname(full)] }
 }
 
-const NEW_ITEMS = ['New view', 'New canvas', 'New document', 'New folder']
+const NEW_ITEMS = [
+  'New view',
+  'New canvas',
+  'New diagram',
+  'New document',
+  'New folder',
+]
 
 const launched = () =>
   readFileSync(launchLog, 'utf8')

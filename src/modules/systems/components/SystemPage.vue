@@ -9,6 +9,8 @@ const props = defineProps<{
   system: SystemCatalog
   /** The file its source opens, inside the system's folder. */
   source?: string | null
+  /** Fills the area, rather than a column of text (a text file). */
+  wide?: boolean
 }>()
 const { t } = useI18n()
 
@@ -38,7 +40,8 @@ const editing = computed(() => Boolean(mode?.source.value && SystemSource))
     v-if="!editing"
     ref="rendered"
     tabindex="-1"
-    class="mx-auto w-full max-w-3xl px-4 py-6 outline-none"
+    class="outline-none"
+    :class="wide ? 'h-full min-h-0' : 'mx-auto w-full max-w-3xl px-4 py-6'"
   >
     <slot />
   </div>
