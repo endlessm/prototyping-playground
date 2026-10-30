@@ -24,6 +24,7 @@ import { requireAdmin } from './permissions.ts'
 import { preferences } from './preferences.ts'
 import { context, status } from './status.ts'
 import { configure } from './configure.ts'
+import { sync, syncInFreshProcess } from './sync.ts'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 
@@ -42,6 +43,12 @@ const COMMANDS: Record<string, Command> = {
     summary:
       'preview or apply studio settings and roles; recovery uses repository access',
     run: configure,
+  },
+  sync: {
+    usage: 'sync [--check]',
+    summary:
+      'refresh module guidance and skill adapters, or check without writing',
+    run: sync,
   },
   status: {
     usage: 'status [--json]',
@@ -137,6 +144,7 @@ const COMMANDS: Record<string, Command> = {
 
 const SWITCHES = new Set([
   '--recovery',
+  '--check',
   '--yes',
   '--content',
   '--force',
@@ -215,6 +223,14 @@ try {
     if (command.shared === 'always' || (command.shared === 'yes' && flags.yes))
       requireAdmin(ROOT, flags)
     await command.run(ROOT, args, flags)
+    if (
+      name !== 'sync' &&
+      (command.shared === 'always' ||
+        flags.yes ||
+        flags.apply ||
+        name === 'new')
+    )
+      syncInFreshProcess(ROOT)
   }
 } catch (error) {
   if (!(error instanceof Refusal)) throw error
