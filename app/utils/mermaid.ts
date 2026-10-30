@@ -136,7 +136,10 @@ export function mermaidTheme(dark: boolean) {
 }
 
 // Mermaid's configuration is global, so renders take turns: diagrams on
-// one page, or in two colour modes, can't change it under each other.
+// one page, or in two colour modes, can't change it under each other. A
+// render that never finishes holds the next one back for 15 seconds at
+// most, the time its diagram waits before giving up.
+const TURN_LIMIT_MS = 15_000
 let pending: Promise<unknown> = Promise.resolve()
 
 /** The diagram's SVG; throws with Mermaid's message on invalid source. */
@@ -168,6 +171,9 @@ export function renderMermaid(source: string, id: string, dark: boolean) {
       })
       return (await mermaid.render(id, source)).svg
     })
-  pending = job
+  pending = Promise.race([
+    job,
+    new Promise((resolve) => setTimeout(resolve, TURN_LIMIT_MS)),
+  ])
   return job
 }
