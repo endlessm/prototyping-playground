@@ -151,6 +151,13 @@ export function auditIdentities(
         { kind: 'prototype', path: metaFile, prototype: folder, owner },
         () => json(metaFile).studioId,
       )
+      let prototypeId: string | undefined
+      try {
+        const id = json(metaFile).studioId
+        if (typeof id === 'string') prototypeId = id
+      } catch {
+        // Reported above.
+      }
       for (const file of treeFiles(dir)) {
         const type = fileTypeOf(types, file)
         if (!type) continue
@@ -164,7 +171,8 @@ export function auditIdentities(
         record({ kind: 'artifact', ...resource }, () =>
           type.identity.read(text(artifact)),
         )
-        for (const problem of type.check?.(text(artifact)) ?? [])
+        for (const problem of type.check?.(text(artifact), { prototypeId }) ??
+          [])
           checks.push(`${artifact}: ${problem}`)
         if (!type.identity.children) continue
         let children: { key: string; studioId: string | null }[]

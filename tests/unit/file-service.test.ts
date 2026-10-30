@@ -239,6 +239,37 @@ describe('saving', () => {
     )
   })
 
+  test('[PR-89] [CL-123] a save must keep each remaining named state’s permanent ID', async () => {
+    const STATE = 'st00000000000001'
+    const withStates = (comments: string, titles: string[]) =>
+      `<!-- @studio-id ${BEN_VIEW} -->\n${comments}<script setup>\n</script>\n\n<script>\nexport const states = [${titles.map((title) => `{ title: '${title}', props: {} }`).join(', ')}]\n</script>\n\n<template>\n  <p>Hi</p>\n</template>\n`
+    const member = `<!-- @studio-state ${STATE} Member -->\n`
+    write(
+      'src/prototypes/ben/demo/flows/Start.vue',
+      withStates(member, ['Member']),
+    )
+
+    const dropped = await refusal(save(withStates('', ['Member'])))
+    expect(dropped).toMatchObject({ status: 409, code: 'identity' })
+    expect(dropped.message).toBe(
+      'Keep the permanent studio ID of state “Member” when editing its source.',
+    )
+    const changed = await refusal(
+      save(
+        withStates('<!-- @studio-state st00000000000002 Member -->\n', [
+          'Member',
+        ]),
+      ),
+    )
+    expect(changed.code).toBe('identity')
+
+    // Renaming a state with its comment, or removing both, is fine.
+    await save(
+      withStates(`<!-- @studio-state ${STATE} Signed in -->\n`, ['Signed in']),
+    )
+    await save(withStates('', []))
+  })
+
   test('[CL-123] files larger than any committed file are refused', async () => {
     const error = await refusal(save(VIEW(BEN_VIEW, 'x'.repeat(800 * 1024))))
     expect(error.status).toBe(413)

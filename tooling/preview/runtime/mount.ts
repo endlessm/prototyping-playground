@@ -5,7 +5,9 @@
 // outgoing view stays on screen, inert, until the next one is ready. In
 // development the document also says whether what it shows matches the
 // saved source. A named state renders its view with the state's props; a
-// lo-fi view is drawn in grayscale with a handwritten font. Links to studio
+// view's `system` options reach the system's app factory, and a state's
+// `system` overrides them option by option. A lo-fi view is drawn in
+// grayscale with a handwritten font. Links to studio
 // addresses and the studio's shortcuts go to the studio, so a view's links
 // use its history. It imports nothing of the studio's app but plain
 // functions.
@@ -27,7 +29,10 @@ import { PROTOTYPE_SCOPE, type PrototypeScope } from './navigation.ts'
 interface ViewModule {
   default?: Component
   states?: unknown
+  system?: unknown
 }
+
+type Options = Record<string, unknown>
 
 interface View {
   /** Absolute path, with forward slashes. */
@@ -53,14 +58,40 @@ const lofiLook = () =>
     throw error
   }))
 
+const plain = (value: unknown): value is Options =>
+  !!value && typeof value === 'object' && !Array.isArray(value)
+
+/** The state titled `title` in a view's `states`, if any. */
+function findState(states: unknown, title: string) {
+  if (!Array.isArray(states)) return undefined
+  return states.find((state) => plain(state) && state.title === title) as
+    { props?: Options; system?: unknown } | undefined
+}
+
 /** The props of the state titled `title` in a view's `states`, if any. */
 function stateProps(states: unknown, title: string) {
-  if (!Array.isArray(states)) return undefined
-  const found = states.find(
-    (state) => state && typeof state === 'object' && state.title === title,
-  ) as { props?: Record<string, unknown> } | undefined
+  const found = findState(states, title)
   return found && { ...(found.props ?? {}) }
 }
+
+/**
+ * The system options a view or one of its states renders with: the view's
+ * `export const system`, then the state's `system`, option by option.
+ */
+function systemOptions(exports: ViewModule, state: string | null) {
+  const own = state === null ? undefined : findState(exports.states, state)
+  return {
+    ...(plain(exports.system) ? exports.system : {}),
+    ...(plain(own?.system) ? own.system : {}),
+  }
+}
+
+// Options compare by value, functions by their source, so only an edit
+// that changes one rebuilds the screen.
+const optionsKey = (options: Options) =>
+  JSON.stringify(options, (_key, value: unknown) =>
+    typeof value === 'function' ? `ƒ ${String(value)}` : value,
+  )
 
 // The studio's base path, from this document's own:
 // `<base>_preview/<document>/`.
@@ -76,6 +107,7 @@ interface MountOptions {
   create: (options: {
     component: Component
     props?: Record<string, unknown>
+    system: Options
   }) => App
   views: Record<string, View>
 }
@@ -137,8 +169,8 @@ export function mountPreview({ create, views }: MountOptions) {
   let sequence = 0
   let state: PreviewState = 'loading'
   let phase: PreviewPhase = 'current'
-  // What is on screen: the view, its app, the file it came from and, for a
-  // named state, the state and its live props.
+  // What is on screen: the view, its app, the file it came from, its system
+  // options and, for a named state, the state and its live props.
   let shown: {
     artifact: string
     app: App
@@ -146,9 +178,10 @@ export function mountPreview({ create, views }: MountOptions) {
     file: string
     state: string | null
     props: Record<string, unknown>
+    options: string
   } | null = null
-  // Each view file's newest `states`, from its hot updates.
-  const latestStates = new Map<string, unknown>()
+  // Each view file's newest `states` and `system`, from its hot updates.
+  const latestExports = new Map<string, ViewModule>()
   // When the latest attempt asked for its view's code: changes made before
   // that are already in what it got.
   let requestedAt = 0
@@ -243,11 +276,10 @@ export function mountPreview({ create, views }: MountOptions) {
     }
     // A state's props stay reactive, so its newest props apply in place.
     const props = reactive<Record<string, unknown>>({})
+    const exports = latestExports.get(view.file) ?? module
+    const system = systemOptions(exports, view.state)
     if (view.state !== null) {
-      const found = stateProps(
-        latestStates.get(view.file) ?? module.states,
-        view.state,
-      )
+      const found = stateProps(exports.states, view.state)
       if (!found) {
         unmount()
         return status(
@@ -273,7 +305,7 @@ export function mountPreview({ create, views }: MountOptions) {
     box.classList.toggle('lofi-view', view.lofi)
     host.append(box)
     let failed = ''
-    const app = create({ component, props })
+    const app = create({ component, props, system })
     app.provide(PROTOTYPE_SCOPE, scope(id, view))
     const ownError = app.config.errorHandler
     app.config.errorHandler = (error, instance, info) => {
@@ -306,6 +338,7 @@ export function mountPreview({ create, views }: MountOptions) {
       file: view.file,
       state: view.state,
       props,
+      options: optionsKey(system),
     }
     box.hidden = false
     if (failed) return status('error', attempt, failed)
@@ -345,15 +378,19 @@ export function mountPreview({ create, views }: MountOptions) {
     else void lofiLook().then(() => current.box.classList.add('lofi-view'))
   })
 
-  // A view's newest `states` after a hot update: the shown state takes its
-  // new props in place, or says it is gone.
-  window.addEventListener('studio:states', (event) => {
-    const { file, states } = (
-      event as CustomEvent<{ file: string; states: unknown }>
+  // A view's newest `states` and `system` after a hot update: new options
+  // rebuild the screen; otherwise the shown state takes its new props in
+  // place, or says it is gone.
+  window.addEventListener('studio:exports', (event) => {
+    const { file, ...exports } = (
+      event as CustomEvent<{ file: string } & ViewModule>
     ).detail
-    latestStates.set(file, states)
-    if (!shown || shown.file !== file || shown.state === null) return
-    const next = stateProps(states, shown.state)
+    latestExports.set(file, exports)
+    if (!shown || shown.file !== file) return
+    if (optionsKey(systemOptions(exports, shown.state)) !== shown.options)
+      return void show(artifact)
+    if (shown.state === null) return
+    const next = stateProps(exports.states, shown.state)
     if (!next) return void show(artifact)
     for (const key of Object.keys(shown.props))
       if (!(key in next)) Reflect.deleteProperty(shown.props, key)

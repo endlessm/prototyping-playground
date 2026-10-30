@@ -1,12 +1,19 @@
 // `useNuxtApp()` and the composables copied components call without importing them. Each reads the runtime that
-// createStudiosApp provides to its Vue app, so screens keep their own locale and sample data.
-import { inject, ref, type Ref } from 'vue';
+// createStudiosApp provides to its Vue app, so each screen keeps its own locale, user and sample data.
+import { inject, ref, type MaybeRefOrGetter, type Ref } from 'vue';
+import type { Auth } from './auth';
+import { sampleQuery, type GraphQL } from './graphql';
 import type { I18n } from './i18n';
+import type { Store } from './store';
 
 export type NuxtAppStandIn = {
+  $auth: Auth;
   $i18n: I18n;
+  $store: Store;
+  $graphqlRequest: GraphQL['request'];
   $dayjs: (date?: string | number | Date) => DayjsStandIn;
   $config: { public: Record<string, unknown> };
+  graphql: GraphQL;
 };
 
 export const NUXT_APP_KEY = Symbol.for('endless-studios:nuxt-app');
@@ -30,6 +37,11 @@ export function useState<T>(key: string, init?: () => T): Ref<T> {
   const map = states.get(app)!;
   if (!map.has(key)) map.set(key, ref(init?.()));
   return map.get(key) as Ref<T>;
+}
+
+export function useGraphQLQuery(query: MaybeRefOrGetter<unknown>, options?: Parameters<typeof sampleQuery>[2]) {
+  const app = useNuxtApp();
+  return sampleQuery({ graphql: app.graphql, loggedIn: () => app.$auth.loggedIn }, query, options);
 }
 
 // `$dayjs` (dayjs-nuxt): the format tokens the app uses, in the screen's locale.
@@ -61,11 +73,12 @@ export function createDayjs(locale: () => string) {
     const api = {
       format: (pattern = 'YYYY-MM-DDTHH:mm') =>
         pattern.replace(/\[([^\]]*)]|YYYY|YY|MMMM|MMM|MM|M|Do|DD|D|HH|hh|h|mm|A|LL|ll/g, (token, literal) => literal ?? tokens[token]()),
+      // Always a number, as dayjs says it ("2 days ago", never "the day before yesterday").
       fromNow: () => {
         const seconds = (date.getTime() - Date.now()) / 1000;
         const units: [Intl.RelativeTimeFormatUnit, number][] = [['year', 31536000], ['month', 2592000], ['day', 86400], ['hour', 3600], ['minute', 60]];
         const [unit, size] = units.find(([, length]) => Math.abs(seconds) >= length) ?? ['second', 1];
-        return new Intl.RelativeTimeFormat(locale(), { numeric: 'auto' }).format(Math.round(seconds / size), unit);
+        return new Intl.RelativeTimeFormat(locale(), { numeric: 'always' }).format(Math.round(seconds / size), unit);
       },
       diff: (other: string | number | Date) => date.getTime() - new Date(other).getTime(),
       isBefore: (other: string | number | Date) => date.getTime() < new Date(other).getTime(),

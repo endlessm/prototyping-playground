@@ -26,7 +26,6 @@ import {
 import { readContributors } from '../contributors/profiles.ts'
 import { identityFileTypes } from '../identity/file-types.ts'
 import { createRefreshQueue } from '../live/refresh-queue.ts'
-import { FIDELITY_ROUTE, fidelityRoute } from './fidelity.ts'
 import { sameOrigin } from '../modules/nuxt-module.ts'
 import { loadRegistry } from '../modules/registry.ts'
 import {
@@ -39,7 +38,8 @@ import {
   VIEWS_RESOLVED,
   viewsSignature,
 } from '../preview/pipeline.ts'
-import { loadSystems } from '../systems/registry.ts'
+import { systemContentProblems } from '../systems/catalog.ts'
+import { loadSystems, systemsFolder } from '../systems/registry.ts'
 import {
   buildManifest,
   PROTOTYPES_FOLDER,
@@ -71,6 +71,7 @@ export default defineNuxtModule({
     const { systems, problems: systemProblems } = await loadSystems(
       root,
       registry.config,
+      systemsFolder(),
     )
 
     const fileTypes = registry.enabled.flatMap(({ spec, dir }) =>
@@ -109,14 +110,28 @@ export default defineNuxtModule({
         defaultSystem: defaultSystem(),
         contributors: readContributors(root, contributorsFolder).contributors,
       })
-    const problems = [...systemProblems, ...read().problems]
+    const problems = [
+      ...systemProblems,
+      ...systems.flatMap((system) => systemContentProblems(system, root)),
+      ...read().problems,
+    ]
     for (const problem of problems) console.warn(`Warning: ${problem}`)
 
-    // The page of each file type, loaded when an artifact of it opens.
-    const pages = fileTypes.map(
-      (type) =>
-        `${JSON.stringify(type.id)}: { label: ${JSON.stringify(type.label)}, fidelity: ${Boolean(type.fidelity)}, page: () => import(${JSON.stringify(path.join(type.dir, type.page).split(path.sep).join('/'))}) }`,
-    )
+    // Each file type's page, loaded when an artifact of it opens, and its
+    // preview in documents, loaded when one appears.
+    const load = (type: (typeof fileTypes)[number], file: string) =>
+      `() => import(${JSON.stringify(path.join(type.dir, file).split(path.sep).join('/'))})`
+    const pages = fileTypes.map((type) => {
+      const fields = [
+        `label: ${JSON.stringify(type.label)}`,
+        `fidelity: ${Boolean(type.fidelity)}`,
+        `extensions: ${JSON.stringify(type.extensions)}`,
+        `icon: ${JSON.stringify(type.icon ?? null)}`,
+        `page: ${load(type, type.page)}`,
+        ...(type.embed ? [`embed: ${load(type, type.embed)}`] : []),
+      ]
+      return `${JSON.stringify(type.id)}: { ${fields.join(', ')} }`
+    })
     const template = addTemplate({
       filename: 'studio-file-types.mjs',
       getContents: () => `export default {${pages.join(',\n')}}\n`,
@@ -128,8 +143,21 @@ export default defineNuxtModule({
         getContents: () => `
 declare module '#studio/file-types' {
   import type { Component } from 'vue'
-  /** fidelity: its artifacts can be made lo-fi and hi-fi again. */
-  const types: Record<string, { label: string; fidelity: boolean; page: () => Promise<{ default: Component }> }>
+  type Load = () => Promise<{ default: Component }>
+  const types: Record<
+    string,
+    {
+      label: string
+      /** Its artifacts can be made lo-fi and hi-fi again. */
+      fidelity: boolean
+      extensions: string[]
+      /** An Iconify name; none shows no icon in the navigation. */
+      icon: string | null
+      page: Load
+      /** Its preview embedded in a document; without one, a card. */
+      embed?: Load
+    }
+  >
   export default types
 }
 declare module '${MANIFEST_MODULE}' {
@@ -203,34 +231,20 @@ declare module '${MANIFEST_MODULE}' {
     )
     addVitePlugin(
       manifestPlugin(read, base, {
+        root,
         watch: [
           path.resolve(root, prototypesFolder),
           path.resolve(root, contributorsFolder),
           registry.configFile,
         ],
         changed: previews.changed,
+        textTypes: new Set(
+          fileTypes.filter((type) => type.text).map((type) => type.id),
+        ),
       }),
       { server: false },
     )
     addVitePlugin(previews.plugin, { server: false })
-    if (nuxt.options.dev) {
-      const route = fidelityRoute({
-        root,
-        contributorsFolder: process.env.STUDIO_CONTRIBUTORS || 'contributors',
-        configFile: registry.configFile,
-        read,
-        readers,
-      })
-      addVitePlugin(
-        {
-          name: 'studio-fidelity',
-          configureServer(server) {
-            server.middlewares.use(`${base}${FIDELITY_ROUTE}`, route)
-          },
-        },
-        { server: false },
-      )
-    }
   },
 })
 
@@ -263,7 +277,13 @@ const WATCH_EVENTS = ['add', 'addDir', 'unlink', 'unlinkDir', 'change'] as const
 function manifestPlugin(
   read: () => BuiltManifest,
   base: string,
-  live: { watch: string[]; changed: (files: ChangedFile[]) => Promise<void> },
+  live: {
+    root: string
+    watch: string[]
+    changed: (files: ChangedFile[]) => Promise<void>
+    /** The file types whose text the deployed site ships. */
+    textTypes: Set<string>
+  },
 ): Plugin {
   const resolved = `\0${MANIFEST_MODULE}`
   let production = false
@@ -284,7 +304,20 @@ function manifestPlugin(
       // Content-addressed files, linked relative to the main manifest.
       const built = read()
       const names: Record<string, string> = {}
-      for (const [prototype, list] of Object.entries(built.artifacts)) {
+      for (const [prototype, artifacts] of Object.entries(built.artifacts)) {
+        // The text of the files a page reads (documents) ships beside them.
+        const list = artifacts.map((artifact) => {
+          if (artifact.unavailable || !live.textTypes.has(artifact.type))
+            return artifact
+          const text = readFileSync(path.resolve(live.root, artifact.file))
+          const name = `text/${artifact.id}.${hash(text.toString('utf8'))}.txt`
+          this.emitFile({
+            type: 'asset',
+            fileName: `${folder}/${name}`,
+            source: text,
+          })
+          return { ...artifact, text: `./${name}` }
+        })
         const source = JSON.stringify(list)
         names[prototype] = `${prototype}.${hash(source)}.json`
         this.emitFile({
