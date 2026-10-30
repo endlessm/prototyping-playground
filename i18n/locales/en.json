@@ -213,7 +213,13 @@
   "markdown": {
     "onThisPage": "On this page",
     "diagramRendering": "Rendering diagram…",
-    "diagramError": "Unable to render Mermaid diagram."
+    "diagramError": "Unable to render Mermaid diagram.",
+    "diagramUpdating": "Updating diagram…",
+    "diagramTimeout": "Diagram rendering took too long. Repair the source or reload this view."
+  },
+  "diagram": {
+    "loading": "Loading diagram…",
+    "failed": "This diagram could not load. Open it to inspect its source."
   },
   "embed": {
     "open": "Open",
