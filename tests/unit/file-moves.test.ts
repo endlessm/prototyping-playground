@@ -474,6 +474,22 @@ const site = 'https://example.com/flows/Start'
     expect(read(`${DEMO}/Home.vue`)).toBe(before)
   })
 
+  test('[PR-67] a document’s embedded diagram follows the diagram’s rename', async () => {
+    write(`${DEMO}/flows/Sign-in.mermaid`, 'flowchart LR\n  A --> B\n')
+    write(
+      `${DEMO}/notes/Brief.md`,
+      '![Sign-in flow](../flows/Sign-in.mermaid)\n\n[as a link](../flows/Sign-in)\n',
+    )
+    await tree().rename({
+      prototype: BEN_DEMO,
+      path: 'flows/Sign-in.mermaid',
+      name: 'Login.mermaid',
+    })
+    expect(read(`${DEMO}/notes/Brief.md`)).toBe(
+      '![Sign-in flow](../flows/Login.mermaid)\n\n[as a link](../flows/Login)\n',
+    )
+  })
+
   test('[PR-67] references in other prototypes are left alone', async () => {
     write(
       'src/prototypes/ada/demo/Other.vue',
