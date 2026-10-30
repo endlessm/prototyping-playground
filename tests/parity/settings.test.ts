@@ -13,7 +13,7 @@ scenario(
       .toBe(true)
     await step('General settings and role')
     await page
-      .getByText('Disabling a module keeps its files and content.')
+      .getByText('Required for teams', { exact: true })
       .scrollIntoViewIfNeeded()
     await step('Capabilities and required modules')
   },
