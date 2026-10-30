@@ -160,4 +160,6 @@ export interface StudioModule {
   fileTypes?: ModuleFileType[]
   data?: Record<string, ModuleBuildData>
   preferences?: ModulePreferences
+  /** Public prototype imports through @module/<id>, relative to the module. */
+  library?: string
 }

@@ -138,9 +138,9 @@ export function directories(dir: string) {
 }
 
 /** Files under `dir` in file-tree order: folders first, then files. */
-export function treeFiles(dir: string, prefix = ''): string[] {
-  const entries = readdirSync(dir, { withFileTypes: true }).filter((entry) =>
-    listed(entry.name),
+export function treeFiles(dir: string, prefix = '', helpers = false): string[] {
+  const entries = readdirSync(dir, { withFileTypes: true }).filter(
+    (entry) => listed(entry.name) || (helpers && entry.name.startsWith('_')),
   )
   const folders = entries
     .filter((entry) => entry.isDirectory())
@@ -152,7 +152,7 @@ export function treeFiles(dir: string, prefix = ''): string[] {
     .sort(compare)
   return [
     ...folders.flatMap((name) =>
-      treeFiles(path.join(dir, name), `${prefix}${name}/`),
+      treeFiles(path.join(dir, name), `${prefix}${name}/`, helpers),
     ),
     ...files.map((name) => `${prefix}${name}`),
   ]
@@ -167,6 +167,12 @@ function readMeta(file: string, where: string, problems: string[]) {
     return null
   }
   const found: string[] = []
+  if (!meta || typeof meta !== 'object' || Array.isArray(meta)) {
+    problems.push(
+      `${where}: metadata must be an object. Restore the prototype metadata fields.`,
+    )
+    return null
+  }
   if (!isResourceId(meta.studioId))
     found.push(
       `${where}: "studioId" must be 16 lowercase letters and digits (Crockford base32).`,

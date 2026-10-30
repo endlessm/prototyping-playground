@@ -65,6 +65,8 @@ The [prototypes README](../../README.md) is the contract; read the sections you 
 
 ## Check it
 
+Run `yarn studio check`. Both Vue script blocks and TypeScript helpers must stay within this prototype, its assigned system, Vue, `#studio/prototype` and enabled `@module/<id>` libraries. Use scoped/module CSS and imported colocated assets. Files over 750 KiB block commits; prefer smaller WebP images. A missing system remains rebuild source outside the Studio's Nuxt typecheck; rebuild it before treating its preview as verified. Scope/identity checks warn locally, while CI checks pushes against the previous revision's permissions.
+
 12. Open `/prototypes/<prototype-id>/artifacts/<artifact-id>` in the running studio, or a state's own ID. The view renders in its system's preview document; "Open in a new tab" opens that document alone. New, renamed and removed views and states appear without a restart, and edits update the open preview live.
 13. Before trusting what the preview shows, check its state: in the studio, the element with `data-preview-session` has `data-preview-state` (`ready`, `error`, `empty`, `loading`) and `data-preview-freshness` (`stale` means the latest save did not render yet or failed). In a document opened alone, read `data-preview-state` on `<html>`. On an error, read the message under "This page couldn't load" or the out-of-date notice; it names the file, line and column. Fix the file; the preview recovers by itself.
 14. Run `yarn studio identity-audit` after adding views or states; it must report no missing or duplicate IDs.

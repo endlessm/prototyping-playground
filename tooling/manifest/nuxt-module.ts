@@ -40,6 +40,7 @@ import {
   viewsSignature,
 } from '../preview/pipeline.ts'
 import { loadSystems } from '../systems/registry.ts'
+import { moduleChecks } from '../checks/module-checks.ts'
 import {
   buildManifest,
   PROTOTYPES_FOLDER,
@@ -109,7 +110,18 @@ export default defineNuxtModule({
         defaultSystem: defaultSystem(),
         contributors: readContributors(root, contributorsFolder).contributors,
       })
-    const problems = [...systemProblems, ...read().problems]
+    const problems = [
+      ...systemProblems,
+      ...read().problems,
+      ...(await moduleChecks(root, registry.enabled)),
+    ]
+    if (!nuxt.options.dev && !nuxt.options._prepare)
+      nuxt.hook('build:before', () => {
+        if (problems.length)
+          throw new Error(
+            `The build stopped. Fix these declarations:\n${problems.join('\n')}`,
+          )
+      })
     for (const problem of problems) console.warn(`Warning: ${problem}`)
 
     // The page of each file type, loaded when an artifact of it opens.

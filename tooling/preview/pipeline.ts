@@ -11,6 +11,8 @@ import { pathToFileURL } from 'node:url'
 import vue from '@vitejs/plugin-vue'
 import type { InlineConfig, Plugin, PluginOption, ViteDevServer } from 'vite'
 import type { InstalledSystem } from '../systems/registry.ts'
+import { importGuard } from '../checks/imports.ts'
+import { loadRegistry } from '../modules/registry.ts'
 
 import {
   colorModeScript,
@@ -347,7 +349,19 @@ export async function previewConfig(
   mode: 'serve' | 'build',
 ): Promise<InlineConfig> {
   const dir = writeEntry(document, options)
+  const registry = await loadRegistry(options.root, {
+    modulesFolder: process.env.STUDIO_MODULES || undefined,
+    configFile: process.env.STUDIO_CONFIG || undefined,
+  })
   const plugins: PluginOption[] = [
+    importGuard({
+      root: options.root,
+      prototypesDir: options.prototypesDir,
+      system: document.system,
+      modules: registry.enabled
+        .filter(({ spec }) => spec.library)
+        .map(({ spec, dir }) => ({ id: spec.id, dir, library: spec.library! })),
+    }),
     vue({ include: [/\.vue$/] }),
     viewsPlugin(options),
     compilePlugin(options),
