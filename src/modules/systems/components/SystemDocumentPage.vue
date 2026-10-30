@@ -71,7 +71,7 @@ useHead({
     :key="file"
     :system="system"
     :source="sourceFile(system, `${section}/${address}`)"
-    :wide="text"
+    wide
   >
     <TextFileReader v-if="text" :path="file" :text="source" />
     <SystemDocument

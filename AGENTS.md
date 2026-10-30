@@ -71,4 +71,5 @@ When the person asks for a document inside a prototype, read [Documents: write-d
 When the person asks to add or change the human Manual, read [Manual: write-manual](src/modules/documentation/skills/write-manual/SKILL.md).
 When the person asks to create a prototype, or to create or edit its interactive views, read [Prototypes: build-prototype](src/modules/prototypes/skills/build-prototype/SKILL.md).
 When the person asks to rename, move, duplicate, archive, restore or delete a prototype, read [Prototypes: organize-prototype](src/modules/prototypes/skills/organize-prototype/SKILL.md).
+When the person asks to document a system component, or add its page and examples, read [Systems: document-component](src/modules/systems/skills/document-component/SKILL.md).
 <!-- /studio:modules -->

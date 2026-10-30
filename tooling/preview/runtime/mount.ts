@@ -24,6 +24,7 @@ import {
   type PreviewState,
 } from '../protocol.ts'
 import { COMPILE_ROUTE, PREVIEW_ROUTE } from '../constants.ts'
+import { EXAMPLE, type ExampleChoice } from './example.ts'
 import { THEME_QUERY } from '../theme.ts'
 import { PROTOTYPE_SCOPE, type PrototypeScope } from './navigation.ts'
 
@@ -46,6 +47,8 @@ interface View {
   /** For a named state, its title. */
   state: string | null
   lofi: boolean
+  /** For a component page's example, its name. */
+  example: string | null
   /** None while the view is empty. */
   load: (() => Promise<ViewModule>) | null
 }
@@ -315,6 +318,9 @@ export function mountPreview({ create, views }: MountOptions) {
     let failed = ''
     const app = create({ component, props, system })
     app.provide(PROTOTYPE_SCOPE, scope(id, view))
+    const example: ExampleChoice | null =
+      view.example === null ? null : { name: view.example, found: false }
+    if (example) app.provide(EXAMPLE, example)
     const ownError = app.config.errorHandler
     app.config.errorHandler = (error, instance, info) => {
       if (state === 'ready' && attempt === render)
@@ -349,6 +355,8 @@ export function mountPreview({ create, views }: MountOptions) {
       options: optionsKey(system),
     }
     box.hidden = false
+    if (!failed && example && !example.found)
+      failed = `${view.title}.vue has no <Example name=${JSON.stringify(example.name)}>.`
     if (failed) return status('error', attempt, failed)
     status('ready', attempt)
   }

@@ -1,12 +1,21 @@
 import urls from 'virtual:studio-module-data'
 import type {
+  CatalogComponent,
   CatalogDocument,
+  ComponentPageData,
   CatalogSkill,
   SystemCatalog,
   TokenGroup,
 } from '../../../../tooling/systems/catalog'
 
-export type { CatalogDocument, CatalogSkill, SystemCatalog, TokenGroup }
+export type {
+  CatalogComponent,
+  CatalogDocument,
+  CatalogSkill,
+  ComponentPageData,
+  SystemCatalog,
+  TokenGroup,
+}
 
 // The systems' catalogs and their Context and Skills text, built by the
 // module's build data (`module.ts`). Each is fetched once for the page and,
@@ -20,7 +29,7 @@ function shared<T>(key: string) {
     if (!response.ok) throw new Error(`Build data ${key} failed to load.`)
     return (await response.json()) as T
   }
-  return async () => {
+  const load = async () => {
     pending ??= fetchValue().then((first) => {
       value.value = first
       const reload = () =>
@@ -36,10 +45,18 @@ function shared<T>(key: string) {
     await pending
     return value as Ref<T>
   }
+  /** Fetches it again, as a page's "Try again" does. */
+  load.reload = async () => {
+    if (!pending) return void (await load())
+    value.value = await fetchValue()
+  }
+  return load
 }
 
 const loadCatalog = shared<{ systems: SystemCatalog[] }>('systems/catalog')
 const loadDocuments = shared<Record<string, string>>('systems/documents')
+const loadComponents =
+  shared<Record<string, ComponentPageData>>('systems/components')
 
 /** Every system the area shows, and one by its permanent ID. */
 export async function useSystemCatalog() {
@@ -54,4 +71,13 @@ export async function useSystemCatalog() {
 /** The Context and Skills Markdown, by repository path. */
 export async function useSystemDocuments() {
   return loadDocuments()
+}
+
+/**
+ * Each component page's Markdown, examples text and props, by
+ * `<system ID>/<slug>`, and a way to fetch them again.
+ */
+export async function useComponentPages() {
+  const pages = await loadComponents()
+  return { pages, reload: loadComponents.reload }
 }
