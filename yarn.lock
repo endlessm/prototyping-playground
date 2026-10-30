@@ -8233,6 +8233,7 @@ __metadata:
     vite: "npm:^8.3.5"
     vitest: "npm:^4.1.4"
     vue: "npm:^3.5.44"
+    vue-component-meta: "npm:3.3.13"
     vue-tsc: "npm:^3.2.7"
     yaml: "npm:^2.8.0"
   languageName: unknown
@@ -16588,6 +16589,22 @@ __metadata:
   dependencies:
     ufo: "npm:^1.6.4"
   checksum: 10c0/1ab96ba5583feeecd6fef458f7561e4c2bdaa048546bd3795493c2d3338206574f5afdbdcbb698705ed0877ee478fe794d8a74d81dbe8d20c242938f800844c5
+  languageName: node
+  linkType: hard
+
+"vue-component-meta@npm:3.3.13":
+  version: 3.3.13
+  resolution: "vue-component-meta@npm:3.3.13"
+  dependencies:
+    "@volar/typescript": "npm:2.4.28"
+    "@vue/language-core": "npm:3.3.13"
+    path-browserify: "npm:^1.0.1"
+  peerDependencies:
+    typescript: "*"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 10c0/d252dcc9fb23eafd0caabaf37556d1aad08b029adad1cd8fb05f8a01ed9cc9cd79c7860abdcfffc503910b03c79e9b8b26c67ffb99611f1f58c7c73848f0214d
   languageName: node
   linkType: hard
 

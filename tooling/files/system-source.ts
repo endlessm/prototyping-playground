@@ -22,6 +22,12 @@ import {
   type InstalledSystem,
 } from '../systems/registry.ts'
 import {
+  applyScaffold,
+  planScaffold,
+  ScaffoldError,
+  scaffoldTargets,
+} from '../systems/scaffold.ts'
+import {
   defaultIdentify,
   FileServiceError,
   MAX_SOURCE_BYTES,
@@ -61,7 +67,7 @@ export function reachable(system: InstalledSystem, file: string) {
   const [section] = parts
   if (section === 'context') return parts.length > 1 && file.endsWith('.md')
   if (section === 'skills') return parts.length > 2
-  return section === 'components' && parts.length > 2
+  return section === 'components' && parts.length > 1
 }
 
 function ordinaryFile(file: string) {
@@ -79,7 +85,7 @@ export function createSystemSourceService(options: SystemSourceOptions) {
   const configFile = path.resolve(root, options.configFile ?? CONFIG_FILE)
   const contributorsFolder = options.contributorsFolder ?? 'contributors'
 
-  async function locate(address: SystemFileAddress) {
+  async function systemOf(id: string) {
     let config: TeamConfig & { systems?: string[] } = {}
     try {
       config = readConfig(configFile)
@@ -87,7 +93,11 @@ export function createSystemSourceService(options: SystemSourceOptions) {
       // No configuration: no systems, and nobody is an Admin.
     }
     const { systems } = await loadSystems(root, config, folder)
-    const system = systems.find(({ id }) => id === address.system)
+    return { system: systems.find((entry) => entry.id === id), config }
+  }
+
+  async function locate(address: SystemFileAddress) {
+    const { system, config } = await systemOf(address.system)
     if (!system || !reachable(system, address.path)) throw notFound()
     const file = path.join(system.dir, ...address.path.split('/'))
     if (!ordinaryFile(file)) throw notFound()
@@ -137,6 +147,54 @@ export function createSystemSourceService(options: SystemSourceOptions) {
         version: versionOf(content),
         editable: !refusal,
         ...(refusal ? { reason: refusal.message } : {}),
+      }
+    },
+
+    /**
+     * Creates the examples file and page a component is missing, from
+     * templates, as `yarn component-docs <system> <component> --yes` does.
+     * Returns the files it created, repository-relative.
+     */
+    async create(address: {
+      system: string
+      component: string
+    }): Promise<{ files: string[] }> {
+      const { system, config } = await systemOf(address.system)
+      if (!system || !address.component) throw notFound()
+      const refusal = refusalFor(system, config)
+      if (refusal)
+        throw new FileServiceError(403, refusal.code, refusal.message)
+      try {
+        const steps = planScaffold(
+          system,
+          root,
+          scaffoldTargets(system, address.component),
+        )
+        const sources = steps
+          .filter(({ file }) => file.endsWith('.examples.vue'))
+          .map(({ file }) => file.replace(/\.examples\.vue$/, '.vue'))
+        const required: Record<string, { name: string; type: string }[]> = {}
+        if (sources.length) {
+          const { componentProps } = await import('../systems/props.ts')
+          const found = await componentProps(
+            sources.map((file) => path.join(root, file)),
+          )
+          for (const file of sources) {
+            const result = found[path.join(root, file)]
+            if (result && !('error' in result))
+              required[file] = result.props.filter((prop) => prop.required)
+          }
+        }
+        const done = applyScaffold(root, steps, required)
+        return {
+          files: done
+            .filter(({ kind }) => kind === 'create')
+            .map(({ file }) => file),
+        }
+      } catch (error) {
+        if (error instanceof ScaffoldError)
+          throw new FileServiceError(404, 'not_found', error.message)
+        throw error
       }
     },
 

@@ -38,7 +38,11 @@ import {
   VIEWS_RESOLVED,
   viewsSignature,
 } from '../preview/pipeline.ts'
-import { systemContentProblems } from '../systems/catalog.ts'
+import {
+  systemContentProblems,
+  systemDocsReport,
+  systemPreviews,
+} from '../systems/catalog.ts'
 import { loadSystems, systemsFolder } from '../systems/registry.ts'
 import {
   buildManifest,
@@ -116,6 +120,17 @@ export default defineNuxtModule({
       ...read().problems,
     ]
     for (const problem of problems) console.warn(`Warning: ${problem}`)
+    // Component documentation gaps: a warning per system, or, for a system
+    // that declares `docs: 'strict'`, a build that stops.
+    const building = !nuxt.options.dev && !nuxt.options._prepare
+    for (const system of systems) {
+      const { warning, fails } = systemDocsReport(system, root)
+      if (fails && building)
+        throw new Error(
+          `${warning}\n${system.folder}/system.ts declares docs: 'strict', so the build stops until they are fixed.`,
+        )
+      if (warning) console.warn(`Warning: ${warning}`)
+    }
 
     // Each file type's page, loaded when an artifact of it opens, and its
     // preview in documents, loaded when one appears.
@@ -177,10 +192,20 @@ declare module '${MANIFEST_MODULE}' {
       workDir,
       baseURL: base,
       prototypesDir: path.resolve(root, prototypesFolder),
-      // Each view, then each of its named states.
+      // Each view, then each of its named states; then the system's own
+      // examples and Overview content.
       views: () => {
         const { manifest, artifacts } = read()
-        return manifest.prototypes
+        const own = document.system
+          ? systemPreviews(document.system).map(({ id, file, example }) => ({
+              id,
+              file,
+              prototype: '',
+              path: '',
+              ...(example === undefined ? {} : { example }),
+            }))
+          : []
+        const views = manifest.prototypes
           .filter(({ systemId }) => (systemId ?? NO_SYSTEM) === document.key)
           .flatMap(({ id: prototype }) =>
             (artifacts[prototype] ?? [])
@@ -202,6 +227,7 @@ declare module '${MANIFEST_MODULE}' {
                 ]
               }),
           )
+        return [...views, ...own]
       },
     })
 
@@ -234,6 +260,8 @@ declare module '${MANIFEST_MODULE}' {
         root,
         watch: [
           path.resolve(root, prototypesFolder),
+          // Systems' examples and Overview content reach their documents.
+          path.resolve(root, systemsFolder()),
           path.resolve(root, contributorsFolder),
           registry.configFile,
         ],

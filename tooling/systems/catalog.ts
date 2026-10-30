@@ -8,7 +8,19 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { parse } from 'yaml'
 import { directories, posix, treeFiles } from '../manifest/build.ts'
+import {
+  componentProblems,
+  discoverComponents,
+  docsWarning,
+  duplicateProblems,
+  exampleNames,
+  exampleTitle,
+  kebab,
+  type DocsProblem,
+} from './components.ts'
 import type { SystemAssetKind, SystemLibrary } from './contract.ts'
+import { exampleId, overviewId } from './preview-ids.ts'
+import type { ComponentPropsDoc } from './props.ts'
 import type { InstalledSystem } from './registry.ts'
 import { isBinaryFile, isTextContent } from './text-files.ts'
 
@@ -44,12 +56,34 @@ export interface CatalogLibrary extends Omit<
   assets: SystemAssetKind[]
 }
 
-export interface CatalogComponent {
-  /** Its folder under `components/`, and its address. */
-  slug: string
+export interface CatalogExample {
+  /** As its `<Example name>` spells it. */
+  name: string
+  /** In sentence case. */
   title: string
-  /** Repository-relative, documentation first. */
+  /** What the system's preview document shows it as. */
+  id: string
+}
+
+export interface CatalogComponent {
+  /** Its page's address under the system's Components. */
+  slug: string
+  /** As its files spell it. */
+  name: string
+  title: string
+  description: string | null
+  /** The page's `source`: where the component comes from, in a sentence. */
+  sourceNote: string | null
+  /** The page's `docs`: its documentation elsewhere. */
+  docsUrl: string | null
+  /** Repository-relative: the page, the examples, the component, then the rest. */
   files: string[]
+  /** Its page, examples and component files, repository-relative, or null. */
+  doc: string | null
+  examplesFile: string | null
+  source: string | null
+  /** In the examples file's order. */
+  examples: CatalogExample[]
 }
 
 export interface CatalogDocument {
@@ -88,6 +122,11 @@ export interface SystemCatalog {
   /** Each token name once, by page, in declaration order within a page. */
   tokens: { name: string; group: TokenGroup }[]
   components: CatalogComponent[]
+  /**
+   * The preview document's ID for the system's own Overview content
+   * (`overview.vue` in its folder), or null when it has none.
+   */
+  overview: string | null
   /** Under `assets/`. */
   assets: { path: string; kind: SystemAssetKind }[]
   context: CatalogDocument[]
@@ -97,6 +136,8 @@ export interface SystemCatalog {
 }
 
 export const SKILL_FILE = 'SKILL.md'
+/** A system's own content for its Overview, in its own look. */
+export const OVERVIEW_FILE = 'overview.vue'
 const IMAGES = ['.svg', '.png', '.jpg', '.jpeg', '.webp', '.avif', '.gif']
 const FONTS = ['.woff', '.woff2', '.ttf', '.otf']
 
@@ -232,6 +273,7 @@ export function systemCatalog(
   for (const { name, value } of stylesheet ? themeTokens(stylesheet) : [])
     if (!tokens.has(name)) tokens.set(name, groupOf(name, value))
   const componentsDir = path.join(dir, 'components')
+  const componentsAt = `${folder}/components`
   const contextDir = path.join(dir, 'context')
   return {
     id: system.id,
@@ -258,21 +300,45 @@ export function systemCatalog(
         .filter(([, found]) => found === group)
         .map(([name]) => ({ name, group })),
     ),
-    components: directories(componentsDir).flatMap((slug) => {
-      const files = treeFiles(path.join(componentsDir, slug))
-      const doc = files.find((file) => file.toLowerCase().endsWith('.md'))
-      if (!doc) return []
-      const source = readFileSync(path.join(componentsDir, slug, doc), 'utf8')
-      return [
-        {
-          slug,
-          title: text(frontmatter(source)?.title) ?? skillTitle(slug),
-          files: [doc, ...files.filter((file) => file !== doc)].map(
-            (file) => `${folder}/components/${slug}/${file}`,
-          ),
-        },
-      ]
+    components: discoverComponents(filesIn(componentsDir)).map((component) => {
+      const { doc, examples, source } = component.files
+      const read = (file: string | null) =>
+        file ? readFileSync(path.join(componentsDir, file), 'utf8') : null
+      const data = frontmatter(read(doc) ?? '') ?? {}
+      const at = (file: string | null) =>
+        file ? `${componentsAt}/${file}` : null
+      const own = [doc, examples, source].filter(
+        (file): file is string => file !== null,
+      )
+      const folderOf = (file: string) =>
+        file.includes('/') ? file.slice(0, file.lastIndexOf('/') + 1) : null
+      const home = folderOf(own[0]!)
+      const rest = home
+        ? filesIn(componentsDir).filter(
+            (file) => file.startsWith(home) && !own.includes(file),
+          )
+        : []
+      return {
+        slug: component.slug,
+        name: component.name,
+        title: text(data.title) ?? skillTitle(kebab(component.name)),
+        description: text(data.description),
+        sourceNote: text(data.source),
+        docsUrl: text(data.docs),
+        files: [...own, ...rest].map((file) => at(file)!),
+        doc: at(doc),
+        examplesFile: at(examples),
+        source: at(source),
+        examples: exampleNames(read(examples) ?? '').map((name) => ({
+          name,
+          title: exampleTitle(name),
+          id: exampleId(system.id, component.slug, name),
+        })),
+      }
     }),
+    overview: existsSync(path.join(dir, OVERVIEW_FILE))
+      ? overviewId(system.id)
+      : null,
     assets: filesIn(path.join(dir, 'assets')).flatMap((file) => {
       const extension = path.extname(file).toLowerCase()
       const kind: SystemAssetKind | null = FONTS.includes(extension)
@@ -403,4 +469,117 @@ export function systemContentProblems(system: InstalledSystem, root: string) {
       problems.push(`The "description" in ${at} ${descriptionProblem}`)
   }
   return problems
+}
+
+/**
+ * What a system's preview document shows besides views: each example of
+ * its component pages and its own Overview content, by preview ID, with the
+ * absolute path of the file it comes from.
+ */
+export function systemPreviews(system: InstalledSystem) {
+  const componentsDir = path.join(system.dir, 'components')
+  const entries: { id: string; file: string; example?: string }[] = []
+  for (const component of discoverComponents(filesIn(componentsDir))) {
+    const { examples } = component.files
+    if (!examples) continue
+    const file = path.join(componentsDir, examples)
+    for (const name of exampleNames(readFileSync(file, 'utf8')))
+      entries.push({
+        id: exampleId(system.id, component.slug, name),
+        file,
+        example: name,
+      })
+  }
+  const overview = path.join(system.dir, OVERVIEW_FILE)
+  if (existsSync(overview))
+    entries.push({ id: overviewId(system.id), file: overview })
+  return entries
+}
+
+/**
+ * A system's component documentation gaps, as its `docs` setting reports
+ * them: one warning listing the first five (`warn`), the same warning that
+ * stops a build (`strict`), or nothing (`off`).
+ */
+export function systemDocsReport(system: InstalledSystem, root: string) {
+  const { docs, label } = system.spec
+  if (docs === 'off') return { warning: null, fails: false }
+  const componentsDir = path.join(system.dir, 'components')
+  const at = (file: string) =>
+    posix(path.relative(root, path.join(componentsDir, file)))
+  const read = (file: string | null) =>
+    file ? readFileSync(path.join(componentsDir, file), 'utf8') : null
+  const found = discoverComponents(filesIn(componentsDir))
+  const problems: DocsProblem[] = []
+  for (const component of found) {
+    const { source, doc, examples } = component.files
+    const file = at((source ?? doc ?? examples)!)
+    for (const message of componentProblems(component, {
+      doc: read(doc),
+      examples: read(examples),
+    }))
+      problems.push({ file, message })
+  }
+  for (const { component, problem } of duplicateProblems(found)) {
+    const { source, doc, examples } = component.files
+    problems.push({ file: at((source ?? doc ?? examples)!), message: problem })
+  }
+  const warning = docsWarning(label, problems)
+  return { warning, fails: docs === 'strict' && warning !== null }
+}
+
+export interface ComponentPageData {
+  /** The page's Markdown, or null when it has none. */
+  page: string | null
+  /** The examples file's text, for "Show code". */
+  examples: string | null
+  /** Read from the component's code; null without a component file. */
+  props: ComponentPropsDoc | null
+  /** Files that couldn't be read, each with why. */
+  errors: string[]
+}
+
+/**
+ * What each component page shows besides the catalog, by `<system ID>/<slug>`:
+ * its page and examples text and its props. Props are read with Vue's
+ * component metadata tooling, loaded only here.
+ */
+export async function componentPages(systems: InstalledSystem[]) {
+  const pages: Record<string, ComponentPageData> = {}
+  const sources = new Map<string, ComponentPageData>()
+  for (const system of systems) {
+    const componentsDir = path.join(system.dir, 'components')
+    for (const component of discoverComponents(filesIn(componentsDir))) {
+      const errors: string[] = []
+      const read = (file: string | null) => {
+        if (!file) return null
+        try {
+          return readFileSync(path.join(componentsDir, file), 'utf8')
+        } catch (error) {
+          errors.push(`${file}: ${(error as Error).message}`)
+          return null
+        }
+      }
+      const { doc, examples, source } = component.files
+      const data: ComponentPageData = {
+        page: read(doc),
+        examples: read(examples),
+        props: null,
+        errors,
+      }
+      pages[`${system.id}/${component.slug}`] = data
+      if (source) sources.set(path.join(componentsDir, source), data)
+    }
+  }
+  if (sources.size) {
+    const { componentProps } = await import('./props.ts')
+    const found = await componentProps([...sources.keys()])
+    for (const [file, data] of sources) {
+      const result = found[file]
+      if (!result) continue
+      if ('error' in result) data.errors.push(result.error)
+      else data.props = result
+    }
+  }
+  return pages
 }
