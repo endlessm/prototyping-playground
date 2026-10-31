@@ -193,6 +193,28 @@ export interface ModulePreferences {
   defaults: Record<string, PreferenceValue>
 }
 
+/** A request to a module's handler on the local dev server. */
+export interface ModuleServerRequest {
+  /** The studio's root folder. */
+  root: string
+  /** The contributor profiles' folder, absolute. */
+  contributorsFolder: string
+  /** The contributor your Git identity resolves to, or null. */
+  me: string | null
+  method: string
+  /** The parsed JSON body, or undefined. */
+  body: unknown
+}
+
+/**
+ * A module's handler on the local dev server, the default export of its
+ * file. It answers with JSON; a thrown error with a `status` answers with
+ * that status and the error's message.
+ */
+export type ModuleServerHandler = (
+  request: ModuleServerRequest,
+) => unknown | Promise<unknown>
+
 export interface StudioModule {
   /** Lowercase letters, numbers and dashes; also the module's folder name. */
   id: string
@@ -233,4 +255,11 @@ export interface StudioModule {
   prototypeActions?: string
   data?: Record<string, ModuleBuildData>
   preferences?: ModulePreferences
+  /**
+   * Handlers on the local dev server only, by name: each answers same-origin
+   * requests at `<base>_studio/modules/<id>/<name>` from a `.ts` file,
+   * relative to the module's folder, whose default export is a
+   * ModuleServerHandler. The deployed site has none.
+   */
+  server?: Record<string, string>
 }

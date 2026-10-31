@@ -215,3 +215,22 @@ describe('a module’s prototype actions', () => {
     ])
   })
 })
+
+describe('a module’s local server handlers', () => {
+  test('[SH-134] a module may answer requests on the local dev server, from .ts files of its own', () => {
+    expect(
+      moduleProblems(
+        { ...base, server: { claim: 'server/claim.ts' } },
+        'notes',
+      ),
+    ).toEqual([])
+    for (const server of [
+      { Claim: 'server/claim.ts' },
+      { claim: 'server/claim.vue' },
+      'server/claim.ts',
+    ])
+      expect(moduleProblems({ ...base, server }, 'notes')).toEqual([
+        'notes/module.ts: "server" maps lowercase names to the .ts files that answer them on the local dev server.',
+      ])
+  })
+})

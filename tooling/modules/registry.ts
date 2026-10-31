@@ -67,6 +67,7 @@ const KEYS = new Set([
   'prototypeActions',
   'data',
   'preferences',
+  'server',
 ])
 const RAIL = new Set(['top', 'bottom', 'none'])
 
@@ -231,6 +232,20 @@ export function moduleProblems(spec: unknown, folderName: string): string[] {
   )
     problems.push(
       `${where}: "prototypeActions" names the .ts file whose default export lists its items for the prototype menu.`,
+    )
+  const server = module.server
+  if (
+    server !== undefined &&
+    (!server ||
+      typeof server !== 'object' ||
+      Array.isArray(server) ||
+      Object.entries(server).some(
+        ([name, file]) =>
+          !ID.test(name) || typeof file !== 'string' || !file.endsWith('.ts'),
+      ))
+  )
+    problems.push(
+      `${where}: "server" maps lowercase names to the .ts files that answer them on the local dev server.`,
     )
   const data = module.data
   if (data !== undefined) {

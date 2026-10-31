@@ -47,6 +47,8 @@ Select the studio's logo to return to **Home**. It has a search field and blocks
 
 Locally, Home greets you and puts your own prototypes first, then recent work from the team and the systems. On the deployed studio it shows the studio's name and tagline and what colleagues come for, without knowing who is looking.
 
+The first time you open Home locally, a short welcome introduces the studio, Endless Studios screens, the canvas and how to ask your agent. Skip it whenever you like; it doesn't open again, even in another browser. To see it again, ask your agent to show you the welcome again.
+
 Something missing from Home may still be in its collection or found through search.
 
 ## How do I change Home?

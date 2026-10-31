@@ -823,5 +823,35 @@
     "home": "Home",
     "description": "Find pages, prototypes and actions.",
     "empty": "No results found."
+  },
+  "welcome": {
+    "progress": "Introduction progress",
+    "start": "Show me around",
+    "next": "Next",
+    "back": "Back",
+    "finish": "Explore my studio",
+    "skip": "Skip introduction",
+    "welcome": {
+      "title": "Welcome to {name}",
+      "text": "This is the Endless team’s prototyping sandbox. You describe an idea, your coding agent builds it as a working prototype, and the team tries it here."
+    },
+    "screens": {
+      "title": "Built from Endless Studios screens",
+      "text": "Prototypes start from Endless Studios’ own screens and components, so what you try looks and behaves like the product, with sample data in place of real accounts."
+    },
+    "canvas": {
+      "title": "Lay it out on a canvas",
+      "text": "A canvas puts views, documents and notes side by side, with arrows between them. Use one to walk through a flow or compare options, and draw over a view to show your agent what to change."
+    },
+    "agent": {
+      "title": "Ask your agent",
+      "text": "Work with your coding agent in this studio’s folder. Tell it what you want to explore, who it’s for and which screens to start from, such as “Prototype the mentor dashboard, showing which learners are stuck.” It asks about anything unclear.",
+      "manual": "Read “Working with your agent” in the Manual"
+    },
+    "explore": {
+      "title": "Start exploring",
+      "text": "Ask your agent for your first prototype, or open Prototypes to see what the team is working on.",
+      "manual": "The Manual explains the rest whenever you need it."
+    }
   }
 }

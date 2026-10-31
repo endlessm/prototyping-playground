@@ -13,10 +13,17 @@ import {
 } from 'nuxt/kit'
 import type { NuxtPage } from 'nuxt/schema'
 import type { Plugin } from 'vite'
-import type { ModulePage } from './contract.ts'
+import { pathToFileURL } from 'node:url'
+import type { ModulePage, ModuleServerHandler } from './contract.ts'
+import { resolveIdentity } from '../contributors/identity.ts'
+import { readContributors } from '../contributors/profiles.ts'
 import { guidanceData } from '../guidance/data.ts'
 import { buildDataStore } from './build-data.ts'
-import { loadRegistry, modulesForApp } from './registry.ts'
+import {
+  loadRegistry,
+  modulesForApp,
+  type InstalledModule,
+} from './registry.ts'
 
 const DATA_MODULE = 'virtual:studio-module-data'
 const DATA_ROUTE = '_studio/data/'
@@ -162,6 +169,8 @@ declare module '${DATA_MODULE}' {
     })
     const base = nuxt.options.app.baseURL
     addVitePlugin(buildDataPlugin(store, base), { server: false })
+    if (nuxt.options.dev)
+      addVitePlugin(serverPlugin(enabled, root, base), { server: false })
   },
 })
 
@@ -242,6 +251,72 @@ function buildDataPlugin(
       server.watcher.add(store.watchRoots)
       server.httpServer?.once('close', () => {
         for (const event of events) server.watcher.off(event, stale)
+      })
+    },
+  }
+}
+
+const SERVER_ROUTE = '_studio/modules/'
+
+/**
+ * The enabled modules' handlers on the local dev server, at
+ * `<base>_studio/modules/<id>/<name>`: same-origin only, with who is working
+ * resolved afresh for every request.
+ */
+function serverPlugin(
+  enabled: InstalledModule[],
+  root: string,
+  base: string,
+): Plugin {
+  const handlers = new Map(
+    enabled.flatMap(({ spec, dir }) =>
+      Object.entries(spec.server ?? {}).map(
+        ([name, file]) => [`${spec.id}/${name}`, path.join(dir, file)] as const,
+      ),
+    ),
+  )
+  const folder = path.resolve(
+    root,
+    process.env.STUDIO_CONTRIBUTORS || 'contributors',
+  )
+  return {
+    name: 'studio-module-server',
+    configureServer(server) {
+      server.middlewares.use(`${base}${SERVER_ROUTE}`, async (req, res) => {
+        const file = handlers.get(
+          (req.url ?? '').split('?')[0]!.replace(/^\/+/, ''),
+        )
+        if (!sameOrigin(req.headers)) res.statusCode = 403
+        else if (!file) res.statusCode = 404
+        if (res.statusCode !== 200 || !file) {
+          res.end()
+          return
+        }
+        res.setHeader('Content-Type', 'application/json')
+        res.setHeader('Cache-Control', 'no-store')
+        try {
+          let text = ''
+          for await (const chunk of req) text += chunk
+          const { contributors, problems } = readContributors(root, folder)
+          if (problems.length) throw new Error(problems.join('\n'))
+          const handler = (
+            (await import(pathToFileURL(file).href)) as {
+              default: ModuleServerHandler
+            }
+          ).default
+          const answer = await handler({
+            root,
+            contributorsFolder: folder,
+            me: resolveIdentity(root, contributors).key,
+            method: req.method ?? 'GET',
+            body: text ? JSON.parse(text) : undefined,
+          })
+          res.end(JSON.stringify(answer ?? null))
+        } catch (error) {
+          const status = (error as { status?: unknown }).status
+          res.statusCode = typeof status === 'number' ? status : 500
+          res.end(JSON.stringify({ error: (error as Error).message }))
+        }
       })
     },
   }
