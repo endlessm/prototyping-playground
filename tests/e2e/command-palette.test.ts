@@ -212,9 +212,17 @@ for (const deployed of [false, true]) {
       const page = await newPage()
       await page.goto(`${studio.url}prototypes/st4tes0000000001`)
       const frame = page.locator('iframe').first().contentFrame()
+      // The preview passes shortcuts on once its runtime has rendered the view.
       await expect
-        .poll(() => frame.locator('body').isVisible(), { timeout: 60_000 })
-        .toBe(true)
+        .poll(
+          () =>
+            page
+              .locator('[data-preview-state]')
+              .first()
+              .getAttribute('data-preview-state'),
+          { timeout: 60_000 },
+        )
+        .toBe('ready')
       await frame.locator('body').click()
       await page.keyboard.press('Control+k')
       const input = page.getByPlaceholder('Search the studio')
