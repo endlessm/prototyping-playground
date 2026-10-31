@@ -58,9 +58,10 @@ export function checklistRows(markdown: string): ChecklistRow[] {
 }
 
 // The first string argument of test(), it(), describe() (with any modifier,
-// such as `.skip`) and the parity harness's scenario().
+// such as `.skip`, or a conditional one such as `.runIf(cond)`) and the
+// parity harness's scenario().
 const CALL =
-  /\b(?:test|it|describe|scenario)(?:\.\w+)*\(\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/g
+  /\b(?:test|it|describe|scenario)(?:\.\w+(?:\((?:[^()]|\([^()]*\))*\))?)*\(\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/g
 
 export function testNames(source: string) {
   return [...source.matchAll(CALL)].map((match) => match[2]!)

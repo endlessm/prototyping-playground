@@ -65,6 +65,23 @@ describe('checklist coverage', () => {
     ])
   })
 
+  test('finds the names of tests that run only under a condition', () => {
+    const source = [
+      "test.runIf(process.platform === 'win32')(",
+      "  '«SY-56» a held folder is reported',",
+      '  async () => {},',
+      ')',
+      "test.skipIf(isCi())('«PR-45» locally only', () => {})",
+    ]
+      .join('\n')
+      .replaceAll('«', '[')
+      .replaceAll('»', ']')
+    expect(testNames(source)).toEqual([
+      '[SY-56] a held folder is reported',
+      '[PR-45] locally only',
+    ])
+  })
+
   test('maps each row to the tests that name it and to recorded visual checks', () => {
     const report = coverageReport({
       checklist: CHECKLIST,

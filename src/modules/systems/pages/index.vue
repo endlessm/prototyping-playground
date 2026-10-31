@@ -5,6 +5,7 @@ import SystemNewButton from '../components/SystemNewButton.vue'
 import SystemsCollection from '../components/SystemsCollection.vue'
 import { useSystemCatalog } from '../composables/useSystemCatalog'
 import { useSystemTransition } from '../composables/useSystemTransition'
+import { inSystemOrder } from '../utils/pages'
 
 // The collection: every system as a card or a row, the default first and
 // the others alphabetically, with archived ones in their own section. The
@@ -31,14 +32,9 @@ const search = (value: string | number) =>
     { replace: true },
   )
 
-const ordered = computed(() => {
-  const preferred = manifest.value.defaultSystem
-  return [...systems.value].sort(
-    (a, b) =>
-      Number(b.id === preferred) - Number(a.id === preferred) ||
-      a.label.localeCompare(b.label),
-  )
-})
+const ordered = computed(() =>
+  inSystemOrder(systems.value, manifest.value.defaultSystem),
+)
 const matching = computed(() => {
   const words = query.value.trim().toLowerCase()
   return ordered.value.filter((system) =>

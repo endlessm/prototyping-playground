@@ -5,6 +5,8 @@ import type { SystemCatalog } from '../../tooling/systems/catalog'
 import {
   documentFile,
   documentLink,
+  homeSystems,
+  inSystemOrder,
   sourceFile,
   themePages,
 } from '../../src/modules/systems/utils/pages'
@@ -146,5 +148,38 @@ describe('a system’s pages', () => {
       '/systems/hrbr000000000001/skills/build-flow/scripts/check.mjs',
     )
     expect(documentLink(harbor, skill, 'scripts/missing.mjs')).toBeUndefined()
+  })
+
+  test('[SY-12] the default system comes first, then the others by name', () => {
+    const systems = [
+      { id: 'b', label: 'Beacon' },
+      { id: 'z', label: 'Zephyr' },
+      { id: 'a', label: 'Anchor' },
+    ]
+    expect(inSystemOrder(systems, 'z').map(({ label }) => label)).toEqual([
+      'Zephyr',
+      'Anchor',
+      'Beacon',
+    ])
+    expect(inSystemOrder(systems, null).map(({ label }) => label)).toEqual([
+      'Anchor',
+      'Beacon',
+      'Zephyr',
+    ])
+  })
+
+  test('[SY-04] Home shows up to three active systems, the default first', () => {
+    const systems = [
+      { id: 'a', label: 'Anchor', status: 'active' as const },
+      { id: 'b', label: 'Beacon', status: 'archived' as const },
+      { id: 'c', label: 'Cove', status: 'active' as const },
+      { id: 'd', label: 'Dock', status: 'active' as const },
+      { id: 'e', label: 'Eddy', status: 'active' as const },
+    ]
+    expect(homeSystems(systems, 'e').map(({ label }) => label)).toEqual([
+      'Eddy',
+      'Anchor',
+      'Cove',
+    ])
   })
 })

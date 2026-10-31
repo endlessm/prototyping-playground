@@ -160,6 +160,7 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
       true,
     )
     expect(await harbor.innerText()).toContain('Screens for the dock team.')
+    // Its archived prototype doesn't count.
     expect(await harbor.innerText()).toContain('Used by 4 prototypes')
     const lantern = cards.nth(1)
     expect(await lantern.innerText()).toContain(
@@ -369,6 +370,30 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
         (element) => (element as HTMLElement & { kept?: boolean }).kept,
       ),
     ).toBe(true)
+
+    // A short window, so each page scrolls: the next page starts at the top.
+    await page.setViewportSize({ width: 1280, height: 200 })
+    const body = page.locator('[id$="-panel-system-page"] [data-slot="body"]')
+    await link(panel, 'Overview').click()
+    await visible(heading(page, 'Harbor'))
+    await expect
+      .poll(() =>
+        body.evaluate((element) => {
+          element.scrollTop = element.scrollHeight
+          return element.scrollTop
+        }),
+      )
+      .toBeGreaterThan(0)
+    await link(panel, 'Libraries').click()
+    await visible(heading(page, 'Libraries'))
+    expect(
+      await body.evaluate(
+        (element) => element.scrollHeight > element.clientHeight,
+      ),
+    ).toBe(true)
+    await expect
+      .poll(() => body.evaluate((element) => element.scrollTop))
+      .toBe(0)
   })
 
   test('[SY-34] [SY-35] branches open by default, fold, and stay as left for the session', async () => {
@@ -522,9 +547,11 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     )
 
     const usage = region(page, 'Where it’s used')
+    // Harbor's archived prototype, the newest, neither counts nor shows.
     expect(await text(usage)).toContain('4 Active prototypes')
     const recent = usage.getByRole('listitem')
     expect(await recent.count()).toBe(3)
+    expect(await usage.getByText('Old berths').count()).toBe(0)
     expect(await recent.nth(0).innerText()).toContain('Cargo search')
     expect(await recent.nth(0).innerText()).toContain('ben')
     expect(await recent.nth(2).innerText()).toContain('Crane booking')
@@ -538,6 +565,9 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
         'href',
       ),
     ).toBe(`/prototypes?system=${HARBOR}`)
+    // The shared blocks keep the studio's look: the system's theme stays in
+    // the content it styles.
+    expect(await page.locator('.harbor-theme').count()).toBe(0)
   })
 
   test('[SY-63] [SY-64] [SY-65] [SY-66] an empty system’s Overview says what is missing', async () => {
@@ -896,6 +926,9 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     await visible(nav(page, 'Harbor'))
     await page.goto(`${studio.url}systems/${HARBOR}/context/missing`)
     await visible(page.getByText('Page not found'))
+    // A theme page the system has no tokens for.
+    await page.goto(`${studio.url}systems/${LANTERN}/colors`)
+    await visible(page.getByText('Page not found'))
   })
 
   test('[SY-114] [SY-115] [SY-118] [SY-119] a maintainer edits a Context document in source mode and saves it', async () => {
@@ -913,6 +946,13 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     await page.keyboard.press('Control+A')
     await page.keyboard.insertText('# Voice and tone\n\nSaved in the studio.\n')
     await visible(page.getByText('Unsaved changes', { exact: true }))
+    // Unsaved changes are protected.
+    await button(page, 'Done').click()
+    const discard = page.getByRole('dialog', { name: 'Discard your changes?' })
+    await visible(discard)
+    await button(discard, 'Keep editing').click()
+    await hidden(discard)
+    await editor(page, file).click()
     await page.keyboard.press('Control+S')
     await visible(page.getByText('Saved', { exact: true }))
     expect(read('harbor/context/voice.md')).toBe(
@@ -922,6 +962,27 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     await hidden(editor(page, file))
     await visible(page.getByText('Saved in the studio.'))
     reset()
+  })
+
+  test('[SY-118] the source editor keeps the studio’s dark mode in a light-only system', async () => {
+    const page = await newPage()
+    await page.addInitScript(() =>
+      localStorage.setItem('design-studio:color-mode', 'dark'),
+    )
+    await page.goto(`${studio.url}systems/${HARBOR}/colors?mode=source`)
+    const source = editor(page, systemsPath('harbor/styles/theme.css'))
+    await visible(source)
+    expect(
+      await page
+        .locator('html')
+        .evaluate((html) => html.classList.contains('dark')),
+    ).toBe(true)
+    expect(
+      await source.evaluate(
+        (node) => getComputedStyle(node.closest('.cm-editor')!).colorScheme,
+      ),
+    ).toBe('dark')
+    expect(await page.locator('.harbor-theme').count()).toBe(0)
   })
 
   test('[SY-115] the Overview’s source is the system’s declaration, and a theme page’s is its stylesheet', async () => {
