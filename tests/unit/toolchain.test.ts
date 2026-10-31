@@ -1,10 +1,18 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import path from 'node:path'
 import { describe, expect, test } from 'vitest'
 import { parse } from 'yaml'
 
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
 const yarnrc = parse(readFileSync('.yarnrc.yml', 'utf8'))
 const workflow = parse(readFileSync('.github/workflows/checks.yml', 'utf8'))
+
+// Every file under the studio's own source folders.
+const sourceFiles = ['tooling', 'src', 'app', '.github'].flatMap((folder) =>
+  readdirSync(folder, { recursive: true, withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .map((entry) => path.join(entry.parentPath, entry.name)),
+)
 
 // The commands a job runs, in order.
 function steps(job: string): string[] {
@@ -39,9 +47,47 @@ describe('package scripts', () => {
 })
 
 describe('toolchain', () => {
-  test('[CL-128] the ownership map and command remain absent', () => {
+  test('[CL-36] every module lives in one folder, with no separate platform modules', () => {
+    expect(existsSync('src/platform/modules')).toBe(false)
+    for (const id of readdirSync('src/modules'))
+      expect(existsSync(`src/modules/${id}/module.ts`), id).toBe(true)
+  })
+
+  test('[CL-128] [CL-160] the ownership map and command remain absent', () => {
     expect(existsSync('.studio/ownership.json')).toBe(false)
     expect(pkg.scripts.ownership).toBeUndefined()
+  })
+
+  test('[CL-133] there is no public platform contract or its snapshot', () => {
+    expect(pkg.scripts.contract).toBeUndefined()
+    expect(
+      sourceFiles.filter((file) => /contract\.snapshot/.test(file)),
+    ).toEqual([])
+  })
+
+  test('[CL-134] there is no starter distribution guard', () => {
+    expect(JSON.stringify(pkg.scripts)).not.toMatch(/starter/)
+    expect(sourceFiles.filter((file) => /starter/i.test(file))).toEqual([])
+    expect(readFileSync('tooling/checks/run.ts', 'utf8')).not.toMatch(/starter/)
+  })
+
+  test('[CL-156] [CL-157] there is no release or baseline command', () => {
+    expect(pkg.scripts.release).toBeUndefined()
+    expect(pkg.scripts.baseline).toBeUndefined()
+    expect(
+      sourceFiles.filter((file) => /\b(release|baseline)\.[jt]s$/.test(file)),
+    ).toEqual([])
+  })
+
+  test('[CL-158] there is no studio.lock.json, and nothing reads one', () => {
+    expect(existsSync('studio.lock.json')).toBe(false)
+    // The studio's own code: tooling and the app.
+    const code = sourceFiles.filter((file) =>
+      /^(tooling|app)[\\/].*\.(ts|vue)$/.test(file),
+    )
+    expect(code.length).toBeGreaterThan(100)
+    for (const file of code)
+      expect(readFileSync(file, 'utf8'), file).not.toContain('studio.lock')
   })
 
   test('[CL-140] pre-push only gives the committed scope summary', () => {
@@ -169,5 +215,14 @@ describe('CI workflow', () => {
 
   test('[CL-154] there is no funding link', () => {
     expect(existsSync('.github/FUNDING.yml')).toBe(false)
+  })
+
+  test('[CL-120] nothing publishes the studio: the checks are the only workflow', () => {
+    expect(readdirSync('.github/workflows')).toEqual(['checks.yml'])
+    expect(
+      Object.keys(pkg.scripts).filter((name) =>
+        /deploy|publish|release/.test(name),
+      ),
+    ).toEqual([])
   })
 })
