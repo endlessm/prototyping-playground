@@ -21,7 +21,7 @@ const studio = JSON.parse(
 const baseURL = basePathFromEnv(process.env)
 // What link previews and search engines say about the studio.
 const DESCRIPTION =
-  'Where the Endless team builds and reviews prototypes with Endless Studios’ own screens, alongside their agents.'
+  'Where the Endless team builds and reviews prototypes with Endless Studiosâ€™ own screens, alongside their agents.'
 const publicUrl = publicUrlFromEnv(process.env)
 
 export default defineNuxtConfig({
@@ -143,6 +143,7 @@ export default defineNuxtConfig({
     './tooling/modules/nuxt-module.ts',
     './tooling/dev-server/nuxt-module.ts',
     './tooling/contributors/nuxt-module.ts',
+    './tooling/contributors/pages-module.ts',
     './tooling/settings/nuxt-module.ts',
     './tooling/identity/nuxt-module.ts',
     './tooling/manifest/nuxt-module.ts',
