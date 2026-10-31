@@ -78,6 +78,8 @@ for (const deployed of [false, true]) {
       await expect
         .poll(() => page.url(), { timeout: 30_000 })
         .toContain('/prototypes/p1a1n00000000001')
+      // The chosen entry's palette closes with an animation; reopen only once it is gone.
+      await expect.poll(() => input.count()).toBe(0)
       await page.keyboard.press('Control+k')
       await expect.poll(() => input.isVisible()).toBe(true)
       await input.press('Escape')
