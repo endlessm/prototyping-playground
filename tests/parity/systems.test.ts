@@ -100,3 +100,20 @@ scenario(
     await step('Images')
   },
 )
+
+scenario(
+  '[SY-16] [SY-17] searching the Systems collection',
+  async ({ page, url, step }) => {
+    await page.goto(`${url}systems`)
+    await shows(page.getByText('Endless Studios').first())
+    const search = page.getByLabel('Search systems').first()
+    await search.fill('endless')
+    // The box widens on focus, with no animation under reduced motion.
+    await page.waitForTimeout(500)
+    await step('Searching, the box widened')
+
+    await search.fill('zzz')
+    await shows(page.getByText('No matching systems'))
+    await step('No matching systems')
+  },
+)

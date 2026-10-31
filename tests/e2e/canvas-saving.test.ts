@@ -88,6 +88,7 @@ const CANVASES: Record<number, unknown[]> = {
   8: [shape('one', 0, 0)],
   9: [shape('one', 0, 0)],
   10: [shape('one', 0, 0)],
+  11: [shape('one', 0, 0)],
 }
 const fileOf = (n: number) => `Canvas ${n}.excalidraw`
 
@@ -517,6 +518,43 @@ describe('saving a canvas in the studio running locally', () => {
     )
     await page.close({ runBeforeUnload: true })
     expect(await warned).toBe('beforeunload')
+  })
+
+  test('[CV-39] the background comes in live from the file, and one chosen in the menu is saved', async () => {
+    const page = await canvasPage()
+    await open(page, studio, canvasId(11))
+    await says(page, 'Saved')
+    // The colour Excalidraw paints behind the scene, in the top-left corner.
+    const painted = () =>
+      page.evaluate(() => {
+        const surface = document.querySelector<HTMLCanvasElement>(
+          '.excalidraw__canvas.static',
+        )!
+        const [r, g, b] = surface.getContext('2d')!.getImageData(2, 2, 1, 1)
+          .data as unknown as number[]
+        return `rgb(${r}, ${g}, ${b})`
+      })
+    expect(await painted()).toBe('rgb(255, 255, 255)')
+    // An agent paints it pink.
+    writeOutside(
+      11,
+      scene(canvasId(11), [shape('one', 0, 0)], {
+        appState: { viewBackgroundColor: '#ffc9c9' },
+      }),
+    )
+    await expect.poll(painted).toBe('rgb(255, 201, 201)')
+    // Taking it in is not an edit.
+    await settle(2000)
+    expect(page.requests).toEqual([])
+    // White again from the menu's swatches: only the background changes.
+    await page.getByTestId('main-menu-trigger').click()
+    await page.locator('.dropdown-menu .color-picker__button').first().click()
+    await expect.poll(painted).toBe('rgb(255, 255, 255)')
+    await expect
+      .poll(() => JSON.parse(disk(11)).appState.viewBackgroundColor)
+      .toBe('#ffffff')
+    expect(elementsOnDisk(11)).toEqual(['one'])
+    await says(page, 'Saved')
   })
 
   test('[CV-90] [CV-106] someone else’s canvas, and one from a newer format, show no save status and are never written', async () => {

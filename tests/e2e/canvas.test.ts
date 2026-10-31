@@ -602,7 +602,7 @@ describe('a canvas in the studio running locally', () => {
     expect(await stylePanel(page).isVisible()).toBe(false)
   })
 
-  test('[CV-32] Excalidraw’s own selection, context menu and zoom controls stay', async () => {
+  test('[CV-32] [CV-57] Excalidraw’s own selection, context menu and zoom controls stay; the menu can’t add to the Library', async () => {
     const page = await canvasPage()
     await open(page, studio, BOARD)
     // Select the rectangle: its style panel appears at the left.
@@ -623,6 +623,9 @@ describe('a canvas in the studio running locally', () => {
         items.some((item) => item.startsWith(name)),
         name,
       ).toBe(true)
+    // Excalidraw offers it for a selection; the studio hides it.
+    expect(await contextMenu.textContent()).toContain('Add to library')
+    expect(await contextMenu.innerText()).not.toContain('Add to library')
     await page.keyboard.press('Escape')
     // The zoom controls stay.
     const before = Number.parseInt((await zoom(page)) ?? '', 10)
@@ -682,6 +685,43 @@ describe('a canvas in the studio running locally', () => {
     await page.keyboard.press('o')
     await expect.poll(() => tool(page, 'Ellipse').isChecked()).toBe(true)
     expect(await page.getByRole('radio', { name: /image/i }).count()).toBe(0)
+    // 9 would ask for an image file.
+    let chooser = false
+    page.on('filechooser', () => (chooser = true))
+    await page.keyboard.press('9')
+    await page.waitForTimeout(500)
+    expect(chooser).toBe(false)
+    expect(await tool(page, 'Ellipse').isChecked()).toBe(true)
+  })
+
+  test('[CV-31] the extra tools hold the frame, the laser pointer and Mermaid to Excalidraw', async () => {
+    const page = await canvasPage()
+    await open(page, studio, BOARD)
+    await page.locator('.App-toolbar__extra-tools-trigger').click()
+    await visible(page.locator('.dropdown-menu-item').first())
+    const items = await page.locator('.dropdown-menu-item').allTextContents()
+    for (const name of ['Frame tool', 'Laser pointer', 'Mermaid to Excalidraw'])
+      expect(
+        items.some((item) => item.startsWith(name)),
+        name,
+      ).toBe(true)
+  })
+
+  test('[CV-38] Excalidraw’s command palette is gone, and ⌘K / Ctrl+K over a read-only canvas opens the studio’s search', async () => {
+    const page = await canvasPage()
+    await open(page, studio, BOARD)
+    await focusCanvas(page)
+    await page.keyboard.press('Control+/')
+    await page.keyboard.press('Control+Shift+P')
+    await page.waitForTimeout(500)
+    expect(await page.locator('.CommandPalette').count()).toBe(0)
+    // Over an editable canvas Excalidraw keeps ⌘K for its link editor (as
+    // in React), which waits on Bernardo's decision (ticket 34).
+    await page.goto(address(studio, PLAIN, THEIRS))
+    await opened(page)
+    await focusCanvas(page)
+    await page.keyboard.press('Control+k')
+    await visible(page.getByPlaceholder('Search the studio'))
   })
 
   test('[CV-55] [CV-56] [CV-57] the Library holds only four sticky notes', async () => {

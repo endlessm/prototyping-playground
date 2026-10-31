@@ -23,7 +23,8 @@ describe('the canvas module', () => {
     expect(canvas?.spec.label).toBe('Canvases')
     expect(canvas?.spec.required).toBeFalsy()
     expect(canvas?.spec.fileTypes?.[0]?.extensions).toEqual(['.excalidraw'])
-  })
+    // Reading every module is slow in a full run on a busy machine.
+  }, 30_000)
 
   test('[CV-03] nothing outside the module imports it, so the studio runs without it', () => {
     const outside = sources('app', 'tooling', 'src/modules').filter(
@@ -33,6 +34,21 @@ describe('the canvas module', () => {
       expect(readFileSync(file, 'utf8'), file).not.toMatch(
         /modules\/canvas\b|@excalidraw\//,
       )
+    // It reads every source file.
+  }, 30_000)
+
+  test('[CV-11] Excalidraw is pre-bundled in development, so the first canvas doesn’t reload the page', () => {
+    const config = readFileSync('nuxt.config.ts', 'utf8')
+    const development = config.slice(config.indexOf('$development'))
+    const include = /optimizeDeps:\s*\{\s*include:\s*\[([^\]]*)\]/.exec(
+      development,
+    )?.[1]
+    for (const dependency of [
+      '@excalidraw/excalidraw',
+      'react',
+      'react-dom/client',
+    ])
+      expect(include, dependency).toContain(`'${dependency}'`)
   })
 
   test('React and React DOM are used only by the canvas’s island', () => {

@@ -83,8 +83,10 @@ export function createCanvasFile(options: CanvasFileOptions) {
     version: options.initial.version,
     ids: liveIds(parseCanvas(options.initial.content).elements),
   }
-  // The scene version already saved, or taken from the file.
+  // The scene version already saved, or taken from the file, and the
+  // background with it: a new background changes no element.
   let known = options.initial.sceneVersion
+  let knownBackground = parseCanvas(options.initial.content).background
   let latest: CanvasSnapshot | null = null
   let dirty = false
   let saving = false
@@ -133,6 +135,7 @@ export function createCanvasFile(options: CanvasFileOptions) {
       ids: liveIds(parsed.elements),
     }
     known = taken.sceneVersion
+    knownBackground = parsed.background
     latest = taken.snapshot
     if (taken.needsWriteBack) {
       dirty = true
@@ -205,12 +208,19 @@ export function createCanvasFile(options: CanvasFileOptions) {
 
     /**
      * Excalidraw's change, which also reports selection and camera changes:
-     * only a new scene version is an edit.
+     * only a new scene version or a new background is an edit.
      */
     changed(snapshot: CanvasSnapshot, sceneVersion: number) {
       latest = snapshot
-      if (!options.editable() || sceneVersion === known) return
+      const background =
+        snapshot.appState.viewBackgroundColor ?? knownBackground
+      if (
+        !options.editable() ||
+        (sceneVersion === known && background === knownBackground)
+      )
+        return
       known = sceneVersion
+      knownBackground = background
       dirty = true
       setState(state === 'failed' ? 'failed' : 'unsaved')
       if (!burst) burst = Date.now()

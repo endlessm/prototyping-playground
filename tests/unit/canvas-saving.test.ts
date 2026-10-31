@@ -46,6 +46,7 @@ function harness(start: Stored[] = [rect('1')]) {
   // The scene: what Excalidraw holds, and its scene version.
   let elements = start
   let sceneVersion = 100
+  let background = '#ffffff'
   let needsWriteBack = false
 
   const file = createCanvasFile({
@@ -95,7 +96,7 @@ function harness(start: Stored[] = [rect('1')]) {
 
   const snapshot = (): CanvasSnapshot => ({
     elements,
-    appState: { viewBackgroundColor: '#ffffff' },
+    appState: { viewBackgroundColor: background },
   })
   return {
     file,
@@ -112,6 +113,11 @@ function harness(start: Stored[] = [rect('1')]) {
     },
     /** Excalidraw reporting a change that isn't an edit (selection, camera). */
     nudge: () => file.changed(snapshot(), sceneVersion),
+    /** A new canvas background from the menu: the elements don't change. */
+    paint(color: string) {
+      background = color
+      file.changed(snapshot(), sceneVersion)
+    },
     /** Someone else saves the file. */
     outside(next: Stored[]) {
       disk.content = text(next)
@@ -174,6 +180,21 @@ describe('saving edits', () => {
     expect(h.writes).toEqual([])
     expect(h.states).toEqual([])
     expect(h.file.state()).toBe('saved')
+  })
+
+  test('[CV-39] a new canvas background alone is an edit, and is saved', async () => {
+    const h = harness()
+    h.paint('#fff9db')
+    expect(h.file.state()).toBe('unsaved')
+    await later(1200)
+    expect(h.writes).toHaveLength(1)
+    expect(JSON.parse(h.writes[0]!).appState).toEqual({
+      viewBackgroundColor: '#fff9db',
+    })
+    // Reported again with nothing new, it isn't another edit.
+    h.paint('#fff9db')
+    await later(6000)
+    expect(h.writes).toHaveLength(1)
   })
 
   test('[CV-88] identical content isn’t rewritten', async () => {
