@@ -17,7 +17,12 @@ export default {
     to: '/contributors',
   },
   palette: [
-    { label: 'Contributors', to: '/contributors', icon: 'i-lucide-users' },
+    {
+      label: 'Contributors',
+      to: '/contributors',
+      icon: 'i-lucide-users',
+      keywords: ['permissions', 'team', 'access'],
+    },
   ],
   skills: [
     {

@@ -5,7 +5,11 @@ test('[SH-128] Contributors routes, rail and palette are local only in the alway
   expect(contributors.localOnly).toBe(true)
   expect(contributors.required).toBe(true)
   expect(contributors.pages[0]!.path).toBe('/contributors')
-  expect(contributors.palette[0]!.to).toBe('/contributors')
+  expect(contributors.palette[0]).toMatchObject({
+    label: 'Contributors',
+    to: '/contributors',
+    keywords: ['permissions', 'team', 'access'],
+  })
 })
 test('[SH-129] role guidance uses configure preview, keeps grants and the last Admin', () => {
   const skill = fs.readFileSync(
