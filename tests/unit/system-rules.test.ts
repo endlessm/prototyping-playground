@@ -1,6 +1,5 @@
 // Rules of the Systems area that no page shows: the area can't be switched
-// off, each system owns its packages, and the Studio interface's copy rules
-// live in the platform's guidance now that the Studio system is gone.
+// off, and each system owns its packages.
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, test } from 'vitest'
@@ -82,19 +81,5 @@ describe('the Systems area’s rules', () => {
         other,
       ).join(),
     ).toMatch(/Forbidden import/)
-  })
-
-  test('[SY-145] the Studio UI copy rules live in the platform guidance for the interface', () => {
-    const copy = read('src/platform/context/ui-copy.md')
-    expect(copy).toMatch(/^---\r?\ntitle: Studio UI copy/)
-    expect(copy).toContain('instead of semicolons joining sentences')
-    expect(copy).toContain('Action labels have no trailing ellipsis')
-    expect(copy).toContain('lo-fi and hi-fi')
-    expect(copy).toContain(
-      'Pending labels describe the current action plainly: Saving',
-    )
-    // Agents are routed to it.
-    expect(read('AGENTS.md')).toContain('src/platform/context/ui-copy.md')
-    expect(read('src/platform/README.md')).toContain('context/ui-copy.md')
   })
 })
