@@ -9,7 +9,7 @@ import type {
 // A diagram's page: the `.mermaid` or `.mmd` file drawn filling the page.
 // Saving the file draws it again in place, the previous drawing staying
 // until the new one is ready. Invalid Mermaid shows its message, and the
-// source still opens from the file menu to repair it.
+// source still opens from the file tree's menu or ⌘' / Ctrl+' to repair it.
 const props = defineProps<{
   prototype: ManifestPrototype
   artifact: ManifestArtifact
@@ -22,11 +22,7 @@ const { text, error, updating } = useArtifactText(
 </script>
 
 <template>
-  <div class="flex h-full min-h-0 flex-col">
-    <div v-if="$slots.actions" class="flex items-center justify-end gap-1">
-      <!-- The artifact page's file menu. -->
-      <slot name="actions" />
-    </div>
+  <div class="flex h-full min-h-0 flex-col p-4 sm:p-6">
     <div v-if="error && text === undefined" class="p-8">
       <AppFileError :error="error" />
     </div>

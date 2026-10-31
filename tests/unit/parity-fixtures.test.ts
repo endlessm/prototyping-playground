@@ -45,6 +45,7 @@ describe('parity fixture studios', () => {
         artifacts: [
           { path: 'Brief', id: 'b0ardd0c00000001' },
           { path: 'Home', id: 'b0ardv1ew0000001' },
+          { path: 'Overview', id: 'b0ardd0c00000002' },
           { path: 'Board', id: 'b0ardcnv00000001' },
         ],
       },

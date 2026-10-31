@@ -85,19 +85,18 @@ const slow = refDebounced(catchingUp, SLOW_MS)
 
 <template>
   <div
-    class="relative h-full min-h-0"
+    class="relative h-full min-h-0 p-4 sm:p-6"
     :data-document-state="error ? 'error' : current ? 'ready' : 'loading'"
     :data-document-freshness="catchingUp ? 'stale' : 'current'"
   >
-    <div v-if="error" class="space-y-4 p-8">
-      <div class="flex justify-end"><slot name="actions" /></div>
+    <div v-if="error" class="p-8">
       <AppFileError :error="error" />
     </div>
-    <MarkdownReader v-else-if="current" :document="current" :page="artifact.id">
-      <template #actions>
-        <div class="ml-auto shrink-0"><slot name="actions" /></div>
-      </template>
-    </MarkdownReader>
+    <MarkdownReader
+      v-else-if="current"
+      :document="current"
+      :page="artifact.id"
+    />
     <p v-else role="status" class="p-8 text-sm text-muted">
       {{ t('document.loading') }}
     </p>

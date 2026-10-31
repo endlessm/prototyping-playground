@@ -155,9 +155,17 @@ export default defineNuxtModule({
 
     // Each file type's page, loaded when an artifact of it opens, and its
     // preview in documents, loaded when one appears.
+    const where = (type: (typeof fileTypes)[number], file: string) =>
+      JSON.stringify(path.join(type.dir, file).split(path.sep).join('/'))
     const load = (type: (typeof fileTypes)[number], file: string) =>
-      `() => import(${JSON.stringify(path.join(type.dir, file).split(path.sep).join('/'))})`
-    const pages = fileTypes.map((type) => {
+      `() => import(${where(type, file)})`
+    // A preview's pending surface shows at once, so it is bundled with the app.
+    const pending = fileTypes.flatMap((type, index) =>
+      type.embedPending
+        ? [`import pending${index} from ${where(type, type.embedPending)}`]
+        : [],
+    )
+    const pages = fileTypes.map((type, index) => {
       const fields = [
         `label: ${JSON.stringify(type.label)}`,
         `fidelity: ${Boolean(type.fidelity)}`,
@@ -166,12 +174,14 @@ export default defineNuxtModule({
         `page: ${load(type, type.page)}`,
         ...(type.embed ? [`embed: ${load(type, type.embed)}`] : []),
         ...(type.embedIn ? [`embedIn: ${JSON.stringify(type.embedIn)}`] : []),
+        ...(type.embedPending ? [`embedPending: pending${index}`] : []),
       ]
       return `${JSON.stringify(type.id)}: { ${fields.join(', ')} }`
     })
     const template = addTemplate({
       filename: 'studio-file-types.mjs',
-      getContents: () => `export default {${pages.join(',\n')}}\n`,
+      getContents: () =>
+        `${pending.map((line) => `${line}\n`).join('')}export default {${pages.join(',\n')}}\n`,
     })
     nuxt.options.alias['#studio/file-types'] = template.dst
     addTypeTemplate(
@@ -195,6 +205,8 @@ declare module '#studio/file-types' {
       embed?: Load
       /** Where its preview shows; every surface when left out. */
       embedIn?: ('document' | 'canvas')[]
+      /** Shown while its preview loads, given \`startedAt\`. */
+      embedPending?: Component
     }
   >
   export default types

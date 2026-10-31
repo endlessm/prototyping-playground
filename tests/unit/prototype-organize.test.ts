@@ -11,6 +11,8 @@ import { identity as view } from '../../src/modules/prototypes/types/view/identi
 import { references as viewReferences } from '../../src/modules/prototypes/references'
 import { references as documentReferences } from '../../src/modules/document/references'
 import { identity as documentIdentity } from '../../src/modules/document/types/document/identity'
+import { references as canvasReferences } from '../../src/modules/canvas/references'
+import { identity as canvasIdentity } from '../../src/modules/canvas/types/canvas/identity'
 import { createOrganizer } from '../../tooling/files/organize'
 import { FileServiceError } from '../../tooling/files/source'
 import { isResourceId } from '../../tooling/identity/resource-id'
@@ -135,8 +137,9 @@ const organizer = () =>
     fileTypes: [
       { id: 'view', extensions: ['.vue'], identity: view },
       { id: 'document', extensions: ['.md'], identity: documentIdentity },
+      { id: 'canvas', extensions: ['.excalidraw'], identity: canvasIdentity },
     ],
-    references: [...viewReferences, ...documentReferences],
+    references: [...viewReferences, ...documentReferences, ...canvasReferences],
     identify: () => ({ key: actor, email: `${actor}@endless.example` }),
     trash: async (file) => {
       trashed.push(file)
@@ -292,6 +295,75 @@ describe('duplicating a prototype', () => {
       ...ids(read('src/prototypes/ben/demo/Home.vue')),
     ])
     for (const id of fresh) expect(elsewhere.has(id)).toBe(false)
+  })
+
+  test('[CV-108] a copied canvas links to the copied artifacts, as new versions of its elements, keeping the scene', async () => {
+    const CANVAS = 'cv00000000000001'
+    const scene = {
+      type: 'excalidraw',
+      version: 2,
+      studioVersion: 1,
+      studioId: CANVAS,
+      elements: [
+        {
+          id: 'home',
+          type: 'embeddable',
+          link: `/prototypes/${DEMO}/artifacts/${HOME}`,
+          version: 3,
+          versionNonce: 7,
+          x: 0,
+          y: 0,
+        },
+        {
+          id: 'welcome',
+          type: 'embeddable',
+          link: `/prototypes/${DEMO}/artifacts/${WELCOME}`,
+          version: 1,
+          versionNonce: 1,
+          x: 600,
+          y: 0,
+        },
+        {
+          id: 'note',
+          type: 'text',
+          text: 'Hello',
+          version: 2,
+          versionNonce: 5,
+        },
+      ],
+      appState: { viewBackgroundColor: '#ffffff', gridSize: 20 },
+      files: {},
+    }
+    write(
+      'src/prototypes/ben/demo/Board.excalidraw',
+      `${JSON.stringify(scene, null, 2)}
+`,
+    )
+    const copy = await organizer().duplicate({
+      prototype: DEMO,
+      title: 'Board copy',
+    })
+    const dir = 'src/prototypes/ben/board-copy'
+    const home = view.read(read(`${dir}/Home.vue`))!
+    const [state] = view.children!.read(read(`${dir}/Home.vue`))
+    const copied = json(`${dir}/Board.excalidraw`)
+    expect(
+      copied.elements.map((element: { link?: string }) => element.link),
+    ).toEqual([
+      `/prototypes/${copy.id}/artifacts/${home}`,
+      `/prototypes/${copy.id}/artifacts/${state!.studioId}`,
+      undefined,
+    ])
+    expect(copied.elements[0]).toMatchObject({ id: 'home', version: 4 })
+    expect(copied.elements[0].versionNonce).not.toBe(7)
+    expect(copied.elements[1]).toMatchObject({ id: 'welcome', version: 2 })
+    expect(copied.elements[2]).toEqual(scene.elements[2])
+    // The scene is the same; the copy is a canvas of its own.
+    expect(copied.appState).toEqual(scene.appState)
+    expect(canvasIdentity.read(read(`${dir}/Board.excalidraw`))).not.toBe(
+      CANVAS,
+    )
+    expect(json('src/prototypes/ben/demo/Board.excalidraw')).toEqual(scene)
   })
 
   test('[PR-38] an archived prototype’s copy is active; Git data and node_modules stay behind', async () => {

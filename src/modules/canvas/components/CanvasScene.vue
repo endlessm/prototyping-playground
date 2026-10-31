@@ -1,27 +1,14 @@
 <script setup lang="ts">
-import types from '#studio/file-types'
-import {
-  embedPresentation,
-  resolveReference,
-  type ReferenceResolution,
-} from '../../../../app/utils/artifactReference'
 import type {
   ManifestArtifact,
   ManifestPrototype,
 } from '../../../../app/composables/useManifest'
+import { useCanvasAgent } from '../composables/useCanvasAgent'
 import { useCanvasFile } from '../composables/useCanvasFile'
+import { useCanvasItems } from '../composables/useCanvasItems'
 import { useCanvasOpening } from '../composables/useCanvasOpening'
-import type {
-  CanvasEditorProps,
-  CanvasHandle,
-  CanvasItemHost,
-  CanvasItemState,
-} from '../island/mount'
-import {
-  itemAddress,
-  parseCanvas,
-  type ParsedCanvas,
-} from '../types/canvas/format'
+import type { CanvasEditorProps, CanvasHandle } from '../island/mount'
+import { parseCanvas, type ParsedCanvas } from '../types/canvas/format'
 import { cameraKey } from '../utils/camera'
 import { readCanvas, type CanvasText } from '../utils/readCanvas'
 import CanvasError from './CanvasError.vue'
@@ -45,55 +32,16 @@ const base = useRuntimeConfig().app.baseURL
 const colorMode = useColorMode()
 const artifacts = await usePrototypeArtifacts(() => props.prototype.id)
 
-// What each link shows, kept while the prototype's artifacts stay the same,
-// so an item re-renders only when its own artifact changes.
-const extensions = Object.values(types).flatMap((type) => type.extensions)
-const resolutions = computed(() => {
-  void artifacts.value
-  void props.prototype
-  return new Map<string, ReferenceResolution>()
+const {
+  items,
+  host: itemHost,
+  resolve,
+} = useCanvasItems({
+  prototype: () => props.prototype,
+  artifact: () => props.artifact,
+  artifacts,
+  base,
 })
-function resolve(link: string): ReferenceResolution {
-  const cache = resolutions.value
-  let found = cache.get(link)
-  if (!found) {
-    found = resolveReference(
-      itemAddress(link, location.origin, base) ?? link,
-      { prototype: props.prototype, artifact: props.artifact },
-      artifacts.value,
-      {
-        extension: 'required',
-        extensions,
-        presentation: (type) => embedPresentation(types[type], 'canvas'),
-      },
-    )
-    cache.set(link, found)
-  }
-  return found
-}
-
-// The items Excalidraw has boxes for, by element ID.
-const items = shallowReactive(
-  new Map<string, CanvasItemState & { box: HTMLElement }>(),
-)
-const same = (a: CanvasItemState, b: CanvasItemState) =>
-  (Object.keys(b) as (keyof CanvasItemState)[]).every(
-    (key) => a[key] === b[key],
-  )
-const itemHost: CanvasItemHost = {
-  show(id, box, state) {
-    const current = items.get(id)
-    if (current?.box === box && same(current, state)) return
-    items.set(id, { ...state, box })
-  },
-  hide(id, box) {
-    if (items.get(id)?.box === box) items.delete(id)
-  },
-  preview(link) {
-    const found = resolve(link)
-    return found.state === 'resolved' && found.presentation === 'preview'
-  },
-}
 
 const container = useTemplateRef<HTMLElement>('container')
 const mountPoint = useTemplateRef<HTMLElement>('mountPoint')
@@ -110,22 +58,22 @@ const saving = useCanvasFile({
   artifact: () => props.artifact.id,
 })
 
+useCanvasAgent({
+  handle,
+  prototype: () => props.prototype,
+  artifact: () => props.artifact,
+  artifacts,
+  base,
+  // A file from a newer format is never saved over.
+  editable: () => editable.value && !scene.value?.tooNew,
+  persist: saving.persist,
+})
+
 const { revealed, statusVisible } = useCanvasOpening(
   container,
   computed(() => Boolean(handle.value)),
   () => handle.value?.openingEmbeds() ?? [],
 )
-
-// The hint shows only once the canvas has stayed empty for a moment, so a
-// scene that is still arriving never flashes it.
-const hintReady = ref(false)
-let hintTimer = 0
-watch([empty, revealed], ([isEmpty, isRevealed]) => {
-  window.clearTimeout(hintTimer)
-  hintReady.value = false
-  if (isEmpty && isRevealed)
-    hintTimer = window.setTimeout(() => (hintReady.value = true), 500)
-})
 
 const message = (error: unknown) =>
   error instanceof Error ? error.message : String(error)
@@ -186,7 +134,6 @@ watch(
 )
 
 onBeforeUnmount(() => {
-  window.clearTimeout(hintTimer)
   island?.unmount()
 })
 </script>
@@ -198,14 +145,15 @@ onBeforeUnmount(() => {
   <div
     v-else
     ref="container"
-    class="canvas relative min-h-0 flex-1 overflow-hidden overscroll-none rounded-md border border-default bg-muted/30"
+    class="canvas relative min-h-0 flex-1 overflow-hidden overscroll-none bg-muted/30"
     data-inline-dialogs
     :data-canvas-opening="revealed ? 'ready' : 'loading'"
+    :data-canvas-empty="empty || undefined"
     :aria-busy="!revealed || undefined"
   >
     <CanvasOpening v-if="!revealed" :visible="statusVisible" />
     <!-- A stacking context of its own keeps Excalidraw's layers under the
-         empty hint. -->
+         save status. -->
     <div
       class="canvas-scene absolute inset-0 isolate transition-opacity duration-160 ease-out motion-reduce:transition-none"
       :class="revealed ? 'opacity-100' : 'opacity-0'"
@@ -230,29 +178,5 @@ onBeforeUnmount(() => {
       :state="saving.state.value"
       @retry="saving.retry"
     />
-    <Transition
-      enter-active-class="transition-opacity duration-300"
-      enter-from-class="opacity-0"
-    >
-      <div
-        v-if="empty && revealed && hintReady"
-        class="pointer-events-none absolute inset-0 flex items-center justify-center p-8"
-      >
-        <div
-          class="max-w-sm rounded-xl border border-dashed border-default bg-default/80 p-8 text-center"
-        >
-          <p class="text-sm font-medium text-highlighted">
-            {{ t('canvas.empty.title') }}
-          </p>
-          <p class="mt-1.5 text-sm text-muted">
-            {{
-              editable && !scene?.tooNew
-                ? t('canvas.empty.editable')
-                : t('canvas.empty.readOnly')
-            }}
-          </p>
-        </div>
-      </div>
-    </Transition>
   </div>
 </template>

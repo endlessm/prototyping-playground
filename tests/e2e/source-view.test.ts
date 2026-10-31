@@ -123,6 +123,14 @@ const button = (page: Page, name: string) =>
 const tooltip = (page: Page, text: string) =>
   page.locator('[data-slot="content"]').filter({ hasText: text })
 const preview = (page: Page) => page.locator('iframe').first().contentFrame()
+// A file's menu in the navigation, where React offers Edit source too: the
+// artifact page has no menu of its own.
+async function fileMenu(page: Page, name: string, prototype = 'Demo') {
+  await page
+    .getByRole('navigation', { name: prototype })
+    .getByRole('link', { name, exact: true })
+    .click({ button: 'right' })
+}
 
 async function visible(locator: { isVisible: () => Promise<boolean> }) {
   await expect.poll(() => locator.isVisible(), { timeout: 45_000 }).toBe(true)
@@ -161,12 +169,13 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     return page
   }
 
-  test("[PR-125] [PR-126] [PR-130] [PR-135] the file menu and ⌘' / Ctrl+' switch between the page and its source, in the address", async () => {
+  test("[PR-125] [PR-126] [PR-130] [PR-135] the file's menu in the navigation and ⌘' / Ctrl+' switch between the page and its source, in the address; the page has no menu of its own", async () => {
     reset()
     const page = await open()
     await visible(preview(page).getByRole('heading', { name: 'Hello' }))
+    expect(await button(page, 'File actions').count()).toBe(0)
 
-    await button(page, 'File actions').click()
+    await fileMenu(page, 'Home')
     const item = page.getByRole('menuitem', { name: /Edit source/ })
     await visible(item)
     expect(await item.textContent()).toContain("Ctrl+'")
@@ -215,7 +224,7 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     reset()
     const page = await open()
     await visible(preview(page).getByRole('heading', { name: 'Hello' }))
-    await button(page, 'File actions').click()
+    await fileMenu(page, 'Home')
     await visible(page.getByRole('menu'))
     await page.keyboard.press("Control+'")
     await page.waitForTimeout(300)
@@ -231,8 +240,8 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     await frame.getByRole('button', { name: 'Count 0' }).click()
     await visible(frame.getByRole('button', { name: 'Count 1' }))
 
-    // Focus is inside the view now, so the file menu opens the source.
-    await button(page, 'File actions').click()
+    // Focus is inside the view now, so the file's menu opens the source.
+    await fileMenu(page, 'Home')
     await page.getByRole('menuitem', { name: /Edit source/ }).click()
     await visible(editor(page))
     await replaceText(page, home('Saved from the studio'))
@@ -392,7 +401,7 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     await visible(
       preview(page).getByRole('heading', { name: 'Plain prototype' }),
     )
-    await button(page, 'File actions').click()
+    await fileMenu(page, 'Plain', 'Plain')
     await page.getByRole('menuitem', { name: /View source/ }).click()
     const plainFile = `${posix(content)}/bernardo/plain/Plain.vue`
     await visible(editor(page, plainFile))

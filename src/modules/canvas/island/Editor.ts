@@ -68,6 +68,8 @@ export interface CanvasHandle {
   loadedVersion: number
   /** Puts a newer file into the scene, outside the undo history. */
   take: CanvasFileOptions['take']
+  /** Excalidraw's own API, for the agent tools (`agent.ts`). */
+  api: ExcalidrawImperativeAPI
 }
 
 /** How an item on the canvas is drawn, as the Vue page renders it. */
@@ -141,7 +143,11 @@ const snapshotOf = (
 // A file's elements as Excalidraw holds them. Items get their look as
 // items (an agent may have written them plainly) without a new version:
 // that alone is never an edit.
-const restored = (elements: Stored[], base: string, items: CanvasItemHost) =>
+export const restored = (
+  elements: Stored[],
+  base: string,
+  items: CanvasItemHost,
+) =>
   (
     restoreElements(withOrigin(elements, base) as never, null, {
       refreshDimensions: true,
@@ -252,7 +258,7 @@ function normalizeItems(
 // The box Excalidraw gives an item. The Vue page draws the item into it.
 // It re-renders only when the item's own link, size or flags change, never
 // on a pan or zoom frame.
-const ItemBox = memo(function ItemBox(
+export const ItemBox = memo(function ItemBox(
   props: CanvasItemState & { id: string; host: CanvasItemHost },
 ) {
   const { id, host, link, width, height, offscreen, overview, mounted } = props
@@ -495,6 +501,7 @@ export function CanvasEditor(props: CanvasEditorProps) {
           items.preview,
         ),
       loadedVersion: loadedVersion.current,
+      api,
       take: (file, lastIds) => {
         try {
           return takeFile(api, file, lastIds, base, items, fromFile.current)

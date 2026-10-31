@@ -119,6 +119,14 @@ export interface ModuleFileType {
    * default) both. Elsewhere it shows as a card.
    */
   embedIn?: ('document' | 'canvas')[]
+  /**
+   * A small Vue component, relative to the folder, shown while `embed`
+   * loads, so the loading looks like the preview's own opening. It is in
+   * the studio's main bundle: it must not import the preview. It and the
+   * preview get `startedAt`, when loading began. Without one, a generic
+   * "Loading preview…" shows.
+   */
+  embedPending?: string
   /** An Iconify name for navigation, file lists and cards. */
   icon?: string
   /**
