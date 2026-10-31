@@ -12,12 +12,15 @@ import {
  * once. The reveal waits for the opening camera to paint, then for the live
  * previews visible in the first view (`expected`, read once the editor is
  * `ready`), never more than 2 s. Hidden scenes still lay out and load their
- * previews; later changes never hide the scene again.
+ * previews; later changes never hide the scene again. `startedAt` is when
+ * loading began, if earlier (a document's embed waits for the reference and
+ * the canvas code first), so the status still shows 200 ms after it.
  */
 export function useCanvasOpening(
   container: Readonly<Ref<HTMLElement | null | undefined>>,
   ready: Readonly<Ref<boolean>>,
   expected: () => string[],
+  startedAt = Date.now(),
 ) {
   const revealed = ref(false)
   const statusVisible = ref(false)
@@ -26,7 +29,7 @@ export function useCanvasOpening(
 
   const status = window.setTimeout(
     () => (statusVisible.value = true),
-    OPENING_STATUS_DELAY_MS,
+    Math.max(0, OPENING_STATUS_DELAY_MS - (Date.now() - startedAt)),
   )
   cleanups.push(() => window.clearTimeout(status))
 

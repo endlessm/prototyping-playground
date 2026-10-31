@@ -190,6 +190,18 @@ export function moduleProblems(spec: unknown, folderName: string): string[] {
           problems.push(
             `${where}: file type "${String(id)}" names its check and template files and its icon as text.`,
           )
+        const { embed, embedPending } = (type ?? {}) as Record<string, unknown>
+        if (
+          [embed, embedPending].some(
+            (value) =>
+              value !== undefined &&
+              (typeof value !== 'string' || !value.endsWith('.vue')),
+          ) ||
+          (embedPending !== undefined && embed === undefined)
+        )
+          problems.push(
+            `${where}: file type "${String(id)}" names its embed and the embed’s pending surface as .vue files, the pending surface only with an embed.`,
+          )
         const { embedIn } = (type ?? {}) as Record<string, unknown>
         if (
           embedIn !== undefined &&
