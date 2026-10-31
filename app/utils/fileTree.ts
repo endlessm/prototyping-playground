@@ -139,4 +139,6 @@ export interface NewFileOption {
   type: string
   label: string
   icon: string
+  /** Made through a dialog of its own instead of an inline name field. */
+  onSelect?: () => void
 }

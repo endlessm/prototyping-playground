@@ -285,6 +285,8 @@
     },
     "expandAll": "Expand all",
     "collapseAll": "Collapse all",
+    "toggle": "Show or hide {name}",
+    "emptyFolder": "Empty folder",
     "new": "New",
     "newType": "New {type}",
     "newFolder": "New folder",
@@ -439,6 +441,24 @@
     "fileActions": {
       "editSource": "Edit source",
       "viewSource": "View source"
+    },
+    "tree": {
+      "newDocument": "New document",
+      "newFile": "New file",
+      "newSkill": "New skill"
+    },
+    "skill": {
+      "title": "New skill",
+      "name": "Name",
+      "namePlaceholder": "review-design",
+      "nameProblem": "A skill’s name {problem}",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Reviews a design against the team’s principles. Use when someone asks for a critique.",
+      "descriptionHelp": "What it does, and when to use it.",
+      "descriptionProblem": "The description {problem}",
+      "cancel": "Cancel",
+      "create": "Create skill",
+      "creating": "Creating"
     },
     "overview": {
       "generic": "The guidance and code included in {name}.",

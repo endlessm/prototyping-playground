@@ -27,6 +27,12 @@ import { treeFolds } from '../../composables/useFileTree'
 // Alt+↑/↓ moves the focused one; an artifact's row dragged out carries its
 // web address. What happens to the files is the caller's: it passes the
 // changes as functions, and the menu actions for each row.
+//
+// As a branch (`branch`), it is a collapsible group inside another
+// navigation, such as a system's Context: its heading folds it, "Empty
+// folder" shows when it has nothing, and the navigation around it filters it
+// (`query`) and may keep its folds (`v-model:closed`). Where order isn't
+// kept (`unordered`), rows only move into folders.
 const props = defineProps<{
   /** "Artifacts" or "Files": the heading and the tree's name. */
   heading: string
@@ -42,9 +48,29 @@ const props = defineProps<{
   memory: string
   /** Whether you may create, rename and delete here. */
   editable?: boolean
-  newOptions?: NewFileOption[]
+  /** What "+" makes: the same in every folder, or by folder ('' the top). */
+  newOptions?: NewFileOption[] | ((folder: string) => NewFileOption[])
   /** Rows that can't be renamed or deleted, such as meta.json. */
   fixed?: (node: FileNode) => boolean
+  /** Rows that can't be dragged to move, such as a skill's folder. */
+  movable?: (node: FileNode) => boolean
+  /** Whether a row may move into a folder ('' for the top level). */
+  canMoveTo?: (node: FileNode, folder: string) => boolean
+  /** Rows aren’t put in order where none is kept: they only move. */
+  unordered?: boolean
+  /** A collapsible group inside another navigation, with this heading. */
+  branch?: {
+    label: string
+    /** The folder it shows, for its hover text. */
+    path: string
+    /** Its own page, if it has one. */
+    to?: string
+    icon?: string
+  }
+  /** A row's hover text; its file's name by default. */
+  hoverOf?: (node: FileNode) => string
+  /** The surrounding navigation's filter, in place of the tree's own. */
+  query?: string
   /** A row's menu items: reaching it, then changing it. */
   actions?: (node: FileNode) => {
     reach: ContextMenuItem[]
@@ -67,7 +93,12 @@ const props = defineProps<{
   openFile?: (node: FileNode) => void
 }>()
 
+/** As a branch: whether it is unfolded. */
+const branchOpen = defineModel<boolean>('open', { default: true })
+/** Folders closed, when the surrounding navigation keeps them. */
+const folds = defineModel<string[]>('closed')
 const { t } = useI18n()
+const route = useRoute()
 const deleteModal = useOverlay().create(FileDeleteModal)
 
 interface Row {
@@ -81,6 +112,7 @@ interface Row {
   children?: Row[]
 }
 
+const hover = (node: FileNode) => props.hoverOf?.(node) ?? node.name
 const titleOf = (node: FileNode) =>
   props.entries.get(node.path)?.title ??
   (node.dir && !node.name.startsWith('_')
@@ -89,25 +121,26 @@ const titleOf = (node: FileNode) =>
 
 // Filtering.
 const filterOpen = ref(false)
-const query = ref('')
-const filtering = computed(() => Boolean(query.value.trim()))
+const typed = ref('')
+const words = computed(() => props.query ?? typed.value)
+const filtering = computed(() => Boolean(words.value.trim()))
 const filterInput = useTemplateRef<{ inputRef?: HTMLInputElement }>('filter')
-const shown = computed(() => filterNodes(props.nodes, query.value, titleOf))
+const shown = computed(() => filterNodes(props.nodes, words.value, titleOf))
 async function toggleFilter() {
   filterOpen.value = !filterOpen.value
-  if (!filterOpen.value) return void (query.value = '')
+  if (!filterOpen.value) return void (typed.value = '')
   await nextTick()
   filterInput.value?.inputRef?.focus()
 }
 function clearFilter() {
-  query.value = ''
+  typed.value = ''
   filterInput.value?.inputRef?.focus()
 }
 function onFilterKeydown(event: KeyboardEvent) {
   if (event.key !== 'Escape') return
   event.preventDefault()
   event.stopPropagation()
-  if (query.value) query.value = ''
+  if (typed.value) typed.value = ''
   else filterOpen.value = false
 }
 
@@ -115,11 +148,22 @@ function onFilterKeydown(event: KeyboardEvent) {
 const creating = shallowRef<{ parent: string; type: string }>()
 const renaming = ref<string>()
 
-// Folds: folders start open; the ones you close stay closed.
-const closed = ref(new Set(treeFolds.get(props.memory) ?? []))
-watch(closed, (value) => treeFolds.set(props.memory, value))
-const allFolders = computed(() => folderPaths(props.nodes))
-const open = (paths: string[]) => {
+// Folds: folders start open; the ones you close stay closed, here or in
+// the surrounding navigation.
+const remembered = ref(new Set(treeFolds.get(props.memory) ?? []))
+watch(remembered, (value) => treeFolds.set(props.memory, value))
+const closed = computed<Set<string>>({
+  get: () => (folds.value ? new Set(folds.value) : remembered.value),
+  set: (value) => {
+    if (folds.value) folds.value = [...value]
+    else remembered.value = value
+  },
+})
+// A folder that is an artifact (a skill) always shows what is in it.
+const allFolders = computed(() =>
+  folderPaths(props.nodes).filter((path) => !props.entries.has(path)),
+)
+const openFolders = (paths: string[]) => {
   if (!paths.some((path) => closed.value.has(path))) return
   closed.value = new Set(
     [...closed.value].filter((path) => !paths.includes(path)),
@@ -134,7 +178,7 @@ const currentPath = computed(() => {
       return path
   return undefined
 })
-watch(currentPath, (path) => path && open(parentsOf(path)), {
+watch(currentPath, (path) => path && openFolders(parentsOf(path)), {
   immediate: true,
 })
 const allOpen = computed(() =>
@@ -169,13 +213,14 @@ function rowsOf(nodes: FileNode[], parent: string): Row[] {
 const rows = computed(() => rowsOf(shown.value, ''))
 
 // Folders open unless closed (all of them while filtering); an artifact's
-// own rows, such as a view's states, are always listed.
+// own rows, such as a view's states or a skill's files, are always listed.
 const expanded = computed(() => {
   const keys = filtering.value
     ? folderPaths(shown.value)
     : allFolders.value.filter((path) => !closed.value.has(path))
   for (const [path, entry] of props.entries)
-    if (entry.children?.length) keys.push(path)
+    if (entry.children?.length || findNode(props.nodes, path)?.dir)
+      keys.push(path)
   return keys
 })
 function onExpanded(keys: string[]) {
@@ -216,7 +261,7 @@ const toggled = (path: string) =>
     : [...expanded.value, path]
 // An artifact with rows of its own stays open.
 function onToggle(event: TreeEvent, row: Row) {
-  if (!row.node?.dir) event.preventDefault()
+  if (!row.node?.dir || row.entry) event.preventDefault()
 }
 
 const changeable = (node: FileNode) =>
@@ -238,8 +283,8 @@ function onRowKeydown(row: Row, event: KeyboardEvent) {
 }
 
 function startCreate(parent: string, type: string) {
-  query.value = ''
-  if (parent) open([parent])
+  typed.value = ''
+  if (parent) openFolders([parent])
   creating.value = { parent, type }
 }
 async function created(name: string | null) {
@@ -262,14 +307,22 @@ async function confirmDelete(node: FileNode) {
 }
 
 // Arranging. Not while filtering: the rows shown then aren't a folder's own,
-// so only moving into a folder works.
+// so only moving into a folder works, as it does where order isn't kept.
 type Where = 'before' | 'after' | 'inside'
 const dragged = shallowRef<FileNode>()
 const dropping = ref<{ path: string; where: Where } | 'end'>()
 const container = useTemplateRef<HTMLElement>('container')
+const ordering = computed(() => !props.unordered && !filtering.value)
+const movesTo = (node: FileNode, folder: string) =>
+  props.canMoveTo?.(node, folder) ?? true
 
 const arrangeable = (node?: FileNode): node is FileNode =>
-  Boolean(node && props.arrange && changeable(node))
+  Boolean(
+    node &&
+    props.arrange &&
+    changeable(node) &&
+    (props.movable?.(node) ?? true),
+  )
 const siblingsOf = (folder: string) =>
   (folder ? findNode(props.nodes, folder)?.children : props.nodes) ?? []
 
@@ -280,13 +333,15 @@ function whereOn(row: Row, event: DragEvent): Where | undefined {
   if (!source || !node || within(node.path, source.path)) return undefined
   const box = (event.currentTarget as HTMLElement).getBoundingClientRect()
   const y = (event.clientY - box.top) / box.height
-  const ordering = !filtering.value
-  if (!node.dir) return ordering ? (y < 0.5 ? 'before' : 'after') : undefined
+  const inOrder = ordering.value
+  if (!node.dir) return inOrder ? (y < 0.5 ? 'before' : 'after') : undefined
   // An open folder's contents follow it, so its lower edge is inside it.
   const open = Boolean(row.children) && expanded.value.includes(node.path)
-  if (ordering && y < 0.25) return 'before'
-  if (ordering && y > 0.75 && !open) return 'after'
-  return parentOf(source.path) === node.path ? undefined : 'inside'
+  if (inOrder && y < 0.25) return 'before'
+  if (inOrder && y > 0.75 && !open) return 'after'
+  return parentOf(source.path) === node.path || !movesTo(source, node.path)
+    ? undefined
+    : 'inside'
 }
 
 async function arrangeIn(node: FileNode, to: string, before: string) {
@@ -299,8 +354,10 @@ async function arrangeIn(node: FileNode, to: string, before: string) {
 }
 function dropOn(source: FileNode, target: FileNode | null, where: Where) {
   if (!target)
-    return filtering.value
-      ? parentOf(source.path) && props.arrange?.(source, '')
+    return !ordering.value
+      ? parentOf(source.path) &&
+          movesTo(source, '') &&
+          props.arrange?.(source, '')
       : arrangeIn(source, '', '')
   if (where === 'inside') return props.arrange?.(source, target.path)
   const folder = parentOf(target.path)
@@ -383,7 +440,7 @@ function dragging(row: Row) {
 }
 const endDrop = {
   onDragover(event: DragEvent) {
-    if (!dragged.value) return
+    if (!dragged.value || !movesTo(dragged.value, '')) return
     event.preventDefault()
     dropping.value = 'end'
   },
@@ -422,7 +479,7 @@ async function onArrangeKey(event: KeyboardEvent) {
     ?.closest('[data-tree-path]')
     ?.getAttribute('data-tree-path')
   const node = path == null ? undefined : findNode(props.nodes, path)
-  if (!arrangeable(node) || filtering.value) return
+  if (!arrangeable(node) || !ordering.value) return
   event.preventDefault()
   event.stopPropagation()
   const folder = parentOf(node.path)
@@ -442,12 +499,20 @@ async function onArrangeKey(event: KeyboardEvent) {
 
 const later = (action: () => unknown) =>
   afterMenuCloses(action, () => undefined)
+const optionsIn = (folder: string) =>
+  typeof props.newOptions === 'function'
+    ? props.newOptions(folder)
+    : (props.newOptions ?? [])
+/** Makes something: inline with a name field, or through its own dialog. */
+const make = (parent: string, option: NewFileOption) =>
+  option.onSelect ? option.onSelect() : startCreate(parent, option.type)
 const newItems = (parent: string) =>
-  (props.newOptions ?? []).map((option) => ({
+  optionsIn(parent).map((option) => ({
     label: option.label,
     icon: option.icon,
-    onSelect: later(() => startCreate(parent, option.type)),
+    onSelect: later(() => make(parent, option)),
   }))
+const topOptions = computed(() => optionsIn(''))
 
 // The menu of the row it opened on.
 const target = shallowRef<FileNode>()
@@ -505,12 +570,77 @@ const extension = (name: string) => {
 </script>
 
 <template>
-  <div class="group/tree flex min-h-0 flex-col gap-1">
-    <div class="flex h-7 shrink-0 items-center gap-0.5 pr-0.5 pl-2">
-      <p class="min-w-0 flex-1 truncate text-xs font-semibold text-highlighted">
+  <div
+    :class="['group/tree flex min-h-0 flex-col', branch ? 'gap-0.5' : 'gap-1']"
+  >
+    <div
+      :class="[
+        'flex h-7 shrink-0 items-center gap-0.5',
+        branch ? 'min-w-0' : 'pr-0.5 pl-2',
+      ]"
+    >
+      <template v-if="branch?.to">
+        <UButton
+          :icon="
+            branchOpen ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'
+          "
+          color="neutral"
+          variant="ghost"
+          size="xs"
+          square
+          :aria-label="t('files.toggle', { name: branch.label })"
+          :aria-expanded="branchOpen"
+          class="shrink-0"
+          @click.stop.prevent="() => void (branchOpen = !branchOpen)"
+        />
+        <ULink
+          :to="branch.to"
+          :title="branch.path"
+          :aria-current="route.path === branch.to ? 'page' : undefined"
+          :class="[
+            'flex h-7 min-w-0 flex-1 items-center gap-2 rounded-md px-1.5 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-primary',
+            route.path === branch.to
+              ? 'bg-elevated text-highlighted'
+              : 'text-default hover:bg-elevated/50',
+          ]"
+        >
+          <UIcon
+            v-if="branch.icon"
+            :name="branch.icon"
+            class="size-3.5 shrink-0 text-muted"
+          />
+          <span class="truncate">{{ branch.label }}</span>
+        </ULink>
+      </template>
+      <button
+        v-else-if="branch"
+        type="button"
+        :title="branch.path"
+        :aria-expanded="branchOpen"
+        class="flex h-7 min-w-0 flex-1 items-center gap-1.5 rounded-md px-1.5 text-left text-xs font-medium text-default outline-none hover:bg-elevated/50 focus-visible:ring-2 focus-visible:ring-primary"
+        @click="branchOpen = !branchOpen"
+      >
+        <UIcon
+          :name="
+            branchOpen ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'
+          "
+          class="size-3.5 shrink-0 text-muted"
+        />
+        <UIcon
+          v-if="branch.icon"
+          :name="branch.icon"
+          class="size-3.5 shrink-0 text-muted"
+        />
+        <span class="truncate">{{ branch.label }}</span>
+      </button>
+      <p
+        v-else
+        class="min-w-0 flex-1 truncate text-xs font-semibold text-highlighted"
+      >
         {{ heading }}
       </p>
       <div
+        v-if="!branch"
         :class="[
           'flex items-center gap-0.5 transition-opacity',
           !filterOpen &&
@@ -552,8 +682,8 @@ const extension = (name: string) => {
       </div>
       <!-- Always shown, and last, so the tools fading in beside it never
            move it. -->
-      <template v-if="editable && newOptions?.length">
-        <UTooltip v-if="newOptions.length === 1" :text="t('files.new')">
+      <template v-if="editable && topOptions.length">
+        <UTooltip v-if="topOptions.length === 1" :text="t('files.new')">
           <UButton
             icon="i-lucide-plus"
             color="neutral"
@@ -561,7 +691,7 @@ const extension = (name: string) => {
             size="xs"
             square
             :aria-label="t('files.new')"
-            @click="startCreate('', newOptions[0]!.type)"
+            @click="make('', topOptions[0]!)"
           />
         </UTooltip>
         <UDropdownMenu
@@ -581,212 +711,241 @@ const extension = (name: string) => {
         </UDropdownMenu>
       </template>
     </div>
-    <UInput
-      v-if="filterOpen"
-      ref="filter"
-      v-model="query"
-      size="sm"
-      icon="i-lucide-search"
-      :placeholder="t(`files.filterKind.${kind}`)"
-      :aria-label="t(`files.filterKind.${kind}`)"
-      class="mx-1 shrink-0"
-      @keydown="onFilterKeydown"
+    <div
+      v-show="!branch || branchOpen"
+      :class="['flex min-h-0 flex-col gap-1', branch && 'pl-4']"
     >
-      <template v-if="query" #trailing>
-        <UButton
-          icon="i-lucide-x"
-          color="neutral"
-          variant="link"
-          size="xs"
-          square
-          :aria-label="t('files.clearFilter')"
-          @click="clearFilter"
-        />
-      </template>
-    </UInput>
-    <p v-if="filtering && !shown.length" class="px-2.5 py-1 text-xs text-muted">
-      {{ t(`files.noMatches.${kind}`) }}
-    </p>
-    <UContextMenu
-      :items="menu"
-      :content="{ onCloseAutoFocus: keepNameField }"
-      :ui="{ content: 'min-w-44' }"
-    >
-      <div
-        ref="container"
-        class="flex min-h-0 flex-col"
-        @contextmenu.capture="pick"
-        @keydown.capture="onArrangeKey"
-        @pointerdown.capture="letFocusGo"
+      <UInput
+        v-if="filterOpen"
+        ref="filter"
+        v-model="typed"
+        size="sm"
+        icon="i-lucide-search"
+        :placeholder="t(`files.filterKind.${kind}`)"
+        :aria-label="t(`files.filterKind.${kind}`)"
+        class="mx-1 shrink-0"
+        @keydown="onFilterKeydown"
       >
-        <UTree
-          :items="rows"
-          :get-key="(row: Row) => row.key"
-          :expanded="expanded"
-          :model-value="selected"
-          :aria-label="heading"
-          color="neutral"
-          size="sm"
-          :on-select="onSelect"
-          :on-toggle="onToggle"
-          @update:expanded="onExpanded"
-        >
-          <template
-            #item-wrapper="{ item, expanded: isOpen, selected: isSelected, ui }"
-          >
-            <div
-              v-if="item.field || (item.node && renaming === item.node.path)"
-              :class="
-                ui.link({
-                  class: 'gap-1.5 py-0.5',
-                  selected: false,
-                  disabled: false,
-                })
-              "
-            >
-              <FileNameField
-                v-if="item.field"
-                :initial="
-                  creating?.type === 'folder'
-                    ? t('files.newFolderName')
-                    : t('files.untitled')
-                "
-                @done="created"
-              />
-              <FileNameField
-                v-else
-                :initial="item.node!.name"
-                @done="renamed(item.node!, $event)"
-              />
-            </div>
-            <div
-              v-else-if="item.entry || item.child"
-              :data-tree-path="item.node?.path"
-              v-bind="dragging(item)"
-              :class="
-                ui.link({
-                  class: [
-                    'relative gap-1.5',
-                    dragged && dragged === item.node && 'opacity-50',
-                  ],
-                  selected: isSelected,
-                  disabled: false,
-                })
-              "
-              @keydown="onRowKeydown(item, $event)"
-            >
-              <span
-                v-if="lineOn(item)"
-                aria-hidden="true"
-                :data-drop-line="lineOn(item)"
-                :class="[
-                  'pointer-events-none absolute inset-x-1 z-10 h-0.5 rounded-full bg-primary',
-                  lineOn(item) === 'before' ? '-top-px' : '-bottom-px',
-                ]"
-              />
-              <NuxtLink
-                :to="(item.entry ?? item.child)!.to"
-                tabindex="-1"
-                :title="item.node?.name"
-                :aria-current="isSelected ? 'page' : undefined"
-                class="flex min-w-0 flex-1 items-center gap-1.5 outline-none after:absolute after:inset-0"
-              >
-                <UIcon
-                  v-if="item.entry"
-                  :name="item.entry.icon"
-                  class="size-4 shrink-0 text-muted"
-                />
-                <span class="min-w-0 truncate">{{ item.label }}</span>
-              </NuxtLink>
-            </div>
-            <div
-              v-else-if="item.node?.dir"
-              :data-tree-path="item.node.path"
-              :title="item.node.name"
-              v-bind="dragging(item)"
-              :class="
-                ui.link({
-                  class: [
-                    'relative gap-1.5 cursor-default font-medium',
-                    dragged && dragged === item.node && 'opacity-50',
-                    dropping !== 'end' &&
-                      dropping?.path === item.node.path &&
-                      dropping.where === 'inside' &&
-                      'bg-elevated ring-1 ring-inset ring-primary/50',
-                  ],
-                  selected: false,
-                  disabled: false,
-                })
-              "
-              @keydown="onRowKeydown(item, $event)"
-            >
-              <span
-                v-if="lineOn(item)"
-                aria-hidden="true"
-                :data-drop-line="lineOn(item)"
-                :class="[
-                  'pointer-events-none absolute inset-x-1 z-10 h-0.5 rounded-full bg-primary',
-                  lineOn(item) === 'before' ? '-top-px' : '-bottom-px',
-                ]"
-              />
-              <UIcon
-                name="i-lucide-chevron-right"
-                :class="[
-                  'size-4 shrink-0 text-muted transition-transform',
-                  isOpen && 'rotate-90',
-                  !item.children && 'opacity-0',
-                ]"
-              />
-              <span class="min-w-0 flex-1 truncate">{{ item.label }}</span>
-            </div>
-            <div
-              v-else
-              :data-tree-path="item.node?.path"
-              :title="t('files.openInEditor')"
-              v-bind="dragging(item)"
-              :class="
-                ui.link({
-                  class: [
-                    'relative gap-1.5 text-muted',
-                    dragged && dragged === item.node && 'opacity-50',
-                  ],
-                  selected: false,
-                  disabled: false,
-                })
-              "
-              @keydown="onRowKeydown(item, $event)"
-            >
-              <span
-                v-if="lineOn(item)"
-                aria-hidden="true"
-                :data-drop-line="lineOn(item)"
-                :class="[
-                  'pointer-events-none absolute inset-x-1 z-10 h-0.5 rounded-full bg-primary',
-                  lineOn(item) === 'before' ? '-top-px' : '-bottom-px',
-                ]"
-              />
-              <UIcon name="i-lucide-file" class="size-4 shrink-0 opacity-70" />
-              <span class="min-w-0 flex-1 truncate"
-                >{{ extension(item.label)[0]
-                }}<span class="text-dimmed">{{
-                  extension(item.label)[1]
-                }}</span></span
-              >
-            </div>
-          </template>
-        </UTree>
-        <!-- Below the rows: the top level, last. -->
+        <template v-if="typed" #trailing>
+          <UButton
+            icon="i-lucide-x"
+            color="neutral"
+            variant="link"
+            size="xs"
+            square
+            :aria-label="t('files.clearFilter')"
+            @click="clearFilter"
+          />
+        </template>
+      </UInput>
+      <p
+        v-if="filtering && !shown.length && !branch"
+        class="px-2.5 py-1 text-xs text-muted"
+      >
+        {{ t(`files.noMatches.${kind}`) }}
+      </p>
+      <p
+        v-if="branch && !filtering && !nodes.length && !creating"
+        class="px-2 py-1 text-xs text-muted"
+      >
+        {{ t('files.emptyFolder') }}
+      </p>
+      <UContextMenu
+        :items="menu"
+        :content="{ onCloseAutoFocus: keepNameField }"
+        :ui="{ content: 'min-w-44' }"
+      >
         <div
-          v-if="editable && arrange"
-          data-testid="tree-end"
-          v-bind="endDrop"
-          :class="[
-            'relative min-h-8 flex-1',
-            dropping === 'end' &&
-              'before:absolute before:inset-x-1 before:top-0 before:h-0.5 before:rounded-full before:bg-primary',
-          ]"
-        />
-      </div>
-    </UContextMenu>
+          ref="container"
+          class="flex min-h-0 flex-col"
+          @contextmenu.capture="pick"
+          @keydown.capture="onArrangeKey"
+          @pointerdown.capture="letFocusGo"
+        >
+          <UTree
+            :items="rows"
+            :get-key="(row: Row) => row.key"
+            :expanded="expanded"
+            :model-value="selected"
+            :aria-label="heading"
+            color="neutral"
+            size="sm"
+            :on-select="onSelect"
+            :on-toggle="onToggle"
+            @update:expanded="onExpanded"
+          >
+            <template
+              #item-wrapper="{
+                item,
+                expanded: isOpen,
+                selected: isSelected,
+                ui,
+              }"
+            >
+              <div
+                v-if="item.field || (item.node && renaming === item.node.path)"
+                :class="
+                  ui.link({
+                    class: 'gap-1.5 py-0.5',
+                    selected: false,
+                    disabled: false,
+                  })
+                "
+              >
+                <FileNameField
+                  v-if="item.field"
+                  :initial="
+                    creating?.type === 'folder'
+                      ? t('files.newFolderName')
+                      : t('files.untitled')
+                  "
+                  @done="created"
+                />
+                <FileNameField
+                  v-else
+                  :initial="item.node!.name"
+                  @done="renamed(item.node!, $event)"
+                />
+              </div>
+              <div
+                v-else-if="item.entry || item.child"
+                :data-tree-path="item.node?.path"
+                v-bind="dragging(item)"
+                :class="
+                  ui.link({
+                    class: [
+                      'relative gap-1.5',
+                      dragged && dragged === item.node && 'opacity-50',
+                      item.node &&
+                        dropping !== 'end' &&
+                        dropping?.path === item.node.path &&
+                        dropping.where === 'inside' &&
+                        'bg-elevated ring-1 ring-inset ring-primary/50',
+                    ],
+                    selected: isSelected,
+                    disabled: false,
+                  })
+                "
+                @keydown="onRowKeydown(item, $event)"
+              >
+                <span
+                  v-if="lineOn(item)"
+                  aria-hidden="true"
+                  :data-drop-line="lineOn(item)"
+                  :class="[
+                    'pointer-events-none absolute inset-x-1 z-10 h-0.5 rounded-full bg-primary',
+                    lineOn(item) === 'before' ? '-top-px' : '-bottom-px',
+                  ]"
+                />
+                <NuxtLink
+                  :to="(item.entry ?? item.child)!.to"
+                  tabindex="-1"
+                  :title="item.node && hover(item.node)"
+                  :aria-current="isSelected ? 'page' : undefined"
+                  class="flex min-w-0 flex-1 items-center gap-1.5 outline-none after:absolute after:inset-0"
+                >
+                  <UIcon
+                    v-if="item.entry"
+                    :name="item.entry.icon"
+                    class="size-4 shrink-0 text-muted"
+                  />
+                  <span class="min-w-0 truncate">{{ item.label }}</span>
+                </NuxtLink>
+              </div>
+              <div
+                v-else-if="item.node?.dir"
+                :data-tree-path="item.node.path"
+                :title="hover(item.node)"
+                v-bind="dragging(item)"
+                :class="
+                  ui.link({
+                    class: [
+                      'relative gap-1.5 cursor-default font-medium',
+                      dragged && dragged === item.node && 'opacity-50',
+                      dropping !== 'end' &&
+                        dropping?.path === item.node.path &&
+                        dropping.where === 'inside' &&
+                        'bg-elevated ring-1 ring-inset ring-primary/50',
+                    ],
+                    selected: false,
+                    disabled: false,
+                  })
+                "
+                @keydown="onRowKeydown(item, $event)"
+              >
+                <span
+                  v-if="lineOn(item)"
+                  aria-hidden="true"
+                  :data-drop-line="lineOn(item)"
+                  :class="[
+                    'pointer-events-none absolute inset-x-1 z-10 h-0.5 rounded-full bg-primary',
+                    lineOn(item) === 'before' ? '-top-px' : '-bottom-px',
+                  ]"
+                />
+                <UIcon
+                  name="i-lucide-chevron-right"
+                  :class="[
+                    'size-4 shrink-0 text-muted transition-transform',
+                    isOpen && 'rotate-90',
+                    !item.children && 'opacity-0',
+                  ]"
+                />
+                <span class="min-w-0 flex-1 truncate">{{ item.label }}</span>
+              </div>
+              <div
+                v-else
+                :data-tree-path="item.node?.path"
+                :title="t('files.openInEditor')"
+                v-bind="dragging(item)"
+                :class="
+                  ui.link({
+                    class: [
+                      'relative gap-1.5 text-muted',
+                      dragged && dragged === item.node && 'opacity-50',
+                    ],
+                    selected: false,
+                    disabled: false,
+                  })
+                "
+                @keydown="onRowKeydown(item, $event)"
+              >
+                <span
+                  v-if="lineOn(item)"
+                  aria-hidden="true"
+                  :data-drop-line="lineOn(item)"
+                  :class="[
+                    'pointer-events-none absolute inset-x-1 z-10 h-0.5 rounded-full bg-primary',
+                    lineOn(item) === 'before' ? '-top-px' : '-bottom-px',
+                  ]"
+                />
+                <UIcon
+                  name="i-lucide-file"
+                  class="size-4 shrink-0 opacity-70"
+                />
+                <span class="min-w-0 flex-1 truncate"
+                  >{{ extension(item.label)[0]
+                  }}<span class="text-dimmed">{{
+                    extension(item.label)[1]
+                  }}</span></span
+                >
+              </div>
+            </template>
+          </UTree>
+          <!-- Below the rows: the top level, last. In a branch, only while
+             dragging, so the navigation around it keeps its spacing. -->
+          <div
+            v-if="editable && arrange && (!branch || dragged)"
+            data-testid="tree-end"
+            v-bind="endDrop"
+            :class="[
+              'relative flex-1',
+              branch ? 'min-h-6' : 'min-h-8',
+              dropping === 'end' &&
+                'before:absolute before:inset-x-1 before:top-0 before:h-0.5 before:rounded-full before:bg-primary',
+            ]"
+          />
+        </div>
+      </UContextMenu>
+    </div>
   </div>
 </template>

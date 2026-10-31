@@ -58,13 +58,19 @@ const loadDocuments = shared<Record<string, string>>('systems/documents')
 const loadComponents =
   shared<Record<string, ComponentPageData>>('systems/components')
 
-/** Every system the area shows, and one by its permanent ID. */
+/**
+ * Every system the area shows, one by its permanent ID, and a way to fetch
+ * them again (with their documents) after a change the studio made.
+ */
 export async function useSystemCatalog() {
   const catalog = await loadCatalog()
   const systems = computed(() => catalog.value.systems)
   return {
     systems,
     systemOf: (id: string) => systems.value.find((system) => system.id === id),
+    reload: async () => {
+      await Promise.all([loadCatalog.reload(), loadDocuments.reload()])
+    },
   }
 }
 
