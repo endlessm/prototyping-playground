@@ -14,7 +14,7 @@ import { freePort } from './setup/studio'
 
 const newPage = useBrowser()
 
-test('[SH-119] [CL-17] configure and Settings restart refresh real agent guidance', async () => {
+test('[SH-119] [CL-17] [CL-53] dev startup, configure and Settings restart refresh real agent guidance', async () => {
   mkdirSync('.e2e', { recursive: true })
   const root = mkdtempSync(path.resolve('.e2e/settings-sync-'))
   for (const entry of [
@@ -111,6 +111,16 @@ test('[SH-119] [CL-17] configure and Settings restart refresh real agent guidanc
       .toBe(true)
     expect(cli('sync', '--check').status).toBe(0)
     await page.goto(`${url}settings`)
+    // The started studio serves the manifest it built to its own pages.
+    const manifest = await page.evaluate(async () => {
+      const response = await fetch('/_studio/manifest/index.json')
+      return { ok: response.ok, body: await response.json() }
+    })
+    expect(manifest.ok).toBe(true)
+    expect(Array.isArray(manifest.body.prototypes)).toBe(true)
+    expect(
+      manifest.body.systems.map(({ key }: { key: string }) => key),
+    ).toContain('endless-studios')
     const manual = page.getByRole('switch', { name: 'Manual', exact: true })
     await expect.poll(() => manual.isVisible(), { timeout: 60000 }).toBe(true)
     await manual.click()

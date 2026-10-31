@@ -49,8 +49,9 @@ const ROW_ID = /\[([A-Z]{2}-\d+)\]/g
 export function checklistRows(markdown: string): ChecklistRow[] {
   return markdown.split(/\r?\n/).flatMap((line) => {
     if (!ROW.test(line)) return []
+    // A `\|` inside a cell (such as `personal\|team`) is a literal bar.
     const cells = line
-      .split('|')
+      .split(/(?<!\\)\|/)
       .slice(1, -1)
       .map((cell) => cell.trim())
     return [{ id: cells[0]!, behavior: cells[1] ?? '', fate: cells[4] ?? '' }]
@@ -63,8 +64,38 @@ export function checklistRows(markdown: string): ChecklistRow[] {
 const CALL =
   /\b(?:test|it|describe|scenario)(?:\.\w+(?:\((?:[^()]|\([^()]*\))*\))?)*\(\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/g
 
+// A parameterised test (`test.each(table)('name', …)` or
+// `test.each`table`('name', …)`) names itself after its table.
+const EACH = /\b(?:test|it|describe)(?:\.\w+)*\.each\s*([(`])/g
+const NAME = /^\s*\(\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/
+
+// The index just past the bracket or template opened at `start`, skipping
+// string literals inside it.
+function closing(source: string, start: number) {
+  if (source[start] === '`') return source.indexOf('`', start + 1) + 1
+  let depth = 0
+  for (let i = start; i < source.length; i++) {
+    const char = source[i]!
+    if (char === "'" || char === '"' || char === '`') {
+      for (i++; i < source.length && source[i] !== char; i++)
+        if (source[i] === '\\') i++
+    } else if ('([{'.includes(char)) depth++
+    else if (')]}'.includes(char) && --depth === 0) return i + 1
+  }
+  return source.length
+}
+
 export function testNames(source: string) {
-  return [...source.matchAll(CALL)].map((match) => match[2]!)
+  const named = [...source.matchAll(CALL)].map((match) => ({
+    at: match.index,
+    name: match[2]!,
+  }))
+  for (const match of source.matchAll(EACH)) {
+    const end = closing(source, match.index + match[0].length - 1)
+    const name = NAME.exec(source.slice(end))
+    if (end > 0 && name) named.push({ at: match.index, name: name[2]! })
+  }
+  return named.sort((a, b) => a.at - b.at).map(({ name }) => name)
 }
 
 const rowIds = (name: string) => [...name.matchAll(ROW_ID)].map((m) => m[1]!)

@@ -241,6 +241,21 @@ describe('dropped module features', () => {
     expect(studio.studio('add', 'x', '--allow-license').status).toBe(1)
   })
 
+  test('[CL-155] there is no update command for upstream releases', () => {
+    expect(studio.studio().stdout).not.toMatch(/^ {2}update\b/m)
+    for (const args of [
+      ['update'],
+      ['update', '--dry-run'],
+      ['update', '--continue'],
+    ]) {
+      const result = studio.studio(...args)
+      expect(result.status).toBe(1)
+      expect(result.stderr.trim()).toBe(
+        'There\'s no command "update". Run yarn studio to list them.',
+      )
+    }
+  })
+
   test('[CL-31] create-module has no --out pack option', () => {
     const result = studio.studio('create-module', 'packed', '--out', 'x')
     expect(result.stderr.trim()).toBe('Unknown option --out.')
