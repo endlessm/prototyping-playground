@@ -23,7 +23,7 @@ const dismissed = (value: boolean) =>
   setAda({ preferences: { onboarding: { welcomeDismissed: value } } })
 
 const CLAIM = '_studio/modules/onboarding/claim'
-const newPage = useBrowser()
+const newPage = useBrowser({ welcome: true })
 let studio: RunningStudio
 beforeAll(async () => {
   dismissed(false)

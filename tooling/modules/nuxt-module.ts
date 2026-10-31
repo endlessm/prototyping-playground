@@ -268,7 +268,7 @@ function serverPlugin(
   root: string,
   base: string,
 ): Plugin {
-  const handlers = new Map(
+  const handlers = new Map<string, string>(
     enabled.flatMap(({ spec, dir }) =>
       Object.entries(spec.server ?? {}).map(
         ([name, file]) => [`${spec.id}/${name}`, path.join(dir, file)] as const,

@@ -18,6 +18,8 @@ import { STEPS } from './steps'
 export interface ParityStudio {
   url: string
   label: string
+  /** The studio's folder, for scenarios that change its files. */
+  root: string
 }
 
 declare module 'vitest' {
@@ -48,6 +50,7 @@ export default async function setup(project: TestProject) {
           studios.vue = {
             url: studio.url,
             label: `this checkout, ${studio.url}`,
+            root: process.cwd(),
           }
         },
       ),
@@ -61,6 +64,7 @@ export default async function setup(project: TestProject) {
           studios.react = {
             url: studio.url,
             label: `${ref} at ${studio.commit.slice(0, 8)}, ${studio.url}, copied to ${studio.root}`,
+            root: studio.root,
           }
         }),
   ])

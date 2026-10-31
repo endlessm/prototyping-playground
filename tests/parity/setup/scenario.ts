@@ -12,6 +12,8 @@ export interface ScenarioContext {
   /** The studio's Home, ending in a slash. */
   url: string
   side: Side
+  /** The studio's folder, for scenarios that change its files. */
+  root: string
   /** Saves a full-page screenshot of what is on screen now. */
   step: (name: string) => Promise<void>
 }
@@ -76,7 +78,7 @@ export function scenario(
           })
         }
         try {
-          await run({ page, url: studio!.url, side, step })
+          await run({ page, url: studio!.url, root: studio!.root, side, step })
         } catch (error) {
           record(parity.run, {
             scenario: name,

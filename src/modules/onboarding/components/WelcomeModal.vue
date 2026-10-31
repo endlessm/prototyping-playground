@@ -34,6 +34,13 @@ const index = ref(0)
 const step = computed(() => steps[index.value]!)
 const last = computed(() => index.value === steps.length - 1)
 const finish = () => emit('close')
+function back() {
+  index.value -= 1
+}
+function forward() {
+  if (last.value) finish()
+  else index.value += 1
+}
 </script>
 
 <template>
@@ -41,7 +48,7 @@ const finish = () => emit('close')
     :title="step.title"
     :close="false"
     :ui="{
-      content: 'sm:max-w-lg',
+      content: 'divide-y-0 sm:max-w-lg',
       header: 'flex-col-reverse items-start gap-5 sm:px-8 sm:pt-8',
       title: 'text-2xl font-semibold tracking-tight',
       body: 'sm:px-8',
@@ -108,7 +115,7 @@ const finish = () => emit('close')
           color="neutral"
           variant="ghost"
           :label="t('welcome.back')"
-          @click="index--"
+          @click="back"
         />
         <UButton
           :label="
@@ -119,7 +126,7 @@ const finish = () => emit('close')
                 : t('welcome.next')
           "
           trailing-icon="i-lucide-arrow-right"
-          @click="last ? finish() : index++"
+          @click="forward"
         />
       </div>
     </template>
