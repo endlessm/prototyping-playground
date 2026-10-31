@@ -10,10 +10,14 @@ const PLAIN = 'p1a1n00000000001'
 scenario(
   '[PR-20] [PR-21] [PR-23] [PR-77] [PR-93] [SY-172] opening a prototype’s views',
   async ({ page, url, step }) => {
+    // Home lists your three newest prototypes once it knows who you are; the
+    // rail's links show before that. Which three depends on the fixtures.
     await page.goto(url)
     await expect
-      .poll(() => page.getByRole('link').count(), { timeout: 60_000 })
-      .toBeGreaterThan(0)
+      .poll(() => page.getByText('Your prototypes').first().isVisible(), {
+        timeout: 120_000,
+      })
+      .toBe(true)
     await step('Home')
 
     await page.goto(`${url}prototypes/${TRACER}`)

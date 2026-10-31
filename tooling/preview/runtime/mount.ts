@@ -355,6 +355,11 @@ export function mountPreview({ create, views }: MountOptions) {
       options: optionsKey(system),
     }
     box.hidden = false
+    // A component's example sits on the system's page colour token, not on
+    // whatever its stylesheet paints a screen's page with.
+    document.body.style.backgroundColor = example
+      ? 'var(--ui-bg, transparent)'
+      : ''
     if (!failed && example && !example.found)
       failed = `${view.title}.vue has no <Example name=${JSON.stringify(example.name)}>.`
     if (failed) return status('error', attempt, failed)

@@ -67,6 +67,7 @@ const KEYS = new Set([
   'prototypeActions',
   'data',
   'preferences',
+  'library',
   'server',
 ])
 const RAIL = new Set(['top', 'bottom', 'none'])
@@ -98,6 +99,11 @@ export function moduleProblems(spec: unknown, folderName: string): string[] {
     return [`${where} must export a module declaration as its default.`]
   const module = spec as Record<string, unknown>
   const problems: string[] = []
+  if (
+    module.library !== undefined &&
+    (!validWatch(module.library) || /[*?{}]/.test(String(module.library)))
+  )
+    problems.push(`${where}: library must be a path inside the module.`)
   for (const key of Object.keys(module))
     if (!KEYS.has(key))
       problems.push(`${where}: modules don't declare "${key}".`)

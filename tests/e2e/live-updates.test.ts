@@ -64,7 +64,7 @@ const count = ref(0)
   </main>
 </template>
 
-<style>
+<style scoped>
 h1 { color: ${colour}; }
 </style>
 `,

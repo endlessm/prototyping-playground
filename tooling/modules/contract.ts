@@ -255,6 +255,8 @@ export interface StudioModule {
   prototypeActions?: string
   data?: Record<string, ModuleBuildData>
   preferences?: ModulePreferences
+  /** Public prototype imports through @module/<id>, relative to the module. */
+  library?: string
   /**
    * Handlers on the local dev server only, by name: each answers same-origin
    * requests at `<base>_studio/modules/<id>/<name>` from a `.ts` file,

@@ -39,6 +39,24 @@ describe('package scripts', () => {
 })
 
 describe('toolchain', () => {
+  test('[CL-128] the ownership map and command remain absent', () => {
+    expect(existsSync('.studio/ownership.json')).toBe(false)
+    expect(pkg.scripts.ownership).toBeUndefined()
+  })
+
+  test('[CL-140] pre-push only gives the committed scope summary', () => {
+    expect(readFileSync('.husky/pre-push', 'utf8').trim()).toBe(
+      'node tooling/checks/run.ts scope --push',
+    )
+  })
+
+  test('[CL-147] CI checks scope and asset blobs on the pushed range', () => {
+    const scope = JSON.stringify(workflow.jobs.scope)
+    expect(scope).toContain('scope --ci')
+    expect(scope).toContain('assets --ci')
+    expect(scope).toContain('collaborators/$GITHUB_ACTOR/permission')
+    expect(scope).toContain('pull_request.base.sha')
+  })
   test('[CL-143] yarn 4 is pinned for corepack, with the node-modules linker', () => {
     expect(pkg.packageManager).toMatch(/^yarn@4\./)
     expect(yarnrc.nodeLinker).toBe('node-modules')
@@ -56,7 +74,13 @@ describe('toolchain', () => {
   test('[CL-139] [CL-132] the pre-commit hook checks your identity, then lints and formats staged files', () => {
     expect(
       readFileSync('.husky/pre-commit', 'utf8').trim().split(/\r?\n/),
-    ).toEqual(['node tooling/check-identity.ts', 'yarn lint-staged'])
+    ).toEqual([
+      'node tooling/check-identity.ts',
+      'node tooling/checks/run.ts scope',
+      'node tooling/checks/run.ts assets',
+      'node tooling/checks/run.ts modules',
+      'yarn lint-staged',
+    ])
     expect(pkg['lint-staged']['**/*.{js,mjs,ts,vue,css}']).toEqual([
       'eslint --fix',
       'prettier --write',
@@ -113,6 +137,8 @@ describe('CI workflow', () => {
       'yarn lint',
       'yarn format:check',
       'yarn typecheck',
+      'yarn check',
+      'yarn studio sync --check',
       'yarn build',
       'yarn build:inspect',
     ])
@@ -120,7 +146,7 @@ describe('CI workflow', () => {
 
   test('[CL-150] the required "build" check passes only when the bundle and test jobs succeeded', () => {
     const build = workflow.jobs.build
-    expect(build.needs).toEqual(['bundle', 'tests'])
+    expect(build.needs).toEqual(['bundle', 'tests', 'scope'])
     expect(build.if).toBe('always()')
     const check = build.steps.at(-1).run
     expect(check).toContain('needs.bundle.result }}" = success')
@@ -135,6 +161,7 @@ describe('CI workflow', () => {
     expect(Object.keys(workflow.jobs).sort()).toEqual([
       'build',
       'bundle',
+      'scope',
       'tests',
     ])
     expect(existsSync('.github/workflows/demo.yml')).toBe(false)

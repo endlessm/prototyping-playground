@@ -46,6 +46,21 @@ interface Command {
 }
 
 const COMMANDS: Record<string, Command> = {
+  check: {
+    usage: 'check [--json]',
+    summary:
+      'validate configuration, modules, systems, profiles and prototype boundaries',
+    async run(root, _args, flags) {
+      const { studioProblems } = await import('../checks/studio.ts')
+      const problems = await studioProblems(root)
+      console.log(
+        flags.json
+          ? JSON.stringify({ problems }, null, 2)
+          : problems.join('\n') || 'Studio checks passed.',
+      )
+      if (problems.length) process.exitCode = 1
+    },
+  },
   configure: {
     usage:
       'configure [--name <name>] [--tagline <text>] [--system <key|id|none>] [--admins <key,key>] [--maintainers <system=key,key>] [--recovery] [--yes]',

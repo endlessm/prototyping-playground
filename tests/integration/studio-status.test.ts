@@ -90,7 +90,9 @@ describe('status', () => {
     expect(output).not.toMatch(
       /starter|placeholder|upstream|release|came with|added from/i,
     )
-    expect(studio.studio('check').stderr).toContain('no command "check"')
+    expect(studio.studio('check').output).not.toMatch(
+      /changed from the original|pack lock|ownership map/i,
+    )
   })
 })
 

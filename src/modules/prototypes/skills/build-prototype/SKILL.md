@@ -83,6 +83,8 @@ The [prototypes README](../../README.md) is the contract; read the sections you 
 
 ## Check it
 
+Run `yarn studio check`. Both Vue script blocks and TypeScript helpers must stay within this prototype, its assigned system, Vue, `#studio/prototype` and enabled `@module/<id>` libraries. Use scoped/module CSS and imported colocated assets. Files over 750 KiB block commits; prefer smaller WebP images. A missing system remains rebuild source outside the Studio's Nuxt typecheck; rebuild it before treating its preview as verified. Scope/identity checks warn locally, while CI checks pushes against the previous revision's permissions.
+
 Use the studio's command palette (Ctrl+K, Command+K on macOS, or Search on the rail/Home) to find prototypes by title, contributor or folder. In an open prototype it also finds artifacts and named states by title or path, using their permanent addresses. The current destination is disabled. Shortcut forwarding from previews preserves typing fields; do not add a competing global handler to a view unless the prototype needs that key itself.
 
 13. Open `/prototypes/<prototype-id>/artifacts/<artifact-id>` in the running studio, or a state's own ID. The view renders in its system's preview document; "Open in a new tab" opens that document alone. New, renamed and removed views and states appear without a restart, and edits update the open preview live.
