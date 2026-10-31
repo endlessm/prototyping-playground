@@ -3,15 +3,34 @@ name: use-canvas
 description: Create or edit an Endless Design Studio canvas, an .excalidraw page of views, documents, notes and arrows. Use only when the Canvases module is enabled.
 ---
 
-Read this module's [README](../../README.md) first; it describes the file, how a canvas opens and what the editor offers.
+Read this module's [README](../../README.md) first; it describes the file, the tools and how a canvas shows.
 
-1. Before editing, run `yarn studio context src/prototypes/<key>/<id> --json` and respect `canEdit`. A canvas you may not edit opens read-only in the studio too.
-2. A canvas is one `<name>.excalidraw` file inside a prototype. Start a new one from the empty scene in `types/canvas/check.ts` (`template`); its name in the navigation is the file name.
-3. Leave the permanent identity to the studio: the dev server adds a new canvas's top-level `"studioId"` in your own prototype. For files written while it isn't running, run `yarn studio identify <prototype folder>` and apply with `--yes`. Never change or copy an existing `studioId`.
-4. Keep items within the canvas's own prototype: an item is an `"embeddable"` element whose `link` is `/prototypes/<prototype-id>/artifacts/<artifact-id>` (a named state by its own ID). Views, states and diagrams show live; documents and other canvases as cards. Size a live item 480 × 338 and a card 480 × 88; the studio gives items their look itself. To show another prototype's view, copy it into this prototype first.
-5. Never store images; put the working view on the canvas instead. Keep `"files": {}` and `"studioVersion": 1`.
-6. Prefer native Excalidraw elements: text for annotations, with shapes, lines, arrows and frames. The Library's sticky notes are optional.
-7. Preserve the person's arrangement; move existing content only when the request needs it, and keep changes small enough to review. You can edit the file while the canvas is open: the studio takes your change in live and merges it with the person's unsaved edits, per element by `version`. Keep each element's `id`, and raise its `version` (with a new `versionNonce`) when you change it, or the open canvas may keep its own copy. Write the file in one go.
-8. Check the result: `yarn build` refuses a canvas with invalid JSON, no `elements` list, images, stored files, links to another prototype or an unknown `studioVersion`, and names the file. Then open the canvas in the studio.
+## Before you change anything
 
-Report which canvas changed and what you placed. Canvas tools for agents (`yarn canvas`, `window.__studioCanvas`) are not in the Vue studio yet; edit the JSON directly until they are.
+1. Run `yarn studio context src/prototypes/<key>/<id> --json` and respect `canEdit`. Only the prototype's owner or an Admin may change its canvases, and only while the prototype is active.
+2. A canvas is one `<name>.excalidraw` file inside a prototype. Create it through the file menu (+ → New canvas), or write the empty scene from `types/canvas/check.ts` (`template`). For files written by hand, run `yarn studio identify <prototype folder>` and apply with `--yes`; never change or copy an existing `studioId`.
+3. Read the current tool help instead of assuming arguments: `yarn canvas help`, then `yarn canvas help create` for the element types.
+
+## Changing a canvas
+
+Prefer the tools over editing the JSON: they keep arrows attached, labels inside their shapes, element versions raised and links in their stored form.
+
+- **On the file:** `yarn canvas <file.excalidraw> <tool> '<json>'`. When the shell can change quotes (PowerShell, cmd), pass `--json-file <path>` or pipe the JSON with `-`; all three give the same result. The result is JSON on stdout; an open canvas takes the change in live.
+- **In the open canvas** (a browser on the local studio): `window.__studioCanvas` has the same tools, plus `context`, `point`, `screenshot` and `persist`. Read its `help()` first. Each call is one undo step for the person.
+- If the command says files have no identity yet, run the command it names, or repeat the call with `--identify`.
+
+Work in small, reviewable steps:
+
+1. `describe` before changing anything (`context` first in the browser when the person says "this" or "here").
+2. Keep items in the canvas's own prototype: `artifacts` lists what can go on it. To show another prototype's view, copy it into this prototype first.
+3. Prefer native elements: `text` for annotations, with shapes, arrows, lines and `section`s. Sticky `note`s are optional, not the default.
+4. To show a view's named states, use `states` with the view's file, such as `{ "artifact": "flows/Home.vue" }`: one call places every state side by side, titled and linked to each state's permanent address. For a view without states, use `create` with `type: "artifact"`.
+5. Preserve the person's arrangement; move existing content only when the request needs it.
+6. Never store images; put the working view on the canvas instead.
+7. `describe` again afterwards, and in the browser `point` at what you placed so the person sees it.
+
+If you must edit the JSON directly, keep each element's `id`, raise its `version` with a new `versionNonce` when you change it, keep `"files": {}` and `"studioVersion": 1`, and write the file in one go. An item is an `"embeddable"` whose `link` is `/prototypes/<prototype-id>/artifacts/<artifact-id>`.
+
+## Check the result
+
+Open the canvas in the studio and look at the rendered result: items show live previews or cards, nothing overlaps by accident (`create` warns about overlaps), arrows join what they should. `yarn build` refuses a canvas with invalid JSON, images, stored files, links to another prototype or an unknown `studioVersion`. Report which canvas changed, what you placed, and the canvas's link.

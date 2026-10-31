@@ -55,6 +55,16 @@ const preview = computed(() =>
     ? embedOf(props.resolution.artifact.type)
     : undefined,
 )
+// A type's own surface while its preview loads, from when loading began,
+// so its delayed status continues across the handoff to the preview.
+const pending = computed(() =>
+  target.value ? types[target.value.type]?.embedPending : undefined,
+)
+const startedAt = ref(Date.now())
+watch(target, () => (startedAt.value = Date.now()))
+const timing = computed(() =>
+  pending.value ? { startedAt: startedAt.value } : {},
+)
 const to = computed(() =>
   target.value
     ? `/prototypes/${props.prototype.id}/artifacts/${target.value.id}`
@@ -141,9 +151,15 @@ onErrorCaptured((error) => {
           :artifact="target"
           :width="width"
           :height="height"
+          v-bind="timing"
         />
         <template #fallback>
-          <p role="status" class="h-full bg-muted/50 p-4 text-sm text-muted">
+          <component :is="pending" v-if="pending" :started-at="startedAt" />
+          <p
+            v-else
+            role="status"
+            class="h-full bg-muted/50 p-4 text-sm text-muted"
+          >
             {{ t('embed.loading') }}
           </p>
         </template>

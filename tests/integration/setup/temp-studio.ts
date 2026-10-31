@@ -49,6 +49,8 @@ export interface TempStudio {
   studio: (...args: string[]) => Result
   /** Runs any Node script in the copy, as the current identity. */
   node: (script: string, ...args: string[]) => Result
+  /** Runs a Node script with `input` on its standard input. */
+  pipe: (input: string, script: string, ...args: string[]) => Result
   /** Who later commands run as; nobody (no Git name, email or GitHub) by default. */
   identify: (identity: Identity) => void
   /** Extra environment for later commands. */
@@ -94,7 +96,7 @@ export function tempStudio(options: { inside?: boolean } = {}): TempStudio {
     }
   const file = (name: string) => path.join(root, name)
   let identity: Identity = { ...ADA }
-  const run = (args: string[]): Result => {
+  const run = (args: string[], input?: string): Result => {
     // Git's own configuration from the environment outranks every file, so
     // the person's real identity never leaks in.
     const git = {
@@ -106,6 +108,7 @@ export function tempStudio(options: { inside?: boolean } = {}): TempStudio {
     }
     const result = spawnSync(process.execPath, args, {
       cwd: root,
+      input,
       encoding: 'utf8',
       env: {
         ...Object.fromEntries(
@@ -132,6 +135,7 @@ export function tempStudio(options: { inside?: boolean } = {}): TempStudio {
     root,
     studio: (...args) => run([file('tooling/studio/cli.ts'), ...args]),
     node: (script, ...args) => run([file(script), ...args]),
+    pipe: (input, script, ...args) => run([file(script), ...args], input),
     identify: (next) => {
       identity = next
     },

@@ -176,6 +176,31 @@ describe('a file type’s previews', () => {
         'notes/module.ts: file type "sketch" names the surfaces its preview shows on: “document”, “canvas” or both.',
       ])
   })
+
+  test('[CV-111] a file type may name a small surface shown while its preview loads, beside its embed', () => {
+    expect(
+      moduleProblems(
+        {
+          ...base,
+          fileTypes: [{ ...type, embedPending: 'SketchPending.vue' }],
+        },
+        'notes',
+      ),
+    ).toEqual([])
+    for (const wrong of [
+      { embedPending: 'SketchPending.ts' },
+      { embedPending: true },
+      { embed: undefined, embedPending: 'SketchPending.vue' },
+    ])
+      expect(
+        moduleProblems(
+          { ...base, fileTypes: [{ ...type, ...wrong }] },
+          'notes',
+        ),
+      ).toEqual([
+        'notes/module.ts: file type "sketch" names its embed and the embed’s pending surface as .vue files, the pending surface only with an embed.',
+      ])
+  })
 })
 
 describe('a module’s prototype actions', () => {

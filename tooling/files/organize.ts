@@ -121,8 +121,23 @@ function* everyFile(dir: string): Generator<string> {
  * Replaces each old permanent ID with its new one in every text file under
  * `dir`: identity comments, named states, metadata and permanent links.
  */
-function replaceIds(dir: string, ids: Map<string, string>) {
+function replaceIds(
+  dir: string,
+  ids: Map<string, string>,
+  adapters: ReferenceAdapter[],
+) {
   if (!ids.size) return
+  // Kinds of source that record the change themselves go first.
+  for (const file of everyFile(dir)) {
+    const extension = path.extname(file).toLowerCase()
+    const adapter = adapters.find(
+      (each) => each.copy && each.extensions.includes(extension),
+    )
+    if (!adapter || lstatSync(file).size > MAX_SOURCE_BYTES) continue
+    const text = readFileSync(file, 'utf8')
+    const next = adapter.copy!(text, posix(path.relative(dir, file)), ids)
+    if (next !== text) writeFileSync(file, next)
+  }
   const pattern = new RegExp(
     `(?<![0-9a-z])(${[...ids.keys()].join('|')})(?![0-9a-z])`,
     'g',
@@ -315,7 +330,11 @@ export function createOrganizer(options: OrganizeOptions) {
             errorOnExist: true,
             filter: (file) => file === dir || !SKIPPED.has(path.basename(file)),
           })
-          replaceIds(copy, freshIds(copy, meta.studioId as string))
+          replaceIds(
+            copy,
+            freshIds(copy, meta.studioId as string),
+            options.references ?? [],
+          )
           const copied = JSON.parse(
             readFileSync(path.join(copy, META), 'utf8'),
           ) as Record<string, unknown>

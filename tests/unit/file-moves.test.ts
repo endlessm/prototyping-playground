@@ -451,6 +451,44 @@ const site = 'https://example.com/flows/Start'
     expect(after.elements[1]).toEqual(canvas.elements[1])
   })
 
+  test('[CV-107] a move updates the canvas links that need it, keeps the canvas identity, and leaves a broken canvas untouched', async () => {
+    const board = {
+      type: 'excalidraw',
+      version: 2,
+      studioVersion: 1,
+      studioId: 'cv00000000000002',
+      elements: [
+        { id: 'a', link: 'flows/Start.vue', type: 'embeddable', version: 1 },
+        { id: 'b', type: 'text', text: 'kept', version: 5, versionNonce: 9 },
+      ],
+      appState: { viewBackgroundColor: '#ffffff', gridSize: 20 },
+      files: {},
+    }
+    write(
+      `${DEMO}/Board.excalidraw`,
+      `${JSON.stringify(board, null, 2)}
+`,
+    )
+    const broken =
+      '{ "studioId": "cv00000000000003", "elements": [ { "link": "flows/Start.vue"'
+    write(`${DEMO}/Broken.excalidraw`, broken)
+    await tree().move({
+      prototype: BEN_DEMO,
+      path: 'flows/Start.vue',
+      to: 'notes',
+    })
+    const after = JSON.parse(read(`${DEMO}/Board.excalidraw`))
+    expect(after.studioId).toBe('cv00000000000002')
+    expect(after.appState).toEqual(board.appState)
+    expect(after.elements[0]).toMatchObject({
+      id: 'a',
+      link: 'notes/Start.vue',
+      version: 2,
+    })
+    expect(after.elements[1]).toEqual(board.elements[1])
+    expect(read(`${DEMO}/Broken.excalidraw`)).toBe(broken)
+  })
+
   test('[PR-67] when a reference can’t be repaired, the move is undone and no file changes', async () => {
     const broken = tree({
       references: [
