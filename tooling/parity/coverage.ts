@@ -60,9 +60,9 @@ export function checklistRows(markdown: string): ChecklistRow[] {
 
 // The first string argument of test(), it(), describe() (with any modifier,
 // such as `.skip`, or a conditional one such as `.runIf(cond)`) and the
-// parity harness's scenario().
+// parity harness's scenario(). `.each` tables are read by EACH below.
 const CALL =
-  /\b(?:test|it|describe|scenario)(?:\.\w+(?:\((?:[^()]|\([^()]*\))*\))?)*\(\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/g
+  /\b(?:test|it|describe|scenario)(?:\.\w+|\.(?!each\b)\w+\((?:[^()]|\([^()]*\))*\))*\(\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/g
 
 // A parameterised test (`test.each(table)('name', …)` or
 // `test.each`table`('name', …)`) names itself after its table.
