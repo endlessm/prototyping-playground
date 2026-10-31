@@ -251,7 +251,7 @@ watch(
           <p class="truncate text-sm font-semibold text-highlighted">
             {{ system.label }}
           </p>
-          <SystemActions :system="system" />
+          <SystemActions :system="system" answers />
         </div>
         <p
           v-if="system.id === manifest.defaultSystem"

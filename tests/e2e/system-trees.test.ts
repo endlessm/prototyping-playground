@@ -269,6 +269,30 @@ describe('in the studio running locally', { timeout: 180_000 }, () => {
     await visible(link(skills, 'Review design'))
   })
 
+  test('[SY-20] [SY-41] the command palette offers the system’s actions you may take, and runs them', async () => {
+    const page = await open(`systems/${HARBOR}/context`)
+    await page.keyboard.press('Control+k')
+    const input = page.getByPlaceholder('Search the studio')
+    await visible(input)
+    // Ben maintains Harbor: he may rename it, nothing more, and isn't an
+    // Admin, so there is no New system.
+    await input.fill('Harbor')
+    await visible(page.getByRole('option', { name: 'Rename Harbor' }))
+    for (const name of ['Archive Harbor', 'Delete Harbor'])
+      expect(await page.getByRole('option', { name }).count()).toBe(0)
+    await input.fill('New system')
+    await expect
+      .poll(() => page.getByRole('option', { name: 'New system' }).count())
+      .toBe(0)
+    await input.fill('Rename Harbor')
+    await page.getByRole('option', { name: 'Rename Harbor' }).click()
+    const dialog = page.getByRole('dialog', { name: 'Rename system' })
+    await visible(dialog)
+    await expect.poll(() => new URL(page.url()).search).toBe('')
+    await dialog.getByRole('button', { name: 'Cancel' }).click()
+    await hidden(dialog)
+  })
+
   test('[SY-126] inside a skill: New file and New folder; the skill renames and deletes as a whole, and never moves', async () => {
     const page = await open(`systems/${HARBOR}/skills/build-flow/SKILL`)
     const skills = branch(page, 'Skills')

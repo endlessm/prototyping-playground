@@ -6,6 +6,7 @@ const emit = defineEmits<{ close: [] }>()
 const { t } = useI18n()
 const route = useRoute()
 const palette = useCommandPalette()
+const { me } = useMe()
 const manifest = await useManifest()
 const artifacts = await usePrototypeArtifacts(() =>
   String(route.params.prototypeId ?? ''),
@@ -24,6 +25,11 @@ const groups = computed(() =>
       places: t('palette.places'),
       home: t('palette.home'),
       settings: t('rail.settings'),
+      systemAction: (id, name) => t(`palette.system.${id}`, { name }),
+    },
+    {
+      admin: me.value.role === 'admin',
+      maintains: me.value.maintains ?? [],
     },
   ).map((group) => ({
     ...group,

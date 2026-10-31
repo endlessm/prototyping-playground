@@ -1,5 +1,22 @@
 import type { Manifest, ManifestArtifact } from '../../tooling/manifest/build'
 import type { ModulePaletteEntry } from '../../tooling/modules/contract'
+import { systemMenu, type SystemActionId } from '../../tooling/systems/menu'
+
+/** The changes to a system the palette offers, as its "…" menu does. */
+const SYSTEM_CHANGES: SystemActionId[] = [
+  'rename',
+  'setDefault',
+  'archive',
+  'restore',
+  'delete',
+]
+
+/** Who is working, as far as the palette needs to know. */
+export interface PaletteMe {
+  admin: boolean
+  /** The systems they maintain, by permanent ID. */
+  maintains: string[]
+}
 
 export interface PaletteModule {
   id: string
@@ -15,12 +32,22 @@ export function paletteGroups(
   artifacts: ManifestArtifact[],
   current: { path: string; prototype?: string },
   local: boolean,
-  labels: { places: string; home: string; settings: string },
+  labels: {
+    places: string
+    home: string
+    settings: string
+    /** "Rename Harbor" and the like. */
+    systemAction?: (id: SystemActionId, name: string) => string
+  },
+  me: PaletteMe = { admin: false, maintains: [] },
 ) {
-  const entry = (item: ModulePaletteEntry) => ({
+  const entry = ({ localOnly, adminOnly, ...item }: ModulePaletteEntry) => ({
     ...item,
     disabled: item.to === current.path,
   })
+  // Entries for actions are offered only where, and to whom, they work.
+  const offered = (item: ModulePaletteEntry) =>
+    (!item.localOnly || local) && (!item.adminOnly || (local && me.admin))
   const places = [
     entry({ label: labels.home, to: '/', keywords: ['overview'] }),
     ...(local
@@ -35,6 +62,7 @@ export function paletteGroups(
     ...modules.flatMap((module) =>
       module.palette
         .filter((item) => !item.group || item.group === 'Places')
+        .filter(offered)
         .map(entry),
     ),
   ]
@@ -44,8 +72,36 @@ export function paletteGroups(
   )) {
     const items = module.palette
       .filter((item) => item.group && item.group !== 'Places')
+      .filter(offered)
       .map(entry)
     if (module.paletteSource === 'systems') {
+      // The system you are in: what its "…" menu lets you change.
+      const here = manifest.systems.find(
+        ({ id }) =>
+          current.path === `/systems/${id}` ||
+          current.path.startsWith(`/systems/${id}/`),
+      )
+      if (here && local && labels.systemAction)
+        items.push(
+          ...systemMenu(
+            {
+              local,
+              admin: me.admin,
+              maintainer: me.admin || me.maintains.includes(here.id),
+              archived: here.status === 'archived',
+              isDefault: manifest.defaultSystem === here.id,
+            },
+            (id) => id,
+          )
+            .flat()
+            .filter((id) => SYSTEM_CHANGES.includes(id))
+            .map((id) =>
+              entry({
+                label: labels.systemAction!(id, here.label),
+                to: `/systems/${here.id}?action=${id}`,
+              }),
+            ),
+        )
       items.push(
         ...manifest.systems
           .filter((s) => local || s.status !== 'archived')

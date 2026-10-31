@@ -19,7 +19,14 @@ import { systemAddress } from '../utils/pages'
 // maintainers rename it; Admins make it the default, archive, restore and
 // delete it. Dialogs load only in development, and changes go through the
 // dev server's systems route, which restarts the studio once they're done.
-const props = defineProps<{ system: SystemCatalog }>()
+const props = defineProps<{
+  system: SystemCatalog
+  /**
+   * Runs the action the address asks for (`?action=rename`), as the command
+   * palette sends it: only the navigation's menu does.
+   */
+  answers?: boolean
+}>()
 const { t } = useI18n()
 const { me, known } = useMe()
 const toast = useStudioToast()
@@ -184,10 +191,30 @@ const groups = computed<DropdownMenuItem[][]>(() =>
         archived: props.system.status === 'archived',
         isDefault: isDefault.value,
       },
-      (id) => items[id](),
+      (id) => ({ ...items[id](), id }),
     ),
   ),
 )
+
+// The palette's action, once it's known who you are: run if the menu
+// offers it to you.
+const address = useRoute()
+if (props.answers && import.meta.dev)
+  watch(
+    [() => address.query.action, known],
+    async ([wanted, ready]) => {
+      if (typeof wanted !== 'string' || !ready) return
+      await navigateTo(
+        { query: { ...address.query, action: undefined } },
+        { replace: true },
+      )
+      const item = groups.value
+        .flat()
+        .find((entry) => entry.id === wanted && !entry.disabled)
+      item?.onSelect?.(new Event('select'))
+    },
+    { immediate: true },
+  )
 </script>
 
 <template>

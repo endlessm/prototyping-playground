@@ -339,6 +339,32 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     expect(config().systems).toEqual(['attic', 'harbor', 'lantern'])
   })
 
+  test('[SY-20] [SY-41] an Admin’s command palette has New system and the actions on the system you are in', async () => {
+    const page = await open(`systems/${LANTERN}`)
+    await visible(button(page, 'Actions for Lantern'))
+    const palette = async () => {
+      await page.keyboard.press('Control+k')
+      const input = page.getByPlaceholder('Search the studio')
+      await visible(input)
+      return input
+    }
+    const input = await palette()
+    await input.fill('Lantern')
+    for (const name of [
+      'Rename Lantern',
+      'Make Lantern the default system',
+      'Archive Lantern',
+      'Delete Lantern',
+    ])
+      await visible(page.getByRole('option', { name, exact: true }))
+    await input.fill('New system')
+    await page.getByRole('option', { name: 'New system', exact: true }).click()
+    await visible(dialog(page).getByText('New system').first())
+    await expect.poll(() => new URL(page.url()).search).toBe('')
+    await button(dialog(page), 'Cancel').click()
+    await expect.poll(() => dialog(page).count()).toBe(0)
+  })
+
   test('[SY-24] [SY-27] [SY-28] [SY-70] [SY-73] [SY-78] creating a system covers the studio through the restart and opens its empty Overview with the setup panel', async () => {
     const page = await open('systems')
     await visible(button(page, 'New system'))

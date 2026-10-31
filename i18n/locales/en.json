@@ -813,6 +813,13 @@
     "binary": "This file isn’t text. Open it in your editor."
   },
   "palette": {
+    "system": {
+      "rename": "Rename {name}",
+      "setDefault": "Make {name} the default system",
+      "archive": "Archive {name}",
+      "restore": "Restore {name}",
+      "delete": "Delete {name}"
+    },
     "places": "Places",
     "home": "Home",
     "description": "Find pages, prototypes and actions.",

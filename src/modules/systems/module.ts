@@ -33,6 +33,19 @@ export default {
   description:
     'Each design system’s overview, libraries, theme, assets, components, context and skills.',
   required: true,
+  // New system, for Admins locally; the palette adds each system and, in a
+  // system, what its "…" menu lets you change (`app/utils/palette.ts`).
+  palette: [
+    {
+      label: 'New system',
+      to: '/systems?new=system',
+      icon: 'i-lucide-plus',
+      group: 'Systems',
+      keywords: ['create system', 'add system'],
+      localOnly: true,
+      adminOnly: true,
+    },
+  ],
   paletteSource: 'systems',
   paletteOrder: 20,
   rail: { position: 'top', icon: 'i-lucide-shapes', order: 20 },

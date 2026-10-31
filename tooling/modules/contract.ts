@@ -35,6 +35,10 @@ export interface ModulePaletteEntry {
   group?: string
   /** Hidden search synonyms. */
   keywords?: string[]
+  /** Only while the studio runs locally, such as an action's dialog. */
+  localOnly?: boolean
+  /** Only for the studio's Admins. */
+  adminOnly?: boolean
 }
 
 /** An agent skill the generated part of `AGENTS.md` routes to. */
