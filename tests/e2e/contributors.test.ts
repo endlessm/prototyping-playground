@@ -68,11 +68,31 @@ describe('on the dev server', () => {
 
   test('[SH-136] [SH-94] Home greets you by name, and follows a change to your profile', async () => {
     const page = await newPage()
+    // Every text the heading shows, from the first paint.
+    await page.addInitScript(() => {
+      const seen: string[] = []
+      ;(window as unknown as { headings: string[] }).headings = seen
+      new MutationObserver(() => {
+        const text = document.querySelector('h1')?.textContent?.trim()
+        if (text && seen.at(-1) !== text) seen.push(text)
+      }).observe(document, {
+        subtree: true,
+        childList: true,
+        characterData: true,
+      })
+    })
     await page.goto(studio.url)
     const greeting = page.getByText('Welcome back, Ada')
     await expect
       .poll(() => greeting.isVisible(), { timeout: 60_000 })
       .toBe(true)
+    // Blank until the dev server says who you are: never the studio's name
+    // first.
+    expect(
+      await page.evaluate(
+        () => (window as unknown as { headings: string[] }).headings,
+      ),
+    ).toEqual(['Welcome back, Ada'])
 
     const file = path.join(people, 'ada.json')
     const profile = JSON.parse(fs.readFileSync(file, 'utf8'))

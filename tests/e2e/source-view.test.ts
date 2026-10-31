@@ -262,7 +262,7 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     await visible(preview(page).getByRole('button', { name: 'Count 1' }))
   })
 
-  test('[PR-132] a change on disk reloads a clean editor by itself', async () => {
+  test('[PR-132] [SH-20] a change on disk reloads a clean editor by itself', async () => {
     reset()
     const page = await open(HOME, DEMO, '?mode=source')
     await visible(editor(page))
@@ -548,7 +548,7 @@ describe('the deployed site', () => {
     expect(response.headers.get('content-type')).not.toContain('json')
   })
 
-  test("[PR-125] [PR-126] ?mode=source and ⌘' / Ctrl+' show the rendered page; there is no file menu", async () => {
+  test("[PR-125] [PR-126] [SH-20] ?mode=source and ⌘' / Ctrl+' show the rendered page; there is no file menu", async () => {
     const page = await newPage()
     await page.goto(
       `${site.url}prototypes/${DEMO}/artifacts/${HOME}?mode=source`,

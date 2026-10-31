@@ -143,6 +143,35 @@ describe('in the studio running locally', { timeout: 150_000 }, () => {
     expect(new URL(page.url()).pathname).toBe('/documentation/manual')
   })
 
+  test('[SH-17] /documentation replaces its own history entry, so Back doesn’t bounce', async () => {
+    const page = await newPage()
+    await page.goto(studio.url)
+    await page.goto(`${studio.url}documentation`)
+    await visible(title(page, 'Overview'))
+    expect(new URL(page.url()).pathname).toBe('/documentation/manual')
+    await page.goBack()
+    await expect.poll(() => new URL(page.url()).pathname).toBe('/')
+  })
+
+  test('[SH-18] Context & Skills addresses: the index opens the Platform, then an owner, its reference files, its documents at any depth, and ?mode=source', async () => {
+    const page = await open('documentation/context')
+    await visible(title(page, 'Platform guidance'))
+    expect(new URL(page.url()).pathname).toBe('/documentation/context/platform')
+    for (const [address, heading] of [
+      ['prototypes', 'Prototypes'],
+      ['prototypes/reference/VIEWS', 'View contract'],
+      ['platform/context/working-in-studio', 'Working in the studio'],
+      ['platform/context/agents/routing', 'Agent routing'],
+    ] as const) {
+      await page.goto(`${studio.url}documentation/context/${address}`)
+      await visible(title(page, heading))
+    }
+    await page.goto(
+      `${studio.url}documentation/context/platform/context/working-in-studio?mode=source`,
+    )
+    await visible(page.locator('.cm-content'))
+  })
+
   test('[PR-138] [PR-144] the Manual lists its chapters in order under their sections, beside the open chapter', async () => {
     const page = await open('documentation/manual')
     await visible(title(page, 'Overview'))

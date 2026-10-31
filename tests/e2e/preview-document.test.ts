@@ -86,7 +86,7 @@ function scenarios(
   })
   const base = () => new URL(studio.url).pathname
 
-  test('[PR-20] [PR-21] [PR-22] a prototype’s address opens its first artifact, replacing the history entry', async () => {
+  test('[PR-20] [PR-21] [PR-22] [SH-19] a prototype’s address opens its first artifact, replacing the history entry', async () => {
     const page = await newPage()
     await page.goto(studio.url)
     await page.goto(`${studio.url}prototypes/${TRACER}?mode=source#intro`)

@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { orderHomeBlocks } from '../../app/utils/home'
 import {
+  loadRegistry,
   moduleProblems,
   modulesForApp,
   type InstalledModule,
@@ -213,5 +214,24 @@ describe('a module’s prototype actions', () => {
     ).toEqual([
       'notes/module.ts: "prototypeActions" names the .ts file whose default export lists its items for the prototype menu.',
     ])
+  })
+})
+
+describe('the studio’s own rail', () => {
+  test('[SH-26] the modules’ buttons sit at the top in module order: Prototypes, Systems, then the Manual', async () => {
+    const { modules } = await loadRegistry(process.cwd())
+    const top = modules
+      .flatMap(({ spec }) =>
+        spec.rail?.position === 'top'
+          ? [{ spec, order: spec.rail.order ?? 0 }]
+          : [],
+      )
+      .sort((a, b) => a.order - b.order)
+    expect(top.map(({ spec }) => spec.label)).toEqual([
+      'Prototypes',
+      'Systems',
+      'Manual',
+    ])
+    expect(top.every(({ spec }) => spec.rail?.icon)).toBe(true)
   })
 })
