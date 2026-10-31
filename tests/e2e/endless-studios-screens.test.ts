@@ -35,6 +35,7 @@ const env = {
   STUDIO_GITHUB: '',
 }
 
+const ENDLESS_STUDIOS = '8x5spen6xtvp96a9'
 const SCREENS = 'scrn00000000e001'
 const DASHBOARD = 'dsbd00000000e001'
 const SPANISH = 'st5p00000000e001'
@@ -208,6 +209,52 @@ function sharedScenarios(
     expect(studioPrimary).not.toBe('rgba(0, 0, 0, 0)')
     expect(studioPrimary).not.toBe(orange)
   })
+
+  test('[SY-172] a screen, signed out too, sits on the app’s page background, and the Theme pages keep the system’s page colour', async () => {
+    const page = await newPage()
+    await page.goto(address(studio(), SIGNED_OUT))
+    await ready(page)
+    await sees(view(page), 'Welcome Back!')
+    // The app's layout paints its pages slate-50; its base stylesheet alone
+    // leaves them white.
+    expect(
+      await view(page)
+        .locator('body')
+        .evaluate((element) => getComputedStyle(element).backgroundColor),
+    ).toBe('rgb(248, 250, 252)')
+
+    await page.goto(`${studio().url}systems/${ENDLESS_STUDIOS}/colors`)
+    const specimen = page
+      .frameLocator('iframe[data-theme-frame]')
+      .locator('[data-theme-specimen]')
+    await expect
+      .poll(() => specimen.count(), { timeout: 60_000 })
+      .toBeGreaterThan(0)
+    // --ui-bg, the app's own page colour: white.
+    expect(
+      await specimen.evaluate(
+        (element) => getComputedStyle(element).backgroundColor,
+      ),
+    ).toBe('rgb(255, 255, 255)')
+
+    // A component's example is staged on that colour too, as React staged
+    // it on the studio's page.
+    await page.goto(
+      `${studio().url}systems/${ENDLESS_STUDIOS}/components/button`,
+    )
+    const example = page.frameLocator('iframe[title="Default"]')
+    await expect
+      .poll(
+        () => example.getByRole('button', { name: 'Invite Learners' }).count(),
+        { timeout: 120_000 },
+      )
+      .toBeGreaterThan(0)
+    expect(
+      await example
+        .locator('body')
+        .evaluate((element) => getComputedStyle(element).backgroundColor),
+    ).toBe('rgb(255, 255, 255)')
+  }, 300_000)
 
   test('[SY-167] [SY-168] the Button and Card pages show their guidance, live examples in the app’s look, and props', async () => {
     const pages = [
