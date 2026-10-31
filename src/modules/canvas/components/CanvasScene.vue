@@ -36,6 +36,7 @@ const {
   items,
   host: itemHost,
   resolve,
+  loadPreviews,
 } = useCanvasItems({
   prototype: () => props.prototype,
   artifact: () => props.artifact,
@@ -113,6 +114,7 @@ onMounted(async () => {
     ;[module, file] = await Promise.all([
       import('../island/mount'),
       readCanvas(base, props.prototype.id, props.artifact.id),
+      loadPreviews(),
     ])
     scene.value = parseCanvas(file.text)
   } catch (error) {
