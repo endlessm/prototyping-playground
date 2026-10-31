@@ -8,6 +8,7 @@ import { COLOR_MODE_KEY } from './tooling/preview/constants.ts'
 import { deploymentRecoveryScript } from './tooling/deployment-recovery.ts'
 import en from './i18n/locales/en.json'
 import { restartScript } from './tooling/settings/restart.ts'
+import { transitionScript } from './tooling/systems/transition.ts'
 
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
 const warning = nodeVersionWarning(process.version, pkg.engines.node)
@@ -218,6 +219,12 @@ export default defineNuxtConfig({
               { ...en.settings, reload: en.settings.reloadStudio },
               baseURL,
             ),
+            tagPosition: 'head',
+            tagPriority: 'critical',
+          },
+          // A system change's status screen, over the restart's cover.
+          {
+            innerHTML: transitionScript(en.systems.transition),
             tagPosition: 'head',
             tagPriority: 'critical',
           },

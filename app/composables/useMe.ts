@@ -5,6 +5,8 @@ export interface Me {
   name?: string
   studioId?: string
   role?: 'admin' | 'contributor' | null
+  /** The systems you maintain, by permanent ID. */
+  maintains?: string[]
 }
 
 // Who is working, from the local dev server: your contributor key, name and

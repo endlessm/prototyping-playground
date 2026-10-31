@@ -80,6 +80,23 @@ export interface SystemIcons {
   names: string[]
 }
 
+/**
+ * What an agent records once it has set the system up (the
+ * setup-design-system skill): the Overview then stops offering setup. It
+ * stays as the agent's context and isn't shown.
+ */
+export interface SystemSetupRecord {
+  /** Where setup stands, such as "theme" or "components". */
+  stage: string
+  summary: string
+  /** The next step the agent suggests. */
+  next?: string
+  /** Where the system came from: links or paths. */
+  sources?: string[]
+  /** A Context document with the full record, inside the system. */
+  record?: string
+}
+
 export interface SystemSpec {
   label: string
   status: SystemStatus
@@ -98,4 +115,10 @@ export interface SystemSpec {
   /** The permanent ID prototypes store as `systemId`. */
   studioId: string
   app: SystemApp
+  setup?: SystemSetupRecord
+  /**
+   * Files a rename couldn't repair, which still name the old folder; the
+   * Overview asks for a review until an agent removes this.
+   */
+  renameReview?: string[]
 }

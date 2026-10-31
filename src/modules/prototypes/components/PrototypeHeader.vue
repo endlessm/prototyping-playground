@@ -161,6 +161,15 @@ function onKeydown(event: KeyboardEvent) {
             t('prototypes.system', { name: t('prototypes.noSystem') })
           }}</span>
         </UTooltip>
+        <template v-else-if="prototype.systemMissing">
+          {{
+            t('prototypes.system', {
+              name: t('prototypes.systemDeleted', {
+                name: prototype.systemMissing.label,
+              }),
+            })
+          }}
+        </template>
         <template v-else>
           {{
             t('prototypes.system', { name: t('prototypes.systemUnavailable') })

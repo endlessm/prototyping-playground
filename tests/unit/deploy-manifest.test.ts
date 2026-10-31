@@ -99,6 +99,41 @@ describe('the deployed manifest', () => {
     )
   })
 
+  test('[PR-76] [PR-92] a prototype whose system was deleted stays listed locally, waiting for a rebuild, and stays out of publication', () => {
+    const GONE = 'gn00000000000001'
+    const ORPHAN = 'pr00000000000004'
+    prototype('ada/orphan', ORPHAN, 'Orphan', {
+      systemId: GONE,
+      systemMissing: { systemId: GONE, label: 'Lighthouse' },
+    })
+    write('ada/orphan/Box.vue', view('vw00000000000004'))
+    // Someone else's system that isn't installed is still a problem.
+    prototype('ada/stray', 'pr00000000000005', 'Stray', { systemId: GONE })
+    const local = buildManifest({
+      root,
+      systems,
+      fileTypes: [{ id: 'view', extensions: ['.vue'], identity: viewIdentity }],
+    })
+    expect(
+      local.manifest.prototypes.find(({ id }) => id === ORPHAN),
+    ).toMatchObject({
+      systemId: GONE,
+      systemMissing: { label: 'Lighthouse' },
+    })
+    expect(local.artifacts[ORPHAN]!.map(({ id }) => id)).toEqual([
+      'vw00000000000004',
+    ])
+    expect(local.problems).toEqual([
+      `src/prototypes/ada/stray/meta.json: the system ${GONE} is not installed; choose an installed system or null for no system.`,
+    ])
+    const { built, left, summary } = forDeploy(local, root)
+    expect(built.manifest.prototypes.map(({ id }) => id)).not.toContain(ORPHAN)
+    expect(left.prototypes.map(({ id }) => id)).toContain(ORPHAN)
+    expect(summary).toBe(
+      'Left out of the deployed site: 2 archived prototypes, 1 prototype waiting for a rebuild, 1 archived system.',
+    )
+  })
+
   test('[CL-105] says nothing when nothing is archived', () => {
     rmSync(path.join(root, 'src/prototypes/ada/old'), { recursive: true })
     rmSync(path.join(root, 'src/prototypes/ben'), { recursive: true })
@@ -133,5 +168,19 @@ describe('the deployed canvases', () => {
     expect(Object.keys(canvasFiles(root, 'src/prototypes'))).toEqual([
       'cv00000000000001',
     ])
+  })
+
+  test('[PR-76] leave the canvases of prototypes waiting for a rebuild out', async () => {
+    const { canvasFiles } =
+      await import('../../src/modules/canvas/types/canvas/bundle')
+    prototype('ada/orphan', 'pr00000000000004', 'Orphan', {
+      systemId: 'gn00000000000001',
+      systemMissing: { systemId: 'gn00000000000001', label: 'Lighthouse' },
+    })
+    write(
+      'ada/orphan/Plan.excalidraw',
+      '{"studioId":"cv00000000000003","elements":[]}',
+    )
+    expect(Object.keys(canvasFiles(root, 'src/prototypes'))).toEqual([])
   })
 })

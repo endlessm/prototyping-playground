@@ -21,6 +21,7 @@ import {
 import { NOTHING_CHANGED, Refusal, RESTART, say, type Flags } from './output.ts'
 import { removable, removeFolder } from './protected.ts'
 import { writeConfigChanges } from '../settings/config-file.ts'
+import { removeSystem } from './system-commands.ts'
 
 const TEMPLATE = fileURLToPath(new URL('./templates/module/', import.meta.url))
 
@@ -148,6 +149,14 @@ function consumers(root: string, module: InstalledModule) {
 
 export async function removeModule(root: string, [id]: string[], flags: Flags) {
   const studio = await registry(root)
+  // A design system's key or permanent ID removes the system instead.
+  if (
+    id &&
+    !studio.modules.some(({ spec }) => spec.id === id) &&
+    ((studio.config.systems ?? []).includes(id) ||
+      (studio.config.systems ?? []).some((key) => systemId(root, key) === id))
+  )
+    return removeSystem(root, id, flags)
   const module = find(
     studio,
     id,

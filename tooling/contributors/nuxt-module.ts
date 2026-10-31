@@ -80,7 +80,16 @@ declare module '#studio/directory' {
           if (!key) return { key: null }
           const team = teamOf(readConfig(configFile), contributors)
           const { name, studioId } = contributors[key]!
-          return { key, name, studioId, role: roleOf(team, contributors, key) }
+          return {
+            key,
+            name,
+            studioId,
+            role: roleOf(team, contributors, key),
+            // The systems this person maintains, by permanent ID.
+            maintains: Object.entries(team.maintainers)
+              .filter(([, keys]) => keys.includes(key))
+              .map(([system]) => system),
+          }
         },
         changed: () =>
           updateTemplates({
