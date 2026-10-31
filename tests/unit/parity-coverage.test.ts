@@ -14,6 +14,7 @@ const CHECKLIST = `# Checklist
 | PR-21 | Every artifact has a permanent address. | | | keep | Ticket: 03. |
 | PR-23 | The viewer layout. | | | keep, Nuxt UI pattern | Ticket: 03. |
 | SH-13 | Prototype-like sections. | | | drop | Ticket: 02. |
+| CL-157 | Maintainer measurements. | \`pnpm baseline coupling\\|build\` | \`cli/baseline.js\` | drop | Ticket: 35. |
 
 | Area | Rows |
 |---|---|
@@ -39,6 +40,29 @@ describe('checklist coverage', () => {
         behavior: 'The viewer layout.',
       },
       { id: 'SH-13', fate: 'drop', behavior: 'Prototype-like sections.' },
+      { id: 'CL-157', fate: 'drop', behavior: 'Maintainer measurements.' },
+    ])
+  })
+
+  test('finds the names of parameterised tests, after their table', () => {
+    const source = [
+      'test.each([',
+      "  ['a', ')'],",
+      '  [`b`, "c"],',
+      "])('«CL-36» modules may not declare %s', (line) => {})",
+      'it.each`',
+      '  a    | b',
+      '  ${1} | ${2}',
+      "`('«CL-131» adds $a and $b', () => {})",
+      "describe.each([[1]])('suite %s', () => {})",
+    ]
+      .join('\n')
+      .replaceAll('«', '[')
+      .replaceAll('»', ']')
+    expect(testNames(source)).toEqual([
+      '[CL-36] modules may not declare %s',
+      '[CL-131] adds $a and $b',
+      'suite %s',
     ])
   })
 
@@ -86,7 +110,7 @@ describe('checklist coverage', () => {
 
     expect(report.tested).toEqual(['PR-20', 'PR-21'])
     expect(report.visual).toEqual(['PR-23'])
-    expect(report.neither).toEqual(['SH-13'])
+    expect(report.neither).toEqual(['SH-13', 'CL-157'])
     expect(report.unknown).toEqual([
       { id: 'XX-99', file: 'tests/unit/c.test.ts' },
     ])
@@ -113,7 +137,7 @@ describe('checklist coverage', () => {
       }),
     )
     expect(text).toContain(
-      '4 rows: 1 covered by tests, 1 with a recorded visual check, 2 with neither',
+      '5 rows: 1 covered by tests, 1 with a recorded visual check, 3 with neither',
     )
     expect(text).toMatch(
       /## Covered by tests[\s\S]*PR-20[\s\S]*tests\/e2e\/a\.test\.ts › \[PR-20\] opens it/,
