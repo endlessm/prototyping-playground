@@ -2,7 +2,6 @@
 import types from '#studio/file-types'
 import type { Component } from 'vue'
 import AppFileBoundary from '../../../../app/components/AppFileBoundary.vue'
-import ArtifactActions from '../components/ArtifactActions.vue'
 import ArtifactUnavailable from '../components/ArtifactUnavailable.vue'
 import PrototypeViewer from '../components/PrototypeViewer.vue'
 import { findArtifact, usePrototype } from '../composables/usePrototype'
@@ -64,6 +63,7 @@ useHead({
     >
       <ArtifactUnavailable
         v-if="artifact?.unavailable"
+        class="m-4 sm:m-6"
         :unavailable="artifact.unavailable"
         @source="toggle"
       />
@@ -75,16 +75,13 @@ useHead({
           v-if="page && prototype && artifact"
           :prototype="prototype"
           :artifact="artifact"
-        >
-          <template v-if="ArtifactSource" #actions>
-            <ArtifactActions :prototype="prototype" @source="toggle" />
-          </template>
-        </component>
+        />
       </AppFileBoundary>
     </div>
     <ArtifactSource
       v-if="ArtifactSource && source && prototype && artifact"
       :key="artifact.id"
+      class="p-4 sm:p-6"
       :prototype="prototype"
       :artifact="artifact"
       @done="toggle"
