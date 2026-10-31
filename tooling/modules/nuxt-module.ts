@@ -68,6 +68,8 @@ export default defineNuxtModule({
             }
           : null,
       palette: spec.palette ?? [],
+      paletteSource: spec.paletteSource,
+      paletteOrder: spec.paletteOrder,
     }))
     // Each module's Home block, loaded when Home opens.
     const homeBlocks = enabled.flatMap(({ spec, dir }) =>
@@ -116,7 +118,9 @@ declare module '#studio/modules' {
     label: string
     description: string
     rail: { position: 'top' | 'bottom'; icon?: string; order: number; to: string } | null
-    palette: { label: string; to: string; icon?: string; group?: string }[]
+    palette: { label: string; to: string; icon?: string; group?: string; keywords?: string[] }[]
+    paletteSource?: 'prototypes' | 'systems'
+    paletteOrder?: number
   }
   const modules: ClientModule[]
   export default modules

@@ -1,6 +1,6 @@
 # Manual
 
-The Documentation module owns the Manual at `/documentation/manual`: chapters about using the studio, written for the Endless team. Its rail button and command palette group are labelled **Manual**. The module is optional and on by default.
+The Documentation module owns the Manual at `/documentation/manual`: chapters about using the studio, written for the Endless team. Its rail button and command palette group are labelled **Manual**. The module is optional and on by default. Its palette group follows Systems and Prototypes (palette order 30); the current chapter is disabled. Palette search matches chapter titles, not their text. A search with no matching chapter omits the Manual group; disabling Documentation omits it altogether.
 
 Beside it, the studio owns **Context & Skills** at `/documentation/context/<owner>`, which shows the Platform's and enabled modules' own guidance files. It stays when this module is off. `/documentation` opens the Manual, or Context & Skills while the Manual is off. Systems' guidance lives in the Systems area.
 

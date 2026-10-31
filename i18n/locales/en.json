@@ -219,7 +219,7 @@
     "failed": "That didn’t work"
   },
   "view": {
-    "error": "This page couldn't load. Copy the error and give it to your agent.",
+    "error": "This page couldn\u0027t load. Copy the error and give it to your agent.",
     "copyError": "Copy error",
     "copied": "Copied",
     "loading": "Loading preview",
@@ -230,7 +230,7 @@
     "updating": "Updating preview",
     "empty": {
       "title": "This view is empty",
-      "description": "Ask your agent to build something here. Describe what it's for and who it's for.",
+      "description": "Ask your agent to build something here. Describe what it\u0027s for and who it\u0027s for.",
       "prompt": "In {path}, build ",
       "copy": "Copy prompt"
     }
@@ -644,7 +644,7 @@
     "title": "Documentation",
     "sections": "Documentation sections",
     "manual": "Manual",
-    "context": "Context & Skills",
+    "context": "Context \u0026 Skills",
     "chapters": "Chapters",
     "loading": "Loading",
     "noChapters": "The Manual has no chapters yet.",
@@ -682,5 +682,11 @@
     },
     "skillFile": "Skill file",
     "binary": "This file isn’t text. Open it in your editor."
+  },
+  "palette": {
+    "places": "Places",
+    "home": "Home",
+    "description": "Find pages, prototypes and actions.",
+    "empty": "No results found."
   }
 }

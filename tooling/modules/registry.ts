@@ -58,6 +58,8 @@ const KEYS = new Set([
   'home',
   'pages',
   'palette',
+  'paletteSource',
+  'paletteOrder',
   'skills',
   'content',
   'fileTypes',

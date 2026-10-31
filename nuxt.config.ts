@@ -227,6 +227,8 @@ export default defineNuxtConfig({
     vite: {
       optimizeDeps: {
         include: [
+          '@vueuse/integrations/useFuse',
+          'fuse.js',
           '@excalidraw/excalidraw',
           'react',
           'react-dom/client',

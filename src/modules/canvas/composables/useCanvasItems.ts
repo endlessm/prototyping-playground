@@ -72,5 +72,22 @@ export function useCanvasItems(options: {
       return found.state === 'resolved' && found.presentation === 'preview'
     },
   }
-  return { items, host, resolve }
+  return { items, host, resolve, loadPreviews }
+}
+
+/**
+ * The code of every preview an item may show, loaded before the editor
+ * mounts. A preview then goes live the moment its turn comes (CV-79);
+ * otherwise the first one's code is still loading when the next ones are
+ * admitted, and they all start at once. Code that fails to load is left to
+ * the item, which says so and tries again.
+ */
+function loadPreviews() {
+  return Promise.all(
+    Object.values(types).flatMap((type) =>
+      type.embed && embedPresentation(type, 'canvas') === 'preview'
+        ? [type.embed().catch(() => undefined)]
+        : [],
+    ),
+  )
 }
