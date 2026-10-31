@@ -56,7 +56,9 @@ const { reload: reloadCatalog } = await useSystemCatalog()
 
 const label = computed(() => t(`systems.pages.${props.section}`))
 const folder = computed(() => `${props.system.folder}/${props.section}/`)
-const repoPath = (node: FileNode) => `${folder.value}${node.path}`
+/** A row's repository path; a folder's ends in a slash. */
+const repoPath = (node: FileNode) =>
+  `${folder.value}${node.path}${node.dir ? '/' : ''}`
 
 // The New skill dialog, made when first opened, only in development.
 const overlay = import.meta.dev ? useOverlay() : undefined
@@ -108,11 +110,7 @@ function actions(node: FileNode) {
     import.meta.dev && {
       label: t('actions.copyPath'),
       icon: 'i-lucide-copy',
-      onSelect: copy.path(
-        isSkillFolder(props.section, node.path, node.dir)
-          ? `${repoPath(node)}/`
-          : repoPath(node),
-      ),
+      onSelect: copy.path(repoPath(node)),
     },
   ]
   return {
@@ -245,7 +243,7 @@ const trash = /Win/.test(navigator.userAgent) ? 'recycle-bin' : 'trash'
     :movable="movable"
     :can-move-to="canMoveTo"
     unordered
-    :hover-of="(node: FileNode) => repoPath(node) + (node.dir ? '/' : '')"
+    :hover-of="repoPath"
     :actions="actions"
     :trash="trash"
     :create="create"
