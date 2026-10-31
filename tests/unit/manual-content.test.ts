@@ -33,6 +33,108 @@ test('[PR-147] [PR-148] [PR-149] [PR-150] [PR-152] [PR-153] [PR-154] [PR-156] ev
   )
 })
 
+const questions = (slug: string) =>
+  [...read(slug).matchAll(/^## (.+?)\r?$/gm)].map(([, heading]) => heading)
+
+describe('what each chapter answers', () => {
+  test('[PR-147] Overview: what the studio is, how it’s organized (with a diagram), what it’s made of and where to look next', () => {
+    expect(questions('index')).toEqual([
+      'What is the Endless Design Studio?',
+      'How is the studio organized?',
+      'What is it made of?',
+      'What can it simulate?',
+      'Where should I look next?',
+    ])
+    expect(read('index')).toContain('```mermaid')
+  })
+
+  test('[PR-148] Working environment: getting started, what needs to be open, returning, joining the team, only looking', () => {
+    expect(questions('environment')).toEqual([
+      'How do I get started?',
+      'What needs to be open?',
+      'How do I return later?',
+      'How do I join the team?',
+      'What if I only want to look?',
+    ])
+  })
+
+  test('[PR-149] Working with your agent: what it handles, what to tell it, showing, doing it yourself, reviewing', () => {
+    expect(questions('agent')).toEqual([
+      'What does the agent handle?',
+      'What should I tell it?',
+      'How do I show the agent what I mean?',
+      'What can I do directly in the studio?',
+      'How do I review and refine work?',
+    ])
+  })
+
+  test('[PR-150] Prototypes & systems: artifacts, previews, systems, creating, organizing, supporting artifacts, lo-fi and rebuild copies, archive and delete', () => {
+    expect(questions('prototypes')).toEqual([
+      'What belongs in a prototype?',
+      'What are named states?',
+      'How do previews work?',
+      'What belongs in a system?',
+      'How do I create a prototype?',
+      'How do I organize artifacts?',
+      'How do documents, diagrams and canvases connect?',
+      'Can I try another look or another system?',
+      'What do archive and delete do?',
+    ])
+    expect(read('prototypes')).toMatch(/Make lo-fi/)
+    expect(read('prototypes')).toMatch(/rebuild copy/)
+  })
+
+  test('[PR-152] Working as a team: who can change what, joining, working safely, branches and pull requests, reviewers', () => {
+    expect(questions('team')).toEqual([
+      'How does the team share one studio?',
+      'Who can change what?',
+      'How does a teammate join?',
+      "How do teammates work without getting in each other's way?",
+      'How do changes reach the team?',
+      "Should prototype work wait until it's finished?",
+      'How do I involve reviewers and engineers?',
+    ])
+    expect(read('team')).toMatch(/pull request/)
+  })
+
+  test('[PR-153] Publishing & Home: build versus publish, publishing, what becomes visible, Home, sharing', () => {
+    expect(questions('share')).toEqual([
+      'What is the difference between building and publishing?',
+      'How do I publish?',
+      'What becomes visible?',
+      'What does Home show?',
+      'How do I change Home?',
+      'How do I share with reviewers and engineers?',
+    ])
+  })
+
+  test('[PR-154] Modules & settings: where to start, settings, modules, adding features, agent guidance', () => {
+    expect(questions('customize')).toEqual([
+      'Where should I start?',
+      'How do I change settings?',
+      'What are modules?',
+      'Can my agent add a feature?',
+      'How do I edit the Manual and the guidance?',
+      'Where does guidance for the agent go?',
+    ])
+  })
+
+  test('[PR-156] Help: the studio won’t open, where work is, missing things, changes not appearing, looks, source, editing, broken things, published work, earlier versions', () => {
+    expect(questions('questions')).toEqual([
+      "The studio won't open. What should I do?",
+      'Where is my work?',
+      'Why is a tool or artifact missing?',
+      'Why are my changes not appearing?',
+      'Why does my prototype look different than expected?',
+      'How do I edit source?',
+      "Why can't I edit something?",
+      'A diagram, view or link is broken. What should I give the agent?',
+      'Published work is missing or out of date. What should I check?',
+      'Can I get an earlier version back?',
+    ])
+  })
+})
+
 test('[PR-138] links between chapters point at chapters and headings that exist', async () => {
   const headings = new Map<string, Set<string>>()
   for (const { slug } of chapters) {
