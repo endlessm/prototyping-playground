@@ -40,11 +40,9 @@ scenario(
 
     await page.goto(`${url}prototypes/${SKETCHES}/artifacts/${EMPTY}`)
     await opened(page)
-    await expect
-      .poll(() => page.getByText('This canvas is empty').isVisible(), {
-        timeout: 30_000,
-      })
-      .toBe(true)
+    // React's empty hint would be due after 500 ms (painted under Excalidraw,
+    // so never seen); the Vue canvas shows none.
+    await page.waitForTimeout(1000)
     await step('An empty canvas')
   },
 )
