@@ -158,7 +158,7 @@ describe('what the welcome says', () => {
   })
 
   test('[SH-135] the getting-started skill helps a newcomer make a first prototype on Endless Studios', () => {
-    expect(skill).toMatch(/^---\nname: get-started\n/)
+    expect(skill).toMatch(/^---\r?\nname: get-started\r?\n/)
     expect(skill).toContain('yarn new')
     expect(skill).toContain('yarn studio whoami')
     expect(skill).toContain('build-prototype')
