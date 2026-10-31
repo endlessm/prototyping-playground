@@ -6,6 +6,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
+import { identity as documentIdentity } from '../../src/modules/document/types/document/identity'
 import { identity as viewIdentity } from '../../src/modules/prototypes/types/view/identity'
 import { buildManifest, forDeploy } from '../../tooling/manifest/build'
 import type { InstalledSystem } from '../../tooling/systems/registry'
@@ -107,12 +108,19 @@ describe('the deployed manifest', () => {
       systemMissing: { systemId: GONE, label: 'Lighthouse' },
     })
     write('ada/orphan/Box.vue', view('vw00000000000004'))
+    write(
+      'ada/orphan/Notes.md',
+      '---\nstudioId: dc00000000000004\n---\n# Notes\n',
+    )
     // Someone else's system that isn't installed is still a problem.
     prototype('ada/stray', 'pr00000000000005', 'Stray', { systemId: GONE })
     const local = buildManifest({
       root,
       systems,
-      fileTypes: [{ id: 'view', extensions: ['.vue'], identity: viewIdentity }],
+      fileTypes: [
+        { id: 'view', extensions: ['.vue'], identity: viewIdentity },
+        { id: 'document', extensions: ['.md'], identity: documentIdentity },
+      ],
     })
     expect(
       local.manifest.prototypes.find(({ id }) => id === ORPHAN),
@@ -120,10 +128,16 @@ describe('the deployed manifest', () => {
       systemId: GONE,
       systemMissing: { label: 'Lighthouse' },
     })
+    // Its documents stay listed and readable beside the views that wait.
     expect(local.artifacts[ORPHAN]!.map(({ id }) => id)).toEqual([
       'vw00000000000004',
+      'dc00000000000004',
     ])
-    expect(local.problems).toEqual([
+    // (The other fixtures' documents carry no identity; only the systems
+    // matter here.)
+    expect(
+      local.problems.filter((problem) => problem.includes('system')),
+    ).toEqual([
       `src/prototypes/ada/stray/meta.json: the system ${GONE} is not installed; choose an installed system or null for no system.`,
     ])
     const { built, left, summary } = forDeploy(local, root)

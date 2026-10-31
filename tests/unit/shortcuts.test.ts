@@ -133,4 +133,15 @@ describe('artifact shortcuts', () => {
       previewShortcut(key({ key: 'k', code: 'KeyK', shiftKey: true })),
     ).toBe(null)
   })
+
+  test("[PR-83] a view passes on ⌘K, ⌘;, ⌘' and the canvas grid's ⌘⇧'", () => {
+    expect(
+      [
+        key({ key: 'k', code: 'KeyK' }),
+        key(),
+        key({ key: "'", code: 'Quote' }),
+        key({ key: '"', code: 'Quote', shiftKey: true }),
+      ].map(previewShortcut),
+    ).toEqual(['palette', 'navigation', 'source', 'grid'])
+  })
 })
