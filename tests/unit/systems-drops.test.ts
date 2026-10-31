@@ -21,8 +21,8 @@ const containing = (text: string) =>
   code.filter((file) => readFileSync(file, 'utf8').includes(text))
 const strings = JSON.stringify(en)
 
-describe('the Systems areaâ€™s dropped parts', () => {
-  test('[SY-140] [SY-141] [SY-142] [SY-143] [SY-144] [SY-146] there is no built-in Studio system, and no system may be the platformâ€™s', () => {
+describe('the Systems area’s dropped parts', () => {
+  test('[SY-140] [SY-141] [SY-142] [SY-143] [SY-144] [SY-146] there is no built-in Studio system, and no system may be the platform’s', () => {
     expect(
       tracked.filter((file) => /^src\/platform\/.*\.(vue|ts|tsx)$/.test(file)),
     ).toEqual([])
@@ -50,7 +50,7 @@ describe('the Systems areaâ€™s dropped parts', () => {
   })
 
   test('[SY-14] [SY-69] there is no Platform badge or Studio usage wording', () => {
-    expect(strings).not.toContain('Powers Design Studioâ€™s interface')
+    expect(strings).not.toContain('Powers Design Studio’s interface')
     expect(strings).not.toContain('"Platform"')
     expect(strings).not.toContain('unavailable as a prototype system')
   })
@@ -67,7 +67,7 @@ describe('the Systems areaâ€™s dropped parts', () => {
     )
   })
 
-  test('[SY-149] Patrickâ€™s brand material is gone', () => {
+  test('[SY-149] Patrick’s brand material is gone', () => {
     expect(
       tracked.filter((file) => /social-card|logo-tile/.test(file)),
     ).toEqual([])
