@@ -25,6 +25,27 @@ describe('whoami', () => {
     expect(studio.studio('whoami').stdout.trim()).toBe('ben')
   })
 
+  test('[CL-16] a profile with no email is found by your exact Git name', () => {
+    studio.write(
+      'contributors/cara.json',
+      JSON.stringify({
+        formatVersion: 1,
+        studioId: 'cara000000000003',
+        name: 'Cara Diaz',
+        email: '',
+        github: '',
+        preferences: {},
+      }),
+    )
+    studio.identify({ name: 'Cara Diaz', email: 'cara@endless.example' })
+    expect(JSON.parse(studio.studio('whoami', '--json').stdout)).toMatchObject({
+      key: 'cara',
+      matchedBy: 'name',
+    })
+    studio.identify({ name: 'Cara', email: 'cara@endless.example' })
+    expect(studio.studio('whoami').status).toBe(1)
+  })
+
   test('[CL-16] a profile matching only your name is not you until linked, and says how to link', () => {
     studio.identify({ name: ADA.name, email: 'ada@new.example', github: '' })
     const result = studio.studio('whoami')

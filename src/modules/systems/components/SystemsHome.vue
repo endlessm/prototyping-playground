@@ -1,24 +1,15 @@
 <script setup lang="ts">
 import HomeBlock from '../../../../app/components/HomeBlock.vue'
 import { useSystemCatalog } from '../composables/useSystemCatalog'
-import { systemAddress } from '../utils/pages'
+import { homeSystems, systemAddress } from '../utils/pages'
 
 // Home's block of systems: up to three active ones, the default first, and
 // a link to the whole collection.
-const LIMIT = 3
 const { t } = useI18n()
 const manifest = await useManifest()
 const { systems } = await useSystemCatalog()
 const shown = computed(() =>
-  systems.value
-    .filter(({ status }) => status === 'active')
-    .sort(
-      (a, b) =>
-        Number(b.id === manifest.value.defaultSystem) -
-          Number(a.id === manifest.value.defaultSystem) ||
-        a.label.localeCompare(b.label),
-    )
-    .slice(0, LIMIT),
+  homeSystems(systems.value, manifest.value.defaultSystem),
 )
 </script>
 

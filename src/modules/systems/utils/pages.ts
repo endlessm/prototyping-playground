@@ -140,3 +140,26 @@ export const byNewest = <T extends { created: string | null; title: string }>(
       (b.created ?? '').localeCompare(a.created ?? '') ||
       a.title.localeCompare(b.title),
   )
+
+/** The collection's order: the default system first, the others by name. */
+export const inSystemOrder = <T extends { id: string; label: string }>(
+  systems: T[],
+  defaultSystem: string | null,
+) =>
+  [...systems].sort(
+    (a, b) =>
+      Number(b.id === defaultSystem) - Number(a.id === defaultSystem) ||
+      a.label.localeCompare(b.label),
+  )
+
+/** Home's systems: up to three active ones, in the collection's order. */
+export const homeSystems = <
+  T extends { id: string; label: string; status: 'active' | 'archived' },
+>(
+  systems: T[],
+  defaultSystem: string | null,
+) =>
+  inSystemOrder(
+    systems.filter(({ status }) => status === 'active'),
+    defaultSystem,
+  ).slice(0, 3)

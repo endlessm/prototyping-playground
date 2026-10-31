@@ -333,9 +333,10 @@ describe('in the studio running locally', { timeout: 180_000 }, () => {
     await expect
       .poll(() => exists('harbor/skills/make-flow/scripts/check.mjs'))
       .toBe(true)
-    expect(read('harbor/skills/make-flow/SKILL.md')).toMatch(
-      /^---\r?\nname: make-flow\r?\n/,
-    )
+    // The folder moves first; its SKILL.md's name follows a moment later.
+    await expect
+      .poll(() => read('harbor/skills/make-flow/SKILL.md'))
+      .toMatch(/^---\r?\nname: make-flow\r?\n/)
     // The open page follows into the renamed folder.
     await expect
       .poll(() => pathOf(page))
