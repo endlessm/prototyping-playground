@@ -134,6 +134,29 @@ export function systemProblems(spec: unknown, where: string): string[] {
   for (const key of ['stylesheet', 'source'])
     if (app[key] !== undefined && !relativeFile(app[key]))
       problems.push(`${where}: app.${key} is a path inside the system.`)
+  const setup = system.setup as Record<string, unknown> | null | undefined
+  const plain = (value: unknown) =>
+    typeof value === 'string' && PLAIN_TEXT.test(value)
+  if (
+    setup !== undefined &&
+    (!setup ||
+      typeof setup !== 'object' ||
+      !plain(setup.stage) ||
+      !plain(setup.summary) ||
+      (setup.next !== undefined && !plain(setup.next)) ||
+      (setup.record !== undefined && !relativeFile(setup.record)) ||
+      (setup.sources !== undefined &&
+        (!Array.isArray(setup.sources) || !setup.sources.every(plain))))
+  )
+    problems.push(
+      `${where}: setup has a plain-text stage and summary, an optional next step and record file, and a list of sources.`,
+    )
+  const review = system.renameReview
+  if (
+    review !== undefined &&
+    (!Array.isArray(review) || !review.every((file) => relativeFile(file)))
+  )
+    problems.push(`${where}: renameReview lists repository paths.`)
   return problems
 }
 

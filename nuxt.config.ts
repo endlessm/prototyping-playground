@@ -8,6 +8,7 @@ import { COLOR_MODE_KEY } from './tooling/preview/constants.ts'
 import { deploymentRecoveryScript } from './tooling/deployment-recovery.ts'
 import en from './i18n/locales/en.json'
 import { restartScript } from './tooling/settings/restart.ts'
+import { transitionScript } from './tooling/systems/transition.ts'
 
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
 const warning = nodeVersionWarning(process.version, pkg.engines.node)
@@ -20,7 +21,7 @@ const studio = JSON.parse(
 const baseURL = basePathFromEnv(process.env)
 // What link previews and search engines say about the studio.
 const DESCRIPTION =
-  'Where the Endless team builds and reviews prototypes with Endless Studios’ own screens, alongside their agents.'
+  'Where the Endless team builds and reviews prototypes with Endless Studiosâ€™ own screens, alongside their agents.'
 const publicUrl = publicUrlFromEnv(process.env)
 
 export default defineNuxtConfig({
@@ -142,6 +143,7 @@ export default defineNuxtConfig({
     './tooling/modules/nuxt-module.ts',
     './tooling/dev-server/nuxt-module.ts',
     './tooling/contributors/nuxt-module.ts',
+    './tooling/contributors/pages-module.ts',
     './tooling/settings/nuxt-module.ts',
     './tooling/identity/nuxt-module.ts',
     './tooling/manifest/nuxt-module.ts',
@@ -217,6 +219,12 @@ export default defineNuxtConfig({
               { ...en.settings, reload: en.settings.reloadStudio },
               baseURL,
             ),
+            tagPosition: 'head',
+            tagPriority: 'critical',
+          },
+          // A system change's status screen, over the restart's cover.
+          {
+            innerHTML: transitionScript(en.systems.transition),
             tagPosition: 'head',
             tagPriority: 'critical',
           },

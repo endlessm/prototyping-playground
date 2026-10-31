@@ -36,6 +36,12 @@ export interface ManifestPrototype {
    * none); it keeps its current system until then.
    */
   rebuild?: ManifestRebuild
+  /**
+   * Its system was deleted: it keeps its files and assignment, can't render
+   * its views, and stays out of the deployed site until an agent rebuilds
+   * it with another system.
+   */
+  systemMissing?: { label: string }
 }
 
 export interface ManifestRebuild {
@@ -289,7 +295,19 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
         )
         continue
       }
-      if (meta.systemId !== null && !systemIds.has(meta.systemId as string)) {
+      // A deleted system's prototypes wait for a rebuild (`systemMissing`).
+      const missing = meta.systemMissing as
+        { systemId?: unknown; label?: unknown } | undefined
+      const orphaned =
+        meta.systemId !== null &&
+        !systemIds.has(meta.systemId as string) &&
+        missing?.systemId === meta.systemId &&
+        typeof missing?.label === 'string'
+      if (
+        meta.systemId !== null &&
+        !systemIds.has(meta.systemId as string) &&
+        !orphaned
+      ) {
         problems.push(
           `${where}: the system ${String(meta.systemId)} is not installed; choose an installed system or null for no system.`,
         )
@@ -317,6 +335,7 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
         systemId: (meta.systemId as string | null) ?? null,
         status: meta.status === 'archived' ? 'archived' : 'active',
         ...(rebuildOf(meta.rebuild) && { rebuild: rebuildOf(meta.rebuild) }),
+        ...(orphaned && { systemMissing: { label: String(missing!.label) } }),
       })
       artifacts[id] = []
       for (const file of arrangedFiles(dir, parseOrder(meta.order) ?? [])) {
@@ -462,6 +481,7 @@ export function forDeploy(
   )
   const leftOut = (prototype: ManifestPrototype) =>
     prototype.status === 'archived' ||
+    Boolean(prototype.systemMissing) ||
     (prototype.systemId !== null && archivedSystems.has(prototype.systemId))
   const kept = manifest.prototypes.filter((prototype) => !leftOut(prototype))
   const left = {
@@ -485,9 +505,14 @@ export function forDeploy(
     n ? [`${n} ${n === 1 ? one : many}`] : []
   const parts = [
     ...counted(
-      left.prototypes.length,
+      left.prototypes.filter(({ systemMissing }) => !systemMissing).length,
       'archived prototype',
       'archived prototypes',
+    ),
+    ...counted(
+      left.prototypes.filter(({ systemMissing }) => systemMissing).length,
+      'prototype waiting for a rebuild',
+      'prototypes waiting for a rebuild',
     ),
     ...counted(left.systems.length, 'archived system', 'archived systems'),
   ]

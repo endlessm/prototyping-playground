@@ -198,9 +198,17 @@
         "description": "Target: {target}. The current system stays assigned until your agent rebuilds this copy.",
         "copy": "Copy rebuild instructions",
         "copied": "Rebuild instructions copied. Paste them into your coding agent.",
-        "failed": "Could not copy rebuild instructions."
+        "failed": "Could not copy rebuild instructions.",
+        "deletedTitle": "System deleted",
+        "deletedDescription": "{system} is unavailable. Documents, diagrams and canvas scenes remain readable locally. Rebuild the system-dependent views before publishing this prototype."
       }
-    }
+    },
+    "rebuildNeeded": {
+      "title": "Rebuild needed",
+      "description": "The {system} system was deleted. Your prototype’s files are preserved. Copy the rebuild instructions from the sidebar to get started with another system.",
+      "embed": "Rebuild needed: the {system} system was deleted."
+    },
+    "systemDeleted": "{name} (deleted)"
   },
   "collection": {
     "viewAs": "View as",
@@ -261,6 +269,32 @@
       "keep": "Keep editing",
       "discard": "Discard"
     }
+  },
+  "people": {
+    "title": "Contributors",
+    "loading": "Loading permissions",
+    "shared": "Permissions are shared through Git. Changes save to your local repository and reach colleagues when you commit and share them.",
+    "readonly": "You can view permissions. An Admin can change them.",
+    "register": "Ask your agent to register you with yarn studio join.",
+    "you": "You",
+    "admin": "Admin",
+    "fullAccess": "Full studio access",
+    "maintainer": "{system} maintainer",
+    "edit": "Edit profile",
+    "save": "Save changes",
+    "discard": "Discard",
+    "reload": "Reload permissions",
+    "saved": "Permissions saved",
+    "restartTitle": "Restart the studio",
+    "restartDescription": "Permissions were saved. Ask your agent to run yarn studio dev restart, then reload this page.",
+    "levels": "Access levels",
+    "contributorAccess": "Contributor: edit your own prototypes and profile.",
+    "maintainerAccess": "System maintainer: also edit and rename your assigned active systems.",
+    "adminAccess": "Admin: manage every prototype, system, module and permission.",
+    "repository": "Repository access is managed separately through your Git provider.",
+    "name": "Name",
+    "email": "Primary email",
+    "github": "GitHub username"
   },
   "files": {
     "artifacts": "Artifacts",
@@ -450,7 +484,9 @@
       "viewPrototypes": "View prototypes using this system",
       "noUsage": "No active prototypes use this system yet. Choose {name} when creating a prototype.",
       "archived": "This system is archived",
-      "archivedHint": "Files are kept locally and excluded from deployment. Restore it to use it again."
+      "archivedHint": "Files are kept locally and excluded from deployment. Choose Restore from the system menu to use it again.",
+      "empty": "This system is empty. Choose how you want to build it.",
+      "curate": "Curate or bring in a system"
     },
     "libraries": {
       "title": "Libraries",
@@ -576,6 +612,131 @@
       "loadingFont": "Loading font",
       "fontFailed": "This font could not be previewed.",
       "pangram": "The quick brown fox jumps over the lazy dog."
+    },
+    "references": {
+      "title": "Some references need review",
+      "description": "The system was renamed. Your agent should check the remaining references in these files.",
+      "copy": "Copy cleanup instructions",
+      "copied": "Cleanup instructions copied",
+      "failed": "Could not copy instructions."
+    },
+    "setup": {
+      "label": "Set up {name}",
+      "foundation": "1. Choose your system foundation",
+      "foundationLabel": "System starting point",
+      "details": "2. Add your setup details",
+      "prompt": "3. Copy and send your prompt",
+      "vue": "Bring in a Vue app",
+      "nuxtUi": "Start from Nuxt UI",
+      "vueIntro": "Your agent will inspect the app and recommend what to bring in first, what needs adaptation, and what’s missing.",
+      "nuxtUiIntro": "Your agent starts from Nuxt UI’s components and theme, with a DESIGN.md as direction if you have one.",
+      "source": "Vue app or component library",
+      "sourcePlaceholder": "Paste a repository URL or the full path to its folder",
+      "sourceHelp": "Leave this blank and your agent will ask for the source in chat.",
+      "designMd": "DESIGN.md",
+      "designMdPlaceholder": "Paste a link or the full path to your DESIGN.md",
+      "build": "What do you want to build?",
+      "buildPlaceholder": "For example: A dashboard for tracking customer support requests",
+      "buildHelp": "Your agent uses this to choose the first components.",
+      "components": "Any components you already know you want?",
+      "componentsPlaceholder": "For example: Buttons, a data table, and a date picker",
+      "optional": "(optional)",
+      "promptIntro": "Paste this into your agent’s chat and send. Your agent will ask for any files it needs.",
+      "copy": "Copy prompt",
+      "copied": "Prompt copied",
+      "copiedHint": "Paste into your agent’s chat and send to continue.",
+      "failed": "Could not copy. Select the prompt below and paste it into your agent’s chat."
+    },
+    "new": {
+      "button": "New system",
+      "title": "New system",
+      "description": "Create a place for your components, theme, assets, and guidance. Then set it up with your agent.",
+      "name": "Name",
+      "placeholder": "Your product",
+      "addName": "Add a name for your system.",
+      "cancel": "Cancel",
+      "create": "Create",
+      "creating": "Creating"
+    },
+    "menu": {
+      "rename": "Rename",
+      "setDefault": "Set as default",
+      "isDefault": "Default system",
+      "archive": "Archive",
+      "restore": "Restore",
+      "delete": "Delete"
+    },
+    "renameDialog": {
+      "title": "Rename system",
+      "description": "Enter the new name.",
+      "name": "Name",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving"
+    },
+    "archiveDialog": {
+      "title": "Archive {name}?",
+      "description": "Files stay in your repository. Archived items are excluded from deployment, and this system becomes unavailable for new prototypes.",
+      "defaultTitle": "{name} is the default system",
+      "defaultDescription": "Set another system as the default before archiving {name}.",
+      "checking": "Checking dependencies",
+      "alsoArchives": "Also archives {count} prototype | Also archives {count} prototype | Also archives {count} prototypes",
+      "cancel": "Cancel",
+      "close": "Close",
+      "confirm": "Archive system",
+      "working": "Archiving"
+    },
+    "restoreDialog": {
+      "title": "Restore {name}?",
+      "description": "Make this system available for new prototypes again. Choose whether to restore the prototypes archived with it.",
+      "checking": "Checking system dependencies",
+      "systemOnly": "Restore system only",
+      "withPrototypes": "Restore system and prototypes",
+      "working": "Restoring"
+    },
+    "deleteDialog": {
+      "title": "Delete {name}?",
+      "description": "This permanently deletes the system’s files. Studio cannot undo this.",
+      "dependents": "Associated prototypes keep their files, but won’t work or deploy until rebuilt with another system.",
+      "defaultTitle": "{name} is the default system",
+      "defaultDescription": "Set another system as the default before deleting {name}.",
+      "depend": "These prototypes depend on {name}.",
+      "archived": "(archived)",
+      "pending": "(pending rebuild)",
+      "checking": "Checking system dependencies",
+      "cancel": "Cancel",
+      "close": "Close",
+      "confirm": "Delete system",
+      "working": "Working"
+    },
+    "toasts": {
+      "renamed": "System renamed. References updated.",
+      "archived": "System and associated prototypes archived.",
+      "restored": "System restored.",
+      "deleted": "System deleted. Associated prototypes need a rebuild.",
+      "isDefault": "{name} is now the default system."
+    },
+    "transition": {
+      "titles": {
+        "create": "Creating {name}",
+        "opening": "Opening {name}",
+        "delete": "Deleting {name}",
+        "rename": "Renaming {name}",
+        "archive": "Archiving {name}",
+        "restore": "Restoring {name}",
+        "default": "Making {name} the default"
+      },
+      "descriptions": {
+        "create": "Preparing your theme, components, assets, and guidance.",
+        "opening": "Your scaffold is ready. Opening your system.",
+        "delete": "Removing this system and updating the studio.",
+        "rename": "Updating its folder, references and the studio.",
+        "archive": "Archiving its prototypes and updating the studio.",
+        "restore": "Updating the studio.",
+        "default": "Updating the studio."
+      },
+      "slow": "This is taking longer than expected. Reload to check the studio. Your request will not be repeated.",
+      "reload": "Reload studio"
     },
     "component": {
       "noPage": "No page yet. Add {file} next to the component to describe it and say when to use it.",

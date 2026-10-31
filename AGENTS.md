@@ -30,6 +30,7 @@ Use yarn 4 through corepack and Node 22 (`mise.toml`). `yarn install` installs t
   - Prototypes: `delete-prototype src/prototypes/<key>/<id> [--yes] [--json]` previews what would break or be lost, then deletes the folder for good (owner or Admin). Renaming, duplicating, archiving and restoring follow `src/modules/prototypes/skills/organize-prototype/SKILL.md`.
   - Permanent IDs: `identify src/prototypes/<key>/<id> [--yes] [--json]` (after writing files directly; previews first, works in your own prototypes, never replaces an ID) and `identity-audit [--json]` (counts resources, reports missing, malformed and duplicate IDs; exits 1 on any).
   - Modules: `enable`, `disable`, `remove`, `create-module`.
+  - Systems (Admins; renaming also the system's maintainers): `create-system <key> [--label <name>]`, `rename-system <key> --label <name>`, `archive-system <key>`, `restore-system <key> [--restore-prototypes]`, `delete-system <key>`, and `remove <key>` for a system nothing uses. Each previews the change, the prototypes it touches and any folder another program holds, applies under one marker (`.studio-system-operation`) with `--yes` and rolls back on failure; see `src/modules/systems/README.md`, "System lifecycle".
   - Dev server: `dev status`, `dev restart`, `dev stop`. The running server records itself in `.studio/runtime/`, and a second one is refused unless `STUDIO_DEV_FORCE=1`. Restart or stop the studio's server only through these commands, never by port or process name.
   - Settings: `configure --name <name> --tagline <text> --system <key|id|none> --admins <key,key> --maintainers <system=key,key>` previews JSON changes and existing pinned prototypes; `--yes` applies. Repeated maintainer flags preserve other systems. `--recovery` restores Admin access using repository access. The local Settings page and CLI share `tooling/settings/service.ts`; JSON edits preserve unrelated lines and reject comments and duplicate keys. Configuration and system declaration edits automatically restart the local Nuxt child behind the Applying changes screen.
 - `yarn lint`, `yarn format:check` (or `yarn format`), `yarn typecheck`.
@@ -65,11 +66,12 @@ Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/ag
 <!-- studio:modules -->
 
 When the person asks for a canvas (a page of views, documents, and notes arranged together), read [Canvases: use-canvas](src/modules/canvas/skills/use-canvas/SKILL.md).
-When the person asks to join the studio, change their profile, or review who may change what, read [Contributors & Permissions: use-contributors](src/modules/contributors/skills/use-contributors/SKILL.md).
+When the person asks to join the studio, change their profile, or assign or review Admin and system-maintainer roles, read [Contributors & Permissions: use-contributors](src/modules/contributors/skills/use-contributors/SKILL.md).
 When the person asks for a standalone diagram inside a prototype, read [Diagrams: create-diagram](src/modules/diagrams/skills/create-diagram/SKILL.md).
 When the person asks for a document inside a prototype, read [Documents: write-document](src/modules/document/skills/write-document/SKILL.md).
 When the person asks to add or change the human Manual, read [Manual: write-manual](src/modules/documentation/skills/write-manual/SKILL.md).
 When the person asks to create a prototype, or to create or edit its interactive views, read [Prototypes: build-prototype](src/modules/prototypes/skills/build-prototype/SKILL.md).
 When the person asks to rename, move, duplicate, archive, restore or delete a prototype, read [Prototypes: organize-prototype](src/modules/prototypes/skills/organize-prototype/SKILL.md).
 When the person asks to document a system component, or add its page and examples, read [Systems: document-component](src/modules/systems/skills/document-component/SKILL.md).
+When the person asks to set up a new design system by bringing a Vue app in or starting from Nuxt UI, or to adapt, replace or retire one, read [Systems: setup-design-system](src/modules/systems/skills/setup-design-system/SKILL.md).
 <!-- /studio:modules -->

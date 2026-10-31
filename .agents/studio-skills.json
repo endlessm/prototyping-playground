@@ -13,8 +13,8 @@
   ".claude/skills/studio-platform-setup-contributor/SKILL.md": "cbb29086ab93a1052ad833084c9dd8b9db4bda300d6f3f82f02f99c0d0436b9c",
   ".agents/skills/studio-module-canvas-use-canvas/SKILL.md": "98053f1b4c9e82564519725fddd25bc33e01a65f9b0d8d6e5301416f8bfe008e",
   ".claude/skills/studio-module-canvas-use-canvas/SKILL.md": "98053f1b4c9e82564519725fddd25bc33e01a65f9b0d8d6e5301416f8bfe008e",
-  ".agents/skills/studio-module-contributors-use-contributors/SKILL.md": "e0b5f31cabd8af04c69e079050838bdd9d28ae17299c6035d038930773549e3b",
-  ".claude/skills/studio-module-contributors-use-contributors/SKILL.md": "e0b5f31cabd8af04c69e079050838bdd9d28ae17299c6035d038930773549e3b",
+  ".agents/skills/studio-module-contributors-use-contributors/SKILL.md": "fe8955e726416031890d3f272f4858e78cbf66219f4bbaad69ebaffbfd0084db",
+  ".claude/skills/studio-module-contributors-use-contributors/SKILL.md": "fe8955e726416031890d3f272f4858e78cbf66219f4bbaad69ebaffbfd0084db",
   ".agents/skills/studio-module-diagrams-create-diagram/SKILL.md": "6e53bf3a2828c1e718cbb5171ca9e2b325912f16bd54d06709723732b98c7cb6",
   ".claude/skills/studio-module-diagrams-create-diagram/SKILL.md": "6e53bf3a2828c1e718cbb5171ca9e2b325912f16bd54d06709723732b98c7cb6",
   ".agents/skills/studio-module-document-write-document/SKILL.md": "4261d546db81a3cda9a65abba524d8cc09e26fdd69e01767a6c8fcd0eb2cafee",
@@ -26,5 +26,7 @@
   ".agents/skills/studio-module-prototypes-organize-prototype/SKILL.md": "7833c060991e5181eb76ab68bd7a626a2a321c10eb46c4f833791386758dae95",
   ".claude/skills/studio-module-prototypes-organize-prototype/SKILL.md": "7833c060991e5181eb76ab68bd7a626a2a321c10eb46c4f833791386758dae95",
   ".agents/skills/studio-module-systems-document-component/SKILL.md": "08bc3d1ed68fdb5c1302057841bfbdad0bdb50718e004c8eb11623d69bd0ace5",
-  ".claude/skills/studio-module-systems-document-component/SKILL.md": "08bc3d1ed68fdb5c1302057841bfbdad0bdb50718e004c8eb11623d69bd0ace5"
+  ".claude/skills/studio-module-systems-document-component/SKILL.md": "08bc3d1ed68fdb5c1302057841bfbdad0bdb50718e004c8eb11623d69bd0ace5",
+  ".agents/skills/studio-module-systems-setup-design-system/SKILL.md": "aa05e516393e4ec86f21a70520dd8dd4d2a496e0c9edc4be97c6c2db00f197df",
+  ".claude/skills/studio-module-systems-setup-design-system/SKILL.md": "aa05e516393e4ec86f21a70520dd8dd4d2a496e0c9edc4be97c6c2db00f197df"
 }

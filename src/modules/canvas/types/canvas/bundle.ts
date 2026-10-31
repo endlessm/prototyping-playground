@@ -1,5 +1,6 @@
 // Every canvas's text by its permanent ID, for the deployed site, which has
-// no file service to read them from; archived prototypes' canvases stay
+// no file service to read them from; the canvases of archived prototypes
+// and of prototypes waiting for a rebuild (their system was deleted) stay
 // out, as their prototypes do. Runs on Node.
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
@@ -12,7 +13,8 @@ import { identity } from './identity.ts'
 
 function archived(metaFile: string) {
   try {
-    return JSON.parse(readFileSync(metaFile, 'utf8')).status === 'archived'
+    const meta = JSON.parse(readFileSync(metaFile, 'utf8'))
+    return meta.status === 'archived' || Boolean(meta.systemMissing)
   } catch {
     return false
   }

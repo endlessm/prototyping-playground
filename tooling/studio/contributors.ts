@@ -316,7 +316,7 @@ const list = (value: Flags[string]) =>
   (Array.isArray(value) ? value : []).map((item) => item.trim())
 
 // The profile after the requested changes, or what is wrong with them.
-function planProfile(
+export function planProfile(
   contributors: Contributors,
   key: string,
   flags: Flags,
