@@ -48,7 +48,18 @@ A system supplies the foundation for many prototypes:
 
 Endless Studios is the default system. Its views render the app's real screens from copied source, kept up to date from the Endless Studios repository. Keep knowledge that serves every prototype in the system's **Context**; keep an exploration's brief and open questions with its prototype.
 
-Admins can create systems from **Systems → New system**: bring another Vue app in, or start from Nuxt UI. The studio gives you a prompt to copy into your agent's chat. Maintainers of a system can edit its context and skills.
+Admins can create systems from **Systems → New system**. The new system's Overview offers to set it up: bring another Vue app in, or start from Nuxt UI, and copy the prompt it builds into your agent's chat. Maintainers of a system can edit its context and skills.
+
+A system's **…** menu has the rest. Maintainers and Admins can rename it; its link stays the same. Admins can also make it the default, archive it, restore it or delete it:
+
+| Action         | What happens                                                                                                                                                                         |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Set as default | New prototypes start with it. Existing prototypes keep their systems.                                                                                                                |
+| Archive        | Its files stay, its prototypes are archived with it, and the deployed site leaves both out. The default system can't be archived.                                                    |
+| Restore        | Makes it available again, with or without the prototypes archived with it.                                                                                                           |
+| Delete         | Deletes its files for good. Its prototypes keep theirs and show **Rebuild needed** until your agent rebuilds them with another system; the deployed site leaves them out until then. |
+
+Each change restarts the studio, behind a screen that says what is happening. If a folder is open in another program, such as an editor or a terminal, the studio says so before changing anything: close it and try again.
 
 ## How do I create a prototype?
 

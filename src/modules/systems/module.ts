@@ -41,6 +41,10 @@ export default {
       path: 'skills/document-component/',
       when: 'asks to document a system component, or add its page and examples',
     },
+    {
+      path: 'skills/setup-design-system/',
+      when: 'asks to set up a new design system by bringing a Vue app in or starting from Nuxt UI, or to adapt, replace or retire one',
+    },
   ],
   home: {
     component: 'components/SystemsHome.vue',

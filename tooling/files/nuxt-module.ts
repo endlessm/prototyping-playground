@@ -3,7 +3,8 @@
 // (`server/system-source.ts`) and shared guidance with the Manual's
 // chapters (`server/guidance-source.ts`), list and change a prototype's files for its
 // file tree (`server/tree.ts`) and create prototypes
-// (`server/prototypes.ts`); renames and moves made outside the studio
+// (`server/prototypes.ts`), and create and change design systems
+// (`server/systems.ts`); renames and moves made outside the studio
 // have their references repaired (`server/moves.ts`). Open pages hear
 // `studio:source` with the files whose content changed on disk, so an open
 // editor can reload or offer its conflict choice, and `studio:files` when
@@ -35,6 +36,7 @@ export const SYSTEM_SOURCE_ROUTE = '_studio/files/system-source'
 export const GUIDANCE_SOURCE_ROUTE = '_studio/files/guidance-source'
 export const PROTOTYPES_ROUTE = '_studio/files/prototypes'
 export const TREE_ROUTE = '_studio/files/tree'
+export const SYSTEMS_ROUTE = '_studio/files/systems'
 
 /** What the routes need, through the server's runtime configuration. */
 export interface FileServiceConfig {
@@ -127,6 +129,10 @@ export default defineNuxtModule({
       route: `/${TREE_ROUTE}`,
       handler: resolve('./server/tree.ts'),
     })
+    addServerHandler({
+      route: `/${SYSTEMS_ROUTE}`,
+      handler: resolve('./server/systems.ts'),
+    })
     // Renames and moves made outside the studio repair references too.
     addServerPlugin(resolve('./server/moves.ts'))
     addVitePlugin(
@@ -139,11 +145,10 @@ export default defineNuxtModule({
       { server: false },
     )
     addVitePlugin(
-      releaseRoute(
-        nuxt.options.app.baseURL,
-        config.releaseToken,
+      releaseRoute(nuxt.options.app.baseURL, config.releaseToken, [
         path.resolve(root, config.prototypesFolder),
-      ),
+        path.resolve(root, config.systemsFolder),
+      ]),
       { server: false },
     )
   },
@@ -151,9 +156,9 @@ export default defineNuxtModule({
 
 /**
  * Lets the file service ask the dev server's watchers to let go of a
- * prototype's folder, and to watch it again (`./watchers.ts`).
+ * prototype's or a system's folder, and to watch it again (`./watchers.ts`).
  */
-function releaseRoute(base: string, token: string, prototypes: string): Plugin {
+function releaseRoute(base: string, token: string, places: string[]): Plugin {
   return {
     name: 'studio-release-folders',
     configureServer(server) {
@@ -173,7 +178,7 @@ function releaseRoute(base: string, token: string, prototypes: string): Plugin {
           if (
             req.method !== 'POST' ||
             request.token !== token ||
-            !folder.startsWith(prototypes + path.sep)
+            !places.some((place) => folder.startsWith(place + path.sep))
           ) {
             res.statusCode = 403
             res.end()

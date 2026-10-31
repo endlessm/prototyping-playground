@@ -2,6 +2,7 @@
 import AppNotFound from '../../../../app/components/AppNotFound.vue'
 import SystemNav from '../components/SystemNav.vue'
 import { useSystemCatalog } from '../composables/useSystemCatalog'
+import { useSystemTransition } from '../composables/useSystemTransition'
 
 // A system's frame: its navigation, which stays while the person moves
 // between the system's pages, and the open page beside it. Each page starts
@@ -9,8 +10,13 @@ import { useSystemCatalog } from '../composables/useSystemCatalog'
 definePageMeta({ key: (route) => `system:${route.params.systemId}` })
 
 const route = useRoute()
-const { systemOf } = await useSystemCatalog()
+const { systems, systemOf } = await useSystemCatalog()
 const system = computed(() => systemOf(route.params.systemId as string))
+// A change made from the system's menu ends here once the studio reloads.
+useSystemTransition(
+  () => systems.value.map(({ id }) => id),
+  () => system.value?.id,
+)
 
 const page = useTemplateRef<HTMLElement>('page')
 watch(
