@@ -50,13 +50,21 @@ describe('a module switched on and off on the dev server', () => {
     await studio?.stop()
   })
 
-  test('[SH-146] [CL-118] an enabled module shows its rail button, its page and its build data', async () => {
+  test('[SH-43] [SH-146] [CL-118] an enabled module shows its rail button, palette entry, page and build data', async () => {
     switchSample(true)
     studio = await startDevServer(env)
     const page = await newPage()
     await page.goto(studio.url)
     const button = rail(page).getByRole('link', { name: 'Sample' })
     await expect.poll(() => button.isVisible(), { timeout: 60_000 }).toBe(true)
+    await page.keyboard.press('Control+k')
+    await expect
+      .poll(
+        () => page.getByRole('option', { name: 'Open Sample' }).isVisible(),
+        { timeout: 30_000 },
+      )
+      .toBe(true)
+    await page.getByPlaceholder('Search the studio').press('Escape')
     await button.click()
     await expect.poll(() => page.url()).toBe(`${studio.url}sample`)
     const notes = page.getByRole('list', { name: 'Sample' })
@@ -111,7 +119,7 @@ describe('a module switched on and off on the dev server', () => {
     )
   })
 
-  test('[SH-146] a disabled module loses its rail button and page after a restart', async () => {
+  test('[SH-43] [SH-146] a disabled module loses its rail button, palette entry and page after a restart', async () => {
     await studio!.stop()
     switchSample(false)
     studio = await startDevServer(env)
@@ -126,6 +134,14 @@ describe('a module switched on and off on the dev server', () => {
     expect(await rail(page).getByRole('link', { name: 'Sample' }).count()).toBe(
       0,
     )
+    await page.keyboard.press('Control+k')
+    await expect
+      .poll(() => page.getByPlaceholder('Search the studio').isVisible())
+      .toBe(true)
+    expect(
+      await page.getByRole('option', { name: 'Open Sample' }).count(),
+    ).toBe(0)
+    await page.getByPlaceholder('Search the studio').press('Escape')
     await page.goto(`${studio.url}sample`)
     await expect
       .poll(

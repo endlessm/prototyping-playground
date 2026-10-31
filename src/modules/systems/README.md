@@ -83,4 +83,8 @@ The dev server's file service reads and saves through `GET|PUT <base>_studio/fil
 
 ## Not yet here
 
-The command palette's Systems group (ticket 15), and creating, renaming, moving and deleting Context and Skills files and the New skill dialog.
+Creating, renaming, moving and deleting Context and Skills files, and the New skill dialog.
+
+## Command palette
+
+The Systems group lists registered systems as "<Name> system", in both the local studio and the deployed site (active systems only there). Choosing one opens its overview. The current system stays disabled on all its pages. The module declares paletteSource and paletteOrder; the studio builds the entries from the manifest.

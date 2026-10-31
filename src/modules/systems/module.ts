@@ -33,6 +33,8 @@ export default {
   description:
     'Each design system’s overview, libraries, theme, assets, components, context and skills.',
   required: true,
+  paletteSource: 'systems',
+  paletteOrder: 20,
   rail: { position: 'top', icon: 'i-lucide-shapes', order: 20 },
   skills: [
     {
