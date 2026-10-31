@@ -92,6 +92,13 @@ export function artifactShortcut(event: Keystroke): 'source' | 'grid' | null {
 
 export type { PreviewShortcut }
 
+/** Closed palettes leave text fields alone; an open palette always toggles. */
+export function paletteShortcut(event: Keystroke, open: boolean) {
+  return (
+    previewShortcut(event) === 'palette' && (open || !isTyping(event.target))
+  )
+}
+
 /** The studio commands a preview document passes on to the studio. */
 export function previewShortcut(event: Keystroke): PreviewShortcut | null {
   const artifact = artifactShortcut(event)

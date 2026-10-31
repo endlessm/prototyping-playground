@@ -31,6 +31,7 @@ const address = (slug: string) =>
 export default {
   id: 'documentation',
   label: 'Manual',
+  paletteOrder: 30,
   description: 'The Manual: how to use the studio, chapter by chapter.',
   rail: {
     position: 'top',
