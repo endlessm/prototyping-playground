@@ -33,7 +33,7 @@ Open the studio in your agent's browser or preview. Point at the part you want c
 
 The pointer says where; your words say what. Name the view and the state when the problem depends on them. A screenshot works when your agent has no browser tools.
 
-You can also draw on a canvas: arrange views and sketch over them, then ask the agent to read the canvas. Canvas notes never change a view by themselves.
+You can also draw on a canvas: arrange views and sketch over them, then ask the agent to read the canvas. Canvas notes never change a view by themselves. The agent can lay out a canvas for you too, such as every state of a view side by side; when it works in the canvas you have open, you see each change as it happens and can undo it like your own.
 
 ## What can I do directly in the studio?
 

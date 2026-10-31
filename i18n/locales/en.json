@@ -359,6 +359,7 @@
   "canvas": {
     "opening": "Opening canvas",
     "error": "This canvas couldn’t be opened. Ask your agent to fix the file.",
+    "embedFailed": "This canvas could not load. Open it to inspect its source.",
     "menu": {
       "undo": "Undo",
       "redo": "Redo",

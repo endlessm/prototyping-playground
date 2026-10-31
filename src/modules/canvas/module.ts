@@ -25,6 +25,11 @@ export default {
       template: 'types/canvas/check.ts',
       icon: 'i-lucide-presentation',
       page: 'components/CanvasPage.vue',
+      // A fitted picture of the canvas in a document; on another canvas it
+      // stays a card.
+      embed: 'components/CanvasEmbed.vue',
+      embedIn: ['document'],
+      embedPending: 'components/CanvasEmbedPending.vue',
     },
   ],
   data: {
