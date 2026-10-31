@@ -33,6 +33,8 @@ export interface ModulePaletteEntry {
   to: string
   icon?: string
   group?: string
+  /** Hidden search synonyms. */
+  keywords?: string[]
 }
 
 /** An agent skill the generated part of `AGENTS.md` routes to. */
@@ -208,6 +210,9 @@ export interface StudioModule {
   home?: ModuleHome
   pages?: ModulePage[]
   palette?: ModulePaletteEntry[]
+  /** Manifest content to list; static entries can also declare a group. */
+  paletteSource?: 'prototypes' | 'systems'
+  paletteOrder?: number
   skills?: ModuleSkill[]
   /** A repository-relative folder of content `studio remove` keeps. */
   content?: string
