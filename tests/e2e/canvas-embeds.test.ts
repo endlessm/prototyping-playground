@@ -352,6 +352,38 @@ describe('items on a canvas in the studio running locally', () => {
     },
   )
 
+  test('[CV-68] a taller item shows more of the view at the same scale', async () => {
+    const page = await canvasPage()
+    await open(page, studio, SINGLE)
+    const box = itemBox(page, 'home')
+    await previewReady(box)
+    const layout = () =>
+      box.evaluate((element) => ({
+        transform: (
+          element.querySelector('iframe')!.parentElement as HTMLElement
+        ).style.transform,
+        height: (element.querySelector('[data-preview-state]') as HTMLElement)
+          .style.height,
+      }))
+    const before = await layout()
+    expect(before.height).toBe('300px')
+    // Resized through the agent tools, as a drag on its handle would.
+    type Tools = { __studioCanvas?: { update: (args: unknown) => unknown } }
+    await expect
+      .poll(() =>
+        page.evaluate(() => typeof (window as unknown as Tools).__studioCanvas),
+      )
+      .toBe('object')
+    await page.evaluate(() =>
+      (window as unknown as Tools).__studioCanvas!.update({
+        id: 'home',
+        height: 538,
+      }),
+    )
+    await expect.poll(async () => (await layout()).height).toBe('500px')
+    expect((await layout()).transform).toBe(before.transform)
+  })
+
   test('[CV-69] [CV-86] the title bar names the item, opens it in one click, and a wheel over it pans the canvas', async () => {
     const page = await canvasPage()
     await open(page, studio, SINGLE)

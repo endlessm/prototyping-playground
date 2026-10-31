@@ -125,7 +125,7 @@ declare module '#studio/modules' {
     label: string
     description: string
     rail: { position: 'top' | 'bottom'; icon?: string; order: number; to: string } | null
-    palette: { label: string; to: string; icon?: string; group?: string; keywords?: string[] }[]
+    palette: { label: string; to: string; icon?: string; group?: string; keywords?: string[]; localOnly?: boolean; adminOnly?: boolean }[]
     paletteSource?: 'prototypes' | 'systems'
     paletteOrder?: number
   }

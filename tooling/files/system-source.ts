@@ -79,7 +79,13 @@ function ordinaryFile(file: string) {
   }
 }
 
-export function createSystemSourceService(options: SystemSourceOptions) {
+/**
+ * A system by its permanent ID, with the configuration it was read from,
+ * and why the person working may not change it (null when they may):
+ * Admins and the system's maintainers change an active system. Read from
+ * disk again on every call.
+ */
+export function systemAccess(options: SystemSourceOptions) {
   const { root } = options
   const folder = options.systemsFolder ?? SYSTEMS_FOLDER
   const configFile = path.resolve(root, options.configFile ?? CONFIG_FILE)
@@ -94,16 +100,6 @@ export function createSystemSourceService(options: SystemSourceOptions) {
     }
     const { systems } = await loadSystems(root, config, folder)
     return { system: systems.find((entry) => entry.id === id), config }
-  }
-
-  async function locate(address: SystemFileAddress) {
-    const { system, config } = await systemOf(address.system)
-    if (!system || !reachable(system, address.path)) throw notFound()
-    const file = path.join(system.dir, ...address.path.split('/'))
-    if (!ordinaryFile(file)) throw notFound()
-    if (!realpathSync(file).startsWith(realpathSync(system.dir) + path.sep))
-      throw notFound()
-    return { system, file, config }
   }
 
   function refusalFor(system: InstalledSystem, config: TeamConfig) {
@@ -126,6 +122,23 @@ export function createSystemSourceService(options: SystemSourceOptions) {
           }),
         }
       : null
+  }
+
+  return { systemOf, refusalFor }
+}
+
+export function createSystemSourceService(options: SystemSourceOptions) {
+  const { root } = options
+  const { systemOf, refusalFor } = systemAccess(options)
+
+  async function locate(address: SystemFileAddress) {
+    const { system, config } = await systemOf(address.system)
+    if (!system || !reachable(system, address.path)) throw notFound()
+    const file = path.join(system.dir, ...address.path.split('/'))
+    if (!ordinaryFile(file)) throw notFound()
+    if (!realpathSync(file).startsWith(realpathSync(system.dir) + path.sep))
+      throw notFound()
+    return { system, file, config }
   }
 
   const display = (file: string) => posix(path.relative(root, file))

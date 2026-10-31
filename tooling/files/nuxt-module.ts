@@ -4,7 +4,8 @@
 // chapters (`server/guidance-source.ts`), list and change a prototype's files for its
 // file tree (`server/tree.ts`) and create prototypes
 // (`server/prototypes.ts`), and create and change design systems
-// (`server/systems.ts`); renames and moves made outside the studio
+// (`server/systems.ts`) and their Context and Skills files
+// (`server/system-tree.ts`); renames and moves made outside the studio
 // have their references repaired (`server/moves.ts`). Open pages hear
 // `studio:source` with the files whose content changed on disk, so an open
 // editor can reload or offer its conflict choice, and `studio:files` when
@@ -37,6 +38,7 @@ export const GUIDANCE_SOURCE_ROUTE = '_studio/files/guidance-source'
 export const PROTOTYPES_ROUTE = '_studio/files/prototypes'
 export const TREE_ROUTE = '_studio/files/tree'
 export const SYSTEMS_ROUTE = '_studio/files/systems'
+export const SYSTEM_TREE_ROUTE = '_studio/files/system-tree'
 
 /** What the routes need, through the server's runtime configuration. */
 export interface FileServiceConfig {
@@ -132,6 +134,10 @@ export default defineNuxtModule({
     addServerHandler({
       route: `/${SYSTEMS_ROUTE}`,
       handler: resolve('./server/systems.ts'),
+    })
+    addServerHandler({
+      route: `/${SYSTEM_TREE_ROUTE}`,
+      handler: resolve('./server/system-tree.ts'),
     })
     // Renames and moves made outside the studio repair references too.
     addServerPlugin(resolve('./server/moves.ts'))

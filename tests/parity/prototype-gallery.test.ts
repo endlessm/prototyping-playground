@@ -84,20 +84,14 @@ scenario(
   },
 )
 
-// Home lists your three newest: Screens, States and Drafts, not Tracer.
+// Home lists your three newest prototypes once it knows who you are; which
+// three depends on the fixtures, so wait for the group, not a named one.
 scenario('[PR-18] [SH-101] Home’s prototypes', async ({ page, url, step }) => {
   await page.goto(url)
   await expect
-    .poll(
-      () =>
-        page
-          .getByRole('link', { name: /Screens/ })
-          .first()
-          .isVisible(),
-      {
-        timeout: 120_000,
-      },
-    )
+    .poll(() => page.getByText('Your prototypes').first().isVisible(), {
+      timeout: 120_000,
+    })
     .toBe(true)
   await step('Home with prototypes')
 })

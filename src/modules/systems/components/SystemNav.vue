@@ -1,26 +1,30 @@
 <script setup lang="ts">
 import AppSectionNav from '../../../../app/components/AppSectionNav.vue'
+import {
+  filterNodes,
+  folderPaths,
+  type FileNode,
+  type FileTreeEntry,
+} from '../../../../app/utils/fileTree'
 import type { SystemCatalog } from '../../../../tooling/systems/catalog'
+import type { ContentSection } from '../../../../tooling/systems/content-rules'
 import {
   BRANCHES,
   useSystemNavState,
   type Branch,
 } from '../composables/useSystemNavState'
-import {
-  ASSET_PAGES,
-  contextAddress,
-  skillAddress,
-  systemAddress,
-  themePages,
-} from '../utils/pages'
+import { useSystemTree } from '../composables/useSystemTree'
+import { ASSET_PAGES, systemAddress, themePages } from '../utils/pages'
+import { catalogNodes, treeEntries, withoutSkillFiles } from '../utils/trees'
 import SystemActions from './SystemActions.vue'
+import SystemContentTree from './SystemContentTree.vue'
 import SystemNavBranch from './SystemNavBranch.vue'
-import SystemNavFolder, { type NavFolder } from './SystemNavFolder.vue'
 import SystemNavItem, { type SystemNavLink } from './SystemNavItem.vue'
 
 // A system's navigation, in the section panel: its name and "…" menu, then
 // Overview, Libraries, Context, Skills, Theme, Assets and Components.
-// Branches start open, fold, and stay as left for the session; the one
+// Context and Skills are the shared file tree as branches, with the real
+// files locally (`SystemContentTree.vue`). Branches start open, fold, and stay as left for the session; the one
 // holding the current page opens. Search filters every entry by name and
 // file path, opening what matches, and clearing it restores the branches.
 const props = defineProps<{ system: SystemCatalog }>()
@@ -46,48 +50,37 @@ const libraries = computed<SystemNavLink>(() => ({
   path: `${folder.value}/system.ts`,
 }))
 
-// Context keeps its folders; documents sit in the folder they're in.
-const context = computed<NavFolder>(() => {
-  const root: NavFolder = {
-    path: '',
-    name: '',
-    file: `${folder.value}/context/`,
-    folders: [],
-    items: [],
+// Context and Skills: the dev server's files locally, the catalog's on
+// the deployed site and until the dev server answers.
+const tree = useSystemTree(() => props.system.id)
+const live = computed(() => import.meta.dev && tree.listing.value !== null)
+const editable = computed(() => live.value && tree.listing.value!.editable)
+const SECTIONS: ContentSection[] = ['context', 'skills']
+const nodes = computed<Record<ContentSection, FileNode[]>>(() => {
+  const listing = tree.listing.value
+  return {
+    context: listing ? listing.context : catalogNodes(props.system, 'context'),
+    skills: listing
+      ? withoutSkillFiles(listing.skills)
+      : catalogNodes(props.system, 'skills'),
   }
-  const folders = new Map<string, NavFolder>([['', root]])
-  const parentOf = (path: string) =>
-    folders.get(path.split('/').slice(0, -1).join('/')) ?? root
-  for (const path of props.system.contextFolders) {
-    const node: NavFolder = {
-      path,
-      name: path.split('/').at(-1)!,
-      file: `${folder.value}/context/${path}/`,
-      folders: [],
-      items: [],
-    }
-    folders.set(path, node)
-    parentOf(path).folders.push(node)
-  }
-  for (const document of props.system.context)
-    parentOf(document.path).items.push({
-      label: document.title,
-      to: contextAddress(props.system, document.path),
-      icon: 'i-lucide-file-text',
-      path: document.file,
-      source: true,
-    })
-  return root
 })
-const skills = computed<SystemNavLink[]>(() =>
-  props.system.skills.map((skill) => ({
-    label: skill.title,
-    to: skillAddress(props.system, `${skill.name}/SKILL.md`),
-    icon: 'i-lucide-wand-sparkles',
-    path: skill.file,
-    source: true,
-  })),
+const entries = computed<Record<ContentSection, Map<string, FileTreeEntry>>>(
+  () => ({
+    context: treeEntries(props.system, 'context'),
+    skills: treeEntries(props.system, 'skills'),
+  }),
 )
+const reloadTree = () => tree.reload()
+const dev = import.meta.dev
+const titleIn = (section: ContentSection) => (node: FileNode) =>
+  entries.value[section].get(node.path)?.title ?? node.name
+/** The folders each tree can fold: a skill's own folder always shows. */
+const foldable = (section: ContentSection) =>
+  folderPaths(nodes.value[section]).filter(
+    (path) => !entries.value[section].has(path),
+  )
+
 const THEME_ICONS: Record<string, string> = {
   colors: 'i-lucide-swatch-book',
   typography: 'i-lucide-type',
@@ -164,22 +157,23 @@ const librariesMatch = computed(
       (library) => matches(library.label) || matches(library.description),
     ),
 )
-const allDocuments = (node: NavFolder): SystemNavLink[] => [
-  ...node.items,
-  ...node.folders.flatMap(allDocuments),
-]
-const entries = computed(() => ({
-  context: allDocuments(context.value),
-  skills: skills.value,
+const links = computed(() => ({
   theme: theme.value,
   assets: assets.value,
   components: components.value,
 }))
+const isSection = (branch: Branch): branch is ContentSection =>
+  (SECTIONS as Branch[]).includes(branch)
+/** What a Context or Skills tree is filtered by: nothing if its name matches. */
+const treeQuery = (section: ContentSection) =>
+  searching.value && !branchMatches(section) ? words.value : undefined
 // While searching, a branch shows if anything in it matches.
 const branchShows = (branch: Branch) =>
   !searching.value ||
   branchMatches(branch) ||
-  entries.value[branch].some(showsIn(branch))
+  (isSection(branch)
+    ? filterNodes(nodes.value[branch], words.value, titleIn(branch)).length > 0
+    : links.value[branch].some(showsIn(branch)))
 const nothing = computed(
   () =>
     searching.value &&
@@ -212,15 +206,17 @@ async function clear() {
 const allOpen = computed(
   () =>
     BRANCHES.every((branch) => state.value.branches[branch]) &&
-    props.system.contextFolders.every(
-      (path) => state.value.folders[path] !== false,
+    SECTIONS.every((section) =>
+      foldable(section).every(
+        (path) => !state.value.closed[section].includes(path),
+      ),
     ),
 )
 function toggleAll() {
   const open = !allOpen.value
   for (const branch of BRANCHES) state.value.branches[branch] = open
-  for (const path of props.system.contextFolders)
-    state.value.folders[path] = open
+  for (const section of SECTIONS)
+    state.value.closed[section] = open ? [] : foldable(section)
 }
 const branchOpen = (branch: Branch) =>
   searching.value || state.value.branches[branch]
@@ -228,12 +224,12 @@ const setBranch = (branch: Branch, open: boolean) => {
   if (!searching.value) state.value.branches[branch] = open
 }
 
-// The branch holding the current page opens, with its folders.
+// The branch holding the current page opens; its tree opens the folders.
 watch(
   () => route.path,
   (path) => {
     const inside = path.slice(page('').length + 1)
-    const [first, ...rest] = inside.split('/')
+    const [first] = inside.split('/')
     let branch: Branch | undefined
     if (first === 'context' || first === 'skills') branch = first
     else if (first === 'components') branch = 'components'
@@ -242,9 +238,6 @@ watch(
     else if (theme.value.some(({ to }) => to === path)) branch = 'theme'
     if (!branch) return
     state.value.branches[branch] = true
-    if (branch === 'context')
-      for (let depth = 1; depth < rest.length; depth++)
-        state.value.folders[rest.slice(0, depth).join('/')] = true
   },
   { immediate: true },
 )
@@ -258,7 +251,7 @@ watch(
           <p class="truncate text-sm font-semibold text-highlighted">
             {{ system.label }}
           </p>
-          <SystemActions :system="system" />
+          <SystemActions :system="system" answers />
         </div>
         <p
           v-if="system.id === manifest.defaultSystem"
@@ -342,46 +335,27 @@ watch(
       <div v-if="librariesMatch" data-nav-entry="Libraries">
         <SystemNavItem :item="libraries" />
       </div>
-      <div v-if="branchShows('context')" data-nav-entry="Context">
-        <SystemNavBranch
-          :label="t('systems.pages.context')"
-          :path="`${system.folder}/context/`"
-          :to="page('context')"
-          icon="i-lucide-notebook-text"
-          :open="branchOpen('context')"
-          @update:open="(open) => setBranch('context', open)"
+      <template v-for="section in SECTIONS" :key="section">
+        <div
+          v-if="branchShows(section)"
+          :data-nav-entry="t(`systems.pages.${section}`)"
+          :aria-busy="(dev && !live) || undefined"
         >
-          <SystemNavFolder
-            v-model:folders="state.folders"
-            :folder="context"
-            :shows="showsIn('context')"
-            :searching="searching"
+          <SystemContentTree
+            v-model:closed="state.closed[section]"
+            :open="branchOpen(section)"
+            :system="system"
+            :section="section"
+            :nodes="nodes[section]"
+            :entries="entries[section]"
+            :editable="editable"
+            :change="tree.change"
+            :reload="reloadTree"
+            :query="treeQuery(section)"
+            @update:open="(open: boolean) => setBranch(section, open)"
           />
-          <p
-            v-if="!system.context.length && !system.contextFolders.length"
-            class="px-2 py-1 text-xs text-muted"
-          >
-            {{ t('systems.nav.emptyFolder') }}
-          </p>
-        </SystemNavBranch>
-      </div>
-      <div v-if="branchShows('skills')" data-nav-entry="Skills">
-        <SystemNavBranch
-          :label="t('systems.pages.skills')"
-          :path="`${system.folder}/skills/`"
-          :to="page('skills')"
-          icon="i-lucide-wand-sparkles"
-          :open="branchOpen('skills')"
-          @update:open="(open) => setBranch('skills', open)"
-        >
-          <template v-for="item in skills" :key="item.to">
-            <SystemNavItem v-if="showsIn('skills')(item)" :item="item" />
-          </template>
-          <p v-if="!skills.length" class="px-2 py-1 text-xs text-muted">
-            {{ t('systems.nav.emptyFolder') }}
-          </p>
-        </SystemNavBranch>
-      </div>
+        </div>
+      </template>
       <div v-if="branchShows('theme')" data-nav-entry="Theme">
         <SystemNavBranch
           :label="t('systems.pages.theme')"

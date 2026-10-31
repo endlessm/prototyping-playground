@@ -187,6 +187,15 @@ describe('yarn canvas', () => {
     )
   })
 
+  test('[CV-149] drop: a canvas in a module’s prototype-shaped folder (examples) is not in a prototype', () => {
+    const example = 'src/modules/prototypes/examples/ada/demo/Board.excalidraw'
+    studio.write(example, EMPTY_BOARD)
+    const result = canvas(example, 'describe')
+    expect(result.status).toBe(1)
+    expect(result.stderr).toMatch(/isn't in a prototype/)
+    expect(studio.read(example)).toBe(EMPTY_BOARD)
+  })
+
   test('[CV-150] [CV-151] files without an identity name the fix; --identify runs it, reports on stderr and continues', () => {
     studio.write(`${FOLDER}/Later.vue`, view(null, 'Later'))
     const before = studio.read(BOARD)

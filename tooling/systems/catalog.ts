@@ -18,6 +18,11 @@ import {
   kebab,
   type DocsProblem,
 } from './components.ts'
+import {
+  SKILL_FILE,
+  skillDescriptionProblem,
+  skillNameProblem,
+} from './content-rules.ts'
 import type { SystemAssetKind, SystemIcons, SystemLibrary } from './contract.ts'
 import { exampleId, overviewId } from './preview-ids.ts'
 import type { ComponentPropsDoc } from './props.ts'
@@ -26,6 +31,13 @@ import { isBinaryFile, isTextContent } from './text-files.ts'
 import { stylesheetTokens, type ThemeToken, type TokenGroup } from './tokens.ts'
 
 export type { ColorSection, ThemeToken, TokenGroup } from './tokens.ts'
+export {
+  SKILL_DESCRIPTION_MAX,
+  SKILL_FILE,
+  SKILL_NAME_MAX,
+  skillDescriptionProblem,
+  skillNameProblem,
+} from './content-rules.ts'
 
 /** The theme's pages, in navigation order. */
 export const TOKEN_GROUPS: TokenGroup[] = [
@@ -143,7 +155,6 @@ export interface SystemCatalog {
   setupRecorded: boolean
 }
 
-export const SKILL_FILE = 'SKILL.md'
 /** A system's own content for its Overview, in its own look. */
 export const OVERVIEW_FILE = 'overview.vue'
 const IMAGES = ['.svg', '.png', '.jpg', '.jpeg', '.webp', '.avif', '.gif']
@@ -392,29 +403,6 @@ export function systemDocuments(system: InstalledSystem, root: string) {
     }
   }
   return documents
-}
-
-const NAME = /^[\p{Ll}\p{Nd}]+(-[\p{Ll}\p{Nd}]+)*$/u
-export const SKILL_NAME_MAX = 64
-export const SKILL_DESCRIPTION_MAX = 1024
-
-/** Why a skill's name (its folder's name) is invalid, or null. */
-export function skillNameProblem(name: unknown): string | null {
-  if (typeof name !== 'string' || !name) return 'is missing.'
-  if (name.length > SKILL_NAME_MAX)
-    return `is too long: names are at most ${SKILL_NAME_MAX} characters.`
-  if (!NAME.test(name))
-    return 'can use only lowercase letters, numbers and single hyphens, and can’t start or end with a hyphen.'
-  return null
-}
-
-/** Why a skill's description is invalid, or null. */
-export function skillDescriptionProblem(description: unknown): string | null {
-  if (typeof description !== 'string' || !description.trim())
-    return 'is missing: say what the skill does and when to use it.'
-  if (description.length > SKILL_DESCRIPTION_MAX)
-    return `is too long: descriptions are at most ${SKILL_DESCRIPTION_MAX} characters.`
-  return null
 }
 
 /**

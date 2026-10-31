@@ -488,6 +488,112 @@ describe('the studio frame on the dev server', () => {
     expect(box.y + box.height).toBeGreaterThan(viewport.height - 64)
     await expect.poll(() => toast.count(), { timeout: 8_000 }).toBe(0)
   })
+
+  test('[SH-25] the rail’s search button opens the command palette, with its shortcut in the tooltip', async () => {
+    const page = await newPage()
+    await open(page, `${studio.url}garden`)
+    const search = rail(page).getByRole('button', {
+      name: 'Search (Ctrl+K)',
+      exact: true,
+    })
+    await search.hover()
+    await expect
+      .poll(() =>
+        page
+          .locator('[data-slot="content"][data-side="right"]')
+          .filter({ hasText: 'Search (Ctrl+K)' })
+          .isVisible(),
+      )
+      .toBe(true)
+    await search.click()
+    const input = page.getByPlaceholder('Search the studio')
+    await expect.poll(() => input.isVisible()).toBe(true)
+  })
+
+  test('[SH-45] the palette’s code loads 1.5 s after the app starts, before anyone opens it', async () => {
+    const page = await newPage()
+    let requested = 0
+    page.on('request', (request) => {
+      if (!requested && request.url().includes('CommandPaletteModal'))
+        requested = Date.now()
+    })
+    const start = Date.now()
+    await open(page, `${studio.url}garden`)
+    const shown = Date.now()
+    await expect.poll(() => requested).toBeGreaterThan(0)
+    // Not with the app's own code: after the app is on screen, on a timer
+    // that starts with it.
+    expect(requested).toBeGreaterThan(shown)
+    expect(requested - start).toBeGreaterThanOrEqual(1500)
+    expect(await page.getByPlaceholder('Search the studio').count()).toBe(0)
+  })
+
+  test('[SH-27] with many modules, the rail’s module group scrolls with its scrollbar hidden, and the window doesn’t', async () => {
+    const page = await newPage()
+    await page.setViewportSize({ width: 1280, height: 480 })
+    await open(page, `${studio.url}garden`)
+    const group = rail(page).locator('[data-slot="body"]')
+    await expect.poll(() => group.count()).toBe(1)
+    // Twenty more module buttons than the fixture has.
+    await group.evaluate((element) => {
+      const button = element.querySelector('a')!
+      for (let index = 0; index < 20; index++) {
+        const copy = button.cloneNode(true) as HTMLElement
+        copy.dataset.copy = String(index)
+        element.append(copy)
+      }
+    })
+    const layout = await group.evaluate((element) => {
+      const style = getComputedStyle(element)
+      return {
+        overflow: style.overflowY,
+        scrollbar: style.scrollbarWidth,
+        overflowing: element.scrollHeight > element.clientHeight,
+        window: document.documentElement.scrollHeight - window.innerHeight,
+      }
+    })
+    expect(['auto', 'scroll']).toContain(layout.overflow)
+    expect(layout.scrollbar).toBe('none')
+    expect(layout.overflowing).toBe(true)
+    expect(layout.window).toBe(0)
+    // The last one scrolls into reach; the bottom group stays on screen.
+    const last = group.locator('[data-copy="19"]')
+    await last.scrollIntoViewIfNeeded()
+    const box = (await last.boundingBox())!
+    expect(box.y + box.height).toBeLessThanOrEqual(480)
+    expect(
+      await rail(page)
+        .getByRole('link', { name: 'Studio settings' })
+        .isVisible(),
+    ).toBe(true)
+  })
+
+  test('[SH-56] a menu item keeps its hover highlight while the studio’s window doesn’t have focus', async () => {
+    const page = await newPage()
+    await open(page, `${studio.url}garden`)
+    await rail(page).getByRole('button', { name: 'Color mode' }).click()
+    const item = page.getByRole('menuitemcheckbox', { name: 'Dark' })
+    await expect.poll(() => item.isVisible()).toBe(true)
+    // Another app (an editor, the file browser) took focus: the page loses
+    // it, and nothing in it can take it back. Headless Chromium keeps every
+    // page focused, so the page is told so and focusing does nothing.
+    await page.evaluate(() => {
+      ;(document.activeElement as HTMLElement | null)?.blur()
+      window.dispatchEvent(new FocusEvent('blur'))
+      HTMLElement.prototype.focus = () => {}
+    })
+    await item.hover()
+    await expect
+      .poll(() => item.getAttribute('data-highlighted'))
+      .not.toBeNull()
+    expect(await item.evaluate((element) => element.matches(':focus'))).toBe(
+      false,
+    )
+    const surface = await item.evaluate(
+      (element) => getComputedStyle(element, '::before').backgroundColor,
+    )
+    expect(surface).not.toMatch(/^(transparent|rgba\(0, 0, 0, 0\))$/)
+  })
 })
 
 describe('the studio from another device on the network', () => {

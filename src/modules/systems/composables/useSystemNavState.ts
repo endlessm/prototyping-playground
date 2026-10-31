@@ -9,8 +9,8 @@ export type Branch = (typeof BRANCHES)[number]
 
 interface NavState {
   branches: Record<Branch, boolean>
-  /** Context folders, by path; open unless closed. */
-  folders: Record<string, boolean>
+  /** The folders closed in Context and Skills; the others are open. */
+  closed: { context: string[]; skills: string[] }
 }
 
 // Which branches and folders of each system's navigation are open, kept for
@@ -27,7 +27,7 @@ export function useSystemNavState(systemId: () => string) {
         branches: Object.fromEntries(
           BRANCHES.map((branch) => [branch, true]),
         ) as Record<Branch, boolean>,
-        folders: {},
+        closed: { context: [], skills: [] },
       })
       states.set(id, state)
     }

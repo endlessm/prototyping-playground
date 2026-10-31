@@ -50,6 +50,8 @@ Endless Studios is the default system. Its views render the app's real screens f
 
 Admins can create systems from **Systems → New system**. The new system's Overview offers to set it up: bring another Vue app in, or start from Nuxt UI, and copy the prompt it builds into your agent's chat. Maintainers of a system can edit its context and skills.
 
+In a system's navigation, **Context** and **Skills** list their files. Maintainers and Admins can change them there, locally: **+** in Context makes a **New document** (a Markdown file) or a **New folder**, and **+** in Skills opens **New skill**, which asks for a name in lowercase words joined by hyphens and a description of what the skill does and when to use it. Right-click a skill for **New file** and **New folder** inside it. Rename with **F2** or the menu, drag a file into a folder of the same section, and **Delete** moves it to the Recycle Bin (the Trash on a Mac). Renaming or deleting a skill acts on its whole folder; its `SKILL.md` stays with it. The command palette (**Ctrl+K**, **⌘K** on a Mac) also offers **New system** to Admins and, on a system's pages, the actions its **…** menu gives you.
+
 A system's **…** menu has the rest. Maintainers and Admins can rename it; its link stays the same. Admins can also make it the default, archive it, restore it or delete it:
 
 | Action         | What happens                                                                                                                                                                         |
