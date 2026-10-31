@@ -8,8 +8,8 @@ import StudioFooter from '~/components/App/StudioFooter.vue'
 </script>
 
 <template>
-  <!-- layouts/new.vue sets bg-slate-50 on <body>; this wrapper stands in for it inside the preview document. -->
-  <main class="flex flex-col bg-slate-50">
+  <!-- layouts/new.vue's bg-slate-50 on <body> is in styles/studios.css, for every screen. -->
+  <main class="flex flex-col">
     <div class="flex">
       <StudioSidebar />
 

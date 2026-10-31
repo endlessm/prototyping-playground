@@ -237,4 +237,6 @@ export interface StudioModule {
   prototypeActions?: string
   data?: Record<string, ModuleBuildData>
   preferences?: ModulePreferences
+  /** Public prototype imports through @module/<id>, relative to the module. */
+  library?: string
 }

@@ -1,2 +1,5 @@
 node tooling/check-identity.ts
+node tooling/checks/run.ts scope
+node tooling/checks/run.ts assets
+node tooling/checks/run.ts modules
 yarn lint-staged

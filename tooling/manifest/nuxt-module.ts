@@ -45,6 +45,7 @@ import {
   systemPreviews,
 } from '../systems/catalog.ts'
 import { loadSystems, systemsFolder } from '../systems/registry.ts'
+import { moduleChecks } from '../checks/module-checks.ts'
 import { serveSystemAssets } from '../systems/serve-assets.ts'
 import {
   buildManifest,
@@ -130,7 +131,15 @@ export default defineNuxtModule({
       ...systemProblems,
       ...systems.flatMap((system) => systemContentProblems(system, root)),
       ...read().problems,
+      ...(await moduleChecks(root, registry.enabled)),
     ]
+    if (!nuxt.options.dev && !nuxt.options._prepare)
+      nuxt.hook('build:before', () => {
+        if (problems.length)
+          throw new Error(
+            `The build stopped. Fix these declarations:\n${problems.join('\n')}`,
+          )
+      })
     for (const problem of problems) console.warn(`Warning: ${problem}`)
     // Component documentation gaps: a warning per system, or, for a system
     // that declares `docs: 'strict'`, a build that stops.

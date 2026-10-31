@@ -1,5 +1,9 @@
 # Prototypes
 
+## Checks and boundaries
+
+`yarn studio check` validates metadata and imports. In development and production the preview pipeline checks both Vue script blocks and TypeScript helpers before compiling. Import from this prototype, its assigned system, Vue, `#studio/prototype` or an enabled module's declared `@module/<id>` library. Imports into another prototype, private tooling or undeclared packages are refused. Use scoped/module styles; global styles and CSS imports that escape the prototype are refused. Keep assets beside the prototype and import them instead of referencing public paths. Added/changed files over 750 KiB block commits and CI; compress images to WebP or document an unavoidable exception in `.studio/asset-allowlist.json`. See [checks](../../../tooling/checks/README.md).
+
 Prototypes and their artifacts. A prototype is a folder `src/prototypes/<contributor>/<folder>/` with a `meta.json`; its artifacts are the files in it that an enabled file type claims. This module is required.
 
 - `module.ts` declares the module, its rail button (first), its pages and the view file type.
