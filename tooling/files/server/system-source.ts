@@ -9,7 +9,9 @@
 //       templates; the files created
 //   PUT <base>_studio/files/system-source   { system, path, content, base }
 //       saves it over version `base`; 409 `changed` if the file changed on
-//       disk since, 403 with the reason if you may not change the system
+//       disk since, 403 with the reason if you may not change the system.
+//       Its `warnings` say what is wrong with a skill's SKILL.md saved out
+//       of the format
 //
 // Only the studio's own pages may call it.
 import {

@@ -184,6 +184,52 @@ describe('a system’s source', () => {
     expect(nobody.editable).toBe(false)
     expect(nobody.reason).toContain("doesn't match a contributor profile")
   })
+
+  test('[PR-131] saving a skill out of the format saves it, and says what is wrong', async () => {
+    const skill = { system: HARBOR, path: 'skills/build/SKILL.md' }
+    const broken = '---\nname: Build\n---\n\nSteps.\n'
+    const saved = await service().save({
+      ...skill,
+      content: broken,
+      base: (await service().read(skill)).version,
+    })
+    expect(
+      fs.readFileSync(at('src/systems/harbor/skills/build/SKILL.md'), 'utf8'),
+    ).toBe(broken)
+    expect(saved.warnings).toEqual([
+      'The "name" in src/systems/harbor/skills/build/SKILL.md can use only lowercase letters, numbers and single hyphens, and can’t start or end with a hyphen.',
+      'The "description" in src/systems/harbor/skills/build/SKILL.md is missing: say what the skill does and when to use it.',
+    ])
+
+    const renamed = await service().save({
+      ...skill,
+      content: '---\nname: ship\ndescription: Ships. Use when asked.\n---\n',
+      base: saved.version,
+    })
+    expect(renamed.warnings).toEqual([
+      'The "name" in src/systems/harbor/skills/build/SKILL.md is "ship", but the folder is "build". They have to match.',
+    ])
+
+    const fixed = await service().save({
+      ...skill,
+      content: '---\nname: build\ndescription: Builds. Use when asked.\n---\n',
+      base: renamed.version,
+    })
+    expect(fixed.warnings).toEqual([])
+  })
+
+  test('[PR-131] other files in Skills and Context save without warnings', async () => {
+    write('src/systems/harbor/skills/build/notes/SKILL.md', 'no frontmatter\n')
+    for (const file of ['skills/build/notes/SKILL.md', 'context/voice.md']) {
+      const saved = await service().save({
+        system: HARBOR,
+        path: file,
+        content: 'still no frontmatter\n',
+        base: (await service().read({ system: HARBOR, path: file })).version,
+      })
+      expect(saved.warnings, file).toEqual([])
+    }
+  })
 })
 
 describe('a component’s missing files', () => {
