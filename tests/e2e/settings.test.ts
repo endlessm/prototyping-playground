@@ -5,6 +5,7 @@ import {
   readFileSync,
   writeFileSync,
 } from 'node:fs'
+import { get } from 'node:http'
 import path from 'node:path'
 import {
   afterAll,
@@ -30,6 +31,47 @@ afterEach(async () => {
 })
 let server: RunningStudio
 let configFile: string
+
+/** The dev server that served the page, as its meta tag names it. */
+const servedBy = (page: Page) =>
+  page
+    .evaluate(
+      () =>
+        document
+          .querySelector('meta[name="studio-instance"]')
+          ?.getAttribute('content') ?? '',
+    )
+    .catch(() => '')
+/** The dev server that answers, as `_studio/settings` names it. */
+const instance = () =>
+  new Promise<string>((resolve) => {
+    // A connection of its own each time, so it can reach either server.
+    get(`${server.url}_studio/settings`, { agent: false }, (response) => {
+      let body = ''
+      response.on('data', (chunk) => (body += chunk))
+      response.on('end', () => {
+        try {
+          resolve(JSON.parse(body).instance ?? '')
+        } catch {
+          resolve('')
+        }
+      })
+    }).on('error', () => resolve(''))
+  })
+/** What the page shows of a restart, for a failure's report. */
+const seen = (page: Page) =>
+  page
+    .evaluate(() => ({
+      address: location.href,
+      state: document.readyState,
+      cover: document.getElementById('studio-restart')?.textContent ?? null,
+      restart: sessionStorage.getItem('design-studio:restart'),
+      servedBy:
+        document
+          .querySelector('meta[name="studio-instance"]')
+          ?.getAttribute('content') ?? null,
+    }))
+    .catch((failure: Error) => failure.message)
 beforeAll(async () => {
   mkdirSync('.e2e', { recursive: true })
   const folder = mkdtempSync(path.resolve('.e2e/settings-'))
@@ -132,8 +174,10 @@ test('[SH-120] [SH-121] early cover blocks interaction, says plainly that the st
   await page.route('**/_studio/settings', (route) =>
     route.fulfill({ status: 503, json: {} }),
   )
-  await page.evaluate(() =>
-    sessionStorage.setItem('design-studio:restart', 'old-instance'),
+  // The page of the server that is restarting.
+  await page.evaluate(
+    (instance) => sessionStorage.setItem('design-studio:restart', instance),
+    await servedBy(page),
   )
   await page.addScriptTag({
     content: restartScript(
@@ -312,11 +356,59 @@ test('[SH-119] [SH-120] [SH-121] [SH-122] [CL-59] save and manual edits restart 
   await page.goto(`${server.url}settings`)
   const name = page.getByRole('textbox', { name: 'Studio name' })
   await expect.poll(() => name.isVisible(), { timeout: 60000 }).toBe(true)
+  const before = await servedBy(page)
+  expect(before).toBeTruthy()
   await name.fill('Updated studio')
   const request = page.waitForRequest(
     (request) =>
       request.url().endsWith('_studio/settings') && request.method() === 'POST',
   )
+  // The restart at its worst moment, as Linux meets it: Nuxt starts the new
+  // server on the same port while the old one still answers, so a page
+  // loaded once the new one is up may come from the outgoing one. Both run
+  // the same code; the outgoing one's page and Nuxt's configuration modules
+  // name the outgoing server. Here, once the new server is up, the outgoing
+  // one answers every page load until it has answered one the page made
+  // after it saw the new server answer: the reload the studio makes then
+  // reaches it too, whatever reloaded the page before. The studio must load
+  // again until a page comes from the new one.
+  const outgoing = { seen: false, done: false, replaying: false, incoming: '' }
+  // A page answered here still reaches the dev server's socket, as one from
+  // the server does.
+  await page.context().grantPermissions(['local-network-access'])
+  await page.route(`${server.url}**`, async (route) => {
+    const request = route.request()
+    if (request.url().endsWith('/_studio/settings')) {
+      if (request.method() !== 'GET') return route.continue()
+      // Between servers nothing answers, as the page would find.
+      const response = await route.fetch().catch(() => undefined)
+      if (!response) return route.abort('connectionrefused')
+      const answered = await response.json().catch(() => ({}))
+      if (![before, undefined].includes(answered.instance)) outgoing.seen = true
+      return route.fulfill({ response })
+    }
+    // Only page loads count: Nuxt's own restart page asks for one too.
+    if (request.resourceType() === 'document') {
+      outgoing.incoming = await instance()
+      outgoing.replaying =
+        !outgoing.done && ![before, ''].includes(outgoing.incoming)
+      if (outgoing.replaying && outgoing.seen) outgoing.done = true
+    }
+    if (
+      !outgoing.replaying ||
+      !(
+        request.resourceType() === 'document' ||
+        request.url().includes('/_nuxt/@id/virtual:nuxt:')
+      )
+    )
+      return route.continue()
+    const response = await route.fetch().catch(() => undefined)
+    if (!response) return route.abort('connectionrefused')
+    await route.fulfill({
+      response,
+      body: (await response.text()).replaceAll(outgoing.incoming, before),
+    })
+  })
   await page.getByRole('button', { name: 'Save changes' }).click()
   expect((await request).postDataJSON().changes).toEqual({
     name: 'Updated studio',
@@ -339,6 +431,23 @@ test('[SH-119] [SH-120] [SH-121] [SH-122] [CL-59] save and manual edits restart 
       { timeout: 180000 },
     )
     .toBe('Updated studio')
+    .catch(async (error) => {
+      throw new Error(
+        `The save did not settle: ${JSON.stringify(await seen(page))}\nThe dev server printed:\n${server.log().slice(-8000)}`,
+        { cause: error },
+      )
+    })
+  // The outgoing server's page answered the reload, and the studio settled
+  // only on a page from the server running now.
+  expect(outgoing.done).toBe(true)
+  const after = await servedBy(page)
+  expect(after, JSON.stringify(await seen(page))).not.toBe(before)
+  expect(after).toBe(
+    await page.evaluate(
+      async () => (await (await fetch('/_studio/settings')).json()).instance,
+    ),
+  )
+  await page.unrouteAll({ behavior: 'ignoreErrors' })
   expect(JSON.parse(readFileSync(configFile, 'utf8')).name).toBe(
     'Updated studio',
   )

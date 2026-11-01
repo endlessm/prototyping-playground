@@ -7,12 +7,14 @@
 // after 30 seconds and is forgotten after 2 minutes. Development only.
 //
 // The change is done once a page comes from a different dev server than the
-// one that took the request; each page names its server (see
-// `../settings/restart.ts`). A page from the server that took it waits for
-// the next one and loads again from it. On Linux the outgoing server keeps
-// answering beside the new one until the new one is ready, so a reload may
-// still reach it, and after that nothing else would reload the page.
-import { INSTANCE_META } from '../settings/restart.ts'
+// one that took the request, the rule of every restart (see
+// `../settings/restart.ts`): a page from the server that took it waits for
+// the next one and loads again from it.
+import {
+  studioServer,
+  studioServerSource,
+  type DevServer,
+} from '../settings/restart.ts'
 
 export const TRANSITION_KEY = 'design-studio:system-transition'
 export const TRANSITION_EVENT = 'studio:system-transition'
@@ -33,15 +35,9 @@ export interface PendingTransition {
   from?: string
 }
 
-/** The instance of the dev server that served this page. */
-export const servedBy = () =>
-  document
-    .querySelector(`meta[name="${INSTANCE_META}"]`)
-    ?.getAttribute('content') ?? ''
-
 /** Whether this page came from a dev server started since the change. */
 export const restartedSince = (pending: PendingTransition) =>
-  Boolean(pending.from && servedBy() && servedBy() !== pending.from)
+  studioServer.since(pending.from ?? '')
 
 export interface TransitionText {
   titles: Record<TransitionOperation | 'opening', string>
@@ -56,19 +52,19 @@ export function transitionScript(text: TransitionText, base: string) {
       key: TRANSITION_KEY,
       event: TRANSITION_EVENT,
       id: TRANSITION_ELEMENT,
-      meta: INSTANCE_META,
       base,
     },
-  )})`
+  )},${studioServerSource})`
 }
 
 /** Runs in the page before the application; self-contained. */
 export function systemTransition(
   text: TransitionText,
-  names: { key: string; event: string; id: string; meta: string; base: string },
+  names: { key: string; event: string; id: string; base: string },
+  server: DevServer,
 ) {
   let slow: ReturnType<typeof setTimeout> | undefined
-  let waiting: ReturnType<typeof setInterval> | undefined
+  let waiting = false
   const read = (): PendingTransition | null => {
     try {
       return JSON.parse(sessionStorage.getItem(names.key) || 'null')
@@ -80,25 +76,10 @@ export function systemTransition(
   // one answers. A creation's page waits for its answer first: a reload
   // would drop the request, and with it where to go.
   function awaitRestart(current: PendingTransition) {
-    const served = document
-      .querySelector(`meta[name="${names.meta}"]`)
-      ?.getAttribute('content')
-    if (waiting || !current.from || served !== current.from) return
+    if (waiting || !current.from || server.servedBy() !== current.from) return
     if (current.operation === 'create' && !current.studioId) return
-    waiting = setInterval(async () => {
-      if (!read()) return clearInterval(waiting)
-      try {
-        const response = await fetch(`${names.base}_studio/settings`, {
-          cache: 'no-store',
-        })
-        const { instance } = await response.json()
-        if (!response.ok || !instance || instance === current.from) return
-        clearInterval(waiting)
-        location.reload()
-      } catch {
-        // Between servers.
-      }
-    }, 500)
+    waiting = true
+    server.reloadFrom(current.from, names.base, () => Boolean(read()))
   }
   function show() {
     const current = read()

@@ -3,6 +3,59 @@
 // the server running now.
 export const INSTANCE_META = 'studio-instance'
 
+// A change that restarts the dev server (Settings, a module switch, a system
+// change, `yarn studio configure`, an edit to the configuration) is done only
+// on a page from another dev server than the one that took it. On Linux,
+// Nuxt starts the new server on the same port while the old one keeps
+// answering until the new one is ready, so a reload once the new one answers
+// may still reach the old one; its page loads again, since after that
+// nothing else would. Self-contained: the scripts that run before the
+// application carry its source, and read the tag once the document is
+// parsed, as it comes after them.
+export function devServer(meta: string) {
+  const servedBy = () =>
+    document.querySelector(`meta[name="${meta}"]`)?.getAttribute('content') ??
+    ''
+  return {
+    /** The instance of the dev server that served this page. */
+    servedBy,
+    /** Whether this page came from another dev server than `from`. */
+    since: (from: string) => Boolean(from && servedBy() && servedBy() !== from),
+    /**
+     * Loads the page again once another dev server than `from` answers, as
+     * long as `waiting()` holds. Once per page, whoever asks first.
+     */
+    reloadFrom(from: string, base: string, waiting: () => boolean) {
+      const root = document.documentElement
+      if (root.dataset.studioReloading) return
+      root.dataset.studioReloading = from
+      const timer = setInterval(async () => {
+        if (!waiting()) {
+          delete root.dataset.studioReloading
+          return clearInterval(timer)
+        }
+        try {
+          const response = await fetch(`${base}_studio/settings`, {
+            cache: 'no-store',
+          })
+          const { instance } = await response.json()
+          if (!response.ok || !instance || instance === from) return
+          clearInterval(timer)
+          location.reload()
+        } catch {
+          // Between servers.
+        }
+      }, 500)
+    },
+  }
+}
+export type DevServer = ReturnType<typeof devServer>
+
+/** This page's dev server, for the application. */
+export const studioServer = devServer(INSTANCE_META)
+/** The same, as source for the scripts that run before the application. */
+export const studioServerSource = `(${devServer.toString()})(${JSON.stringify(INSTANCE_META)})`
+
 // Runs before the application: the cover survives a full Nuxt restart.
 export function restartScript(
   text: {
@@ -14,9 +67,15 @@ export function restartScript(
   },
   base: string,
 ) {
-  return `(${earlyRestart.toString()})(${JSON.stringify(text)},${JSON.stringify(base)})`
+  return `(${earlyRestart.toString()})(${JSON.stringify(text)},${JSON.stringify(base)},${studioServerSource})`
 }
 
+/**
+ * The cover over a restarting studio, on every page until one comes from the
+ * dev server that replaced the one named in `design-studio:restart`; the
+ * application lifts it there once it is ready. `announced`: this page heard
+ * the restart, so it loads again whichever server served it.
+ */
 export function earlyRestart(
   text: {
     applying: string
@@ -26,9 +85,11 @@ export function earlyRestart(
     fallback: string
   },
   base: string,
+  server: DevServer,
+  announced = false,
 ) {
-  const instance = sessionStorage.getItem('design-studio:restart')
-  if (!instance) return
+  const from = sessionStorage.getItem('design-studio:restart')
+  if (!from) return
   if (document.getElementById('studio-restart')) return
   const style = document.createElement('style')
   style.textContent =
@@ -49,43 +110,23 @@ export function earlyRestart(
   button.onclick = () => location.reload()
   button.hidden = true
   cover.append(spinner, title, description, button)
+  const pending = () => Boolean(sessionStorage.getItem('design-studio:restart'))
   const attach = () => {
-    if (!sessionStorage.getItem('design-studio:restart')) return
+    if (!pending()) return
     for (const child of document.body.children)
       if (child instanceof HTMLElement) child.inert = true
     document.body.append(cover)
     button.focus()
+    if (!announced && server.since(from)) return
+    const fallback = (words: string) => () => {
+      description.textContent = words
+      button.hidden = false
+    }
+    setTimeout(fallback(text.fallback), 15000)
+    setTimeout(fallback(text.slow), 30000)
+    server.reloadFrom(from, base, pending)
   }
   if (document.readyState === 'loading')
     document.addEventListener('DOMContentLoaded', attach)
   else attach()
-  if (sessionStorage.getItem('design-studio:restart-ready')) return
-  const started = Date.now()
-  const timer = setInterval(async () => {
-    if (
-      !document.getElementById('studio-restart') &&
-      document.readyState !== 'loading'
-    ) {
-      clearInterval(timer)
-      return
-    }
-    const elapsed = Date.now() - started
-    if (elapsed > 15000) {
-      description.textContent = elapsed > 30000 ? text.slow : text.fallback
-      button.hidden = false
-    }
-    try {
-      const response = await fetch(base + '_studio/settings', {
-        cache: 'no-store',
-      })
-      const data = await response.json()
-      if (response.ok && data.instance !== instance) {
-        clearInterval(timer)
-        sessionStorage.setItem('design-studio:restart-ready', '1')
-        location.reload()
-      }
-    } catch {
-      /* The new server has not started yet. */
-    }
-  }, 500)
 }

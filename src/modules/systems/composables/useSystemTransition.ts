@@ -1,6 +1,6 @@
+import { studioServer } from '../../../../tooling/settings/restart'
 import {
   restartedSince,
-  servedBy,
   TRANSITION_ELEMENT,
   TRANSITION_EVENT,
   TRANSITION_KEY,
@@ -40,7 +40,7 @@ export function beginSystemTransition(
     name,
     studioId,
     started: Date.now(),
-    from: servedBy(),
+    from: studioServer.servedBy(),
     appearance: {
       background: value('--ui-bg'),
       foreground: value('--ui-text-highlighted'),

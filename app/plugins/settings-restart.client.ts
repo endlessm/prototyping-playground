@@ -1,9 +1,12 @@
-import { earlyRestart } from '../../tooling/settings/restart'
+import { earlyRestart, studioServer } from '../../tooling/settings/restart'
 export default defineNuxtPlugin(() => {
   if (!import.meta.dev) return
   const config = useRuntimeConfig()
   const { t } = useNuxtApp().$i18n
+  // This page heard the restart: it loads again whichever server served it.
+  let announced = false
   const start = ({ instance }: { instance: string }) => {
+    announced = true
     sessionStorage.setItem('design-studio:restart', instance)
     earlyRestart(
       {
@@ -14,26 +17,33 @@ export default defineNuxtPlugin(() => {
         fallback: t('settings.fallback'),
       },
       config.app.baseURL,
+      studioServer,
+      true,
     )
   }
   import.meta.hot?.on('studio:restarting', start)
-  const saved = sessionStorage.getItem('design-studio:settings-saved')
-  if (saved) {
-    sessionStorage.removeItem('design-studio:settings-saved')
-    useToast().add({ title: useNuxtApp().$i18n.t('settings.saved') })
-  }
   onNuxtReady(() => {
-    if (!sessionStorage.getItem('design-studio:restart-ready')) return
-    sessionStorage.removeItem('design-studio:restart-ready')
-    sessionStorage.removeItem('design-studio:restart')
-    const cover = document.getElementById('studio-restart')
-    if (cover) {
-      cover.style.opacity = '0'
-      setTimeout(
-        () => cover.remove(),
-        matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 150,
+    const from = sessionStorage.getItem('design-studio:restart')
+    if (from && announced) return
+    // An application from the server that is restarting keeps the cover and
+    // loads again once the new one answers, also when the page itself came
+    // from the new one.
+    if (from && !studioServer.since(from))
+      return studioServer.reloadFrom(from, config.app.baseURL, () =>
+        Boolean(sessionStorage.getItem('design-studio:restart')),
       )
+    sessionStorage.removeItem('design-studio:restart')
+    if (sessionStorage.getItem('design-studio:settings-saved')) {
+      sessionStorage.removeItem('design-studio:settings-saved')
+      useToast().add({ title: t('settings.saved') })
     }
+    const cover = document.getElementById('studio-restart')
+    if (!cover) return
+    cover.style.opacity = '0'
+    setTimeout(
+      () => cover.remove(),
+      matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 150,
+    )
     for (const child of document.body.children)
       if (child instanceof HTMLElement) child.inert = false
   })
