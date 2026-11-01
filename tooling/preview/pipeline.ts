@@ -240,7 +240,12 @@ function compilePlugin(options: PreviewOptions): Plugin {
         const view = options
           .views()
           .find(({ id }) => id === url.searchParams.get('artifact'))
-        const found = view ? await compileError(server, view, options.root) : {}
+        const found = view
+          ? {
+              view: posix(view.file),
+              ...(await compileError(server, view, options.root)),
+            }
+          : {}
         res.setHeader('Content-Type', 'application/json')
         res.setHeader('Cache-Control', 'no-store')
         res.end(JSON.stringify(found))

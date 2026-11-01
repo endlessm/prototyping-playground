@@ -224,7 +224,7 @@ export default defineNuxtConfig({
           },
           // A system change's status screen, over the restart's cover.
           {
-            innerHTML: transitionScript(en.systems.transition),
+            innerHTML: transitionScript(en.systems.transition, baseURL),
             tagPosition: 'head',
             tagPriority: 'critical',
           },

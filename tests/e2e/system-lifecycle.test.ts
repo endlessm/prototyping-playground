@@ -4,7 +4,9 @@
 // status screen and confirms itself on the page after the reload. Deleting
 // a system leaves its prototype waiting for a rebuild. The studio runs as
 // Ada on a disposable copy of the systems-area fixture's systems, with one
-// prototype of Ada's on Lantern.
+// prototype of Ada's on Lantern. A scenario that builds on an earlier one's
+// change finds it on disk, and makes it itself, through the studio's own
+// lifecycle, when the earlier one didn't.
 import {
   cpSync,
   existsSync,
@@ -16,9 +18,16 @@ import {
   writeFileSync,
   type FSWatcher,
 } from 'node:fs'
+import { get } from 'node:http'
 import path from 'node:path'
 import type { Page } from 'playwright'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
+import {
+  applyPlan,
+  planCreate,
+  planLifecycle,
+  type LifecycleOptions,
+} from '../../tooling/systems/lifecycle'
 import { useBrowser } from './setup/browser'
 import { startDevServer, type RunningStudio } from './setup/studio'
 
@@ -112,6 +121,17 @@ const meta = () =>
   JSON.parse(readFileSync(path.join(beacon, 'meta.json'), 'utf8'))
 const systemsAt = (...parts: string[]) =>
   path.join(content, 'systems', ...parts)
+/** A string field of a system's declaration. */
+const declared = (key: string, field: string) =>
+  new RegExp(`${field}: '([^']*)'`).exec(
+    readFileSync(systemsAt(key, 'system.ts'), 'utf8'),
+  )?.[1]
+const lifecycle: LifecycleOptions = {
+  root: process.cwd(),
+  systemsFolder: ENV.STUDIO_SYSTEMS,
+  configFile: ENV.STUDIO_CONFIG,
+  prototypesFolder: ENV.STUDIO_PROTOTYPES,
+}
 
 afterAll(() => {
   rmSync(content, { recursive: true, force: true })
@@ -130,7 +150,6 @@ const cover = (page: Page) => page.locator('#studio-system-transition')
 describe('managing systems locally', { timeout: 300_000 }, () => {
   const newPage = useBrowser()
   let studio: RunningStudio
-  let created = ''
   beforeAll(async () => {
     studio = await startDevServer(ENV)
   }, 600_000)
@@ -169,20 +188,133 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
   /** Waits out the change's restart: the status screen comes and goes. */
   async function settled(page: Page) {
     // Read on a loaded page: mid-reload the screen isn't drawn yet.
+    try {
+      await expect
+        .poll(
+          () =>
+            page
+              .evaluate(
+                () =>
+                  document.readyState === 'complete' &&
+                  !document.getElementById('studio-system-transition') &&
+                  !sessionStorage.getItem('design-studio:system-transition'),
+              )
+              .catch(() => false),
+          RESTART,
+        )
+        .toBe(true)
+    } catch (error) {
+      // What the page shows, and what the dev server did meanwhile.
+      const seen = await page
+        .evaluate(() => ({
+          address: location.href,
+          state: document.readyState,
+          screen:
+            document.getElementById('studio-system-transition')?.textContent ??
+            null,
+          pending: sessionStorage.getItem('design-studio:system-transition'),
+          servedBy:
+            document
+              .querySelector('meta[name="studio-instance"]')
+              ?.getAttribute('content') ?? null,
+        }))
+        .catch((failure: Error) => failure.message)
+      throw new Error(
+        `The change did not settle: ${JSON.stringify(seen)}\nThe dev server printed:\n${studio.log().slice(-8000)}`,
+        { cause: error },
+      )
+    }
+    // The page shows the studio that runs now, which alone answers.
+    await onlyServer(() =>
+      page
+        .evaluate(
+          () =>
+            document
+              .querySelector('meta[name="studio-instance"]')
+              ?.getAttribute('content') ?? '',
+        )
+        .catch(() => ''),
+    )
+  }
+
+  /** The dev server that answers, as `_studio/settings` names it. */
+  const instance = () =>
+    new Promise<string>((resolve) => {
+      // A connection of its own each time, so it can reach either server.
+      get(`${studio.url}_studio/settings`, { agent: false }, (response) => {
+        let body = ''
+        response.on('data', (chunk) => (body += chunk))
+        response.on('end', () => {
+          try {
+            resolve(JSON.parse(body).instance ?? '')
+          } catch {
+            resolve('')
+          }
+        })
+      }).on('error', () => resolve(''))
+    })
+  /**
+   * Waits until only the dev server `expected()` names answers. On Linux the
+   * outgoing one answers beside the new one for a moment after a restart,
+   * so the next page could still come from it.
+   */
+  async function onlyServer(expected: () => Promise<string>) {
+    let streak = 0
+    let id = ''
+    let answered = ''
     await expect
       .poll(
-        () =>
-          page
-            .evaluate(
-              () =>
-                document.readyState === 'complete' &&
-                !document.getElementById('studio-system-transition') &&
-                !sessionStorage.getItem('design-studio:system-transition'),
-            )
-            .catch(() => false),
-        RESTART,
+        async () => {
+          id = await expected()
+          answered = await instance()
+          streak = id && answered === id ? streak + 1 : 0
+          return streak >= 10
+        },
+        { ...RESTART, interval: 100 },
       )
       .toBe(true)
+      .catch((error: Error) => {
+        throw new Error(
+          `Waiting for only the dev server ${JSON.stringify(id)}, the last answer named ${JSON.stringify(answered)}.\nThe dev server printed:\n${studio.log().slice(-8000)}`,
+          { cause: error },
+        )
+      })
+  }
+  /** Makes a change behind the studio's back and waits out its restart. */
+  async function arrange(change: () => Promise<unknown>) {
+    const before = await instance()
+    await change()
+    let next = ''
+    await expect
+      .poll(async () => {
+        next = await instance()
+        return Boolean(next) && next !== before
+      }, RESTART)
+      .toBe(true)
+    await onlyServer(async () => next)
+  }
+  /** The ID of the system in `key`, called `label`, made now if no earlier scenario did. */
+  async function systemIn(key: string, label: string) {
+    if (!config().systems.includes(key))
+      await arrange(() =>
+        applyPlan(lifecycle, planCreate(lifecycle, { key, label })),
+      )
+    return declared(key, 'studioId')!
+  }
+  /** Lantern active, or archived with Beacon, whatever the scenario before left. */
+  async function lantern(status: 'active' | 'archived') {
+    if ((declared('lantern', 'status') ?? 'active') === status) return
+    await arrange(() =>
+      applyPlan(
+        lifecycle,
+        planLifecycle(
+          lifecycle,
+          status === 'archived' ? 'archive' : 'restore',
+          'lantern',
+          { restorePrototypes: true },
+        ),
+      ),
+    )
   }
 
   async function pending(page: Page, started: number) {
@@ -382,7 +514,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
       ),
     ).toBe(true)
     await settled(page)
-    created = Object.keys(config().systemMaintainers).find(
+    const created = Object.keys(config().systemMaintainers).find(
       (id) => id !== HARBOR,
     )!
     expect(config().systems).toEqual(['attic', 'harbor', 'lantern', 'cove'])
@@ -413,6 +545,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
   })
 
   test('[SY-45] [SY-46] [SY-59] renaming keeps the address and confirms after the reload', async () => {
+    const created = await systemIn('cove', 'Cove')
     const page = await open(`systems/${created}`)
     await menuOf(page, 'Cove')
     await choose(page, 'Rename')
@@ -440,6 +573,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
   })
 
   test('[SY-48] [SY-50] Set as default keeps the page and confirms; the default can’t be archived', async () => {
+    const created = await systemIn('cove-works', 'Cove Works')
     const page = await open(`systems/${created}`)
     await menuOf(page, 'Cove Works')
     await choose(page, 'Set as default')
@@ -467,6 +601,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
   })
 
   test('[SY-41] [SY-49] [SY-51] [SY-52] [SY-53] archiving takes the system’s prototypes along and returns to the collection', async () => {
+    await lantern('active')
     const page = await open('systems')
     await menuOf(page, 'Lantern')
     const groups = page.getByRole('menu').getByRole('group')
@@ -516,6 +651,8 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
   })
 
   test('[SY-54] restoring offers the system alone or with its prototypes', async () => {
+    await lantern('archived')
+    const defaultSystem = config().defaultSystem
     const page = await open(`systems/${LANTERN}`)
     const trigger = page.getByRole('button', { name: 'Actions for Lantern' })
     await visible(trigger.first())
@@ -541,12 +678,14 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     await settled(page)
     await visible(toast(page, 'System restored.'))
     expect(meta().status).toBeUndefined()
-    expect(config().defaultSystem).toBe(created)
+    // Restoring never changes the default.
+    expect(config().defaultSystem).toBe(defaultSystem)
   })
 
   test.runIf(process.platform === 'win32')(
     '[SY-56] [CL-09] a folder another program holds is reported in the dialog before anything moves',
     async () => {
+      await lantern('active')
       mkdirSync(systemsAt('lantern/held'), { recursive: true })
       let holder: FSWatcher | undefined
       try {
@@ -571,6 +710,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
   )
 
   test('[SY-55] [SY-57] [SY-58] [PR-92] deleting lists what depends on it, lands on the collection, and its prototype waits for a rebuild', async () => {
+    await lantern('active')
     const page = await open('systems')
     await menuOf(page, 'Lantern')
     await choose(page, 'Delete')

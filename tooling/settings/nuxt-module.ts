@@ -3,6 +3,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { addVitePlugin, defineNuxtModule } from 'nuxt/kit'
 import { systemsFolder } from '../systems/registry.ts'
 import { OPERATION_MARKER } from '../systems/lifecycle.ts'
+import { INSTANCE_META } from './restart.ts'
 import { settingsSnapshot, saveSettings } from './service.ts'
 
 export default defineNuxtModule({
@@ -16,6 +17,8 @@ export default defineNuxtModule({
       contributorsFolder: process.env.STUDIO_CONTRIBUTORS || undefined,
     }
     const instance = crypto.randomUUID()
+    nuxt.options.app.head.meta ??= []
+    nuxt.options.app.head.meta.push({ name: INSTANCE_META, content: instance })
     addVitePlugin(
       {
         name: 'studio-settings',

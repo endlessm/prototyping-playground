@@ -1,3 +1,8 @@
+// The dev server that served a page names itself in this meta tag, with the
+// instance `_studio/settings` reports: a page can tell whether it came from
+// the server running now.
+export const INSTANCE_META = 'studio-instance'
+
 // Runs before the application: the cover survives a full Nuxt restart.
 export function restartScript(
   text: {

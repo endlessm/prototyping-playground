@@ -11,6 +11,8 @@ export interface RunningStudio {
   /** Address of Home, ending in a slash. */
   url: string
   stop: () => Promise<void>
+  /** What the dev server printed so far; empty for the static site. */
+  log: () => string
 }
 
 const NUXT = path.resolve('node_modules/nuxt/bin/nuxt.mjs')
@@ -94,6 +96,7 @@ export async function startDevServer(
   }
   return {
     url,
+    log: () => log,
     stop: async () => {
       if (child.exitCode !== null) return
       const exited = new Promise((resolve) => child.once('exit', resolve))
@@ -135,5 +138,5 @@ export async function startStaticSite(
 ): Promise<RunningStudio & { directory: string }> {
   const directory = await buildStaticSite(basePath, env, onLog)
   const server = await serveStatic({ directory, basePath, port: 0 })
-  return { url: server.url, stop: server.close, directory }
+  return { url: server.url, stop: server.close, log: () => '', directory }
 }

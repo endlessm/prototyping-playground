@@ -146,8 +146,15 @@ describe('in the studio running locally', { timeout: 180_000 }, () => {
     await studio?.stop()
   })
 
-  async function open(artifact = HOME, prototype = DEMO, suffix = '') {
+  async function open(
+    artifact = HOME,
+    prototype = DEMO,
+    suffix = '',
+    /** Runs before the page loads. */
+    prepare?: (page: Page) => Promise<void>,
+  ) {
     const page = await newPage()
+    await prepare?.(page)
     await page.goto(
       `${studio.url}prototypes/${prototype}/artifacts/${artifact}${suffix}`,
     )
@@ -380,7 +387,34 @@ describe('in the studio running locally', { timeout: 180_000 }, () => {
 
   test('[PR-68] [SH-138] a rename outside the studio repairs references, and the open page stays on its file with its search and hash', async () => {
     reset()
-    const page = await open(DETAILS, DEMO, '?step=2#top')
+    // The rename at its worst moment, as a busy computer meets it: the
+    // preview's list of views is on its way with the old places, and the
+    // dev server's update for the rename comes before the document can
+    // take it (or before it is even listening).
+    const views = { held: false, renamed: false }
+    let release!: () => void
+    const released = new Promise<void>((resolve) => (release = resolve))
+    const page = await open(DETAILS, DEMO, '?step=2#top', async (page) => {
+      // The studio hears of the new places just before the documents do.
+      page.on('websocket', (socket) =>
+        socket.on('framereceived', ({ payload }) => {
+          const text = String(payload)
+          if (text.includes('"studio:manifest"') && text.includes('/journeys/'))
+            views.renamed = true
+        }),
+      )
+      await page.route(
+        (url) => url.pathname.endsWith('studio-preview-views'),
+        async (route) => {
+          if (views.held) return route.continue()
+          const response = await route.fetch()
+          views.held = true
+          await released
+          await route.fulfill({ response })
+        },
+      )
+    })
+    await expect.poll(() => views.held, WAIT).toBe(true)
     renameSync(at('ben/demo/flows'), at('ben/demo/journeys'))
     await expect
       .poll(() => read('ben/demo/Home.vue'), WAIT)
@@ -388,11 +422,23 @@ describe('in the studio running locally', { timeout: 180_000 }, () => {
     await expect
       .poll(() => read('ben/demo/notes/Brief.md'), WAIT)
       .toContain('(../journeys/Details.vue)')
+    await expect.poll(() => views.renamed, WAIT).toBe(true)
+    release()
     await visible(row(page, 'Journeys'))
     expect(await link(page, 'Details').getAttribute('aria-current')).toBe(
       'page',
     )
     expect(page.url()).toContain(`/artifacts/${DETAILS}?step=2#top`)
+    // Its state first, so a failure says what the preview shows instead.
+    await expect
+      .poll(
+        () =>
+          page
+            .locator('iframe[data-preview-frame]')
+            .getAttribute('data-preview-state'),
+        { timeout: 45_000 },
+      )
+      .toBe('ready')
     await expect
       .poll(
         () =>

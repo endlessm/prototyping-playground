@@ -1,4 +1,6 @@
 import {
+  restartedSince,
+  servedBy,
   TRANSITION_ELEMENT,
   TRANSITION_EVENT,
   TRANSITION_KEY,
@@ -38,6 +40,7 @@ export function beginSystemTransition(
     name,
     studioId,
     started: Date.now(),
+    from: servedBy(),
     appearance: {
       background: value('--ui-bg'),
       foreground: value('--ui-text-highlighted'),
@@ -46,13 +49,6 @@ export function beginSystemTransition(
     },
   })
 }
-
-// The dev server announces its restart to every page: the change is done.
-const restarting = () => {
-  const pending = read()
-  if (pending && !pending.restarting) save({ ...pending, restarting: true })
-}
-if (import.meta.dev) import.meta.hot?.on('studio:restarting', restarting)
 
 /** A new system exists: "Opening <Name>", until its Overview is ready. */
 export function systemCreated(studioId: string) {
@@ -98,7 +94,7 @@ export function useSystemTransition(
   const toast = useStudioToast()
   function settle() {
     const pending = read()
-    if (!pending?.restarted) return
+    if (!pending || !restartedSince(pending)) return
     const ids = systems()
     if (
       pending.operation === 'create' &&

@@ -135,29 +135,41 @@ const CATCH_UP_MS = 2000
 const randomId = () =>
   Math.random().toString(36).slice(2, 10) + Date.now().toString(36)
 
-/** The compiler's message and location, when the view failed to compile. */
+/**
+ * Where the dev server has the view now, and the compiler's message and
+ * location when it fails to compile.
+ */
 async function compileDetail(artifact: string) {
-  if (!import.meta.env.DEV) return ''
+  const none = { file: '', detail: '' }
+  if (!import.meta.env.DEV) return none
   try {
     const response = await fetch(
       `${import.meta.env.BASE_URL}${COMPILE_ROUTE}?artifact=${artifact}`,
     )
     const found = (await response.json()) as {
+      view?: string
       message?: string
       file?: string
       line?: number | null
       column?: number | null
       frame?: string
     }
-    if (!found.message) return ''
+    const file = found.view ?? ''
+    if (!found.message) return { file, detail: '' }
     const where = [found.file, found.line, found.column]
       .filter((part) => part !== null && part !== undefined)
       .join(':')
-    return [where, found.message, found.frame].filter(Boolean).join('\n\n')
+    return {
+      file,
+      detail: [where, found.message, found.frame].filter(Boolean).join('\n\n'),
+    }
   } catch {
-    return ''
+    return none
   }
 }
+
+// What the history entry remembers of a reload for a moved view.
+const MOVED = 'studioMovedView'
 
 const describe = (error: unknown) =>
   error instanceof Error ? error.stack || error.message : String(error)
@@ -278,10 +290,23 @@ export function mountPreview({ create, views }: MountOptions) {
       module = await view.load()
       component = module.default
     } catch (error) {
-      const detail = (await compileDetail(id)) || describe(error)
+      const found = await compileDetail(id)
       if (attempt !== render) return
+      // The view moved before this document learned of it: its views
+      // module was on its way when the move's update came, and Vite drops
+      // an update for a module the page hasn't run yet. Loading again
+      // brings the new place; once per place, so it can't repeat.
+      const entry = history.state as Record<string, unknown> | null
+      if (
+        found.file &&
+        found.file !== view.file &&
+        entry?.[MOVED] !== found.file
+      ) {
+        history.replaceState({ ...entry, [MOVED]: found.file }, '')
+        return location.reload()
+      }
       unmount()
-      return status('error', attempt, detail)
+      return status('error', attempt, found.detail || describe(error))
     }
     if (attempt !== render) return
     if (!component) {
