@@ -52,13 +52,16 @@ describe('platform skills', () => {
     )
   })
 
-  test('[CL-75] manage-modules previews, keeps required modules, trusts installed code, never edits generated files, and restarts', () => {
+  test('[CL-75] [CL-135] manage-modules previews, keeps required modules, trusts installed code, removes a removed module’s tests, never edits generated files, and restarts', () => {
     const text = skill(
       'manage-modules',
       'create-module, enable, disable or remove',
       'Preview before --yes',
       'Required modules remain installed and enabled',
       'trusted executable code',
+      // Tests live in tests/, not in the module, so they don't go with it.
+      'also remove its tests',
+      'grep -rl "src/modules/<id>" tests',
       'creation, rename, archive, restore or deletion',
       'rather than generated adapters or lockfiles',
       'restart the recorded dev server',
