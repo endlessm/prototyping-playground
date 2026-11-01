@@ -20,13 +20,21 @@ watch(palette.open, (open) => {
     })
   else paletteDialog.close()
 })
-useEventListener(window, 'keydown', (event: KeyboardEvent) => {
-  if (event.defaultPrevented || !paletteShortcut(event, palette.open.value))
-    return
-  event.preventDefault()
-  if (palette.open.value) palette.open.value = false
-  else palette.show()
-})
+// ⌘K (Ctrl+K elsewhere) is the studio's search everywhere: it is handled
+// before an editor's own keys, so a canvas you can edit doesn't take it for
+// a link.
+useEventListener(
+  window,
+  'keydown',
+  (event: KeyboardEvent) => {
+    if (!paletteShortcut(event, palette.open.value)) return
+    event.preventDefault()
+    event.stopPropagation()
+    if (palette.open.value) palette.open.value = false
+    else palette.show()
+  },
+  { capture: true },
+)
 
 // ⌘; (Ctrl+; elsewhere) shows or hides the section navigation. It is
 // handled before an editor's own keys.

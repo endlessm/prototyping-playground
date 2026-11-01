@@ -12,6 +12,7 @@ import {
   useFileTree,
   useShowAllFiles,
 } from '../../../../app/composables/useFileTree'
+import { usePreviewDocument } from '../../../../app/composables/useSystems'
 import {
   clashHint,
   findNode,
@@ -26,6 +27,7 @@ import {
 import { afterMenuCloses } from '../../../../app/utils/menus'
 import { onApple, shortcutLabel } from '../../../../app/utils/shortcuts'
 import { artifactTitle } from '../../../../tooling/manifest/titles'
+import { previewAddress } from '../../../../tooling/preview/protocol'
 
 // A prototype's files in its navigation. Locally, the real files and
 // folders, live from the dev server's file service; artifacts open here,
@@ -34,8 +36,10 @@ import { artifactTitle } from '../../../../tooling/manifest/titles'
 // arrange or move them (the order is saved in meta.json), and switch a view
 // to lo-fi; renames and moves repair the references in other files. On the
 // deployed site, the published artifacts with their folders, in order, with
-// menus to copy their links and paths. Anywhere, an artifact's row dragged
-// out carries its web address, as for a canvas.
+// menus to copy their links and paths. Anywhere, a view's menu opens its
+// preview document alone in a new tab (a fresh runtime, for people and
+// browser tools), and an artifact's row dragged out carries its web address,
+// as for a canvas.
 const props = defineProps<{
   prototype: ManifestPrototype
   artifacts: ManifestArtifact[]
@@ -48,6 +52,7 @@ const toast = useStudioToast()
 const route = useRoute()
 const base = useRuntimeConfig().app.baseURL
 const { copy } = useClipboard({ legacy: true })
+const previewDocument = usePreviewDocument()
 const showAll = useShowAllFiles()
 const { listing, reload, change } = useFileTree(() => props.prototype.id)
 
@@ -155,6 +160,17 @@ function actions(node: FileNode) {
             query: { mode: 'source' },
           }),
         ),
+      },
+    artifact?.type === 'view' &&
+      !props.prototype.systemMissing && {
+        label: t('prototypes.openInTab'),
+        icon: 'i-lucide-external-link',
+        to: previewAddress(
+          previewDocument(props.prototype.systemId),
+          artifact.id,
+        ),
+        target: '_blank',
+        external: true,
       },
     local.value &&
       !node.dir && {

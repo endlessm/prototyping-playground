@@ -80,10 +80,10 @@
     "discardLeave": "Discard and leave",
     "saved": "Settings saved",
     "applying": "Applying changes",
-    "preparing": "Your settings are saved. Preparing your updated studio.",
-    "slow": "This is taking longer than expected. Reload to check your saved settings.",
+    "preparing": "The studio is restarting. This page will reload when it’s ready.",
+    "slow": "This is taking longer than expected. Reload to check again.",
     "reloadStudio": "Reload studio",
-    "fallback": "Your settings were saved, but the studio has not finished restarting. Reload settings to check again."
+    "fallback": "The studio has not finished restarting. Reload to check again."
   },
   "deployment": {
     "unavailable": "This viewing site could not load. Check your connection and refresh the page to try again."

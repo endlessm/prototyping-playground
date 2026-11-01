@@ -467,9 +467,12 @@ describe('live updates on the dev server', { timeout: 120_000 }, () => {
     await navigation(page).getByRole('link', { name: 'Second' }).click()
     expect(await events).toMatchObject({ artifact: SECOND, state: 'ready' })
 
-    const href = await page
-      .getByRole('link', { name: 'Open in a new tab' })
-      .getAttribute('href')
+    await navigation(page)
+      .getByRole('link', { name: 'Second' })
+      .click({ button: 'right' })
+    const item = page.getByRole('menuitem', { name: 'Open in a new tab' })
+    await expect.poll(() => item.isVisible()).toBe(true)
+    const href = await item.getAttribute('href')
     expect(href).toMatch(new RegExp(`/_preview/none/\\?artifact=${SECOND}$`))
     const tab = await newPage()
     await tab.goto(new URL(href!, studio.url).href)

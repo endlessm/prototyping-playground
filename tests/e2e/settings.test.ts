@@ -18,6 +18,7 @@ import type { Page } from 'playwright'
 import { useBrowser } from './setup/browser'
 import { startDevServer, type RunningStudio } from './setup/studio'
 import { restartScript } from '../../tooling/settings/restart'
+import en from '../../i18n/locales/en.json'
 
 const newPage = useBrowser()
 let page: Page
@@ -123,7 +124,9 @@ afterAll(async () => {
   await server?.stop()
 })
 
-test('[SH-120] [SH-121] early cover blocks interaction and offers 15 and 30 second fallbacks', async () => {
+// The cover shows in every open tab, also when a system change restarts the
+// studio, so its words fit any restart (Bernardo, 2026-10-31).
+test('[SH-120] [SH-121] early cover blocks interaction, says plainly that the studio is restarting, and offers 15 and 30 second fallbacks', async () => {
   await page.goto(server.url)
   await page.clock.install()
   await page.route('**/_studio/settings', (route) =>
@@ -135,26 +138,30 @@ test('[SH-120] [SH-121] early cover blocks interaction and offers 15 and 30 seco
   await page.addScriptTag({
     content: restartScript(
       {
-        applying: 'Applying changes',
-        preparing: 'Preparing',
-        fallback: '15-second fallback',
-        slow: '30-second fallback',
-        reload: 'Reload studio',
+        applying: en.settings.applying,
+        preparing: en.settings.preparing,
+        fallback: en.settings.fallback,
+        slow: en.settings.slow,
+        reload: en.settings.reloadStudio,
       },
       '/',
     ),
   })
+  const said = () => page.locator('#studio-restart p').textContent()
   expect(
     await page.getByText('Applying changes', { exact: true }).isVisible(),
   ).toBe(true)
+  expect(await said()).toBe(
+    'The studio is restarting. This page will reload when it’s ready.',
+  )
   await page.clock.runFor(15500)
-  expect(
-    await page.getByText('15-second fallback', { exact: true }).isVisible(),
-  ).toBe(true)
+  expect(await said()).toBe(
+    'The studio has not finished restarting. Reload to check again.',
+  )
   await page.clock.runFor(15000)
-  expect(
-    await page.getByText('30-second fallback', { exact: true }).isVisible(),
-  ).toBe(true)
+  expect(await said()).toBe(
+    'This is taking longer than expected. Reload to check again.',
+  )
   expect(
     await page.getByRole('button', { name: 'Reload studio' }).isVisible(),
   ).toBe(true)

@@ -434,6 +434,7 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     await link(page, 'Details').click({ button: 'right' })
     expect(await menuItems(page)).toEqual([
       `Edit source${SOURCE_KEY}`,
+      'Open in a new tab',
       'Open in editor',
       REVEAL,
       'Copy link',
@@ -489,6 +490,7 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     await link(page, 'Board', 'Shared').click({ button: 'right' })
     expect(await menuItems(page)).toEqual([
       `View source${SOURCE_KEY}`,
+      'Open in a new tab',
       'Open in editor',
       REVEAL,
       'Copy link',
@@ -514,7 +516,7 @@ describe('the deployed site', { timeout: 300_000 }, () => {
     await site?.stop()
   })
 
-  test('[SH-67] [SH-69] [PR-64] [PR-59] the tree lists the published artifacts in order, with copy-only menus', async () => {
+  test('[SH-67] [SH-69] [PR-64] [PR-59] [PR-97] the tree lists the published artifacts in order; a view’s menu opens it alone or copies', async () => {
     const page = await newPage()
     await page.goto(`${site.url}prototypes/${DEMO}/artifacts/${HOME}`)
     await visible(link(page, 'Home'))
@@ -522,6 +524,15 @@ describe('the deployed site', { timeout: 300_000 }, () => {
     expect(await button(page, 'New').count()).toBe(0)
     expect(await button(page, 'Prototype actions').count()).toBe(1)
     await link(page, 'Details').click({ button: 'right' })
-    expect(await menuItems(page)).toEqual(['Copy link', 'Copy path'])
+    expect(await menuItems(page)).toEqual([
+      'Open in a new tab',
+      'Copy link',
+      'Copy path',
+    ])
+    expect(
+      await page
+        .getByRole('menuitem', { name: 'Open in a new tab' })
+        .getAttribute('href'),
+    ).toBe(`/_preview/none/?artifact=${DETAILS}`)
   })
 })

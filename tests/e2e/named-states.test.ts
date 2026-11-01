@@ -455,7 +455,7 @@ describe('the static build', () => {
     await expect.poll(() => handwriting(page)).toBe(true)
     // Bundled: nothing comes from another site.
     expect(requests.filter((url) => !url.startsWith(site.url))).toEqual([])
-    // The deployed site's file menu only copies (ticket 11): no lo-fi.
+    // The deployed site's file menu opens a view alone or copies: no lo-fi.
     await navigation(page)
       .getByRole('link', { name: 'Sketch' })
       .click({ button: 'right' })
@@ -465,7 +465,7 @@ describe('the static build', () => {
           text.trim(),
         ),
       )
-      .toEqual(['Copy link', 'Copy path'])
+      .toEqual(['Open in a new tab', 'Copy link', 'Copy path'])
   })
 })
 

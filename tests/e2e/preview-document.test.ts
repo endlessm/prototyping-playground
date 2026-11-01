@@ -127,6 +127,46 @@ function scenarios(
       .toBe(`Tracer — Notes — ${name as string}`)
   })
 
+  test('[PR-23] [PR-97] a view fills the artifact area with nothing above it, and its row menu opens it alone in a new tab', async () => {
+    const page = await newPage()
+    await page.goto(`${studio.url}prototypes/${TRACER}/artifacts/${HOME}`)
+    await preview(page, 'Home')
+    // Edge to edge beside the navigation, as in React: no strip, no button.
+    const area = page
+      .locator('[id$="-panel-prototype-artifact"] [data-slot="body"]')
+      .first()
+    const box = (await page.locator('iframe[title="Home"]').boundingBox())!
+    const fill = (await area.boundingBox())!
+    expect(Math.abs(box.x - fill.x)).toBeLessThan(1)
+    expect(Math.abs(box.y - fill.y)).toBeLessThan(1)
+    expect(Math.abs(box.width - fill.width)).toBeLessThan(1)
+    expect(Math.abs(box.height - fill.height)).toBeLessThan(1)
+    expect(await area.getByRole('link').count()).toBe(0)
+    expect(await area.getByRole('button').count()).toBe(0)
+
+    const navigation = page.getByRole('navigation', { name: 'Tracer' })
+    await navigation.getByRole('link', { name: 'Home' }).click({
+      button: 'right',
+    })
+    const item = page.getByRole('menuitem', { name: 'Open in a new tab' })
+    await expect.poll(() => item.isVisible()).toBe(true)
+    const [tab] = await Promise.all([
+      page.context().waitForEvent('page'),
+      item.click(),
+    ])
+    await expect
+      .poll(() => tab.locator('html').getAttribute('data-preview-state'), {
+        timeout: 60_000,
+      })
+      .toBe('ready')
+    expect(new URL(tab.url()).pathname).toMatch(/\/_preview\/[^/]+\/$/)
+    expect(new URL(tab.url()).searchParams.get('artifact')).toBe(HOME)
+    expect(await tab.getByRole('button', { name: 'Start' }).isVisible()).toBe(
+      true,
+    )
+    await tab.close()
+  })
+
   test('[PR-77] [PR-78] [SH-14] [SY-136] [SY-171] [SY-172] [SY-175] [SY-197] [CL-115] the view renders in Endless Studios’ own app, isolated both ways', async () => {
     const page = await newPage()
     await page.goto(`${studio.url}prototypes/${TRACER}/artifacts/${HOME}`)
@@ -170,8 +210,16 @@ function scenarios(
     expect(await page.getByRole('menuitem').count()).toBe(0)
 
     // Outside: the studio stays neutral Nuxt UI, without the app's styles.
-    const open = page.getByRole('link', { name: 'Open in a new tab' })
-    await expect.poll(() => background(open)).toBe(STUDIO_NEUTRAL)
+    expect(
+      await page.evaluate(() => {
+        const probe = document.createElement('div')
+        probe.style.background = 'var(--ui-primary)'
+        document.body.append(probe)
+        const colour = getComputedStyle(probe).backgroundColor
+        probe.remove()
+        return colour
+      }),
+    ).toBe(STUDIO_NEUTRAL)
     const outside = await page.locator('html').evaluate(studioTraces)
     expect(outside.stylesheets.length).toBeGreaterThan(0)
     for (const sheet of outside.stylesheets)

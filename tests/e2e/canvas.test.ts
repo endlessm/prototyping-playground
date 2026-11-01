@@ -707,7 +707,7 @@ describe('a canvas in the studio running locally', () => {
       ).toBe(true)
   })
 
-  test('[CV-38] Excalidraw’s command palette is gone, and ⌘K / Ctrl+K over a read-only canvas opens the studio’s search', async () => {
+  test('[CV-38] Excalidraw’s command palette is gone, and ⌘K / Ctrl+K over any canvas opens the studio’s search', async () => {
     const page = await canvasPage()
     await open(page, studio, BOARD)
     await focusCanvas(page)
@@ -715,8 +715,29 @@ describe('a canvas in the studio running locally', () => {
     await page.keyboard.press('Control+Shift+P')
     await page.waitForTimeout(500)
     expect(await page.locator('.CommandPalette').count()).toBe(0)
-    // Over an editable canvas Excalidraw keeps ⌘K for its link editor (as
-    // in React), which waits on Bernardo's decision (ticket 34).
+    // Over a canvas you can edit, with a shape selected, the studio's search
+    // wins over Excalidraw's link editor (Bernardo, 2026-10-31).
+    const box = (await canvas(page).boundingBox())!
+    await page.keyboard.press('r')
+    await expect.poll(() => tool(page, 'Rectangle').isChecked()).toBe(true)
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(
+      box.x + box.width / 2 + 120,
+      box.y + box.height / 2 + 90,
+      {
+        steps: 5,
+      },
+    )
+    await page.mouse.up()
+    await visible(stylePanel(page))
+    await page.keyboard.press('Control+k')
+    await visible(page.getByPlaceholder('Search the studio'))
+    expect(await page.locator('.excalidraw-hyperlinkContainer').count()).toBe(0)
+    await page.keyboard.press('Escape')
+    await expect
+      .poll(() => page.getByPlaceholder('Search the studio').count())
+      .toBe(0)
     await page.goto(address(studio, PLAIN, THEIRS))
     await opened(page)
     await focusCanvas(page)

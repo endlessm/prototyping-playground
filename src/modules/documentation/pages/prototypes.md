@@ -75,7 +75,7 @@ Changing the default system in Settings affects new prototypes only. Changes to 
 
 Use **New** in the file tree to add views, documents, diagrams, canvases or folders. Drag files to reorder them or move them into folders. Press **F2** to rename the selected file. The first artifact is where the prototype opens.
 
-Right-click a file for its actions: **Edit source**, **Open in editor**, **Show in Explorer** (**Reveal in Finder** on a Mac), **Copy link**, **Copy path**, **Rename** and **Delete**.
+Right-click a file for its actions: **Edit source**, **Open in a new tab** (a view on its own, without the studio around it), **Open in editor**, **Show in Explorer** (**Reveal in Finder** on a Mac), **Copy link**, **Copy path**, **Rename** and **Delete**.
 
 Links use permanent IDs kept in each file, so a link to a prototype, view, state, document or canvas keeps working when you rename or move it within its prototype. The tree always shows the real file names. When a file moves, the studio repairs the links, embeds and imports that point at it; moves made while the studio isn't running may need the agent's help.
 
