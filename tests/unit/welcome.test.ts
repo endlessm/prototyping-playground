@@ -121,6 +121,10 @@ describe('what the welcome says', () => {
     'src/modules/onboarding/components/WelcomeModal.vue',
     'utf8',
   )
+  const sketch = readFileSync(
+    'src/modules/onboarding/components/WelcomeSketch.vue',
+    'utf8',
+  )
   const skill = readFileSync(
     'src/modules/onboarding/skills/get-started/SKILL.md',
     'utf8',
@@ -138,6 +142,23 @@ describe('what the welcome says', () => {
     expect(copy).toMatch(/Endless team’s prototyping sandbox/)
     expect(copy).not.toMatch(pitch)
     expect(modal).not.toMatch(pitch)
+    expect(sketch).not.toMatch(pitch)
+  })
+
+  test('[SH-132] the Endless Studios step has three tabs: theme and components, context and skills, each with its own line', () => {
+    const { label, toolkit, context, skills } = locale.welcome.screens.parts
+    expect(label).toBe('Explore the parts of Endless Studios')
+    expect([toolkit.title, context.title, skills.title]).toEqual([
+      'Theme & components',
+      'Context',
+      'Skills',
+    ])
+    expect(toolkit.text).toMatch(/Endless Studios/)
+    // Context is the guidance agents read; skills are the procedures they
+    // follow.
+    expect(context.text).toMatch(/agent reads/)
+    expect(skills.text).toMatch(/agent follows/)
+    expect(new Set([toolkit.text, context.text, skills.text]).size).toBe(3)
   })
 
   test('[SH-131] its buttons and progress indicator', () => {
@@ -152,7 +173,7 @@ describe('what the welcome says', () => {
   })
 
   test('[SH-133] the last step points to no sample prototypes', () => {
-    expect(copy + modal).not.toMatch(
+    expect(copy + modal + sketch).not.toMatch(
       /Feedback Inbox|Design Studio Marketing|sample prototype|example/i,
     )
   })
