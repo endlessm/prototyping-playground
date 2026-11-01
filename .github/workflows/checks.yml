@@ -25,10 +25,12 @@ jobs:
         with:
           fetch-depth: 0
       # Node alone: the checks use only its built-in modules, and with no
-      # install there is no yarn cache to save.
+      # install there is no yarn cache to save. setup-node caches yarn by itself when
+      # package.json names a packageManager, so that is turned off too.
       - uses: actions/setup-node@v5
         with:
           node-version-file: package.json
+          package-manager-cache: false
       - name: Check proposed range with before-side permissions
         env:
           GH_TOKEN: ${{ github.token }}
