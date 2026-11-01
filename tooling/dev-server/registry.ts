@@ -2,6 +2,7 @@
 // people and agents can see it (`yarn studio dev status`) and restart or stop
 // only it. The record lives in `.studio/runtime/`, a folder that keeps itself
 // out of Git. `STUDIO_RUNTIME_DIR` moves it, for test servers.
+import { spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 
@@ -35,15 +36,37 @@ const sameRoot = (a: string, b: string) =>
     ? path.resolve(a).toLowerCase() === path.resolve(b).toLowerCase()
     : path.resolve(a) === path.resolve(b)
 
-/** Whether a process exists; EPERM means it belongs to someone else. */
+// A process that has ended but that its parent has not yet collected (a
+// zombie) still answers signal 0 on Linux and macOS. A parent blocked in a
+// synchronous call, such as a script running `yarn studio dev stop`, leaves
+// its stopped server in that state until the call returns.
+function isZombie(pid: number) {
+  if (process.platform === 'linux') {
+    try {
+      const stat = fs.readFileSync(`/proc/${pid}/stat`, 'utf8')
+      // "pid (name) state …"; the name may itself hold spaces or parentheses.
+      return /^[ZX]/.test(stat.slice(stat.lastIndexOf(')') + 2))
+    } catch {
+      return false
+    }
+  }
+  if (process.platform === 'darwin')
+    return /^\s*Z/.test(
+      spawnSync('ps', ['-o', 'stat=', '-p', String(pid)], { encoding: 'utf8' })
+        .stdout ?? '',
+    )
+  return false
+}
+
+/** Whether a process runs; EPERM means it belongs to someone else. */
 export function isAlive(pid: number) {
   if (!Number.isInteger(pid) || pid <= 0) return false
   try {
     process.kill(pid, 0)
-    return true
   } catch (error) {
     return (error as NodeJS.ErrnoException).code === 'EPERM'
   }
+  return !isZombie(pid)
 }
 
 /** The record and whether its process still runs. */

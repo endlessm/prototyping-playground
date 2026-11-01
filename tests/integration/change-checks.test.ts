@@ -8,7 +8,7 @@ import {
 } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { afterEach, beforeEach, expect, test } from 'vitest'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import {
   assetProblems,
   changedFiles,
@@ -22,6 +22,9 @@ const write = (file: string, source: string | Buffer) => {
   writeFileSync(path.join(root, file), source)
 }
 beforeEach(() => {
+  // GitHub Actions sets GITHUB_ACTOR, which makes scope match profiles by
+  // GitHub login; these tests identify Ben by his Git email instead.
+  vi.stubEnv('GITHUB_ACTOR', '')
   root = mkdtempSync(path.join(os.tmpdir(), 'studio-checks-'))
   git(root, 'init')
   git(root, 'config', 'user.email', 'ben@example.com')
@@ -41,7 +44,10 @@ beforeEach(() => {
     stdio: 'ignore',
   })
 })
-afterEach(() => rmSync(root, { recursive: true, force: true }))
+afterEach(() => {
+  vi.unstubAllEnvs()
+  rmSync(root, { recursive: true, force: true })
+})
 
 test('[CL-130] [PR-96] size guard checks staged bytes, threshold and reasoned allowlist', () => {
   write('photo.png', Buffer.alloc(750 * 1024 + 1))

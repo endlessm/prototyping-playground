@@ -258,7 +258,11 @@ describe('in the studio running locally', { timeout: 150_000 }, () => {
     ])
     await menu(page).getByRole('menuitem', { name: 'Open in editor' }).click()
     await expect.poll(() => launches().length, { timeout: 30_000 }).toBe(1)
-    expect(launches()[0]!.args.join(' ')).toContain('team.md')
+    // Explorer and Finder select the chapter; xdg-open can only open its
+    // folder.
+    expect(launches()[0]!.args.join(' ')).toContain(
+      process.platform === 'linux' ? path.resolve(pages) : 'team.md',
+    )
     await visible(
       page.getByText(/No supported code editor is installed/).first(),
     )

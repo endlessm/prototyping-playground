@@ -37,6 +37,7 @@ import {
   type PreviewOptions,
   VIEWS_RESOLVED,
   viewsSignature,
+  vueUpdatesFromOwnModules,
 } from '../preview/pipeline.ts'
 import { registerWatcher } from '../files/watchers.ts'
 import {
@@ -313,6 +314,9 @@ declare module '${MANIFEST_MODULE}' {
       { server: false },
     )
     addVitePlugin(previews.plugin, { server: false })
+    // The studio never compiles a view, so its Vite leaves their changes to
+    // the documents showing them.
+    addVitePlugin(vueUpdatesFromOwnModules())
     // The files the systems' asset pages show.
     const assets = serveSystemAssets(nuxt, systems)
     if (assets) addVitePlugin(assets, { server: false })

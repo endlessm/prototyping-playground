@@ -145,6 +145,7 @@ test('[SH-119] [CL-17] [CL-53] dev startup, configure and Settings restart refre
       .toBe('false')
     expect(cli('sync', '--check').status).toBe(0)
   } finally {
+    mkdirSync('.scratch', { recursive: true })
     writeFileSync('.scratch/28-real-sync-server.log', log)
     await page.context().close()
     const stopped = cli('dev', 'stop')

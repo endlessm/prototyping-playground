@@ -114,6 +114,8 @@ describe('toolchain', () => {
     expect(scope).toContain('assets --ci')
     expect(scope).toContain('collaborators/$GITHUB_ACTOR/permission')
     expect(scope).toContain('pull_request.base.sha')
+    // It installs nothing, so there is no yarn cache to save.
+    expect(scope).not.toContain('cache')
   })
   test('[CL-143] yarn 4 is pinned for corepack, with the node-modules linker', () => {
     expect(pkg.packageManager).toMatch(/^yarn@4\./)

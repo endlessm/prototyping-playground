@@ -196,6 +196,8 @@ export function mountPreview({ create, views }: MountOptions) {
   // When the latest attempt asked for its view's code: changes made before
   // that are already in what it got.
   let requestedAt = 0
+  // The file the latest attempt loads, while its state is `loading`.
+  let loadingFile = ''
 
   root.dataset.previewRuntime = runtime
   if (session) root.dataset.previewSession = session
@@ -270,6 +272,7 @@ export function mountPreview({ create, views }: MountOptions) {
     }
     let component: Component | undefined
     let module: ViewModule
+    loadingFile = view.file
     requestedAt = Date.now()
     try {
       module = await view.load()
@@ -386,7 +389,12 @@ export function mountPreview({ create, views }: MountOptions) {
   window.addEventListener('studio:views', () => {
     const view = artifact ? views[artifact] : undefined
     const current = shown?.artifact === artifact ? shown : null
-    if (state === 'loading') return
+    // A view renamed, moved or removed while it loads would fail from its
+    // old place, and nothing would ask for it again: start over from here.
+    if (state === 'loading') {
+      if (view?.file !== loadingFile) void show(artifact)
+      return
+    }
     if (
       state !== 'ready' ||
       !view ||

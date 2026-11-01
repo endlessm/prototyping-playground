@@ -249,8 +249,9 @@ export function createFileTree(options: TreeOptions) {
   async function reveal(file: string) {
     if (platform === 'win32') return launch('explorer.exe', [`/select,${file}`])
     if (platform === 'darwin') return launch('/usr/bin/open', ['-R', file])
-    const folder = statSync(file).isDirectory() ? file : path.dirname(file)
-    return launch('xdg-open', [folder])
+    // xdg-open can't select an item, so it opens the folder holding it, a
+    // prototype's folder included, as Explorer and Finder show it.
+    return launch('xdg-open', [path.dirname(file)])
   }
 
   return {

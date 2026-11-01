@@ -24,11 +24,11 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - run: corepack enable
+      # Node alone: the checks use only its built-in modules, and with no
+      # install there is no yarn cache to save.
       - uses: actions/setup-node@v5
         with:
           node-version-file: package.json
-          cache: yarn
       - name: Check proposed range with before-side permissions
         env:
           GH_TOKEN: ${{ github.token }}

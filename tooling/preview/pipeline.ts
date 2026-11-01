@@ -333,6 +333,31 @@ async function systemPlugins(system: InstalledSystem, root: string) {
   return plugins
 }
 
+/**
+ * @vitejs/plugin-vue remembers each file's last source in module state, which
+ * the studio's Vite server and every preview document's share in the dev
+ * process. Each server watching a `.vue` file runs the plugin's hot update on
+ * a change, and whichever runs first records the new source as seen: the
+ * document showing the file may then find nothing changed and send no update.
+ * With this plugin, a server leaves a `.vue` change it has no module for to
+ * the servers that have one.
+ */
+export function vueUpdatesFromOwnModules(): Plugin {
+  return {
+    name: 'studio-vue-own-updates',
+    apply: 'serve',
+    configResolved(config) {
+      const vue = config.plugins.find(({ name }) => name === 'vite:vue')
+      const update = vue?.handleHotUpdate
+      if (!vue || typeof update !== 'function') return
+      vue.handleHotUpdate = function (context) {
+        if (context.modules.length || !context.file.endsWith('.vue'))
+          return update.call(this, context)
+      }
+    },
+  }
+}
+
 // Development only: a view module tells the document its newest `states` and
 // `system` options after each hot update, so a state's new props reach the
 // open view without a remount, and new options rebuild it.
@@ -375,6 +400,7 @@ export async function previewConfig(
         .map(({ spec, dir }) => ({ id: spec.id, dir, library: spec.library! })),
     }),
     vue({ include: [/\.vue$/] }),
+    vueUpdatesFromOwnModules(),
     viewsPlugin(options),
     compilePlugin(options),
     statesPlugin(options),

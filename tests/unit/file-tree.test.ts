@@ -399,6 +399,12 @@ describe('reaching files', () => {
         args: [`/select,${at('src/prototypes/ben/demo')}`],
       },
     ])
+    launched.length = 0
+    // xdg-open can't select the folder, so it opens the one holding it.
+    await tree({ platform: 'linux' }).open({ prototype: BEN_DEMO, path: '' })
+    expect(launched).toEqual([
+      { command: 'xdg-open', args: [at('src/prototypes/ben')] },
+    ])
   })
 
   test('[SH-63] LAUNCH_EDITOR goes first among the installed editors', () => {
