@@ -150,6 +150,66 @@ describe('the welcome', () => {
     }
   }, 300_000)
 
+  test('[SH-131] [SH-132] every step has an illustration, and the Endless Studios step has three tabs, each with its own text and illustration', async () => {
+    dismissed(false)
+    const page = await newPage()
+    await openHome(page)
+    await expect.poll(() => dialog(page).isVisible()).toBe(true)
+    // One drawing per step, named for what it shows.
+    const sketch = dialog(page).getByRole('img')
+    const drawn = async () => {
+      await expect.poll(() => sketch.count()).toBe(1)
+      expect(await sketch.isVisible()).toBe(true)
+      return (await sketch.getAttribute('aria-label'))!
+    }
+    const sketches = [await drawn()]
+
+    await button(page, 'Show me around').click()
+    await expect
+      .poll(() => progress(page).getAttribute('aria-valuetext'))
+      .toBe('Built from Endless Studios screens')
+    const tabs = dialog(page).getByRole('group', {
+      name: 'Explore the parts of Endless Studios',
+    })
+    const tab = (name: string) =>
+      tabs.getByRole('button', { name, exact: true })
+    expect(await tabs.getByRole('button').allInnerTexts()).toEqual([
+      'Theme & components',
+      'Context',
+      'Skills',
+    ])
+    expect(await tab('Theme & components').getAttribute('aria-pressed')).toBe(
+      'true',
+    )
+    const panel = page.locator(
+      `#${await tab('Context').getAttribute('aria-controls')}`,
+    )
+    const parts: { text: string; sketch: string }[] = []
+    for (const name of ['Theme & components', 'Context', 'Skills']) {
+      await tab(name).click()
+      await expect
+        .poll(() => tab(name).getAttribute('aria-pressed'))
+        .toBe('true')
+      parts.push({ text: await panel.innerText(), sketch: await drawn() })
+    }
+    expect(parts[0]!.text).toContain(
+      'Prototypes start from Endless Studios’ own screens, components and theme',
+    )
+    expect(parts[1]!.text).toContain('Context is the guidance your agent reads')
+    expect(parts[2]!.text).toContain('Skills are the steps your agent follows')
+    expect(new Set(parts.map(({ sketch }) => sketch)).size).toBe(3)
+    sketches.push(parts[0]!.sketch)
+
+    while (await button(page, 'Next').count()) {
+      await button(page, 'Next').click()
+      sketches.push(await drawn())
+    }
+    expect(sketches).toHaveLength(5)
+    expect(sketches.every(Boolean)).toBe(true)
+    await button(page, 'Explore my studio').click()
+    await expect.poll(() => dialog(page).count()).toBe(0)
+  }, 300_000)
+
   test('[SH-134] before registration, the browser remembers it instead', async () => {
     // An email that matches nobody: the studio doesn't know who you are.
     setAda({ email: 'someone-else@endless.example', preferences: {} })

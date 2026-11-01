@@ -435,36 +435,55 @@ export function systemContentProblems(system: InstalledSystem, root: string) {
       continue
     }
     const file = path.join(skills, name, SKILL_FILE)
-    const at = where(`skills/${name}/${SKILL_FILE}`)
     if (!existsSync(file)) {
       problems.push(
         `${where(`skills/${name}`)}/ has no ${SKILL_FILE}, so no agent will find the skill. Add one, or move the folder out of skills/.`,
       )
       continue
     }
-    const data = frontmatter(readFileSync(file, 'utf8'))
-    if (!data) {
-      problems.push(
-        `${at} has to start with frontmatter (a block between --- lines) holding the skill’s name and description.`,
-      )
-      continue
-    }
-    const folderProblem = skillNameProblem(name)
-    if (folderProblem)
-      problems.push(
-        `The skill folder "${name}" in ${where('skills')} ${folderProblem}`,
-      )
-    const declared = data.name === undefined ? undefined : String(data.name)
-    const nameProblem = skillNameProblem(declared)
-    if (nameProblem) problems.push(`The "name" in ${at} ${nameProblem}`)
-    else if (declared !== name)
-      problems.push(
-        `The "name" in ${at} is "${declared}", but the folder is "${name}". They have to match.`,
-      )
-    const descriptionProblem = skillDescriptionProblem(data.description)
-    if (descriptionProblem)
-      problems.push(`The "description" in ${at} ${descriptionProblem}`)
+    problems.push(
+      ...skillProblems(system, root, name, readFileSync(file, 'utf8')),
+    )
   }
+  return problems
+}
+
+/**
+ * What is wrong with the `SKILL.md` of the system's skill `name` (its
+ * folder), given its text: the Agent Skills format's frontmatter, with a
+ * valid name matching the folder and a description. The build and dev
+ * server report these, and the file service says them when one is saved.
+ */
+export function skillProblems(
+  system: InstalledSystem,
+  root: string,
+  name: string,
+  source: string,
+) {
+  const where = (file: string) =>
+    posix(path.relative(root, path.join(system.dir, file)))
+  const at = where(`skills/${name}/${SKILL_FILE}`)
+  const data = frontmatter(source)
+  if (!data)
+    return [
+      `${at} has to start with frontmatter (a block between --- lines) holding the skill’s name and description.`,
+    ]
+  const problems: string[] = []
+  const folderProblem = skillNameProblem(name)
+  if (folderProblem)
+    problems.push(
+      `The skill folder "${name}" in ${where('skills')} ${folderProblem}`,
+    )
+  const declared = data.name === undefined ? undefined : String(data.name)
+  const nameProblem = skillNameProblem(declared)
+  if (nameProblem) problems.push(`The "name" in ${at} ${nameProblem}`)
+  else if (declared !== name)
+    problems.push(
+      `The "name" in ${at} is "${declared}", but the folder is "${name}". They have to match.`,
+    )
+  const descriptionProblem = skillDescriptionProblem(data.description)
+  if (descriptionProblem)
+    problems.push(`The "description" in ${at} ${descriptionProblem}`)
   return problems
 }
 

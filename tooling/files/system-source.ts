@@ -16,6 +16,7 @@ import {
 } from '../contributors/roles.ts'
 import { posix } from '../manifest/build.ts'
 import { CONFIG_FILE, readConfig } from '../modules/registry.ts'
+import { SKILL_FILE, skillProblems } from '../systems/catalog.ts'
 import {
   loadSystems,
   SYSTEMS_FOLDER,
@@ -236,7 +237,14 @@ export function createSystemSourceService(options: SystemSourceOptions) {
           'This file changed on disk since you opened it.',
         )
       writeFileSync(file, content)
-      return { version: versionOf(content), warnings: [] }
+      // Saved anyway, but a skill out of the format would fail the build:
+      // say so now.
+      const [section, skill, name, ...rest] = address.path.split('/')
+      const warnings =
+        section === 'skills' && skill && name === SKILL_FILE && !rest.length
+          ? skillProblems(system, root, skill, content)
+          : []
+      return { version: versionOf(content), warnings }
     },
   }
 }

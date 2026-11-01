@@ -864,7 +864,21 @@
     },
     "screens": {
       "title": "Built from Endless Studios screens",
-      "text": "Prototypes start from Endless Studios’ own screens and components, so what you try looks and behaves like the product, with sample data in place of real accounts."
+      "parts": {
+        "label": "Explore the parts of Endless Studios",
+        "toolkit": {
+          "title": "Theme & components",
+          "text": "Prototypes start from Endless Studios’ own screens, components and theme, so what you try looks and behaves like the product, with sample data in place of real accounts."
+        },
+        "context": {
+          "title": "Context",
+          "text": "Context is the guidance your agent reads before it builds: who Endless Access is for, from learners to teachers and partners, so its choices fit the people who will use it."
+        },
+        "skills": {
+          "title": "Skills",
+          "text": "Skills are the steps your agent follows for work it repeats, such as building a view from an Endless Studios screen, so each prototype is made the same careful way."
+        }
+      }
     },
     "canvas": {
       "title": "Lay it out on a canvas",
@@ -879,6 +893,45 @@
       "title": "Start exploring",
       "text": "Ask your agent for your first prototype, or open Prototypes to see what the team is working on.",
       "manual": "The Manual explains the rest whenever you need it."
+    },
+    "sketch": {
+      "agent": {
+        "label": "Describe your idea to your coding agent, then try and refine the result in the studio.",
+        "agent": "Your coding agent",
+        "prompt": "Let’s explore an idea."
+      },
+      "toolkit": {
+        "label": "Endless Studios’ components and theme become a screen that fits the product.",
+        "kit": "Endless Studios",
+        "button": "Button",
+        "screen": "Your prototype"
+      },
+      "context": {
+        "label": "Knowing who the product is for guides a design decision.",
+        "heading": "Who we’re designing for",
+        "screen": "A choice that fits"
+      },
+      "skills": {
+        "label": "The build-prototype skill is invoked with a slash command in the agent chat.",
+        "heading": "Build prototype skill",
+        "task": "Make a view from a screen",
+        "agent": "Your agent",
+        "running": "Building the prototype"
+      },
+      "canvas": {
+        "label": "Screens, a brief and a flow arranged together on a canvas.",
+        "screen": "A screen",
+        "brief": "The brief",
+        "note": "A note"
+      },
+      "brief": {
+        "label": "Discuss the problem, audience and learning goal with your agent.",
+        "heading": "Your brief",
+        "problem": "The problem",
+        "audience": "Who it’s for",
+        "learn": "What we want to learn",
+        "concept": "First concept"
+      }
     }
   }
 }

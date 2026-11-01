@@ -964,6 +964,38 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     reset()
   })
 
+  test('[PR-131] saving a skill out of the format saves it, then warns about it', async () => {
+    const skill = 'harbor/skills/build-flow/SKILL.md'
+    const original = read(skill)
+    try {
+      const page = await open(
+        `systems/${HARBOR}/skills/build-flow/SKILL?mode=source`,
+      )
+      const file = systemsPath(skill)
+      await visible(editor(page, file))
+      await visible(page.getByText('Loading editor…').or(editor(page, file)))
+      await editor(page, file).click()
+      await page.keyboard.press('Control+A')
+      await page.keyboard.insertText(
+        '---\nname: Build Flow\ndescription: Builds a Harbor flow.\n---\n',
+      )
+      await page.keyboard.press('Control+S')
+      await visible(page.getByText('Saved', { exact: true }))
+      await visible(
+        page
+          .getByText(
+            `The "name" in ${file} can use only lowercase letters, numbers and single hyphens, and can’t start or end with a hyphen.`,
+          )
+          .first(),
+      )
+      expect(read(skill)).toBe(
+        '---\nname: Build Flow\ndescription: Builds a Harbor flow.\n---\n',
+      )
+    } finally {
+      writeFileSync(at(skill), original)
+    }
+  })
+
   test('[SY-118] the source editor keeps the studio’s dark mode in a light-only system', async () => {
     const page = await newPage()
     await page.addInitScript(() =>

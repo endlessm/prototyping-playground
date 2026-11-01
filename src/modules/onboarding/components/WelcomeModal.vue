@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import directory from '#studio/directory'
+import WelcomeSketch, { type SketchKind } from './WelcomeSketch.vue'
 
-// The welcome: a few short steps for the Endless team, one idea each. The
-// Endless Studios and canvas steps appear only when the studio has them.
+// The welcome: a few short steps for the Endless team, one idea each, each
+// with a drawing (WelcomeSketch). The Endless Studios step has three tabs,
+// one per part of the system, as the React studio's "Make it yours" had.
+// The Endless Studios and canvas steps appear only when the studio has them.
 // "Explore my studio", "Skip introduction", Escape and a click outside all
 // finish it; it was recorded as shown when it opened. Opened through
 // useOverlay from Home.
@@ -11,28 +14,39 @@ const { t } = useI18n()
 const studio = useStudioConfig()
 const manual = !!useStudioModule('documentation')
 
-const steps = [
+const steps: { id: string; sketch: SketchKind; title?: string }[] = [
   {
     id: 'welcome',
-    icon: 'i-lucide-sparkles',
+    sketch: 'agent',
     title: t('welcome.welcome.title', { name: studio.name }),
   },
   ...(directory.systems.some(({ key }) => key === 'endless-studios')
-    ? [{ id: 'screens', icon: 'i-lucide-app-window' }]
+    ? [{ id: 'screens', sketch: 'toolkit' as const }]
     : []),
   ...(useStudioModule('canvas')
-    ? [{ id: 'canvas', icon: 'i-lucide-layout-dashboard' }]
+    ? [{ id: 'canvas', sketch: 'canvas' as const }]
     : []),
-  { id: 'agent', icon: 'i-lucide-message-square-text' },
-  { id: 'explore', icon: 'i-lucide-compass' },
-].map((step) => ({
-  ...step,
-  title: 'title' in step ? step.title : t(`welcome.${step.id}.title`),
-  text: t(`welcome.${step.id}.text`),
-}))
+  { id: 'agent', sketch: 'brief' },
+  { id: 'explore', sketch: 'agent' },
+]
 const index = ref(0)
-const step = computed(() => steps[index.value]!)
+const step = computed(() => {
+  const current = steps[index.value]!
+  return {
+    ...current,
+    title: current.title ?? t(`welcome.${current.id}.title`),
+    text: current.id === 'screens' ? '' : t(`welcome.${current.id}.text`),
+  }
+})
 const last = computed(() => index.value === steps.length - 1)
+// The Endless Studios step's tabs start on the first part each visit.
+const parts = ['toolkit', 'context', 'skills'] as const
+const part = ref(0)
+const partsPanel = useId()
+function choose(i: number) {
+  part.value = i
+}
+watch(index, () => choose(0))
 const finish = () => emit('close')
 function back() {
   index.value -= 1
@@ -48,7 +62,7 @@ function forward() {
     :title="step.title"
     :close="false"
     :ui="{
-      content: 'divide-y-0 sm:max-w-lg',
+      content: 'divide-y-0 sm:max-w-xl',
       header: 'flex-col-reverse items-start gap-5 sm:px-8 sm:pt-8',
       title: 'text-2xl font-semibold tracking-tight',
       body: 'sm:px-8',
@@ -82,8 +96,38 @@ function forward() {
       </div>
     </template>
     <template #body>
-      <div class="flex min-h-56 flex-col justify-center gap-6">
-        <UIcon :name="step.icon" class="size-12 text-muted" />
+      <div v-if="step.id === 'screens'" class="flex min-h-64 flex-col gap-4">
+        <div
+          role="group"
+          :aria-label="t('welcome.screens.parts.label')"
+          class="flex flex-wrap gap-2"
+        >
+          <UButton
+            v-for="(name, i) in parts"
+            :key="name"
+            :label="t(`welcome.screens.parts.${name}.title`)"
+            color="neutral"
+            :variant="i === part ? 'soft' : 'ghost'"
+            size="sm"
+            :aria-pressed="i === part"
+            :aria-controls="partsPanel"
+            @click="choose(i)"
+          />
+        </div>
+        <div
+          :id="partsPanel"
+          class="space-y-3 rounded-xl border border-default bg-muted/30 p-4"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <WelcomeSketch :kind="parts[part]!" />
+          <p class="text-base leading-relaxed text-default">
+            {{ t(`welcome.screens.parts.${parts[part]}.text`) }}
+          </p>
+        </div>
+      </div>
+      <div v-else class="flex min-h-64 flex-col justify-center gap-6">
+        <WelcomeSketch :kind="step.sketch" />
         <p class="text-base leading-relaxed text-default">{{ step.text }}</p>
         <p v-if="step.id === 'agent' && manual" class="text-sm">
           <ULink
