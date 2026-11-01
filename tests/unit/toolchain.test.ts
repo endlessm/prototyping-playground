@@ -79,6 +79,18 @@ describe('toolchain', () => {
     ).toEqual([])
   })
 
+  test('[CL-159] there is no CHANGELOG of platform releases', () => {
+    expect(existsSync('CHANGELOG.md')).toBe(false)
+  })
+
+  test('[CL-155] issues and security reports go to the Endless repository; the original is only credited', () => {
+    for (const file of ['CONTRIBUTING.md', 'SECURITY.md']) {
+      const text = readFileSync(file, 'utf8')
+      expect(text, file).not.toMatch(/itspatmorgan/)
+    }
+    expect(readFileSync('README.md', 'utf8')).not.toMatch(/This branch/)
+  })
+
   test('[CL-158] there is no studio.lock.json, and nothing reads one', () => {
     expect(existsSync('studio.lock.json')).toBe(false)
     // The studio's own code: tooling and the app.
