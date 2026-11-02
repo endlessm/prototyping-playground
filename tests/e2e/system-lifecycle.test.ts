@@ -553,8 +553,55 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     const name = dialog(page).getByRole('textbox', { name: 'Name' })
     await expect.poll(() => name.inputValue()).toBe('Cove')
     await name.fill('Cove Works')
+    // The restart as Linux can meet it: Nuxt starts the new server on the
+    // same port while the old one still answers, so a page from the new one
+    // may run modules from the outgoing one. Here, once the new server is
+    // up, Nuxt's configuration modules name the outgoing server until the
+    // page has loaded once after seeing the new one answer. The studio must
+    // load again until its application comes from the new one.
+    const before = await instance()
+    const outgoing = { seen: false, done: false, replaying: false, next: '' }
+    await page.context().grantPermissions(['local-network-access'])
+    await page.route(`${studio.url}**`, async (route) => {
+      const request = route.request()
+      if (request.url().endsWith('/_studio/settings')) {
+        if (request.method() !== 'GET') return route.continue()
+        const response = await route.fetch().catch(() => undefined)
+        if (!response) return route.abort('connectionrefused')
+        const answered = await response.json().catch(() => ({}))
+        if (
+          outgoing.replaying &&
+          ![before, undefined].includes(answered.instance)
+        )
+          outgoing.seen = true
+        return route.fulfill({ response })
+      }
+      if (request.resourceType() === 'document') {
+        outgoing.next = await instance()
+        if (outgoing.seen) outgoing.done = true
+        outgoing.replaying =
+          !outgoing.done && ![before, ''].includes(outgoing.next)
+      }
+      if (
+        !outgoing.replaying ||
+        !request.url().includes('/_nuxt/@id/virtual:nuxt:')
+      )
+        return route.continue()
+      const response = await route.fetch().catch(() => undefined)
+      if (!response) return route.abort('connectionrefused')
+      await route.fulfill({
+        response,
+        body: (await response.text()).replaceAll(outgoing.next, before),
+      })
+    })
     await button(dialog(page), 'Save').click()
     await settled(page)
+    // A page ran the outgoing server's application, and the studio settled
+    // only once it ran the new one's.
+    // Settling on the outgoing one's would show the confirmation on a page
+    // that loads again, and lose it.
+    expect(outgoing.done).toBe(true)
+    await page.unrouteAll({ behavior: 'ignoreErrors' })
     await visible(toast(page, 'System renamed. References updated.'))
     expect(new URL(page.url()).pathname).toBe(`/systems/${created}`)
     expect(existsSync(systemsAt('cove'))).toBe(false)
