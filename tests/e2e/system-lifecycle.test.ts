@@ -206,13 +206,20 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     } catch (error) {
       // What the page shows, and what the dev server did meanwhile.
       const seen = await page
-        .evaluate(() => ({
+        .evaluate(async () => ({
           address: location.href,
           state: document.readyState,
-          screen:
-            document.getElementById('studio-system-transition')?.textContent ??
-            null,
           pending: sessionStorage.getItem('design-studio:system-transition'),
+          // DIAGNOSTIC
+          app: document.documentElement.dataset.studioApp ?? null,
+          reloading: document.documentElement.dataset.studioReloading ?? null,
+          answers: await fetch('/_studio/settings', { cache: 'no-store' })
+            .then((r) => r.json())
+            .then((j) => j.instance)
+            .catch(() => 'none'),
+          headings: [...document.querySelectorAll('h1,h2,h3')]
+            .map((h) => h.textContent)
+            .slice(0, 12),
           servedBy:
             document
               .querySelector('meta[name="studio-instance"]')
@@ -561,6 +568,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     // load again until its application comes from the new one.
     const before = await instance()
     const outgoing = { seen: false, done: false, replaying: false, next: '' }
+    const trace: string[] = [] // DIAGNOSTIC
     await page.context().grantPermissions(['local-network-access'])
     await page.route(`${studio.url}**`, async (route) => {
       const request = route.request()
@@ -569,6 +577,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
         const response = await route.fetch().catch(() => undefined)
         if (!response) return route.abort('connectionrefused')
         const answered = await response.json().catch(() => ({}))
+        trace.push(`${Date.now()} settings ${answered.instance}`)
         if (
           outgoing.replaying &&
           ![before, undefined].includes(answered.instance)
@@ -578,6 +587,9 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
       }
       if (request.resourceType() === 'document') {
         outgoing.next = await instance()
+        trace.push(
+          `${Date.now()} doc next=${outgoing.next} seen=${outgoing.seen}`,
+        )
         if (outgoing.seen) outgoing.done = true
         outgoing.replaying =
           !outgoing.done && ![before, ''].includes(outgoing.next)
@@ -599,7 +611,9 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
       })
     })
     await button(dialog(page), 'Save').click()
-    await settled(page)
+    await settled(page).finally(() =>
+      console.log(`DIAGNOSTIC before=${before}\n${trace.join('\n')}`),
+    )
     // A page ran the outgoing server's application, and the studio settled
     // only once it ran the new one's.
     // Settling on the outgoing one's would show the confirmation on a page

@@ -10,3 +10,5 @@ const own: string =
   )?.content ?? ''
 
 export const studioServer = devServer(INSTANCE_META, own)
+// DIAGNOSTIC (temporary)
+if (import.meta.client) document.documentElement.dataset.studioApp = own

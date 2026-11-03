@@ -75,7 +75,7 @@ jobs:
           cache: yarn
       - run: yarn install --immutable
       - run: yarn playwright install --with-deps chromium
-      - run: yarn test:full
+      - run: yarn vitest run --project e2e tests/e2e/system-lifecycle.test.ts # DIAGNOSTIC
 
   # The required check. A failed, cancelled or skipped job fails it.
   build:
