@@ -1,5 +1,4 @@
 import { restartHandoff } from '../../../../app/utils/restartHandoff'
-import en from '../../../../i18n/locales/en.json'
 
 // A system change in the tab that asked for it, through the restart handoff
 // (`tooling/restart/handoff.ts`), which owns the screen, the wait through the
@@ -15,9 +14,8 @@ export type SystemOperation =
 const CREATED = 'created:'
 const DELETED = 'deleted:'
 
-const { titles, descriptions } = en.systems.transition
-// The name of the system this page's change is about, for "Opening <Name>".
-let changing = ''
+// "Opening <Name>", said once a creation is answered on the same page.
+let opening = { title: '', description: '' }
 
 /** Covers the app while a system change runs and the studio restarts. */
 export function beginSystemTransition(
@@ -25,11 +23,16 @@ export function beginSystemTransition(
   name: string,
   studioId?: string,
 ) {
-  changing = name
+  // Called from a dialog's handler, outside any component's setup.
+  const { t } = useNuxtApp().$i18n
+  opening = {
+    title: t('systems.transition.titles.opening', { name }),
+    description: t('systems.transition.descriptions.opening'),
+  }
   restartHandoff()?.start({
     kind: 'system',
-    title: titles[operation].replace('{name}', name),
-    description: descriptions[operation],
+    title: t(`systems.transition.titles.${operation}`, { name }),
+    description: t(`systems.transition.descriptions.${operation}`),
     // A creation's page waits for its answer, which says where to go.
     hold: operation === 'create',
     destination:
@@ -45,8 +48,7 @@ export function beginSystemTransition(
 export function systemCreated(studioId: string) {
   restartHandoff()?.update({
     hold: false,
-    title: titles.opening.replace('{name}', changing),
-    description: descriptions.opening,
+    ...opening,
     destination: CREATED + studioId,
   })
 }
