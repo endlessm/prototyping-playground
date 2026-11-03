@@ -227,6 +227,10 @@ export default defineNuxtConfig({
                     slow: en.settings.slow,
                     reload: en.settings.reloadStudio,
                   },
+                  system: {
+                    slow: en.systems.transition.slow,
+                    reload: en.systems.transition.reload,
+                  },
                 },
                 baseURL,
               ) + transitionScript(en.systems.transition, baseURL),

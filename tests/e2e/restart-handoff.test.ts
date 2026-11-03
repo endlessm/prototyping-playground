@@ -20,7 +20,10 @@ import en from '../../i18n/locales/en.json'
 
 const ORIGIN = 'http://studio.test/'
 const SCRIPT = handoffScript(
-  { restart: { ...en.settings, reload: en.settings.reloadStudio } },
+  {
+    restart: { ...en.settings, reload: en.settings.reloadStudio },
+    system: en.systems.transition,
+  },
   '/',
 )
 
@@ -394,4 +397,31 @@ test('[SH-119] [SH-121] a restart after a cancelled one on the same page covers 
   await until(() => world.loads.length === 2)
   await until(settled)
   expect(world.confirmations).toEqual(['Settings saved'])
+})
+
+// A system change in the tab that asked for it: the caller's own words.
+const RENAMING = {
+  kind: 'system',
+  from: 'A',
+  title: 'Renaming Cove',
+  description: en.systems.transition.descriptions.rename,
+}
+const heading = () => page.getByRole('status').getByRole('heading')
+
+test('[SY-25] a system change’s screen reads as its caller says, and offers Reload studio after 30 seconds without repeating the request', async () => {
+  world.answering = ''
+  await start(RENAMING)
+  expect(await heading().textContent()).toBe('Renaming Cove')
+  expect(await said()).toBe('Updating its folder, references and the studio.')
+  const reload = page.getByRole('button', { name: 'Reload studio' })
+  // No 15-second fallback: a system change says nothing until 30 seconds.
+  await page.clock.runFor(15_500)
+  expect(await said()).toBe('Updating its folder, references and the studio.')
+  expect(await reload.isVisible()).toBe(false)
+  await page.clock.runFor(15_000)
+  expect(await said()).toBe(
+    'This is taking longer than expected. Reload to check the studio. Your request will not be repeated.',
+  )
+  expect(await reload.isVisible()).toBe(true)
+  expect(await page.getByRole('status').count()).toBe(1)
 })

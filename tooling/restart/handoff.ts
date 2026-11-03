@@ -15,7 +15,11 @@ import {
   LIGHT_CHECK,
 } from './names.ts'
 
-export type HandoffKind = 'restart'
+/**
+ * `restart`: any restart, "Applying changes", in every tab. `system`: a
+ * system change, in the tab that asked for it, in its caller's words.
+ */
+export type HandoffKind = 'restart' | 'system'
 
 /** The restart kind's words: "Applying changes". */
 export interface RestartText {
@@ -26,14 +30,42 @@ export interface RestartText {
   reload: string
 }
 
-export interface HandoffKinds {
-  restart: RestartText
+/** The system change kind's own words; its title and description are its caller's. */
+export interface SystemText {
+  slow: string
+  reload: string
 }
+
+export interface HandoffText {
+  restart: RestartText
+  system: SystemText
+}
+
+/** A kind of handoff, as data: how its screen reads, looks and waits. */
+export interface HandoffKindSetup {
+  /** The screen's words, unless its caller gives its own. */
+  title: string
+  description: string
+  /** Words that replace the description after a while, with Reload studio. */
+  later: { after: number; words: string }[]
+  /** Whether `later` counts from the handoff's start, across reloads, rather than from each page. */
+  fromStart: boolean
+  /** A pending handoff older than this is forgotten. */
+  expires?: number
+  reload: string
+  /** The screen's CSS. */
+  css: string
+}
+
+export type HandoffKinds = Record<HandoffKind, HandoffKindSetup>
 
 export interface StartHandoff {
   kind: HandoffKind
   /** The dev server the tab waits to leave. */
   from: string
+  /** The screen's words; the kind's own when left out. */
+  title?: string
+  description?: string
   /** Shown once, on the page where the tab finishes. */
   confirmation?: string
   /** Whether the tab waits for `markReady` before it finishes. */
@@ -114,7 +146,11 @@ export function restartHandoff(
   }
 
   let screen:
-    { say(words: string): void; offerReload(): void; lift(): void } | undefined
+    | {
+        render(pending: PendingHandoff): void
+        lift(): void
+      }
+    | undefined
   const timers: unknown[] = []
   let leaving = false
   let awaiting = false
@@ -123,29 +159,53 @@ export function restartHandoff(
   // Whether this page's destination is ready: each page shows its own.
   let ready = false
 
+  // One screen, whatever the kind: the kind's data says how it reads, looks
+  // and waits.
   function show(pending: PendingHandoff) {
-    if (screen) return
-    const text = setup.kinds[pending.kind]
-    if (!text) return
+    if (screen) return screen.render(pending)
+    const kind = setup.kinds[pending.kind]
+    if (!kind) return
     const style = document.createElement('style')
-    style.textContent =
-      '#studio-restart{position:fixed;inset:0;z-index:2147483647;display:grid;place-content:center;text-align:center;background:#fff;color:#171717;font:16px system-ui;transition:opacity .15s;outline:none}.dark #studio-restart{background:#171717;color:#fff}#studio-restart .spinner{margin:auto;width:24px;height:24px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:studio-spin 1s linear infinite}@keyframes studio-spin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){#studio-restart{transition:none}#studio-restart .spinner{animation:none}}'
+    style.textContent = kind.css
     const cover = document.createElement('div')
     cover.id = 'studio-restart'
     cover.setAttribute('role', 'status')
+    const card = document.createElement('div')
+    card.className = 'card'
     const spinner = document.createElement('div')
     spinner.className = 'spinner'
     spinner.setAttribute('aria-hidden', 'true')
     const title = document.createElement('h1')
-    title.textContent = text.applying
     const description = document.createElement('p')
-    description.textContent = text.preparing
     const button = document.createElement('button')
     button.type = 'button'
-    button.textContent = text.reload
+    button.textContent = kind.reload
     button.onclick = () => env.reload()
     button.hidden = true
-    cover.append(spinner, title, description, button)
+    card.append(spinner, title, description, button)
+    cover.append(card)
+    // Once said, the later words stay, whatever the caller says next.
+    let late = ''
+    const render = (current: PendingHandoff) => {
+      title.textContent = current.title ?? kind.title
+      description.textContent =
+        late || (current.description ?? kind.description)
+    }
+    render(pending)
+    const since = kind.fromStart ? pending.started : clock.now()
+    for (const { after, words } of kind.later)
+      timers.push(
+        clock.setTimeout(
+          () => {
+            late = words
+            description.textContent = words
+            if (!button.hidden) return
+            button.hidden = false
+            button.focus()
+          },
+          Math.max(0, since + after - clock.now()),
+        ),
+      )
     // What the screen made inert, and only that, is restored when it lifts:
     // what the app itself had made inert stays so.
     const held: HTMLElement[] = []
@@ -171,12 +231,7 @@ export function restartHandoff(
     }
     whenParsed(attach)
     screen = {
-      say: (words) => (description.textContent = words),
-      offerReload: () => {
-        if (!button.hidden) return
-        button.hidden = false
-        button.focus()
-      },
+      render,
       lift: () => {
         observer.disconnect()
         for (const element of held) element.inert = false
@@ -186,7 +241,7 @@ export function restartHandoff(
             cover.remove()
             style.remove()
           },
-          env.reducedMotion() ? 0 : 150,
+          env.reducedMotion() ? 0 : 160,
         )
       },
     }
@@ -218,21 +273,10 @@ export function restartHandoff(
   }
 
   // This page is on the server the tab waits to leave, or heard it go: it
-  // loads again once another one answers, and says so after 15 and 30
-  // seconds.
-  function leave(pending: PendingHandoff) {
+  // loads again once another one answers.
+  function leave() {
     if (leaving) return
     leaving = true
-    const text = setup.kinds[pending.kind]
-    const later = (ms: number, words: string) =>
-      timers.push(
-        clock.setTimeout(() => {
-          screen?.say(words)
-          screen?.offerReload()
-        }, ms),
-      )
-    later(15_000, text.fallback)
-    later(30_000, text.slow)
     awaitServer()
   }
 
@@ -263,7 +307,7 @@ export function restartHandoff(
       served === pending.from ||
       application.codeServer === pending.from
     )
-      return leave(pending)
+      return leave()
     if (pending.destination && !ready) return
     finish(pending)
   }
@@ -290,7 +334,7 @@ export function restartHandoff(
     })
     whenParsed(() => {
       const served = documentServer()
-      if (!served || served === resumed.from) return leave(resumed)
+      if (!served || served === resumed.from) return leave()
       arrived = true
       if (failed) stalled()
       timers.push(clock.setTimeout(stalled, 60_000))
@@ -310,11 +354,14 @@ export function restartHandoff(
         : { ...handoff, started: clock.now() }
       write(pending)
       show(pending)
-      leave(pending)
+      leave()
     },
     update(changes) {
       const current = read()
-      if (current) write({ ...current, ...changes })
+      if (!current) return
+      const pending = { ...current, ...changes }
+      write(pending)
+      screen?.render(pending)
     },
     markReady() {
       ready = true
@@ -368,11 +415,49 @@ export function browserEnvironment(check: string): HandoffEnvironment {
   }
 }
 
+const RESTART_CSS =
+  '#studio-restart{position:fixed;inset:0;z-index:2147483647;display:grid;place-content:center;text-align:center;background:#fff;color:#171717;font:16px system-ui;transition:opacity .15s;outline:none}.dark #studio-restart{background:#171717;color:#fff}#studio-restart .spinner{margin:auto;width:24px;height:24px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:studio-spin 1s linear infinite}@keyframes studio-spin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){#studio-restart{transition:none}#studio-restart .spinner{animation:none}}'
+
+// The studio's colours, as captured when the change started, through
+// `--handoff-<name>`; the system's own colours when there are none.
+const SYSTEM_CSS =
+  '#studio-restart{position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;padding:24px;background:var(--handoff-background,Canvas);color:var(--handoff-foreground,CanvasText);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;transition:opacity 160ms ease;outline:none}#studio-restart,#studio-restart *{box-sizing:border-box}#studio-restart .card{width:min(100%,420px);text-align:center}#studio-restart .spinner{width:32px;height:32px;margin:0 auto 24px;border:2px solid var(--handoff-border,GrayText);border-top-color:var(--handoff-foreground,CanvasText);border-radius:50%;animation:studio-spin 1s linear infinite}#studio-restart h1{font-size:24px;line-height:1.3;font-weight:600;margin:0 0 12px;overflow-wrap:anywhere}#studio-restart p{font-size:14px;line-height:1.6;margin:0;color:var(--handoff-muted,GrayText)}#studio-restart button{margin-top:24px;padding:8px 14px;border:1px solid var(--handoff-border,GrayText);border-radius:8px;background:transparent;color:inherit;font:inherit;cursor:pointer}@keyframes studio-spin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){#studio-restart{transition:none}#studio-restart .spinner{animation:none}}'
+
+/** The two kinds, from their words. */
+export function handoffKinds(text: HandoffText): HandoffKinds {
+  return {
+    restart: {
+      title: text.restart.applying,
+      description: text.restart.preparing,
+      later: [
+        { after: 15_000, words: text.restart.fallback },
+        { after: 30_000, words: text.restart.slow },
+      ],
+      fromStart: false,
+      reload: text.restart.reload,
+      css: RESTART_CSS,
+    },
+    system: {
+      title: '',
+      description: '',
+      later: [{ after: 30_000, words: text.system.slow }],
+      fromStart: true,
+      expires: 120_000,
+      reload: text.system.reload,
+      css: SYSTEM_CSS,
+    },
+  }
+}
+
 /**
  * The head script: the page's restart handoff, resumed before the
  * application, at `window[HANDOFF_GLOBAL]`.
  */
-export function handoffScript(kinds: HandoffKinds, base: string) {
-  const setup: HandoffSetup = { kinds, key: HANDOFF_KEY, tag: IDENTITY_TAG }
+export function handoffScript(text: HandoffText, base: string) {
+  const setup: HandoffSetup = {
+    kinds: handoffKinds(text),
+    key: HANDOFF_KEY,
+    tag: IDENTITY_TAG,
+  }
   return `window[${JSON.stringify(HANDOFF_GLOBAL)}]=(${restartHandoff.toString()})((${browserEnvironment.toString()})(${JSON.stringify(base + LIGHT_CHECK)}),${JSON.stringify(setup)});`
 }
