@@ -29,6 +29,8 @@ interface Load {
   document: string
   /** Null: the application never starts. */
   code: string | null
+  /** One of its modules fails to load. */
+  broken?: boolean
 }
 
 /**
@@ -67,8 +69,9 @@ function html(load: Load) {
 <script>${SCRIPT}</script>
 </head><body>
 <div id="__nuxt"><h1>Studio</h1><button type="button">Studio button</button>
-<label>Studio name <input value="Draft"></label>
+<input aria-label="Studio name" value="Draft">
 <div id="closed" inert><button type="button">Closed panel</button></div></div>
+${load.broken ? `<script type="module" src="${ORIGIN}missing.js"></script>` : ''}
 <script>(${application})(${JSON.stringify(load.code)},${JSON.stringify(HANDOFF_GLOBAL)})</script>
 </body></html>`
 }
@@ -183,4 +186,193 @@ test('[SH-119] [SH-122] a tab that heard the restart reloads once the new server
   await page.clock.runFor(5000)
   expect(await covered()).toBe(false)
   expect(world.confirmations).toEqual(['Settings saved'])
+})
+
+// On Linux the outgoing server still answers beside the new one, so the
+// reload the new server's answer prompts can reach the outgoing one.
+test('[SH-119] a reload that reaches the outgoing server keeps the screen and loads again once the new server answers', async () => {
+  await start({ kind: 'restart', from: 'A', confirmation: 'Settings saved' })
+  world.answering = 'B'
+  world.next.push({ document: 'A', code: 'A' })
+  await until(() => world.loads.length === 2)
+  expect(await covered()).toBe(true)
+  await page.clock.runFor(200)
+  expect(world.confirmations).toEqual([])
+  await until(() => world.loads.length === 3)
+  await until(settled)
+  expect(world.loads.at(-1)).toEqual({ document: 'B', code: 'B' })
+  expect(world.confirmations).toEqual(['Settings saved'])
+})
+
+// The new server can serve the page while the code it runs still comes from
+// the outgoing one: finishing there would show the confirmation, then lose
+// it to Vite's next reload.
+test('[SH-119] [SY-59] a page from the new server running the outgoing server’s code keeps the screen, loads again, then finishes with its confirmation once', async () => {
+  await start({ kind: 'restart', from: 'A', confirmation: 'Settings saved' })
+  world.answering = 'B'
+  world.next.push({ document: 'B', code: 'A' })
+  await until(() => world.loads.length === 2)
+  await page.clock.runFor(200)
+  expect(await covered()).toBe(true)
+  expect(world.confirmations).toEqual([])
+  await until(() => world.loads.length === 3)
+  await until(settled)
+  expect(world.loads.at(-1)).toEqual({ document: 'B', code: 'B' })
+  expect(world.confirmations).toEqual(['Settings saved'])
+  await page.clock.runFor(5000)
+  expect(world.loads).toHaveLength(3)
+  expect(world.confirmations).toEqual(['Settings saved'])
+})
+
+/** What the keyboard reaches from the start of the page, by Tab. */
+async function reachable() {
+  await page.evaluate(() => (document.activeElement as HTMLElement)?.blur())
+  const reached = new Set<string>()
+  for (let step = 0; step < 8; step++) {
+    await page.keyboard.press('Tab')
+    reached.add(
+      await page.evaluate(() => {
+        const element = document.activeElement
+        return element === document.body
+          ? ''
+          : (element?.getAttribute('aria-label') ??
+              element?.textContent?.trim() ??
+              '')
+      }),
+    )
+  }
+  reached.delete('')
+  return [...reached].sort()
+}
+const focused = () =>
+  page.evaluate(() => document.activeElement?.textContent?.trim() ?? '')
+
+test('[SH-120] nothing behind the screen is reachable, focus moves to Reload studio, and lifting it restores exactly what it made inert', async () => {
+  expect(await reachable()).toEqual(['Studio button', 'Studio name'])
+  await start({ kind: 'restart', from: 'A' })
+  expect(await reachable()).toEqual([])
+  // A dialog the app opens meanwhile is out of reach too.
+  await page.evaluate(() => {
+    const dialog = document.createElement('button')
+    dialog.textContent = 'Opened dialog'
+    document.body.append(dialog)
+  })
+  expect(await reachable()).toEqual([])
+  world.answering = ''
+  await page.clock.runFor(15_500)
+  expect(await focused()).toBe('Reload studio')
+  expect(await reachable()).toEqual(['Reload studio'])
+  // Lifted: as reachable as before, and what the app itself had made inert
+  // stays so.
+  await page.evaluate(
+    (global) =>
+      (window as unknown as Record<string, RestartHandoff>)[global]!.cancel(),
+    HANDOFF_GLOBAL,
+  )
+  await page.clock.runFor(1000)
+  expect(await reachable()).toEqual([
+    'Opened dialog',
+    'Studio button',
+    'Studio name',
+  ])
+})
+
+test('[SH-120] the page a handoff finishes on is as reachable as before', async () => {
+  await start({ kind: 'restart', from: 'A' })
+  world.answering = 'B'
+  await until(() => world.loads.length === 2)
+  await until(settled)
+  expect(await reachable()).toEqual(['Studio button', 'Studio name'])
+})
+
+test('[SH-120] with reduced motion the spinner and the fade stop', async () => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await start({ kind: 'restart', from: 'A' })
+  const motion = () =>
+    page.evaluate(() => {
+      const screen = document.getElementById('studio-restart')!
+      return [
+        getComputedStyle(screen.querySelector('.spinner')!).animationName,
+        getComputedStyle(screen).transitionDuration,
+      ]
+    })
+  expect(await motion()).toEqual(['none', '0s'])
+  await page.evaluate(
+    (global) =>
+      (window as unknown as Record<string, RestartHandoff>)[global]!.cancel(),
+    HANDOFF_GLOBAL,
+  )
+  // Gone at once, not after a fade.
+  expect(await page.locator('#studio-restart').count()).toBe(0)
+})
+
+/** Calls the handoff's interface on the page. */
+function call(method: 'update' | 'markReady' | 'cancel', ...args: unknown[]) {
+  return page.evaluate(
+    ([global, method, args]) =>
+      (
+        (window as unknown as Record<string, RestartHandoff>)[global]![
+          method
+        ] as (...args: unknown[]) => void
+      )(...args),
+    [HANDOFF_GLOBAL, method, args] as const,
+  )
+}
+
+test('[SH-119] [SH-120] a browser reload in the middle of a restart brings the screen back, and the tab still recovers by itself', async () => {
+  await start({ kind: 'restart', from: 'A', confirmation: 'Settings saved' })
+  await page.reload()
+  expect(await covered()).toBe(true)
+  expect(await said()).toBe(
+    'The studio is restarting. This page will reload when it’s ready.',
+  )
+  expect(await reachable()).toEqual([])
+  await page.clock.runFor(15_500)
+  expect(await said()).toBe(
+    'The studio has not finished restarting. Reload to check again.',
+  )
+  world.answering = 'B'
+  await until(() => world.loads.length === 3)
+  await until(settled)
+  expect(world.confirmations).toEqual(['Settings saved'])
+})
+
+test('[SH-122] a handoff with a destination finishes only once it is marked ready, with the confirmation it was last given', async () => {
+  await start({ kind: 'restart', from: 'A', destination: true })
+  await call('update', { confirmation: 'Settings saved' })
+  world.answering = 'B'
+  await until(() => world.loads.length === 2)
+  await page.clock.runFor(5000)
+  expect(await covered()).toBe(true)
+  expect(world.confirmations).toEqual([])
+  await call('markReady')
+  await until(settled)
+  expect(world.confirmations).toEqual(['Settings saved'])
+  expect(world.loads).toHaveLength(2)
+})
+
+// Between two servers a page can get its document from the new one and fail
+// to get its code from either; nothing else would load it again.
+test('[SH-119] a page from the new server whose application fails to load loads again once a server answers', async () => {
+  await start({ kind: 'restart', from: 'A', confirmation: 'Settings saved' })
+  world.answering = 'B'
+  world.next.push({ document: 'B', code: null, broken: true })
+  await until(() => world.loads.length === 2)
+  expect(await covered()).toBe(true)
+  await until(() => world.loads.length === 3)
+  await until(settled)
+  expect(world.confirmations).toEqual(['Settings saved'])
+})
+
+test('[SH-119] a page from the new server whose application hasn’t started after a minute loads again', async () => {
+  await start({ kind: 'restart', from: 'A' })
+  world.answering = 'B'
+  world.next.push({ document: 'B', code: null })
+  await until(() => world.loads.length === 2)
+  await page.clock.runFor(30_000)
+  expect(world.loads).toHaveLength(2)
+  expect(await covered()).toBe(true)
+  await page.clock.runFor(30_000)
+  await until(() => world.loads.length === 3)
+  await until(settled)
 })

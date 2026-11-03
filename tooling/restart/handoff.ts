@@ -115,6 +115,8 @@ export function restartHandoff(
   let awaiting = false
   let reloaded = false
   let application: HandoffApplication | undefined
+  // Whether this page's destination is ready: each page shows its own.
+  let ready = false
 
   function show(pending: PendingHandoff) {
     if (screen) return
@@ -122,7 +124,7 @@ export function restartHandoff(
     if (!text) return
     const style = document.createElement('style')
     style.textContent =
-      '#studio-restart{position:fixed;inset:0;z-index:2147483647;display:grid;place-content:center;text-align:center;background:#fff;color:#171717;font:16px system-ui;transition:opacity .15s}.dark #studio-restart{background:#171717;color:#fff}#studio-restart .spinner{margin:auto;width:24px;height:24px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:studio-spin 1s linear infinite}@keyframes studio-spin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){#studio-restart{transition:none}#studio-restart .spinner{animation:none}}'
+      '#studio-restart{position:fixed;inset:0;z-index:2147483647;display:grid;place-content:center;text-align:center;background:#fff;color:#171717;font:16px system-ui;transition:opacity .15s;outline:none}.dark #studio-restart{background:#171717;color:#fff}#studio-restart .spinner{margin:auto;width:24px;height:24px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:studio-spin 1s linear infinite}@keyframes studio-spin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){#studio-restart{transition:none}#studio-restart .spinner{animation:none}}'
     const cover = document.createElement('div')
     cover.id = 'studio-restart'
     cover.setAttribute('role', 'status')
@@ -139,10 +141,28 @@ export function restartHandoff(
     button.onclick = () => env.reload()
     button.hidden = true
     cover.append(spinner, title, description, button)
+    // What the screen made inert, and only that, is restored when it lifts:
+    // what the app itself had made inert stays so.
+    const held: HTMLElement[] = []
+    const hold = (node: Node) => {
+      if (node === cover || !(node instanceof HTMLElement) || node.inert) return
+      node.inert = true
+      held.push(node)
+    }
+    // What the app adds meanwhile, such as a dialog, is held too.
+    const observer = new MutationObserver((records) => {
+      for (const record of records) record.addedNodes.forEach(hold)
+    })
     const attach = () => {
       if (!read()) return
       document.head.append(style)
+      for (const child of [...document.body.children]) hold(child)
       document.body.append(cover)
+      observer.observe(document.body, { childList: true })
+      // Reload studio is the one useful action; until it's offered, focus
+      // waits on the screen, out of the app.
+      cover.tabIndex = -1
+      cover.focus()
     }
     if (document.readyState === 'loading')
       document.addEventListener('DOMContentLoaded', attach)
@@ -150,9 +170,13 @@ export function restartHandoff(
     screen = {
       say: (words) => (description.textContent = words),
       offerReload: () => {
+        if (!button.hidden) return
         button.hidden = false
+        button.focus()
       },
       lift: () => {
+        observer.disconnect()
+        for (const element of held) element.inert = false
         cover.style.opacity = '0'
         clock.setTimeout(
           () => {
@@ -229,6 +253,7 @@ export function restartHandoff(
       application.codeServer === pending.from
     )
       return leave(pending)
+    if (pending.destination && !ready) return
     finish(pending)
   }
 
@@ -240,6 +265,17 @@ export function restartHandoff(
     show(resumed)
     const served = documentServer()
     if (!served || served === resumed.from) leave(resumed)
+    else {
+      // Between two servers a page can get its document from the new one and
+      // fail to get its code from either: once a script fails, or a minute
+      // goes by without the application, it loads again once a server
+      // answers.
+      const stalled = () => {
+        if (!application && read()) awaitServer(true)
+      }
+      env.onFailure(stalled)
+      timers.push(clock.setTimeout(stalled, 60_000))
+    }
   }
 
   return {
@@ -260,7 +296,10 @@ export function restartHandoff(
       const current = read()
       if (current) write({ ...current, ...changes })
     },
-    markReady() {},
+    markReady() {
+      ready = true
+      settle()
+    },
     cancel() {
       storage.removeItem(setup.key)
       for (const timer of timers) clock.clearTimeout(timer)
