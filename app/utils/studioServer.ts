@@ -9,6 +9,8 @@ const own: string =
     (tag) => tag.name === INSTANCE_META,
   )?.content ?? ''
 
+// The application has started: a page waiting out a restart needn't load
+// again for want of one (`awaitApplication`).
+if (import.meta.client && own) document.documentElement.dataset.studioApp = own
+
 export const studioServer = devServer(INSTANCE_META, own)
-// DIAGNOSTIC (temporary)
-if (import.meta.client) document.documentElement.dataset.studioApp = own

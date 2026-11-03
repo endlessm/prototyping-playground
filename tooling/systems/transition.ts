@@ -57,6 +57,7 @@ export function systemTransition(
 ) {
   let slow: ReturnType<typeof setTimeout> | undefined
   let waiting = false
+  let watched = false
   const read = (): PendingTransition | null => {
     try {
       return JSON.parse(sessionStorage.getItem(names.key) || 'null')
@@ -81,6 +82,10 @@ export function systemTransition(
       return
     }
     awaitRestart(current)
+    if (!watched) {
+      watched = true
+      server.awaitApplication(names.base, () => Boolean(read()))
+    }
     let cover = document.getElementById(names.id)
     if (!cover) {
       cover = document.createElement('div')

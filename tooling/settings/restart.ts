@@ -25,13 +25,16 @@ export function devServer(meta: string, own = '') {
     /** Whether this page came from another dev server than `from`. */
     since: (from: string) => Boolean(from && servedBy() && servedBy() !== from),
     /**
-     * Loads the page again once another dev server than `from` answers, as
-     * long as `waiting()` holds. Once per page, whoever asks first.
+     * Loads the page again once another dev server than `from` (any, when
+     * empty) answers twice in a row, as long as `waiting()` holds: on Linux
+     * a new server may itself restart right away. Once per page, whoever
+     * asks first.
      */
     reloadFrom(from: string, base: string, waiting: () => boolean) {
       const root = document.documentElement
       if (root.dataset.studioReloading) return
-      root.dataset.studioReloading = from
+      root.dataset.studioReloading = from || 'any'
+      let last = ''
       const timer = setInterval(async () => {
         if (!waiting()) {
           delete root.dataset.studioReloading
@@ -43,12 +46,40 @@ export function devServer(meta: string, own = '') {
           })
           const { instance } = await response.json()
           if (!response.ok || !instance || instance === from) return
+          if (instance !== last) {
+            last = instance
+            return
+          }
           clearInterval(timer)
           location.reload()
         } catch {
           // Between servers.
         }
       }, 500)
+    },
+    /**
+     * While `waiting()` holds, loads the page again if its application
+     * doesn't start: a module failed to load, or a minute went by. Between
+     * two servers a page can get its document from one and fail to get its
+     * modules from either, and nothing else would load it again.
+     */
+    awaitApplication(base: string, waiting: () => boolean) {
+      const root = document.documentElement
+      const stalled = () => waiting() && !root.dataset.studioApp
+      const failed = (event: Event) => {
+        if (
+          event.type === 'error' &&
+          event.target !== window &&
+          !(event.target instanceof HTMLScriptElement)
+        )
+          return
+        if (stalled()) this.reloadFrom('', base, stalled)
+      }
+      addEventListener('error', failed, true)
+      addEventListener('unhandledrejection', failed)
+      setTimeout(() => {
+        if (stalled()) this.reloadFrom('', base, stalled)
+      }, 60_000)
     },
   }
 }
@@ -118,6 +149,7 @@ export function earlyRestart(
       if (child instanceof HTMLElement) child.inert = true
     document.body.append(cover)
     button.focus()
+    server.awaitApplication(base, pending)
     if (!announced && server.since(from)) return
     const fallback = (words: string) => () => {
       description.textContent = words
