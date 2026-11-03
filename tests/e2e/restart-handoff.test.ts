@@ -677,3 +677,22 @@ test('[SH-122] a handoff with a destination that hears no restart is coming fini
   expect(world.confirmations).toEqual(['Settings saved'])
   expect(world.loads).toHaveLength(1)
 })
+
+test('[SY-48] a system change that ends up needing no restart lifts its screen and confirms once, without reloading', async () => {
+  await start({
+    kind: 'system',
+    from: 'A',
+    title: 'Making Cove the default',
+    confirmation: 'Cove is now the default system.',
+  })
+  await call('notRestarting', 'A')
+  await until(() =>
+    page
+      .getByRole('status')
+      .count()
+      .then((n) => n === 0),
+  )
+  expect(world.confirmations).toEqual(['Cove is now the default system.'])
+  await pass(3000)
+  expect(world.loads).toHaveLength(1)
+})
