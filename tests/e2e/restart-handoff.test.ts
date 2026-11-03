@@ -377,3 +377,21 @@ test('[SH-119] a page from the new server whose application hasn’t started aft
   await until(() => world.loads.length === 3)
   await until(settled)
 })
+
+test('[SH-119] [SH-121] a restart after a cancelled one on the same page covers it and recovers the same way', async () => {
+  await start({ kind: 'restart', from: 'A' })
+  await call('cancel')
+  await page.clock.runFor(20_000)
+  expect(await covered()).toBe(false)
+  expect(world.loads).toHaveLength(1)
+  world.answering = ''
+  await start({ kind: 'restart', from: 'A', confirmation: 'Settings saved' })
+  await page.clock.runFor(15_500)
+  expect(await said()).toBe(
+    'The studio has not finished restarting. Reload to check again.',
+  )
+  world.answering = 'B'
+  await until(() => world.loads.length === 2)
+  await until(settled)
+  expect(world.confirmations).toEqual(['Settings saved'])
+})

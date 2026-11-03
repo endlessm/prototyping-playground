@@ -236,11 +236,18 @@ export function restartHandoff(
     awaitServer()
   }
 
-  function finish(pending: PendingHandoff) {
+  // Forgets the handoff on this page: a later one starts afresh.
+  function stop() {
     storage.removeItem(setup.key)
-    for (const timer of timers) clock.clearTimeout(timer)
+    for (const timer of timers.splice(0)) clock.clearTimeout(timer)
     screen?.lift()
     screen = undefined
+    leaving = false
+    awaiting = false
+  }
+
+  function finish(pending: PendingHandoff) {
+    stop()
     if (pending.confirmation) application?.confirm(pending.confirmation)
   }
 
@@ -313,12 +320,7 @@ export function restartHandoff(
       ready = true
       settle()
     },
-    cancel() {
-      storage.removeItem(setup.key)
-      for (const timer of timers) clock.clearTimeout(timer)
-      screen?.lift()
-      screen = undefined
-    },
+    cancel: stop,
     connect(started) {
       application = started
       settle()
