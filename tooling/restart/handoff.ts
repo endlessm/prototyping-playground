@@ -78,6 +78,12 @@ export interface RestartHandoff {
   cancel(): void
   /** The application has started: wiring, not for callers. */
   connect(application: HandoffApplication): void
+  /**
+   * The dev server `instance` announced that no restart is coming: a
+   * handoff waiting to leave it finishes on this page. Wiring, not for
+   * callers.
+   */
+  notRestarting(instance: string): void
 }
 
 export interface HandoffSetup {
@@ -122,6 +128,9 @@ export function restartHandoff(
   let application: HandoffApplication | undefined
   // Whether this page's destination is ready: each page shows its own.
   let ready = false
+  // Whether the server the tab waits to leave announced that no restart is
+  // coming: the tab finishes on this page.
+  let staying = false
 
   function show(pending: PendingHandoff) {
     if (screen) return
@@ -244,6 +253,7 @@ export function restartHandoff(
     screen = undefined
     leaving = false
     awaiting = false
+    staying = false
   }
 
   function finish(pending: PendingHandoff) {
@@ -252,18 +262,22 @@ export function restartHandoff(
   }
 
   // The finish rule: the tab finishes only on a page whose document and
-  // code both come from another server than the one it waits to leave.
+  // code both come from another server than the one it waits to leave, or
+  // once that server announced that no restart is coming.
   function settle() {
     const pending = read()
     // The identity tag comes after the head script: read once parsed.
-    if (!pending || !application || leaving || !parsed()) return
-    const served = documentServer()
-    if (
-      !served ||
-      served === pending.from ||
-      application.codeServer === pending.from
-    )
-      return leave(pending)
+    if (!pending || !application || !parsed()) return
+    if (!staying) {
+      if (leaving) return
+      const served = documentServer()
+      if (
+        !served ||
+        served === pending.from ||
+        application.codeServer === pending.from
+      )
+        return leave(pending)
+    }
     if (pending.destination && !ready) return
     finish(pending)
   }
@@ -308,6 +322,7 @@ export function restartHandoff(
             confirmation: handoff.confirmation ?? current.confirmation,
           }
         : { ...handoff, started: clock.now() }
+      staying = false
       write(pending)
       show(pending)
       leave(pending)
@@ -323,6 +338,11 @@ export function restartHandoff(
     cancel: stop,
     connect(started) {
       application = started
+      settle()
+    },
+    notRestarting(instance) {
+      if (read()?.from !== instance) return
+      staying = true
       settle()
     },
   }
