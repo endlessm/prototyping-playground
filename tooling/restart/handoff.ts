@@ -48,7 +48,12 @@ export interface HandoffKindSetup {
   description: string
   /** Words that replace the description after a while, with Reload studio. */
   later: { after: number; words: string }[]
-  /** Whether `later` counts from the handoff's start, across reloads, rather than from each page. */
+  /**
+   * Whether `later` counts from the handoff's start, on every page and
+   * across reloads, rather than from when a page starts waiting to leave
+   * the server: a page that already came from the new one says nothing
+   * later.
+   */
   fromStart: boolean
   /** A pending handoff older than this is forgotten. */
   expires?: number
@@ -178,6 +183,8 @@ export function restartHandoff(
   let screen:
     | {
         render(pending: PendingHandoff): void
+        /** Counts the kind's `later` words from `since`, once per page. */
+        later(since: number): void
         lift(): void
       }
     | undefined
@@ -241,20 +248,25 @@ export function restartHandoff(
         late || (current.description ?? kind.description)
     }
     render(pending)
-    const since = kind.fromStart ? pending.started : clock.now()
-    for (const { after, words } of kind.later)
-      timers.push(
-        clock.setTimeout(
-          () => {
-            late = words
-            description.textContent = words
-            if (!button.hidden) return
-            button.hidden = false
-            button.focus()
-          },
-          Math.max(0, since + after - clock.now()),
-        ),
-      )
+    let counting = false
+    const later = (since: number) => {
+      if (counting) return
+      counting = true
+      for (const { after, words } of kind.later)
+        timers.push(
+          clock.setTimeout(
+            () => {
+              late = words
+              description.textContent = words
+              if (!button.hidden) return
+              button.hidden = false
+              button.focus()
+            },
+            Math.max(0, since + after - clock.now()),
+          ),
+        )
+    }
+    if (kind.fromStart) later(pending.started)
     // What the screen made inert, and only that, is restored when it lifts:
     // what the app itself had made inert stays so.
     const held: HTMLElement[] = []
@@ -281,6 +293,7 @@ export function restartHandoff(
     whenParsed(attach)
     screen = {
       render,
+      later,
       lift: () => {
         observer.disconnect()
         for (const element of held) element.inert = false
@@ -326,6 +339,7 @@ export function restartHandoff(
   function leave() {
     if (leaving) return
     leaving = true
+    screen?.later(clock.now())
     awaitServer()
   }
 

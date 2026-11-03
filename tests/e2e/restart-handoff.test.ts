@@ -395,6 +395,23 @@ test('[SH-119] a page from the new server whose application hasn’t started aft
   await until(settled)
 })
 
+// The 15 and 30 second texts tell a tab still waiting for the new server; a
+// page that already came from it is only waiting for its application.
+test('[SH-121] a page from the new server waiting for its application keeps saying the studio is restarting, without the 15 and 30 second texts', async () => {
+  await start({ kind: 'restart', from: 'A' })
+  world.answering = 'B'
+  world.next.push({ document: 'B', code: null })
+  await until(() => world.loads.length === 2)
+  await page.clock.runFor(31_000)
+  expect(world.loads).toHaveLength(2)
+  expect(await said()).toBe(
+    'The studio is restarting. This page will reload when it’s ready.',
+  )
+  expect(
+    await page.getByRole('button', { name: 'Reload studio' }).isVisible(),
+  ).toBe(false)
+})
+
 test('[SH-119] [SH-121] a restart after a cancelled one on the same page covers it and recovers the same way', async () => {
   await start({ kind: 'restart', from: 'A' })
   await call('cancel')
