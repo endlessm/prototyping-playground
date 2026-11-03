@@ -118,7 +118,6 @@ export function useSystemTransition(
       ids.includes(pending.studioId)
     )
       return
-    console.info(`DIAG settle ${studioServer.servedBy()}`) // DIAGNOSTIC
     finishSystemTransition()
   }
   let delivered = false
@@ -127,7 +126,6 @@ export function useSystemTransition(
     const title = sessionStorage.getItem(TOAST_KEY)
     if (!title) return
     delivered = true
-    console.info(`DIAG toast ${title}`) // DIAGNOSTIC
     toast.success(title)
     // Kept a moment: on Linux the page may load once more as the outgoing
     // dev server goes, and the next page shows it then.

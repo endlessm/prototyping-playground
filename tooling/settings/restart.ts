@@ -51,7 +51,6 @@ export function devServer(meta: string, own = '') {
             return
           }
           clearInterval(timer)
-          console.info(`DIAG reload from=${from} to=${instance}`) // DIAGNOSTIC
           location.reload()
         } catch {
           // Between servers.

@@ -21,14 +21,7 @@ import {
 import { get } from 'node:http'
 import path from 'node:path'
 import type { Page } from 'playwright'
-import {
-  afterAll,
-  beforeAll,
-  describe,
-  expect,
-  onTestFailed,
-  test,
-} from 'vitest'
+import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import {
   applyPlan,
   planCreate,
@@ -166,19 +159,6 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
 
   async function open(address: string) {
     const page = await newPage()
-    // DIAGNOSTIC: every load and console message, printed if the test fails.
-    const trace: string[] = []
-    page.on('framenavigated', (frame) => {
-      if (frame === page.mainFrame())
-        trace.push(`${Date.now()} nav ${frame.url()}`)
-    })
-    page.on('console', (message) =>
-      trace.push(`${Date.now()} ${message.type()} ${message.text()}`),
-    )
-    page.on('pageerror', (error) =>
-      trace.push(`${Date.now()} pageerror ${error.message}`),
-    )
-    onTestFailed(() => console.log(`DIAGNOSTIC\n${trace.join('\n')}`))
     await page.goto(`${studio.url}${address}`)
     return page
   }
@@ -205,8 +185,12 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
   async function choose(page: Page, item: string) {
     await page.getByRole('menuitem', { name: item, exact: true }).click()
   }
-  /** Waits out the change's restart: the status screen comes and goes. */
-  async function settled(page: Page) {
+  /**
+   * Waits out the change's restart: the status screen comes and goes, and
+   * its `confirmation` shows. That one is looked for meanwhile: it lasts a
+   * few seconds, less than the outgoing server may take to go.
+   */
+  async function settled(page: Page, confirmation?: string) {
     // Read on a loaded page: mid-reload the screen isn't drawn yet.
     try {
       await expect
@@ -215,7 +199,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
           // page, where nothing of the studio runs; a person reloads it.
           if (page.url().startsWith('chrome-error:'))
             await page.reload().catch(() => undefined)
-          return page
+          const done = await page
             .evaluate(
               () =>
                 document.readyState === 'complete' &&
@@ -223,25 +207,24 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
                 !sessionStorage.getItem('design-studio:system-transition'),
             )
             .catch(() => false)
+          return (
+            done &&
+            (!confirmation ||
+              (await toast(page, confirmation)
+                .isVisible()
+                .catch(() => false)))
+          )
         }, RESTART)
         .toBe(true)
     } catch (error) {
       // What the page shows, and what the dev server did meanwhile.
       const seen = await page
-        .evaluate(async () => ({
+        .evaluate(() => ({
           address: location.href,
           state: document.readyState,
           pending: sessionStorage.getItem('design-studio:system-transition'),
-          // DIAGNOSTIC
-          app: document.documentElement.dataset.studioApp ?? null,
-          reloading: document.documentElement.dataset.studioReloading ?? null,
-          answers: await fetch('/_studio/settings', { cache: 'no-store' })
-            .then((r) => r.json())
-            .then((j) => j.instance)
-            .catch(() => 'none'),
-          headings: [...document.querySelectorAll('h1,h2,h3')]
-            .map((h) => h.textContent)
-            .slice(0, 12),
+          toast: sessionStorage.getItem('design-studio:system-toast'),
+          application: document.documentElement.dataset.studioApp ?? null,
           servedBy:
             document
               .querySelector('meta[name="studio-instance"]')
@@ -625,7 +608,6 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     // load again until its application comes from the new one.
     const before = await instance()
     const outgoing = { seen: false, done: false, replaying: false, next: '' }
-    const trace: string[] = [] // DIAGNOSTIC
     await page.context().grantPermissions(['local-network-access'])
     await page.route(`${studio.url}**`, async (route) => {
       const request = route.request()
@@ -634,7 +616,6 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
         const response = await route.fetch().catch(() => undefined)
         if (!response) return route.abort('connectionrefused')
         const answered = await response.json().catch(() => ({}))
-        trace.push(`${Date.now()} settings ${answered.instance}`)
         if (
           outgoing.replaying &&
           ![before, undefined].includes(answered.instance)
@@ -644,9 +625,6 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
       }
       if (request.resourceType() === 'document') {
         outgoing.next = await instance()
-        trace.push(
-          `${Date.now()} doc next=${outgoing.next} seen=${outgoing.seen}`,
-        )
         if (outgoing.seen) outgoing.done = true
         outgoing.replaying =
           !outgoing.done && ![before, ''].includes(outgoing.next)
@@ -668,9 +646,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
       })
     })
     await button(dialog(page), 'Save').click()
-    await settled(page).finally(() =>
-      console.log(`DIAGNOSTIC before=${before}\n${trace.join('\n')}`),
-    )
+    await settled(page, 'System renamed. References updated.')
     // The studio settled on the new server's application. Settling on the
     // outgoing one's would show the confirmation on a page that loads again,
     // and lose it.
@@ -678,7 +654,6 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
       await page.evaluate(() => document.documentElement.dataset.studioApp),
     ).toBe(await instance())
     await page.unrouteAll({ behavior: 'ignoreErrors' })
-    await visible(toast(page, 'System renamed. References updated.'))
     expect(new URL(page.url()).pathname).toBe(`/systems/${created}`)
     expect(existsSync(systemsAt('cove'))).toBe(false)
     expect(readFileSync(systemsAt('cove-works/system.ts'), 'utf8')).toContain(
@@ -707,8 +682,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     const page = await open(`systems/${created}`)
     await menuOf(page, 'Cove Works')
     await choose(page, 'Set as default')
-    await settled(page)
-    await visible(toast(page, 'Cove Works is now the default system.'))
+    await settled(page, 'Cove Works is now the default system.')
     expect(new URL(page.url()).pathname).toBe(`/systems/${created}`)
     expect(config().defaultSystem).toBe(created)
     await menuOf(page, 'Cove Works')
@@ -757,8 +731,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     const confirm = button(dialog(page), 'Archive system')
     await expect.poll(() => confirm.isEnabled(), { timeout: 30_000 }).toBe(true)
     await confirm.click()
-    await settled(page)
-    await visible(toast(page, 'System and associated prototypes archived.'))
+    await settled(page, 'System and associated prototypes archived.')
     expect(new URL(page.url()).pathname).toBe('/systems')
     expect(meta()).toMatchObject({
       status: 'archived',
@@ -805,8 +778,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     const both = button(dialog(page), 'Restore system and prototypes')
     await expect.poll(() => both.isEnabled(), { timeout: 30_000 }).toBe(true)
     await both.click()
-    await settled(page)
-    await visible(toast(page, 'System restored.'))
+    await settled(page, 'System restored.')
     expect(meta().status).toBeUndefined()
     // Restoring never changes the default.
     expect(config().defaultSystem).toBe(defaultSystem)
@@ -860,10 +832,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     await expect.poll(() => confirm.isEnabled(), { timeout: 30_000 }).toBe(true)
     await confirm.click()
     await visible(page.getByRole('heading', { name: 'Deleting Lantern' }))
-    await settled(page)
-    await visible(
-      toast(page, 'System deleted. Associated prototypes need a rebuild.'),
-    )
+    await settled(page, 'System deleted. Associated prototypes need a rebuild.')
     expect(new URL(page.url()).pathname).toBe('/systems')
     expect(existsSync(systemsAt('lantern'))).toBe(false)
     expect(config().systems).not.toContain('lantern')
