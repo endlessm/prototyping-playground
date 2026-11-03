@@ -401,10 +401,13 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
         return route.abort('connectionrefused')
       return route.continue()
     })
+    const started = Date.now()
     await page.goto(`${studio.url}systems`)
     await settled(page)
     expect(loads).toBeGreaterThanOrEqual(2)
     await visible(page.getByRole('heading', { name: 'Systems', exact: true }))
+    // On the failure itself, not after the minute it otherwise waits.
+    expect(Date.now() - started).toBeLessThan(45_000)
   })
 
   test('[SY-43] Open in editor and Show in Explorer open the system’s folder', async () => {
@@ -662,7 +665,14 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
       `studioId: '${created}'`,
     )
     expect(config().systems).toContain('cove-works')
-    // Delivered once.
+    // Delivered once, past the moment it is kept for a last reload.
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          sessionStorage.getItem('design-studio:system-toast'),
+        ),
+      )
+      .toBeNull()
     await page.reload()
     await visible(
       page.getByRole('heading', { name: 'Cove Works', exact: true }),

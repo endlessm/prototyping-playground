@@ -57,7 +57,6 @@ export function systemTransition(
 ) {
   let slow: ReturnType<typeof setTimeout> | undefined
   let waiting = false
-  let watched = false
   const read = (): PendingTransition | null => {
     try {
       return JSON.parse(sessionStorage.getItem(names.key) || 'null')
@@ -82,10 +81,6 @@ export function systemTransition(
       return
     }
     awaitRestart(current)
-    if (!watched) {
-      watched = true
-      server.awaitApplication(names.base, () => Boolean(read()))
-    }
     let cover = document.getElementById(names.id)
     if (!cover) {
       cover = document.createElement('div')
@@ -149,6 +144,9 @@ export function systemTransition(
       Math.max(0, current.started + 30_000 - Date.now()),
     )
   }
+  // Now, before the application's modules: a failure to load them is
+  // reported before the document is parsed.
+  if (read()) server.awaitApplication(names.base, () => Boolean(read()))
   window.addEventListener(names.event, show)
   if (document.readyState === 'loading')
     document.addEventListener('DOMContentLoaded', show)

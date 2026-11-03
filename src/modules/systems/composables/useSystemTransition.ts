@@ -120,12 +120,16 @@ export function useSystemTransition(
       return
     finishSystemTransition()
   }
+  let delivered = false
   function deliver() {
-    if (read()) return
+    if (read() || delivered) return
     const title = sessionStorage.getItem(TOAST_KEY)
     if (!title) return
-    sessionStorage.removeItem(TOAST_KEY)
+    delivered = true
     toast.success(title)
+    // Kept a moment: on Linux the page may load once more as the outgoing
+    // dev server goes, and the next page shows it then.
+    setTimeout(() => sessionStorage.removeItem(TOAST_KEY), 3000)
   }
   onMounted(() => {
     settle()

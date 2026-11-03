@@ -143,13 +143,15 @@ export function earlyRestart(
   button.hidden = true
   cover.append(spinner, title, description, button)
   const pending = () => Boolean(sessionStorage.getItem('design-studio:restart'))
+  // Now, before the application's modules: a failure to load them is
+  // reported before the document is parsed.
+  server.awaitApplication(base, pending)
   const attach = () => {
     if (!pending()) return
     for (const child of document.body.children)
       if (child instanceof HTMLElement) child.inert = true
     document.body.append(cover)
     button.focus()
-    server.awaitApplication(base, pending)
     if (!announced && server.since(from)) return
     const fallback = (words: string) => () => {
       description.textContent = words
