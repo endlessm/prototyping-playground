@@ -248,10 +248,11 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     await onlyServer(() =>
       page
         .evaluate(
-          () =>
+          (tag) =>
             document
-              .querySelector('meta[name="studio-instance"]')
+              .querySelector(`meta[name="${tag}"]`)
               ?.getAttribute('content') ?? '',
+          IDENTITY_TAG,
         )
         .catch(() => ''),
     )

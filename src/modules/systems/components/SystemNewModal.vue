@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import type { FormError, FormSubmitEvent } from '@nuxt/ui'
-import {
-  beginSystemTransition,
-  finishSystemTransition,
-  systemCreated,
-} from '../composables/useSystemTransition'
+import { restartHandoff } from '../../../../app/utils/restartHandoff'
+import { createdSystem } from '../utils/destination'
 
 // "New system": a name, which becomes its folder. The dev server makes an
 // empty Vue system and registers it; the studio restarts behind the status
@@ -14,6 +11,7 @@ import {
 const emit = defineEmits<{ close: [] }>()
 const { t } = useI18n()
 const base = useRuntimeConfig().app.baseURL
+const handoff = restartHandoff()
 
 const state = reactive({ name: '' })
 const saving = ref(false)
@@ -30,7 +28,18 @@ async function create(event: FormSubmitEvent<typeof state>) {
   const name = event.data.name.trim()
   saving.value = true
   failure.value = ''
-  beginSystemTransition('create', name)
+  handoff?.start({
+    kind: 'system',
+    title: t('systems.transition.titles.create', { name }),
+    description: t('systems.transition.descriptions.create'),
+    // The page waits for the answer, which says where the new system is.
+    hold: true,
+    destination: true,
+  })
+  const opening = {
+    title: t('systems.transition.titles.opening', { name }),
+    description: t('systems.transition.descriptions.opening'),
+  }
   try {
     const { studioId } = await requestJson<{ studioId: string }>(
       `${base}_studio/files/systems`,
@@ -40,11 +49,15 @@ async function create(event: FormSubmitEvent<typeof state>) {
         body: JSON.stringify({ op: 'create', name }),
       },
     )
-    systemCreated(studioId)
+    handoff?.update({
+      ...opening,
+      hold: false,
+      destination: createdSystem(studioId),
+    })
     // The restart reloads this address: the new system's Overview.
     history.replaceState(history.state, '', `${base}systems/${studioId}`)
   } catch (error) {
-    finishSystemTransition()
+    handoff?.cancel()
     failure.value = (error as Error).message
     saving.value = false
   }

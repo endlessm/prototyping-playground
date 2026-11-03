@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import {
-  beginSystemTransition,
-  finishSystemTransition,
-  queueSystemToast,
-} from '../composables/useSystemTransition'
+import { restartHandoff } from '../../../../app/utils/restartHandoff'
+import { deletedSystem } from '../utils/destination'
 
 // Archiving, restoring or deleting a system. The dialog first asks the dev
 // server to check the change (who it touches, whether another program
@@ -33,6 +30,7 @@ const { t } = useI18n()
 const base = useRuntimeConfig().app.baseURL
 const route = `${base}_studio/files/systems`
 const name = props.system.label
+const handoff = restartHandoff()
 
 const blocked = props.operation !== 'restore' && props.isDefault
 const checking = ref(!blocked)
@@ -75,17 +73,24 @@ async function confirm(restorePrototypes = false) {
   busy.value = true
   failure.value = ''
   const previous = location.href
-  beginSystemTransition(props.operation, name, props.system.id)
+  handoff?.start({
+    kind: 'system',
+    title: t(`systems.transition.titles.${props.operation}`, { name }),
+    description: t(`systems.transition.descriptions.${props.operation}`),
+    // A deletion finishes once the collection no longer lists the system.
+    destination:
+      props.operation === 'delete' ? deletedSystem(props.system.id) : false,
+  })
   // The restart reloads the page: archiving and deleting land on the
   // collection, never on a page that is going away.
   if (props.operation !== 'restore')
     history.replaceState(history.state, '', `${base}systems`)
   try {
     await post({ op: props.operation, restorePrototypes })
-    queueSystemToast(t(TOASTS[props.operation]))
+    handoff?.update({ confirmation: t(TOASTS[props.operation]) })
   } catch (error) {
     history.replaceState(history.state, '', previous)
-    finishSystemTransition()
+    handoff?.cancel()
     failure.value = (error as Error).message
     busy.value = false
   }

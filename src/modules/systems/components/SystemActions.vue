@@ -5,11 +5,7 @@ import type { SystemCatalog } from '../../../../tooling/systems/catalog'
 import { menuGroups } from '../../../../app/utils/menus'
 import { onApple } from '../../../../app/utils/shortcuts'
 import { useCopy } from '../composables/useCopy'
-import {
-  beginSystemTransition,
-  finishSystemTransition,
-  queueSystemToast,
-} from '../composables/useSystemTransition'
+import { restartHandoff } from '../../../../app/utils/restartHandoff'
 import { systemMenu, type SystemActionId } from '../utils/actions'
 import { systemAddress } from '../utils/pages'
 
@@ -99,13 +95,20 @@ function lifecycle(operation: 'archive' | 'restore' | 'delete') {
 }
 
 async function makeDefault() {
-  const { label, id } = props.system
-  beginSystemTransition('default', label, id)
+  const { label } = props.system
+  const handoff = restartHandoff()
+  handoff?.start({
+    kind: 'system',
+    title: t('systems.transition.titles.default', { name: label }),
+    description: t('systems.transition.descriptions.default'),
+  })
   try {
     await post({ op: 'default' })
-    queueSystemToast(t('systems.toasts.isDefault', { name: label }))
+    handoff?.update({
+      confirmation: t('systems.toasts.isDefault', { name: label }),
+    })
   } catch (error) {
-    finishSystemTransition()
+    handoff?.cancel()
     throw error
   }
 }
