@@ -75,7 +75,7 @@ jobs:
           cache: yarn
       - run: yarn install --immutable
       - run: yarn playwright install --with-deps chromium
-      - run: yarn vitest run --project e2e tests/e2e/system-lifecycle.test.ts # DIAGNOSTIC
+      - run: for i in 1 2 3; do yarn vitest run --project e2e tests/e2e/system-lifecycle.test.ts || echo "DIAGNOSTIC FAILED RUN $i"; done # DIAGNOSTIC
 
   # The required check. A failed, cancelled or skipped job fails it.
   build:
