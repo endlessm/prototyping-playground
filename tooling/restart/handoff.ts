@@ -123,8 +123,8 @@ export interface HandoffEnvironment {
 export interface HandoffApplication {
   /** The dev server its code came from; '' when it can't tell. */
   codeServer: string
-  /** Shows a confirmation. */
-  confirm(confirmation: string): void
+  /** Shows a confirmation, as its kind of change shows one. */
+  confirm(confirmation: string, kind: HandoffKind): void
 }
 
 export interface RestartHandoff {
@@ -356,7 +356,8 @@ export function restartHandoff(
 
   function finish(pending: PendingHandoff) {
     stop()
-    if (pending.confirmation) application?.confirm(pending.confirmation)
+    if (pending.confirmation)
+      application?.confirm(pending.confirmation, pending.kind)
   }
 
   // The finish rule: the tab finishes only on a page whose document and

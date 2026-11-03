@@ -10,7 +10,8 @@ import { appServer } from '../utils/studioServer'
 export default defineNuxtPlugin(() => {
   const handoff = restartHandoff()
   if (!import.meta.dev || !handoff) return
-  const toast = useStudioToast()
+  const toast = useToast()
+  const studioToast = useStudioToast()
   import.meta.hot?.on(RESTART_EVENT, ({ instance }: { instance: string }) =>
     handoff.start({ kind: 'restart', from: instance }),
   )
@@ -20,7 +21,9 @@ export default defineNuxtPlugin(() => {
   onNuxtReady(() =>
     handoff.connect({
       codeServer: appServer,
-      confirm: (title) => toast.success(title),
+      // "Settings saved" is a plain notice; a system change's, a success.
+      confirm: (title, kind) =>
+        kind === 'system' ? studioToast.success(title) : toast.add({ title }),
     }),
   )
 })
