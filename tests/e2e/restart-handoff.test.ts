@@ -163,6 +163,17 @@ async function until(done: () => boolean | Promise<boolean>) {
     .toBe(true)
   await page.waitForLoadState()
 }
+/**
+ * Lets `ms` pass at the light check's pace, giving each check time to be
+ * answered: `runFor` alone would fire one check, then stop.
+ */
+async function pass(ms: number) {
+  for (let step = 0; step < ms / 500; step++) {
+    await page.clock.runFor(500).catch(() => undefined)
+    await page.waitForTimeout(20)
+  }
+  await page.waitForLoadState()
+}
 /** Whether the screen is up on a loaded page. */
 const covered = () => screen().isVisible()
 /** Whether the screen is gone from a loaded page, after any fade. */
@@ -480,4 +491,64 @@ test('a system change’s screen keeps the studio’s colours as they were when 
   expect(await colours()).toEqual(['rgb(10, 20, 30)', 'rgb(200, 210, 220)'])
   await page.reload()
   expect(await colours()).toEqual(['rgb(10, 20, 30)', 'rgb(200, 210, 220)'])
+})
+
+// The dev server announces its restart to every tab, the one that asked
+// for the system change too.
+test('[SY-45] the tab that asked for a system change shows only its screen when the restart is announced, and finishes with its confirmation once', async () => {
+  await start({
+    ...RENAMING,
+    confirmation: 'System renamed. References updated.',
+  })
+  await start({ kind: 'restart', from: 'A' })
+  expect(await page.getByRole('status').count()).toBe(1)
+  expect(await heading().textContent()).toBe('Renaming Cove')
+  await page.clock.runFor(15_500)
+  expect(await said()).toBe('Updating its folder, references and the studio.')
+  world.answering = 'B'
+  await until(() => world.loads.length === 2)
+  expect(await screen().count()).toBe(0)
+  await until(settled)
+  expect(world.confirmations).toEqual(['System renamed. References updated.'])
+})
+
+test('[SY-24] [SY-27] [SY-28] a creation keeps its page until it is answered, then shows “Opening <Name>” with nothing reachable behind it until its destination is ready', async () => {
+  const { titles, descriptions } = en.systems.transition
+  await start({
+    kind: 'system',
+    from: 'A',
+    title: titles.create.replace('{name}', 'Cove'),
+    description: descriptions.create,
+    hold: true,
+    destination: true,
+  })
+  expect(await heading().textContent()).toBe('Creating Cove')
+  // The new server answers before the request does: loading the page again
+  // would drop the request, and with it where to go.
+  world.answering = 'B'
+  await pass(5000)
+  expect(world.loads).toHaveLength(1)
+  await call('update', {
+    hold: false,
+    title: titles.opening.replace('{name}', 'Cove'),
+    description: descriptions.opening,
+    confirmation: 'Cove created',
+  })
+  expect(await heading().textContent()).toBe('Opening Cove')
+  await until(() => world.loads.length === 2)
+  await page.clock.runFor(5000)
+  expect(await heading().textContent()).toBe('Opening Cove')
+  expect(await said()).toBe('Your scaffold is ready. Opening your system.')
+  expect(await reachable()).toEqual([])
+  expect(world.confirmations).toEqual([])
+  await call('markReady')
+  await until(() =>
+    page
+      .getByRole('status')
+      .count()
+      .then((n) => n === 0),
+  )
+  expect(await reachable()).toEqual(['Studio button', 'Studio name'])
+  expect(world.confirmations).toEqual(['Cove created'])
+  expect(world.loads).toHaveLength(2)
 })

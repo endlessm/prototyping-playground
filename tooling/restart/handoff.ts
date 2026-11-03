@@ -75,6 +75,12 @@ export interface StartHandoff {
   confirmation?: string
   /** Whether the tab waits for `markReady` before it finishes. */
   destination?: boolean
+  /**
+   * Keeps this page, rather than loading it again, until `update` lifts
+   * the hold: a request still in flight would be dropped, and with it what
+   * the page learns from its answer.
+   */
+  hold?: boolean
 }
 
 export interface PendingHandoff extends StartHandoff {
@@ -110,7 +116,8 @@ export interface HandoffApplication {
 
 export interface RestartHandoff {
   start(handoff: StartHandoff): void
-  update(changes: Pick<StartHandoff, 'confirmation'>): void
+  /** Changes the pending handoff's words, confirmation, destination or hold. */
+  update(changes: Partial<Omit<StartHandoff, 'kind' | 'from'>>): void
   /** The destination is ready, on this page. */
   markReady(): void
   /** Forgets the handoff and lifts its screen, without a confirmation. */
@@ -282,7 +289,7 @@ export function restartHandoff(
       const answer = await env.check()
       const pending = read()
       if (!pending) return
-      if (answer && (anyServer || answer !== pending.from)) {
+      if (answer && !pending.hold && (anyServer || answer !== pending.from)) {
         if (answer === last) {
           reloaded = true
           return env.reload()
