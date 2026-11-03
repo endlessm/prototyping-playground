@@ -1,5 +1,6 @@
-import { studioServer } from '../../../../app/utils/studioServer'
+import { studioServer } from '../../../../tooling/settings/restart'
 import {
+  restartedSince,
   TRANSITION_ELEMENT,
   TRANSITION_EVENT,
   TRANSITION_KEY,
@@ -91,19 +92,9 @@ export function useSystemTransition(
 ) {
   if (!import.meta.dev) return
   const toast = useStudioToast()
-  const base = useRuntimeConfig().app.baseURL
   function settle() {
     const pending = read()
-    if (!pending) return
-    // An application from the server that took the request loads again once
-    // another one answers, also when the page itself came from the new one:
-    // on Linux its modules may still come from the outgoing server. A
-    // creation's tab waits for its answer first.
-    if (!studioServer.since(pending.from ?? '')) {
-      if (pending.from && (pending.operation !== 'create' || pending.studioId))
-        studioServer.reloadFrom(pending.from, base, () => Boolean(read()))
-      return
-    }
+    if (!pending || !restartedSince(pending)) return
     const ids = systems()
     if (
       pending.operation === 'create' &&

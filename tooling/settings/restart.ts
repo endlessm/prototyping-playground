@@ -11,16 +11,13 @@ export const INSTANCE_META = 'studio-instance'
 // may still reach the old one; its page loads again, since after that
 // nothing else would. Self-contained: the scripts that run before the
 // application carry its source, and read the tag once the document is
-// parsed, as it comes after them. The application passes `own`, the instance
-// its modules name: on Linux a page from the new server may still run modules
-// from the outgoing one.
-export function devServer(meta: string, own = '') {
+// parsed, as it comes after them.
+export function devServer(meta: string) {
   const servedBy = () =>
-    own ||
-    (document.querySelector(`meta[name="${meta}"]`)?.getAttribute('content') ??
-      '')
+    document.querySelector(`meta[name="${meta}"]`)?.getAttribute('content') ??
+    ''
   return {
-    /** The instance of the dev server that served this page, or its application. */
+    /** The instance of the dev server that served this page. */
     servedBy,
     /** Whether this page came from another dev server than `from`. */
     since: (from: string) => Boolean(from && servedBy() && servedBy() !== from),
@@ -54,7 +51,9 @@ export function devServer(meta: string, own = '') {
 }
 export type DevServer = ReturnType<typeof devServer>
 
-/** This page's dev server, as source for the scripts that run before the application. */
+/** This page's dev server, for the application. */
+export const studioServer = devServer(INSTANCE_META)
+/** The same, as source for the scripts that run before the application. */
 export const studioServerSource = `(${devServer.toString()})(${JSON.stringify(INSTANCE_META)})`
 
 // Runs before the application: the cover survives a full Nuxt restart.
