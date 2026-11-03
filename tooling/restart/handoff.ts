@@ -207,6 +207,7 @@ export function restartHandoff(
     const cover = document.createElement('div')
     cover.id = 'studio-restart'
     cover.setAttribute('role', 'status')
+    cover.setAttribute('aria-live', 'polite')
     const card = document.createElement('div')
     card.className = 'card'
     const spinner = document.createElement('div')

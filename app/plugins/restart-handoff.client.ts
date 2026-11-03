@@ -9,14 +9,14 @@ import { appServer } from '../utils/studioServer'
 export default defineNuxtPlugin(() => {
   const handoff = restartHandoff()
   if (!import.meta.dev || !handoff) return
-  const toast = useToast()
+  const toast = useStudioToast()
   import.meta.hot?.on(RESTART_EVENT, ({ instance }: { instance: string }) =>
     handoff.start({ kind: 'restart', from: instance }),
   )
   onNuxtReady(() =>
     handoff.connect({
       codeServer: appServer,
-      confirm: (title) => toast.add({ title }),
+      confirm: (title) => toast.success(title),
     }),
   )
 })

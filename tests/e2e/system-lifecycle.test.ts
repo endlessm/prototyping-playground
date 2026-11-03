@@ -28,6 +28,7 @@ import {
   planLifecycle,
   type LifecycleOptions,
 } from '../../tooling/systems/lifecycle'
+import { HANDOFF_KEY, IDENTITY_TAG } from '../../tooling/restart/names'
 import { useBrowser } from './setup/browser'
 import { startDevServer, type RunningStudio } from './setup/studio'
 
@@ -145,7 +146,7 @@ const button = (scope: Page | ReturnType<Page['locator']>, name: string) =>
   scope.getByRole('button', { name, exact: true })
 const dialog = (page: Page) => page.getByRole('dialog')
 const toast = (page: Page, text: string) => page.getByText(text).first()
-const cover = (page: Page) => page.locator('#studio-system-transition')
+const cover = (page: Page) => page.locator('#studio-restart')
 
 describe('managing systems locally', { timeout: 300_000 }, () => {
   const newPage = useBrowser()
@@ -201,10 +202,11 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
             await page.reload().catch(() => undefined)
           const done = await page
             .evaluate(
-              () =>
+              (key) =>
                 document.readyState === 'complete' &&
-                !document.getElementById('studio-system-transition') &&
-                !sessionStorage.getItem('design-studio:system-transition'),
+                !document.getElementById('studio-restart') &&
+                !sessionStorage.getItem(key),
+              HANDOFF_KEY,
             )
             .catch(() => false)
           return (
@@ -219,17 +221,19 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     } catch (error) {
       // What the page shows, and what the dev server did meanwhile.
       const seen = await page
-        .evaluate(() => ({
-          address: location.href,
-          state: document.readyState,
-          pending: sessionStorage.getItem('design-studio:system-transition'),
-          toast: sessionStorage.getItem('design-studio:system-toast'),
-          application: document.documentElement.dataset.studioApp ?? null,
-          servedBy:
-            document
-              .querySelector('meta[name="studio-instance"]')
-              ?.getAttribute('content') ?? null,
-        }))
+        .evaluate(
+          ([key, tag]) => ({
+            address: location.href,
+            state: document.readyState,
+            pending: sessionStorage.getItem(key),
+            application: document.documentElement.dataset.studioApp ?? null,
+            servedBy:
+              document
+                .querySelector(`meta[name="${tag}"]`)
+                ?.getAttribute('content') ?? null,
+          }),
+          [HANDOFF_KEY, IDENTITY_TAG] as const,
+        )
         .catch((failure: Error) => failure.message)
       throw new Error(
         `The change did not settle: ${JSON.stringify(seen)}\nThe dev server printed:\n${studio.log().slice(-8000)}`,
@@ -329,16 +333,27 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     )
   }
 
+  /** A creation still waiting for its answer, as a tab left it. */
   async function pending(page: Page, started: number) {
-    await page.addInitScript((started) => {
-      if (!sessionStorage.getItem('seeded')) {
-        sessionStorage.setItem('seeded', '1')
-        sessionStorage.setItem(
-          'design-studio:system-transition',
-          JSON.stringify({ operation: 'create', name: 'Slowpoke', started }),
-        )
-      }
-    }, started)
+    await page.addInitScript(
+      ([key, started]) => {
+        if (!sessionStorage.getItem('seeded')) {
+          sessionStorage.setItem('seeded', '1')
+          sessionStorage.setItem(
+            key,
+            JSON.stringify({
+              kind: 'system',
+              from: 'an-earlier-server',
+              title: 'Creating Slowpoke',
+              hold: true,
+              destination: true,
+              started,
+            }),
+          )
+        }
+      },
+      [HANDOFF_KEY, started] as const,
+    )
     await page.goto(`${studio.url}systems`)
   }
 
@@ -360,9 +375,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     await visible(page.getByRole('heading', { name: 'Systems', exact: true }))
     expect(await cover(page).count()).toBe(0)
     expect(
-      await page.evaluate(() =>
-        sessionStorage.getItem('design-studio:system-transition'),
-      ),
+      await page.evaluate((key) => sessionStorage.getItem(key), HANDOFF_KEY),
     ).toBeNull()
   })
 
@@ -373,7 +386,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     await visible(page.getByRole('heading', { name: 'Creating Slowpoke' }))
     expect(
       await page
-        .locator('[data-transition-spinner]')
+        .locator('#studio-restart .spinner')
         .evaluate((spinner) => getComputedStyle(spinner).animationName),
     ).toBe('none')
   })
@@ -382,20 +395,20 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     const page = await newPage()
     // A change the server running now has already applied, on a page that
     // got its document but not its modules, as between two servers.
-    await page.addInitScript(() => {
+    await page.addInitScript((key) => {
       if (!sessionStorage.getItem('seeded')) {
         sessionStorage.setItem('seeded', '1')
         sessionStorage.setItem(
-          'design-studio:system-transition',
+          key,
           JSON.stringify({
-            operation: 'default',
-            name: 'Harbor',
+            kind: 'system',
+            title: 'Making Harbor the default',
             started: Date.now(),
             from: 'an-earlier-server',
           }),
         )
       }
-    })
+    }, HANDOFF_KEY)
     let loads = 0
     await page.route(`${studio.url}**`, (route) => {
       const request = route.request()
@@ -660,12 +673,10 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
       `studioId: '${created}'`,
     )
     expect(config().systems).toContain('cove-works')
-    // Delivered once, past the moment it is kept for a last reload.
+    // Delivered once: the handoff is forgotten as the confirmation shows.
     await expect
       .poll(() =>
-        page.evaluate(() =>
-          sessionStorage.getItem('design-studio:system-toast'),
-        ),
+        page.evaluate((key) => sessionStorage.getItem(key), HANDOFF_KEY),
       )
       .toBeNull()
     await page.reload()

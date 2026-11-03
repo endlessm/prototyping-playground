@@ -1,6 +1,5 @@
 import { appHead } from '#build/nuxt.config.mjs'
 import { IDENTITY_TAG } from '../../tooling/restart/names'
-import { devServer } from '../../tooling/settings/restart'
 
 /**
  * The dev server whose code this application runs. Nuxt's configuration
@@ -12,9 +11,6 @@ export const appServer: string =
     (tag) => tag.name === IDENTITY_TAG,
   )?.content ?? ''
 
-// The application has started: a page waiting out a restart needn't load
-// again for want of one (`awaitApplication`).
+// Which server the application came from, for the browser scenarios to read.
 if (import.meta.client && appServer)
   document.documentElement.dataset.studioApp = appServer
-
-export const studioServer = devServer(IDENTITY_TAG, appServer)

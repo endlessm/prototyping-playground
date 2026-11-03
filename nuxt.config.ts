@@ -8,7 +8,6 @@ import { COLOR_MODE_KEY } from './tooling/preview/constants.ts'
 import { deploymentRecoveryScript } from './tooling/deployment-recovery.ts'
 import en from './i18n/locales/en.json'
 import { handoffScript } from './tooling/restart/handoff.ts'
-import { transitionScript } from './tooling/systems/transition.ts'
 
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
 const warning = nodeVersionWarning(process.version, pkg.engines.node)
@@ -214,26 +213,25 @@ export default defineNuxtConfig({
     app: {
       head: {
         script: [
-          // One script, before the application: the restart handoff, then a
-          // system change's status screen over it.
+          // One script, before the application: the restart handoff, which
+          // covers a restart and a system change alike.
           {
-            innerHTML:
-              handoffScript(
-                {
-                  restart: {
-                    applying: en.settings.applying,
-                    preparing: en.settings.preparing,
-                    fallback: en.settings.fallback,
-                    slow: en.settings.slow,
-                    reload: en.settings.reloadStudio,
-                  },
-                  system: {
-                    slow: en.systems.transition.slow,
-                    reload: en.systems.transition.reload,
-                  },
+            innerHTML: handoffScript(
+              {
+                restart: {
+                  applying: en.settings.applying,
+                  preparing: en.settings.preparing,
+                  fallback: en.settings.fallback,
+                  slow: en.settings.slow,
+                  reload: en.settings.reloadStudio,
                 },
-                baseURL,
-              ) + transitionScript(en.systems.transition, baseURL),
+                system: {
+                  slow: en.systems.transition.slow,
+                  reload: en.systems.transition.reload,
+                },
+              },
+              baseURL,
+            ),
             tagPosition: 'head',
             tagPriority: 'critical',
           },
