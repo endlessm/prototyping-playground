@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import types from '#studio/file-types'
+import tools from '#studio/artifact-tools'
 import type { Component } from 'vue'
 import AppFileBoundary from '../../../../app/components/AppFileBoundary.vue'
 import ArtifactUnavailable from '../components/ArtifactUnavailable.vue'
 import PrototypeViewer from '../components/PrototypeViewer.vue'
 import { findArtifact, usePrototype } from '../composables/usePrototype'
+import { provideArtifactSurface } from '../../../../app/composables/useArtifactSurface'
 
 // The page stays while the person moves between artifacts of a prototype.
 definePageMeta({ key: (route) => `prototype:${route.params.prototypeId}` })
@@ -35,6 +37,14 @@ const page = computed(() => {
   return pages.get(id)
 })
 
+// Modules' tools over the page, such as comments: only while the studio
+// runs locally (the build's list is empty), given the page's surface.
+const toolComponents = tools.map((tool) => ({
+  id: tool.id,
+  component: defineAsyncComponent(tool.component),
+}))
+const surface = provideArtifactSurface()
+
 const rendered = useTemplateRef<HTMLElement>('rendered')
 const { source, toggle } = useSourceMode(rendered)
 
@@ -59,7 +69,7 @@ useHead({
       ref="rendered"
       tabindex="-1"
       :inert="source || undefined"
-      class="h-full min-h-0 outline-none"
+      class="relative h-full min-h-0 outline-none"
     >
       <ArtifactUnavailable
         v-if="artifact?.unavailable"
@@ -77,6 +87,19 @@ useHead({
           :artifact="artifact"
         />
       </AppFileBoundary>
+      <!-- Gone while the source is open, so their shortcuts rest too. -->
+      <template
+        v-if="!source && prototype && artifact && !artifact.unavailable"
+      >
+        <component
+          :is="tool.component"
+          v-for="tool in toolComponents"
+          :key="tool.id"
+          :prototype="prototype"
+          :artifact="artifact"
+          :surface="surface"
+        />
+      </template>
     </div>
     <ArtifactSource
       v-if="ArtifactSource && source && prototype && artifact"

@@ -33,9 +33,19 @@ export interface Envelope {
 
 export type HostMessage = Envelope & { kind: 'configure' }
 
-/** The studio commands a preview passes on while it has focus. */
-export type PreviewShortcut = 'source' | 'grid' | 'palette' | 'navigation'
-const SHORTCUTS: PreviewShortcut[] = ['source', 'grid', 'palette', 'navigation']
+/**
+ * The studio commands a preview passes on while it has focus: the source,
+ * the grid, the palette, the section navigation, and comment mode.
+ */
+export type PreviewShortcut =
+  'source' | 'grid' | 'palette' | 'navigation' | 'comment'
+const SHORTCUTS: PreviewShortcut[] = [
+  'source',
+  'grid',
+  'palette',
+  'navigation',
+  'comment',
+]
 
 export type PreviewMessage = Envelope &
   (

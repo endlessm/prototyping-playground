@@ -55,3 +55,7 @@ A contributor authorized to manage the shared studio and its roles.
 
 **System maintainer**:
 A contributor authorized to maintain a particular system's code and guidance.
+
+**Comment**:
+A note a contributor pins to an artifact, or to a place in it, for colleagues and agents; a thread with replies, open or resolved.
+_Avoid_: annotation (the canvas README's word for text drawn on a board).

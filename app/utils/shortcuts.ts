@@ -5,14 +5,18 @@
 import type { PreviewShortcut } from '../../tooling/preview/protocol'
 
 export type StudioShortcut =
-  'palette' | 'navigation' | 'source' | 'grid' | 'save'
+  'palette' | 'navigation' | 'source' | 'grid' | 'save' | 'comment'
 
-const KEYS: Record<StudioShortcut, { shift?: boolean; key: string }> = {
+const KEYS: Record<
+  StudioShortcut,
+  { shift?: boolean; alt?: boolean; key: string }
+> = {
   palette: { key: 'K' },
   navigation: { key: ';' },
   source: { key: "'" },
   grid: { key: "'", shift: true },
   save: { key: 'S' },
+  comment: { key: 'M', alt: true },
 }
 
 export const isApple = (userAgent: string) =>
@@ -24,10 +28,10 @@ export const onApple = () =>
 
 /** "⌘K" on Apple computers, "Ctrl+K" elsewhere. */
 export function shortcutLabel(shortcut: StudioShortcut, apple = onApple()) {
-  const { key, shift } = KEYS[shortcut]
+  const { key, shift, alt } = KEYS[shortcut]
   return apple
-    ? `⌘${shift ? '⇧' : ''}${key}`
-    : `Ctrl+${shift ? 'Shift+' : ''}${key}`
+    ? `${alt ? '⌥' : ''}⌘${shift ? '⇧' : ''}${key}`
+    : `Ctrl+${alt ? 'Alt+' : ''}${shift ? 'Shift+' : ''}${key}`
 }
 
 type Target = {
@@ -99,8 +103,26 @@ export function paletteShortcut(event: Keystroke, open: boolean) {
   )
 }
 
+/**
+ * ⌥⌘M or Ctrl+Alt+M turns comment mode on and off. The key is matched by
+ * its position: Option turns M into µ on a Mac, and so does AltGr, which
+ * Windows reports as Ctrl+Alt, on layouts such as German. Callers ignore it
+ * while someone types in a text field outside the comment tool.
+ */
+export function commentShortcut(event: Keystroke) {
+  return (
+    (event.metaKey || event.ctrlKey) &&
+    event.altKey &&
+    !event.shiftKey &&
+    !event.repeat &&
+    !event.isComposing &&
+    (event.code === 'KeyM' || event.key.toLowerCase() === 'm')
+  )
+}
+
 /** The studio commands a preview document passes on to the studio. */
 export function previewShortcut(event: Keystroke): PreviewShortcut | null {
+  if (commentShortcut(event)) return 'comment'
   const artifact = artifactShortcut(event)
   if (artifact) return artifact
   if (!plainCommand(event) || event.shiftKey) return null

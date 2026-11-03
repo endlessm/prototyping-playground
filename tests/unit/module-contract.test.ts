@@ -217,6 +217,21 @@ describe('a module’s prototype actions', () => {
   })
 })
 
+describe('a module’s artifact tool', () => {
+  test('[CM-1] a module may draw a tool over artifact pages, from a .vue component of its own', () => {
+    expect(
+      moduleProblems(
+        { ...base, artifactTool: 'components/CommentTool.vue' },
+        'notes',
+      ),
+    ).toEqual([])
+    for (const artifactTool of ['components/tool.ts', true, ''])
+      expect(moduleProblems({ ...base, artifactTool }, 'notes')).toEqual([
+        'notes/module.ts: "artifactTool" names the .vue component drawn over artifact pages while the studio runs locally.',
+      ])
+  })
+})
+
 describe('a module’s local server handlers', () => {
   test('[SH-134] a module may answer requests on the local dev server, from .ts files of its own', () => {
     expect(

@@ -110,6 +110,23 @@ export default defineNuxtModule({
         ].join('\n'),
     })
     nuxt.options.alias['#studio/prototype-actions'] = actionsTemplate.dst
+    // Tools drawn over artifact pages, loaded with the page. Only the studio
+    // running locally has them: the build's list is empty, so none of their
+    // code or text reaches the deployed site.
+    const tools = nuxt.options.dev
+      ? enabled.flatMap(({ spec, dir }) =>
+          spec.artifactTool
+            ? [
+                `{ id: ${JSON.stringify(spec.id)}, component: () => import(${JSON.stringify(path.join(dir, spec.artifactTool).split(path.sep).join('/'))}) }`,
+              ]
+            : [],
+        )
+      : []
+    const toolsTemplate = addTemplate({
+      filename: 'studio-artifact-tools.mjs',
+      getContents: () => `export default [${tools.join(',\n')}]\n`,
+    })
+    nuxt.options.alias['#studio/artifact-tools'] = toolsTemplate.dst
     const template = addTemplate({
       filename: 'studio-modules.mjs',
       getContents: () => `export default ${JSON.stringify(client, null, 2)}\n`,
@@ -141,6 +158,16 @@ declare module '#studio/prototype-actions' {
   }) => { label: string; icon?: string; onSelect: () => unknown }[]
   const actions: PrototypeActions[]
   export default actions
+}
+declare module '#studio/artifact-tools' {
+  import type { Component } from 'vue'
+  /** A module's tool over artifact pages, only while the studio runs locally. */
+  export interface ArtifactTool {
+    id: string
+    component: () => Promise<{ default: Component }>
+  }
+  const tools: ArtifactTool[]
+  export default tools
 }
 declare module '#studio/home-blocks' {
   import type { Component } from 'vue'

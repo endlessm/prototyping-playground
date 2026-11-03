@@ -933,5 +933,39 @@
         "concept": "First concept"
       }
     }
+  },
+  "comments": {
+    "toolbar": {
+      "label": "Comment tools",
+      "comment": "Comment",
+      "hide": "Hide comments",
+      "show": "Show comments",
+      "all": "All comments",
+      "copy": "Copy for agent"
+    },
+    "hint": "Click anything to comment. Press {key} to stop.",
+    "composer": {
+      "title": "New comment",
+      "placeholder": "Add a comment",
+      "field": "Comment",
+      "enter": "Enter to post",
+      "cancel": "Cancel",
+      "post": "Comment"
+    },
+    "thread": {
+      "title": "Comment {number}",
+      "resolve": "Resolve",
+      "close": "Close",
+      "reply": "Reply",
+      "send": "Send reply",
+      "resolvedBy": "Resolved by {name}",
+      "notFound": "Target not found. It was removed or changed."
+    },
+    "pin": "Comment {number} by {name}: {preview}",
+    "agentName": "{name}’s agent",
+    "agentBadge": "Agent",
+    "someone": "Someone",
+    "resolved": "Comment resolved",
+    "failed": "The comment wasn’t saved"
   }
 }

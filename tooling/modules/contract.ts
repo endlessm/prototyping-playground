@@ -268,4 +268,13 @@ export interface StudioModule {
    * ModuleServerHandler. The deployed site has none.
    */
   server?: Record<string, string>
+  /**
+   * A browser component, relative to the module's folder, drawn over every
+   * artifact page while the studio runs locally, such as a comment tool. It
+   * gets `prototype`, `artifact` (the open artifact or named state) and
+   * `surface`, the page's ArtifactSurface (app/utils/artifactSurface.ts), or
+   * null when its page offers none. It is hidden while the page shows its
+   * source, and the deployed site gets none.
+   */
+  artifactTool?: string
 }

@@ -69,6 +69,7 @@ const KEYS = new Set([
   'preferences',
   'library',
   'server',
+  'artifactTool',
 ])
 const RAIL = new Set(['top', 'bottom', 'none'])
 
@@ -252,6 +253,14 @@ export function moduleProblems(spec: unknown, folderName: string): string[] {
   )
     problems.push(
       `${where}: "server" maps lowercase names to the .ts files that answer them on the local dev server.`,
+    )
+  if (
+    module.artifactTool !== undefined &&
+    (typeof module.artifactTool !== 'string' ||
+      !module.artifactTool.endsWith('.vue'))
+  )
+    problems.push(
+      `${where}: "artifactTool" names the .vue component drawn over artifact pages while the studio runs locally.`,
     )
   const data = module.data
   if (data !== undefined) {

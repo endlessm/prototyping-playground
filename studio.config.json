@@ -13,7 +13,8 @@
     "text": true,
     "view": true,
     "onboarding": true,
-    "contributors": true
+    "contributors": true,
+    "comments": true
   },
   "systems": [
     "endless-studios"

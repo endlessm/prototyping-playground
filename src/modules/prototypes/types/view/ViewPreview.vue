@@ -7,6 +7,8 @@ import type {
 import { usePreviewFrame } from '../../composables/usePreviewFrame'
 import ViewEmpty from './ViewEmpty.vue'
 import ViewError from './ViewError.vue'
+import { createViewSurface } from './viewSurface'
+import { useArtifactSurfaceProvider } from '../../../../../app/composables/useArtifactSurface'
 
 // A view renders in its system's preview document, a same-origin iframe
 // that holds only the system's app. The frame stays while the person moves
@@ -31,6 +33,7 @@ const SHORTCUT_KEYS = {
   navigation: { key: ';', code: 'Semicolon' },
   source: { key: "'", code: 'Quote' },
   grid: { key: '"', code: 'Quote', shiftKey: true },
+  comment: { key: 'm', code: 'KeyM', altKey: true },
 } satisfies Record<PreviewShortcut, KeyboardEventInit>
 
 const frame = useTemplateRef('frame')
@@ -68,6 +71,14 @@ const {
     }
   },
 })
+
+// Tools over the page, such as comments, read the document through this.
+const surface = computed(() =>
+  frame.value && boundary.value
+    ? createViewSurface(boundary.value, frame.value)
+    : null,
+)
+useArtifactSurfaceProvider(() => surface.value)
 
 const shortFile = computed(() => {
   const folder = props.prototype.folder

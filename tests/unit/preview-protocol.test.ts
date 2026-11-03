@@ -121,7 +121,7 @@ describe('the preview channel', () => {
     ).toBe(false)
   })
 
-  test('[PR-82] a preview asks the studio to navigate to one of its own addresses, or to run a shortcut', () => {
+  test('[PR-82] [CM-2] a preview asks the studio to navigate to one of its own addresses, or to run a shortcut, comment mode’s included', () => {
     const navigate = { ...envelope, kind: 'navigate', replace: false }
     expect(
       isPreviewMessage({
@@ -142,7 +142,7 @@ describe('the preview channel', () => {
     expect(isPreviewMessage({ ...navigate, href: '/', replace: 'yes' })).toBe(
       false,
     )
-    for (const action of ['palette', 'navigation', 'source', 'grid'])
+    for (const action of ['palette', 'navigation', 'source', 'grid', 'comment'])
       expect(isPreviewMessage({ ...envelope, kind: 'shortcut', action })).toBe(
         true,
       )

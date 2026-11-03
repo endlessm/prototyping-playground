@@ -23,6 +23,7 @@
     "new": "node tooling/studio/cli.ts new",
     "component-docs": "node tooling/studio/cli.ts component-docs",
     "canvas": "node src/modules/canvas/cli.ts",
+    "comments": "node src/modules/comments/cli.ts",
     "postinstall": "node tooling/check-node.ts && husky && nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
