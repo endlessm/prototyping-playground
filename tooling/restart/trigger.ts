@@ -6,7 +6,21 @@
 // folder without Nuxt (`./nuxt-module.ts` wires the real ones).
 import path from 'node:path'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import type {
+  IncomingHttpHeaders,
+  IncomingMessage,
+  ServerResponse,
+} from 'node:http'
 import { NO_RESTART_EVENT, RESTART_EVENT } from './names.ts'
+
+/** Only the studio's own pages may ask. */
+function sameOrigin(headers: IncomingHttpHeaders) {
+  const site = headers['sec-fetch-site']
+  if (site) return site === 'same-origin'
+  // Over plain http on a network address browsers leave it out.
+  const origin = headers.origin
+  return !origin || origin === `http://${headers.host}`
+}
 
 type FileEvent = 'add' | 'change' | 'unlink'
 const FILE_EVENTS: FileEvent[] = ['add', 'change', 'unlink']
@@ -86,6 +100,24 @@ export function restartTrigger(options: TriggerOptions) {
   options.watcher.add([configFile, systems])
   for (const event of FILE_EVENTS) options.watcher.on(event, changed)
   return {
+    /**
+     * The light check (`LIGHT_CHECK`): which dev server answers now, and
+     * nothing that depends on the configuration, so a broken configuration
+     * file can't hide the new server from a waiting page.
+     */
+    lightCheck(req: IncomingMessage, res: ServerResponse) {
+      res.setHeader('Cache-Control', 'no-store')
+      if (!sameOrigin(req.headers)) {
+        res.statusCode = 403
+        return res.end()
+      }
+      if (req.method !== 'GET') {
+        res.statusCode = 405
+        return res.end()
+      }
+      res.setHeader('Content-Type', 'application/json')
+      res.end(JSON.stringify({ instance: options.instance }))
+    },
     /** Stops listening, as the dev server closes. */
     close() {
       clock.clearTimeout(timer)

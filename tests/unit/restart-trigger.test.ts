@@ -4,11 +4,16 @@
 // watcher's events, the clock, the announcer and the restart are stand-ins,
 // so nothing restarts.
 import fs from 'node:fs'
+import http from 'node:http'
+import type { AddressInfo } from 'node:net'
 import os from 'node:os'
 import path from 'node:path'
 import { EventEmitter } from 'node:events'
 import { afterEach, beforeEach, expect, test } from 'vitest'
-import { restartTrigger } from '../../tooling/restart/trigger'
+import {
+  restartTrigger,
+  type TriggerOptions,
+} from '../../tooling/restart/trigger'
 import { NO_RESTART_EVENT, RESTART_EVENT } from '../../tooling/restart/names'
 
 let root: string
@@ -60,16 +65,17 @@ beforeEach(() => {
   clock = fakeClock()
   watcher = Object.assign(new EventEmitter(), { add: () => {} })
   happened = []
-  trigger = restartTrigger({
-    instance: 'A',
-    configFile: at('studio.config.json'),
-    systemsFolder: at('src/systems'),
-    marker: at('.studio-system-operation'),
-    watcher,
-    clock,
-    announce: (event, data) => happened.push(`${event} ${data.instance}`),
-    restart: () => happened.push('restart'),
-  })
+  trigger = restartTrigger(options())
+})
+const options = (): TriggerOptions => ({
+  instance: 'A',
+  configFile: at('studio.config.json'),
+  systemsFolder: at('src/systems'),
+  marker: at('.studio-system-operation'),
+  watcher,
+  clock,
+  announce: (event, data) => happened.push(`${event} ${data.instance}`),
+  restart: () => happened.push('restart'),
 })
 afterEach(() => {
   trigger.close()
@@ -147,4 +153,55 @@ test('[SH-119] [SY-25] files put back as the server found them announce that no 
   fs.rmSync(at('.studio-system-operation'))
   clock.advance(1000)
   expect(happened).toEqual([`${NO_RESTART_EVENT} A`, `${NO_RESTART_EVENT} A`])
+})
+
+/** Asks the trigger's light check over http, as a page would. */
+async function ask(headers: Record<string, string> = {}, method = 'GET') {
+  const server = http.createServer((req, res) => trigger.lightCheck(req, res))
+  await new Promise<void>((done) => server.listen(0, '127.0.0.1', done))
+  const { port } = server.address() as AddressInfo
+  try {
+    return await new Promise<{ status: number; body: string; cache: string }>(
+      (done, fail) => {
+        const request = http.request(
+          { host: '127.0.0.1', port, method, headers },
+          (response) => {
+            let body = ''
+            response.on('data', (chunk) => (body += chunk))
+            response.on('end', () =>
+              done({
+                status: response.statusCode ?? 0,
+                body,
+                cache: String(response.headers['cache-control']),
+              }),
+            )
+          },
+        )
+        request.on('error', fail)
+        request.end()
+      },
+    )
+  } finally {
+    server.close()
+  }
+}
+
+test('[SH-119] the light check names this server, even while the configuration is broken', async () => {
+  trigger.close()
+  write('studio.config.json', '{ "name": "Studio", ')
+  trigger = restartTrigger({ ...options(), instance: 'B' })
+  const answer = await ask({ 'sec-fetch-site': 'same-origin' })
+  expect(answer.status).toBe(200)
+  expect(JSON.parse(answer.body)).toEqual({ instance: 'B' })
+  expect(answer.cache).toBe('no-store')
+})
+
+test('[SH-119] the light check answers only the studio’s own pages', async () => {
+  expect((await ask({ 'sec-fetch-site': 'cross-site' })).status).toBe(403)
+  expect((await ask({ origin: 'http://elsewhere.test' })).status).toBe(403)
+  expect((await ask({ 'sec-fetch-site': 'same-origin' }, 'POST')).status).toBe(
+    405,
+  )
+  // Over plain http on a network address browsers leave the headers out.
+  expect((await ask()).status).toBe(200)
 })

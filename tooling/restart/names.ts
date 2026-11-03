@@ -19,9 +19,10 @@ export const IDENTITY_TAG = 'studio-instance'
 
 /**
  * The light check, under the studio's base: answers `{ instance }`, the dev
- * server answering now.
+ * server answering now, and nothing that depends on the configuration.
+ * Settings keeps its own address.
  */
-export const LIGHT_CHECK = '_studio/settings'
+export const LIGHT_CHECK = '_studio/server'
 
 /** Where a page keeps its restart handoff, for the application to drive. */
 export const HANDOFF_GLOBAL = '__studioRestartHandoff'
