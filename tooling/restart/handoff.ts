@@ -107,6 +107,11 @@ export function restartHandoff(
     document
       .querySelector(`meta[name="${setup.tag}"]`)
       ?.getAttribute('content') ?? ''
+  const parsed = () => document.readyState !== 'loading'
+  const whenParsed = (run: () => void) => {
+    if (parsed()) run()
+    else document.addEventListener('DOMContentLoaded', run)
+  }
 
   let screen:
     { say(words: string): void; offerReload(): void; lift(): void } | undefined
@@ -164,9 +169,7 @@ export function restartHandoff(
       cover.tabIndex = -1
       cover.focus()
     }
-    if (document.readyState === 'loading')
-      document.addEventListener('DOMContentLoaded', attach)
-    else attach()
+    whenParsed(attach)
     screen = {
       say: (words) => (description.textContent = words),
       offerReload: () => {
@@ -245,7 +248,8 @@ export function restartHandoff(
   // code both come from another server than the one it waits to leave.
   function settle() {
     const pending = read()
-    if (!pending || !application || leaving) return
+    // The identity tag comes after the head script: read once parsed.
+    if (!pending || !application || leaving || !parsed()) return
     const served = documentServer()
     if (
       !served ||
@@ -257,25 +261,34 @@ export function restartHandoff(
     finish(pending)
   }
 
-  // On every page load: a pending handoff covers the page at once. A page
-  // from the server the tab waits to leave loads again once another one
-  // answers.
+  // On every page load: a pending handoff covers the page at once. Once the
+  // document is parsed, a page from the server the tab waits to leave loads
+  // again once another one answers.
   const resumed = read()
   if (resumed) {
     show(resumed)
-    const served = documentServer()
-    if (!served || served === resumed.from) leave(resumed)
-    else {
-      // Between two servers a page can get its document from the new one and
-      // fail to get its code from either: once a script fails, or a minute
-      // goes by without the application, it loads again once a server
-      // answers.
-      const stalled = () => {
-        if (!application && read()) awaitServer(true)
-      }
-      env.onFailure(stalled)
-      timers.push(clock.setTimeout(stalled, 60_000))
+    // Between two servers a page can get its document from the new one and
+    // fail to get its code from either: once a script fails, or a minute
+    // goes by without the application, it loads again once a server
+    // answers. Listened for now: a module that fails to load says so before
+    // the document is parsed.
+    let arrived = false
+    let failed = false
+    const stalled = () => {
+      if (arrived && !application && read()) awaitServer(true)
     }
+    env.onFailure(() => {
+      failed = true
+      stalled()
+    })
+    whenParsed(() => {
+      const served = documentServer()
+      if (!served || served === resumed.from) return leave(resumed)
+      arrived = true
+      if (failed) stalled()
+      timers.push(clock.setTimeout(stalled, 60_000))
+      settle()
+    })
   }
 
   return {

@@ -2,6 +2,7 @@
 import { useEventListener } from '@vueuse/core'
 import AppNotFound from '../components/AppNotFound.vue'
 import SettingsDiscardModal from '../components/settings/SettingsDiscardModal.vue'
+import { restartHandoff } from '../utils/restartHandoff'
 
 interface SettingsData {
   config: Record<string, unknown>
@@ -123,7 +124,13 @@ async function save() {
       throw new Error(body.error)
     }
     restarting.value = true
-    sessionStorage.setItem('design-studio:settings-saved', '1')
+    // Covers the studio until it has restarted; "Settings saved" shows once,
+    // on the page where it finishes.
+    restartHandoff()?.start({
+      kind: 'restart',
+      from: body.instance,
+      confirmation: t('settings.saved'),
+    })
   } catch (error) {
     failure.value = (error as Error).message
   } finally {

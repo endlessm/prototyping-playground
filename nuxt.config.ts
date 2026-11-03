@@ -7,7 +7,7 @@ import { basePathFromEnv, publicUrlFromEnv } from './tooling/deployment.ts'
 import { COLOR_MODE_KEY } from './tooling/preview/constants.ts'
 import { deploymentRecoveryScript } from './tooling/deployment-recovery.ts'
 import en from './i18n/locales/en.json'
-import { restartScript } from './tooling/settings/restart.ts'
+import { handoffScript } from './tooling/restart/handoff.ts'
 import { transitionScript } from './tooling/systems/transition.ts'
 
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
@@ -214,17 +214,22 @@ export default defineNuxtConfig({
     app: {
       head: {
         script: [
+          // One script, before the application: the restart handoff, then a
+          // system change's status screen over it.
           {
-            innerHTML: restartScript(
-              { ...en.settings, reload: en.settings.reloadStudio },
-              baseURL,
-            ),
-            tagPosition: 'head',
-            tagPriority: 'critical',
-          },
-          // A system change's status screen, over the restart's cover.
-          {
-            innerHTML: transitionScript(en.systems.transition, baseURL),
+            innerHTML:
+              handoffScript(
+                {
+                  restart: {
+                    applying: en.settings.applying,
+                    preparing: en.settings.preparing,
+                    fallback: en.settings.fallback,
+                    slow: en.settings.slow,
+                    reload: en.settings.reloadStudio,
+                  },
+                },
+                baseURL,
+              ) + transitionScript(en.systems.transition, baseURL),
             tagPosition: 'head',
             tagPriority: 'critical',
           },

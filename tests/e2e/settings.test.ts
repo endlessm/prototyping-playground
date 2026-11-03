@@ -18,8 +18,11 @@ import {
 import type { Page } from 'playwright'
 import { useBrowser } from './setup/browser'
 import { startDevServer, type RunningStudio } from './setup/studio'
-import { restartScript } from '../../tooling/settings/restart'
-import en from '../../i18n/locales/en.json'
+import {
+  HANDOFF_KEY,
+  IDENTITY_TAG,
+  LIGHT_CHECK,
+} from '../../tooling/restart/names'
 
 const newPage = useBrowser()
 let page: Page
@@ -36,17 +39,18 @@ let configFile: string
 const servedBy = (page: Page) =>
   page
     .evaluate(
-      () =>
+      (tag) =>
         document
-          .querySelector('meta[name="studio-instance"]')
+          .querySelector(`meta[name="${tag}"]`)
           ?.getAttribute('content') ?? '',
+      IDENTITY_TAG,
     )
     .catch(() => '')
-/** The dev server that answers, as `_studio/settings` names it. */
+/** The dev server that answers, as the light check names it. */
 const instance = () =>
   new Promise<string>((resolve) => {
     // A connection of its own each time, so it can reach either server.
-    get(`${server.url}_studio/settings`, { agent: false }, (response) => {
+    get(`${server.url}${LIGHT_CHECK}`, { agent: false }, (response) => {
       let body = ''
       response.on('data', (chunk) => (body += chunk))
       response.on('end', () => {
@@ -61,16 +65,19 @@ const instance = () =>
 /** What the page shows of a restart, for a failure's report. */
 const seen = (page: Page) =>
   page
-    .evaluate(() => ({
-      address: location.href,
-      state: document.readyState,
-      cover: document.getElementById('studio-restart')?.textContent ?? null,
-      restart: sessionStorage.getItem('design-studio:restart'),
-      servedBy:
-        document
-          .querySelector('meta[name="studio-instance"]')
-          ?.getAttribute('content') ?? null,
-    }))
+    .evaluate(
+      ([tag, key]) => ({
+        address: location.href,
+        state: document.readyState,
+        cover: document.getElementById('studio-restart')?.textContent ?? null,
+        restart: sessionStorage.getItem(key),
+        servedBy:
+          document
+            .querySelector(`meta[name="${tag}"]`)
+            ?.getAttribute('content') ?? null,
+      }),
+      [IDENTITY_TAG, HANDOFF_KEY] as const,
+    )
     .catch((failure: Error) => failure.message)
 beforeAll(async () => {
   mkdirSync('.e2e', { recursive: true })
@@ -164,51 +171,6 @@ test('[SH-112] [SH-113] [SH-119] optional Manual toggles persist across restart 
 }, 360000)
 afterAll(async () => {
   await server?.stop()
-})
-
-// The cover shows in every open tab, also when a system change restarts the
-// studio, so its words fit any restart (Bernardo, 2026-10-31).
-test('[SH-120] [SH-121] early cover blocks interaction, says plainly that the studio is restarting, and offers 15 and 30 second fallbacks', async () => {
-  await page.goto(server.url)
-  await page.clock.install()
-  await page.route('**/_studio/settings', (route) =>
-    route.fulfill({ status: 503, json: {} }),
-  )
-  // The page of the server that is restarting.
-  await page.evaluate(
-    (instance) => sessionStorage.setItem('design-studio:restart', instance),
-    await servedBy(page),
-  )
-  await page.addScriptTag({
-    content: restartScript(
-      {
-        applying: en.settings.applying,
-        preparing: en.settings.preparing,
-        fallback: en.settings.fallback,
-        slow: en.settings.slow,
-        reload: en.settings.reloadStudio,
-      },
-      '/',
-    ),
-  })
-  const said = () => page.locator('#studio-restart p').textContent()
-  expect(
-    await page.getByText('Applying changes', { exact: true }).isVisible(),
-  ).toBe(true)
-  expect(await said()).toBe(
-    'The studio is restarting. This page will reload when it’s ready.',
-  )
-  await page.clock.runFor(15500)
-  expect(await said()).toBe(
-    'The studio has not finished restarting. Reload to check again.',
-  )
-  await page.clock.runFor(15000)
-  expect(await said()).toBe(
-    'This is taking longer than expected. Reload to check again.',
-  )
-  expect(
-    await page.getByRole('button', { name: 'Reload studio' }).isVisible(),
-  ).toBe(true)
 })
 
 test('[SH-104] [SH-107] [SH-108] [SH-109] [SH-111] [SH-112] [SH-113] [SH-115] [SH-116] [SH-118] settings editing, discard and leave guard', async () => {

@@ -65,8 +65,9 @@ function application(code: string | null, global: string) {
 
 function html(load: Load) {
   return `<!doctype html><html><head><meta charset="utf-8">
-<meta name="${IDENTITY_TAG}" content="${load.document}">
+<!-- As in the studio: the head script runs before the identity tag is parsed. -->
 <script>${SCRIPT}</script>
+<meta name="${IDENTITY_TAG}" content="${load.document}">
 </head><body>
 <div id="__nuxt"><h1>Studio</h1><button type="button">Studio button</button>
 <input aria-label="Studio name" value="Draft">

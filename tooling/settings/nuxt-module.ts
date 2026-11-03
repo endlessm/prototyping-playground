@@ -3,7 +3,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { addVitePlugin, defineNuxtModule } from 'nuxt/kit'
 import { systemsFolder } from '../systems/registry.ts'
 import { OPERATION_MARKER } from '../systems/lifecycle.ts'
-import { INSTANCE_META } from './restart.ts'
+import { IDENTITY_TAG, RESTART_EVENT } from '../restart/names.ts'
 import { settingsSnapshot, saveSettings } from './service.ts'
 
 export default defineNuxtModule({
@@ -18,7 +18,7 @@ export default defineNuxtModule({
     }
     const instance = crypto.randomUUID()
     nuxt.options.app.head.meta ??= []
-    nuxt.options.app.head.meta.push({ name: INSTANCE_META, content: instance })
+    nuxt.options.app.head.meta.push({ name: IDENTITY_TAG, content: instance })
     addVitePlugin(
       {
         name: 'studio-settings',
@@ -101,7 +101,7 @@ export default defineNuxtModule({
             if (snapshot() === started) return
             server.ws.send({
               type: 'custom',
-              event: 'studio:restarting',
+              event: RESTART_EVENT,
               data: { instance },
             })
             setTimeout(() => void nuxt.callHook('restart', { hard: true }), 200)
