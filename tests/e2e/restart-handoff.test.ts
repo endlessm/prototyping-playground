@@ -552,3 +552,76 @@ test('[SY-24] [SY-27] [SY-28] a creation keeps its page until it is answered, th
   expect(world.confirmations).toEqual(['Cove created'])
   expect(world.loads).toHaveLength(2)
 })
+
+test('a refused system change lifts its screen at once, without loading the page again or confirming anything', async () => {
+  expect(await reachable()).toEqual(['Studio button', 'Studio name'])
+  await start({ ...RENAMING, hold: true, destination: true })
+  world.answering = 'B'
+  await call('cancel')
+  await page.clock.runFor(1000)
+  expect(await page.getByRole('status').count()).toBe(0)
+  expect(await reachable()).toEqual(['Studio button', 'Studio name'])
+  await pass(5000)
+  expect(world.loads).toHaveLength(1)
+  expect(world.confirmations).toEqual([])
+})
+
+// The new server can serve the page while the code it runs still comes from
+// the outgoing one: finishing there would show the confirmation, then lose
+// it to Vite's next reload.
+test('[SY-45] [SY-59] a rename’s confirmation survives a page from the new server running the outgoing server’s code', async () => {
+  await start({
+    ...RENAMING,
+    confirmation: 'System renamed. References updated.',
+  })
+  world.answering = 'B'
+  world.next.push({ document: 'B', code: 'A' })
+  await until(() => world.loads.length === 2)
+  await page.clock.runFor(200)
+  expect(await heading().textContent()).toBe('Renaming Cove')
+  expect(world.confirmations).toEqual([])
+  await until(() => world.loads.length === 3)
+  await until(() =>
+    page
+      .getByRole('status')
+      .count()
+      .then((n) => n === 0),
+  )
+  expect(world.loads.at(-1)).toEqual({ document: 'B', code: 'B' })
+  expect(world.confirmations).toEqual(['System renamed. References updated.'])
+  await pass(5000)
+  expect(world.loads).toHaveLength(3)
+  expect(world.confirmations).toEqual(['System renamed. References updated.'])
+})
+
+test('[SY-55] [SY-57] a destination named when the change started is what the next page waits for', async () => {
+  await start({
+    kind: 'system',
+    from: 'A',
+    title: 'Deleting Cove',
+    destination: 'cove-id',
+    confirmation: 'System deleted',
+  })
+  world.answering = 'B'
+  await until(() => world.loads.length === 2)
+  const awaited = () =>
+    page.evaluate(
+      (global) =>
+        (window as unknown as Record<string, RestartHandoff>)[
+          global
+        ]!.destination(),
+      HANDOFF_GLOBAL,
+    )
+  expect(await awaited()).toBe('cove-id')
+  await page.clock.runFor(5000)
+  expect(await heading().textContent()).toBe('Deleting Cove')
+  await call('markReady')
+  await until(() =>
+    page
+      .getByRole('status')
+      .count()
+      .then((n) => n === 0),
+  )
+  expect(world.confirmations).toEqual(['System deleted'])
+  expect(await awaited()).toBeUndefined()
+})

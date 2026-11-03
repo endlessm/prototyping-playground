@@ -73,8 +73,12 @@ export interface StartHandoff {
   description?: string
   /** Shown once, on the page where the tab finishes. */
   confirmation?: string
-  /** Whether the tab waits for `markReady` before it finishes. */
-  destination?: boolean
+  /**
+   * Whether the tab waits for `markReady` before it finishes. A string
+   * also names what the destination waits for, such as a system's ID, for
+   * the page that loads to read with `destination()`.
+   */
+  destination?: boolean | string
   /**
    * Keeps this page, rather than loading it again, until `update` lifts
    * the hold: a request still in flight would be dropped, and with it what
@@ -118,6 +122,8 @@ export interface RestartHandoff {
   start(handoff: StartHandoff): void
   /** Changes the pending handoff's words, confirmation, destination or hold. */
   update(changes: Partial<Omit<StartHandoff, 'kind' | 'from'>>): void
+  /** What the pending handoff's destination waits for, as its caller named it. */
+  destination(): boolean | string | undefined
   /** The destination is ready, on this page. */
   markReady(): void
   /** Forgets the handoff and lifts its screen, without a confirmation. */
@@ -397,6 +403,7 @@ export function restartHandoff(
       write(pending)
       screen?.render(pending)
     },
+    destination: () => read()?.destination,
     markReady() {
       ready = true
       settle()
