@@ -5,6 +5,12 @@
 export const RESTART_EVENT = 'studio:restarting'
 
 /**
+ * The dev server's announcement that a change it heard of needs no restart
+ * after all: the files are back as it found them.
+ */
+export const NO_RESTART_EVENT = 'studio:not-restarting'
+
+/**
  * The meta tag naming the dev server that served a page. Nuxt's
  * configuration module carries it too, so the application can name the
  * server its code came from.
