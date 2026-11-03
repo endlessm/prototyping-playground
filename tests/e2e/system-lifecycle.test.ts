@@ -589,12 +589,8 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
         return route.continue()
       const response = await route.fetch().catch(() => undefined)
       if (!response) return route.abort('connectionrefused')
-      // Not kept: with the real module's ETag, the next load would get a 304
-      // and run this copy again.
-      const { etag: _etag, ...headers } = response.headers()
       await route.fulfill({
         response,
-        headers: { ...headers, 'cache-control': 'no-store' },
         body: (await response.text()).replaceAll(outgoing.next, before),
       })
     })
