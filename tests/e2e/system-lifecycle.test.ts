@@ -21,7 +21,14 @@ import {
 import { get } from 'node:http'
 import path from 'node:path'
 import type { Page } from 'playwright'
-import { afterAll, beforeAll, describe, expect, test } from 'vitest'
+import {
+  afterAll,
+  beforeAll,
+  describe,
+  expect,
+  onTestFailed,
+  test,
+} from 'vitest'
 import {
   applyPlan,
   planCreate,
@@ -159,6 +166,19 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
 
   async function open(address: string) {
     const page = await newPage()
+    // DIAGNOSTIC: every load and console message, printed if the test fails.
+    const trace: string[] = []
+    page.on('framenavigated', (frame) => {
+      if (frame === page.mainFrame())
+        trace.push(`${Date.now()} nav ${frame.url()}`)
+    })
+    page.on('console', (message) =>
+      trace.push(`${Date.now()} ${message.type()} ${message.text()}`),
+    )
+    page.on('pageerror', (error) =>
+      trace.push(`${Date.now()} pageerror ${error.message}`),
+    )
+    onTestFailed(() => console.log(`DIAGNOSTIC\n${trace.join('\n')}`))
     await page.goto(`${studio.url}${address}`)
     return page
   }
