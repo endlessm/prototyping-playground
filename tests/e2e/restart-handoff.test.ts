@@ -625,3 +625,22 @@ test('[SY-55] [SY-57] a destination named when the change started is what the ne
   expect(world.confirmations).toEqual(['System deleted'])
   expect(await awaited()).toBeUndefined()
 })
+
+test('a system change started without naming a server waits to leave the one its page came from', async () => {
+  await start({
+    kind: 'system',
+    title: 'Making Cove the default',
+    confirmation: 'Cove is now the default system.',
+  })
+  await pass(3000)
+  expect(world.loads).toHaveLength(1)
+  world.answering = 'B'
+  await until(() => world.loads.length === 2)
+  await until(() =>
+    page
+      .getByRole('status')
+      .count()
+      .then((n) => n === 0),
+  )
+  expect(world.confirmations).toEqual(['Cove is now the default system.'])
+})

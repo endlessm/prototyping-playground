@@ -66,8 +66,11 @@ export type HandoffKinds = Record<HandoffKind, HandoffKindSetup>
 
 export interface StartHandoff {
   kind: HandoffKind
-  /** The dev server the tab waits to leave. */
-  from: string
+  /**
+   * The dev server the tab waits to leave: by default, the one this page's
+   * code, or else its document, came from.
+   */
+  from?: string
   /** The screen's words; the kind's own when left out. */
   title?: string
   description?: string
@@ -88,6 +91,7 @@ export interface StartHandoff {
 }
 
 export interface PendingHandoff extends StartHandoff {
+  from: string
   started: number
   /** The colours captured when it started. */
   look?: Record<string, string>
@@ -385,13 +389,21 @@ export function restartHandoff(
   return {
     start(handoff) {
       const current = read()
+      const from = handoff.from || application?.codeServer || documentServer()
+      // One handoff per tab: a later start, such as the restart the dev
+      // server announces, keeps the pending one's kind, words and look.
       const pending: PendingHandoff = current
         ? {
             ...current,
-            from: handoff.from,
+            from,
             confirmation: handoff.confirmation ?? current.confirmation,
           }
-        : { ...handoff, started: clock.now(), look: capture(handoff.kind) }
+        : {
+            ...handoff,
+            from,
+            started: clock.now(),
+            look: capture(handoff.kind),
+          }
       write(pending)
       show(pending)
       leave()
