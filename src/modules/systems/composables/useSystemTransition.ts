@@ -1,6 +1,5 @@
-import { studioServer } from '../../../../tooling/settings/restart'
+import { studioServer } from '../../../../app/utils/studioServer'
 import {
-  restartedSince,
   TRANSITION_ELEMENT,
   TRANSITION_EVENT,
   TRANSITION_KEY,
@@ -92,9 +91,19 @@ export function useSystemTransition(
 ) {
   if (!import.meta.dev) return
   const toast = useStudioToast()
+  const base = useRuntimeConfig().app.baseURL
   function settle() {
     const pending = read()
-    if (!pending || !restartedSince(pending)) return
+    if (!pending) return
+    // An application from the server that took the request loads again once
+    // another one answers, also when the page itself came from the new one:
+    // on Linux its modules may still come from the outgoing server. A
+    // creation's tab waits for its answer first.
+    if (!studioServer.since(pending.from ?? '')) {
+      if (pending.from && (pending.operation !== 'create' || pending.studioId))
+        studioServer.reloadFrom(pending.from, base, () => Boolean(read()))
+      return
+    }
     const ids = systems()
     if (
       pending.operation === 'create' &&
@@ -111,12 +120,16 @@ export function useSystemTransition(
       return
     finishSystemTransition()
   }
+  let delivered = false
   function deliver() {
-    if (read()) return
+    if (read() || delivered) return
     const title = sessionStorage.getItem(TOAST_KEY)
     if (!title) return
-    sessionStorage.removeItem(TOAST_KEY)
+    delivered = true
     toast.success(title)
+    // Kept a moment: on Linux the page may load once more as the outgoing
+    // dev server goes, and the next page shows it then.
+    setTimeout(() => sessionStorage.removeItem(TOAST_KEY), 3000)
   }
   onMounted(() => {
     settle()

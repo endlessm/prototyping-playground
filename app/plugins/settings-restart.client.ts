@@ -1,4 +1,5 @@
-import { earlyRestart, studioServer } from '../../tooling/settings/restart'
+import { earlyRestart } from '../../tooling/settings/restart'
+import { studioServer } from '../utils/studioServer'
 export default defineNuxtPlugin(() => {
   if (!import.meta.dev) return
   const config = useRuntimeConfig()

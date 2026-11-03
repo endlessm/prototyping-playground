@@ -11,24 +11,30 @@ export const INSTANCE_META = 'studio-instance'
 // may still reach the old one; its page loads again, since after that
 // nothing else would. Self-contained: the scripts that run before the
 // application carry its source, and read the tag once the document is
-// parsed, as it comes after them.
-export function devServer(meta: string) {
+// parsed, as it comes after them. The application passes `own`, the instance
+// its modules name: on Linux a page from the new server may still run modules
+// from the outgoing one.
+export function devServer(meta: string, own = '') {
   const servedBy = () =>
-    document.querySelector(`meta[name="${meta}"]`)?.getAttribute('content') ??
-    ''
+    own ||
+    (document.querySelector(`meta[name="${meta}"]`)?.getAttribute('content') ??
+      '')
   return {
-    /** The instance of the dev server that served this page. */
+    /** The instance of the dev server that served this page, or its application. */
     servedBy,
     /** Whether this page came from another dev server than `from`. */
     since: (from: string) => Boolean(from && servedBy() && servedBy() !== from),
     /**
-     * Loads the page again once another dev server than `from` answers, as
-     * long as `waiting()` holds. Once per page, whoever asks first.
+     * Loads the page again once another dev server than `from` (any, when
+     * empty) answers twice in a row, as long as `waiting()` holds: on Linux
+     * a new server may itself restart right away. Once per page, whoever
+     * asks first.
      */
     reloadFrom(from: string, base: string, waiting: () => boolean) {
       const root = document.documentElement
       if (root.dataset.studioReloading) return
-      root.dataset.studioReloading = from
+      root.dataset.studioReloading = from || 'any'
+      let last = ''
       const timer = setInterval(async () => {
         if (!waiting()) {
           delete root.dataset.studioReloading
@@ -40,6 +46,10 @@ export function devServer(meta: string) {
           })
           const { instance } = await response.json()
           if (!response.ok || !instance || instance === from) return
+          if (instance !== last) {
+            last = instance
+            return
+          }
           clearInterval(timer)
           location.reload()
         } catch {
@@ -47,13 +57,35 @@ export function devServer(meta: string) {
         }
       }, 500)
     },
+    /**
+     * While `waiting()` holds, loads the page again if its application
+     * doesn't start: a module failed to load, or a minute went by. Between
+     * two servers a page can get its document from one and fail to get its
+     * modules from either, and nothing else would load it again.
+     */
+    awaitApplication(base: string, waiting: () => boolean) {
+      const root = document.documentElement
+      const stalled = () => waiting() && !root.dataset.studioApp
+      const failed = (event: Event) => {
+        if (
+          event.type === 'error' &&
+          event.target !== window &&
+          !(event.target instanceof HTMLScriptElement)
+        )
+          return
+        if (stalled()) this.reloadFrom('', base, stalled)
+      }
+      addEventListener('error', failed, true)
+      addEventListener('unhandledrejection', failed)
+      setTimeout(() => {
+        if (stalled()) this.reloadFrom('', base, stalled)
+      }, 60_000)
+    },
   }
 }
 export type DevServer = ReturnType<typeof devServer>
 
-/** This page's dev server, for the application. */
-export const studioServer = devServer(INSTANCE_META)
-/** The same, as source for the scripts that run before the application. */
+/** This page's dev server, as source for the scripts that run before the application. */
 export const studioServerSource = `(${devServer.toString()})(${JSON.stringify(INSTANCE_META)})`
 
 // Runs before the application: the cover survives a full Nuxt restart.
@@ -111,6 +143,9 @@ export function earlyRestart(
   button.hidden = true
   cover.append(spinner, title, description, button)
   const pending = () => Boolean(sessionStorage.getItem('design-studio:restart'))
+  // Now, before the application's modules: a failure to load them is
+  // reported before the document is parsed.
+  server.awaitApplication(base, pending)
   const attach = () => {
     if (!pending()) return
     for (const child of document.body.children)

@@ -10,11 +10,7 @@
 // one that took the request, the rule of every restart (see
 // `../settings/restart.ts`): a page from the server that took it waits for
 // the next one and loads again from it.
-import {
-  studioServer,
-  studioServerSource,
-  type DevServer,
-} from '../settings/restart.ts'
+import { studioServerSource, type DevServer } from '../settings/restart.ts'
 
 export const TRANSITION_KEY = 'design-studio:system-transition'
 export const TRANSITION_EVENT = 'studio:system-transition'
@@ -34,10 +30,6 @@ export interface PendingTransition {
   /** The instance of the dev server that took the request. */
   from?: string
 }
-
-/** Whether this page came from a dev server started since the change. */
-export const restartedSince = (pending: PendingTransition) =>
-  studioServer.since(pending.from ?? '')
 
 export interface TransitionText {
   titles: Record<TransitionOperation | 'opening', string>
@@ -152,6 +144,9 @@ export function systemTransition(
       Math.max(0, current.started + 30_000 - Date.now()),
     )
   }
+  // Now, before the application's modules: a failure to load them is
+  // reported before the document is parsed.
+  if (read()) server.awaitApplication(names.base, () => Boolean(read()))
   window.addEventListener(names.event, show)
   if (document.readyState === 'loading')
     document.addEventListener('DOMContentLoaded', show)

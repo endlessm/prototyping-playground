@@ -185,23 +185,36 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
   async function choose(page: Page, item: string) {
     await page.getByRole('menuitem', { name: item, exact: true }).click()
   }
-  /** Waits out the change's restart: the status screen comes and goes. */
-  async function settled(page: Page) {
+  /**
+   * Waits out the change's restart: the status screen comes and goes, and
+   * its `confirmation` shows. That one is looked for meanwhile: it lasts a
+   * few seconds, less than the outgoing server may take to go.
+   */
+  async function settled(page: Page, confirmation?: string) {
     // Read on a loaded page: mid-reload the screen isn't drawn yet.
     try {
       await expect
-        .poll(
-          () =>
-            page
-              .evaluate(
-                () =>
-                  document.readyState === 'complete' &&
-                  !document.getElementById('studio-system-transition') &&
-                  !sessionStorage.getItem('design-studio:system-transition'),
-              )
-              .catch(() => false),
-          RESTART,
-        )
+        .poll(async () => {
+          // A reload that met neither server shows the browser's error
+          // page, where nothing of the studio runs; a person reloads it.
+          if (page.url().startsWith('chrome-error:'))
+            await page.reload().catch(() => undefined)
+          const done = await page
+            .evaluate(
+              () =>
+                document.readyState === 'complete' &&
+                !document.getElementById('studio-system-transition') &&
+                !sessionStorage.getItem('design-studio:system-transition'),
+            )
+            .catch(() => false)
+          return (
+            done &&
+            (!confirmation ||
+              (await toast(page, confirmation)
+                .isVisible()
+                .catch(() => false)))
+          )
+        }, RESTART)
         .toBe(true)
     } catch (error) {
       // What the page shows, and what the dev server did meanwhile.
@@ -209,10 +222,9 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
         .evaluate(() => ({
           address: location.href,
           state: document.readyState,
-          screen:
-            document.getElementById('studio-system-transition')?.textContent ??
-            null,
           pending: sessionStorage.getItem('design-studio:system-transition'),
+          toast: sessionStorage.getItem('design-studio:system-toast'),
+          application: document.documentElement.dataset.studioApp ?? null,
           servedBy:
             document
               .querySelector('meta[name="studio-instance"]')
@@ -364,6 +376,41 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
         .locator('[data-transition-spinner]')
         .evaluate((spinner) => getComputedStyle(spinner).animationName),
     ).toBe('none')
+  })
+
+  test('[SY-24] a page whose application fails to load during the restart loads again by itself', async () => {
+    const page = await newPage()
+    // A change the server running now has already applied, on a page that
+    // got its document but not its modules, as between two servers.
+    await page.addInitScript(() => {
+      if (!sessionStorage.getItem('seeded')) {
+        sessionStorage.setItem('seeded', '1')
+        sessionStorage.setItem(
+          'design-studio:system-transition',
+          JSON.stringify({
+            operation: 'default',
+            name: 'Harbor',
+            started: Date.now(),
+            from: 'an-earlier-server',
+          }),
+        )
+      }
+    })
+    let loads = 0
+    await page.route(`${studio.url}**`, (route) => {
+      const request = route.request()
+      if (request.resourceType() === 'document') loads++
+      if (loads === 1 && request.resourceType() === 'script')
+        return route.abort('connectionrefused')
+      return route.continue()
+    })
+    const started = Date.now()
+    await page.goto(`${studio.url}systems`)
+    await settled(page)
+    expect(loads).toBeGreaterThanOrEqual(2)
+    await visible(page.getByRole('heading', { name: 'Systems', exact: true }))
+    // On the failure itself, not after the minute it otherwise waits.
+    expect(Date.now() - started).toBeLessThan(45_000)
   })
 
   test('[SY-43] Open in editor and Show in Explorer open the system’s folder', async () => {
@@ -553,16 +600,74 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     const name = dialog(page).getByRole('textbox', { name: 'Name' })
     await expect.poll(() => name.inputValue()).toBe('Cove')
     await name.fill('Cove Works')
+    // The restart as Linux can meet it: Nuxt starts the new server on the
+    // same port while the old one still answers, so a page from the new one
+    // may run modules from the outgoing one. Here, once the new server is
+    // up, Nuxt's configuration modules name the outgoing server until the
+    // page has loaded once after seeing the new one answer. The studio must
+    // load again until its application comes from the new one.
+    const before = await instance()
+    const outgoing = { seen: false, done: false, replaying: false, next: '' }
+    await page.context().grantPermissions(['local-network-access'])
+    await page.route(`${studio.url}**`, async (route) => {
+      const request = route.request()
+      if (request.url().endsWith('/_studio/settings')) {
+        if (request.method() !== 'GET') return route.continue()
+        const response = await route.fetch().catch(() => undefined)
+        if (!response) return route.abort('connectionrefused')
+        const answered = await response.json().catch(() => ({}))
+        if (
+          outgoing.replaying &&
+          ![before, undefined].includes(answered.instance)
+        )
+          outgoing.seen = true
+        return route.fulfill({ response })
+      }
+      if (request.resourceType() === 'document') {
+        outgoing.next = await instance()
+        if (outgoing.seen) outgoing.done = true
+        outgoing.replaying =
+          !outgoing.done && ![before, ''].includes(outgoing.next)
+      }
+      if (
+        !outgoing.replaying ||
+        !request.url().includes('/_nuxt/@id/virtual:nuxt:')
+      )
+        return route.continue()
+      const response = await route.fetch().catch(() => undefined)
+      if (!response) return route.abort('connectionrefused')
+      // Not kept: with the real module's ETag, the next load would get a 304
+      // and run this copy again.
+      const { etag: _etag, ...headers } = response.headers()
+      await route.fulfill({
+        response,
+        headers: { ...headers, 'cache-control': 'no-store' },
+        body: (await response.text()).replaceAll(outgoing.next, before),
+      })
+    })
     await button(dialog(page), 'Save').click()
-    await settled(page)
-    await visible(toast(page, 'System renamed. References updated.'))
+    await settled(page, 'System renamed. References updated.')
+    // The studio settled on the new server's application. Settling on the
+    // outgoing one's would show the confirmation on a page that loads again,
+    // and lose it.
+    expect(
+      await page.evaluate(() => document.documentElement.dataset.studioApp),
+    ).toBe(await instance())
+    await page.unrouteAll({ behavior: 'ignoreErrors' })
     expect(new URL(page.url()).pathname).toBe(`/systems/${created}`)
     expect(existsSync(systemsAt('cove'))).toBe(false)
     expect(readFileSync(systemsAt('cove-works/system.ts'), 'utf8')).toContain(
       `studioId: '${created}'`,
     )
     expect(config().systems).toContain('cove-works')
-    // Delivered once.
+    // Delivered once, past the moment it is kept for a last reload.
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          sessionStorage.getItem('design-studio:system-toast'),
+        ),
+      )
+      .toBeNull()
     await page.reload()
     await visible(
       page.getByRole('heading', { name: 'Cove Works', exact: true }),
@@ -577,8 +682,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     const page = await open(`systems/${created}`)
     await menuOf(page, 'Cove Works')
     await choose(page, 'Set as default')
-    await settled(page)
-    await visible(toast(page, 'Cove Works is now the default system.'))
+    await settled(page, 'Cove Works is now the default system.')
     expect(new URL(page.url()).pathname).toBe(`/systems/${created}`)
     expect(config().defaultSystem).toBe(created)
     await menuOf(page, 'Cove Works')
@@ -627,8 +731,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     const confirm = button(dialog(page), 'Archive system')
     await expect.poll(() => confirm.isEnabled(), { timeout: 30_000 }).toBe(true)
     await confirm.click()
-    await settled(page)
-    await visible(toast(page, 'System and associated prototypes archived.'))
+    await settled(page, 'System and associated prototypes archived.')
     expect(new URL(page.url()).pathname).toBe('/systems')
     expect(meta()).toMatchObject({
       status: 'archived',
@@ -675,8 +778,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     const both = button(dialog(page), 'Restore system and prototypes')
     await expect.poll(() => both.isEnabled(), { timeout: 30_000 }).toBe(true)
     await both.click()
-    await settled(page)
-    await visible(toast(page, 'System restored.'))
+    await settled(page, 'System restored.')
     expect(meta().status).toBeUndefined()
     // Restoring never changes the default.
     expect(config().defaultSystem).toBe(defaultSystem)
@@ -730,10 +832,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     await expect.poll(() => confirm.isEnabled(), { timeout: 30_000 }).toBe(true)
     await confirm.click()
     await visible(page.getByRole('heading', { name: 'Deleting Lantern' }))
-    await settled(page)
-    await visible(
-      toast(page, 'System deleted. Associated prototypes need a rebuild.'),
-    )
+    await settled(page, 'System deleted. Associated prototypes need a rebuild.')
     expect(new URL(page.url()).pathname).toBe('/systems')
     expect(existsSync(systemsAt('lantern'))).toBe(false)
     expect(config().systems).not.toContain('lantern')
