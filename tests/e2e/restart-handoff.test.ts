@@ -322,7 +322,10 @@ test('[SH-120] with reduced motion the spinner and the fade stop', async () => {
 })
 
 /** Calls the handoff's interface on the page. */
-function call(method: 'update' | 'markReady' | 'cancel', ...args: unknown[]) {
+function call(
+  method: 'update' | 'markReady' | 'cancel' | 'notRestarting',
+  ...args: unknown[]
+) {
   return page.evaluate(
     ([global, method, args]) =>
       (
@@ -643,4 +646,34 @@ test('a system change started without naming a server waits to leave the one its
       .then((n) => n === 0),
   )
   expect(world.confirmations).toEqual(['Cove is now the default system.'])
+})
+
+// A change can end up needing no restart: the files are back as the server
+// found them. Waiting for the fallback would leave the tab covered for
+// nothing.
+test('[SH-122] [SY-25] when the server the tab waits to leave announces no restart, the tab finishes there without reloading', async () => {
+  await start({ kind: 'restart', from: 'A', confirmation: 'Settings saved' })
+  await page.clock.runFor(1000)
+  // Another server's announcement isn't this tab's.
+  await call('notRestarting', 'B')
+  await page.clock.runFor(1000)
+  expect(await covered()).toBe(true)
+  await call('notRestarting', 'A')
+  await until(settled)
+  expect(world.confirmations).toEqual(['Settings saved'])
+  await page.clock.runFor(20_000)
+  expect(world.loads).toHaveLength(1)
+  expect(await reachable()).toEqual(['Studio button', 'Studio name'])
+})
+
+test('[SH-122] a handoff with a destination that hears no restart is coming finishes once the destination is ready', async () => {
+  await start({ kind: 'restart', from: 'A', destination: true })
+  await call('update', { confirmation: 'Settings saved' })
+  await call('notRestarting', 'A')
+  await page.clock.runFor(1000)
+  expect(await covered()).toBe(true)
+  await call('markReady')
+  await until(settled)
+  expect(world.confirmations).toEqual(['Settings saved'])
+  expect(world.loads).toHaveLength(1)
 })

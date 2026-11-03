@@ -28,7 +28,11 @@ import {
   planLifecycle,
   type LifecycleOptions,
 } from '../../tooling/systems/lifecycle'
-import { HANDOFF_KEY, IDENTITY_TAG } from '../../tooling/restart/names'
+import {
+  HANDOFF_KEY,
+  IDENTITY_TAG,
+  LIGHT_CHECK,
+} from '../../tooling/restart/names'
 import { useBrowser } from './setup/browser'
 import { startDevServer, type RunningStudio } from './setup/studio'
 
@@ -253,11 +257,11 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     )
   }
 
-  /** The dev server that answers, as `_studio/settings` names it. */
+  /** The dev server that answers, as the light check names it. */
   const instance = () =>
     new Promise<string>((resolve) => {
       // A connection of its own each time, so it can reach either server.
-      get(`${studio.url}_studio/settings`, { agent: false }, (response) => {
+      get(`${studio.url}${LIGHT_CHECK}`, { agent: false }, (response) => {
         let body = ''
         response.on('data', (chunk) => (body += chunk))
         response.on('end', () => {
@@ -624,7 +628,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     await page.context().grantPermissions(['local-network-access'])
     await page.route(`${studio.url}**`, async (route) => {
       const request = route.request()
-      if (request.url().endsWith('/_studio/settings')) {
+      if (request.url().endsWith(`/${LIGHT_CHECK}`)) {
         if (request.method() !== 'GET') return route.continue()
         const response = await route.fetch().catch(() => undefined)
         if (!response) return route.abort('connectionrefused')

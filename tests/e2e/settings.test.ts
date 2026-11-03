@@ -340,7 +340,7 @@ test('[SH-119] [SH-120] [SH-121] [SH-122] [CL-59] save and manual edits restart 
   await page.context().grantPermissions(['local-network-access'])
   await page.route(`${server.url}**`, async (route) => {
     const request = route.request()
-    if (request.url().endsWith('/_studio/settings')) {
+    if (request.url().endsWith(`/${LIGHT_CHECK}`)) {
       if (request.method() !== 'GET') return route.continue()
       // Between servers nothing answers, as the page would find.
       const response = await route.fetch().catch(() => undefined)
