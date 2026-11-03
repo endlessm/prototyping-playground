@@ -315,7 +315,12 @@ export function restartHandoff(
   // On every page load: a pending handoff covers the page at once. Once the
   // document is parsed, a page from the server the tab waits to leave loads
   // again once another one answers.
-  const resumed = read()
+  const found = read()
+  // A stale handoff never covers a later visit.
+  const expires = found && setup.kinds[found.kind]?.expires
+  const stale = Boolean(expires && clock.now() - found!.started > expires)
+  if (stale) storage.removeItem(setup.key)
+  const resumed = stale ? null : found
   if (resumed) {
     show(resumed)
     // Between two servers a page can get its document from the new one and

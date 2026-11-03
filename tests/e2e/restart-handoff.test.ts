@@ -407,6 +407,7 @@ const RENAMING = {
   description: en.systems.transition.descriptions.rename,
 }
 const heading = () => page.getByRole('status').getByRole('heading')
+const screenUp = () => page.getByRole('status').isVisible()
 
 test('[SY-25] a system change’s screen reads as its caller says, and offers Reload studio after 30 seconds without repeating the request', async () => {
   world.answering = ''
@@ -424,4 +425,33 @@ test('[SY-25] a system change’s screen reads as its caller says, and offers Re
   )
   expect(await reload.isVisible()).toBe(true)
   expect(await page.getByRole('status').count()).toBe(1)
+})
+
+test('[SY-25] a system change’s 30 seconds count from its start, across reloads', async () => {
+  world.answering = ''
+  await start(RENAMING)
+  await page.clock.runFor(20_000)
+  await page.reload()
+  expect(await heading().textContent()).toBe('Renaming Cove')
+  expect(await said()).toBe('Updating its folder, references and the studio.')
+  await page.clock.runFor(10_500)
+  expect(await said()).toBe(
+    'This is taking longer than expected. Reload to check the studio. Your request will not be repeated.',
+  )
+})
+
+test('[SY-25] a system change’s screen older than 2 minutes is forgotten', async () => {
+  world.answering = ''
+  await start(RENAMING)
+  await page.clock.runFor(119_000)
+  await page.reload()
+  expect(await screenUp()).toBe(true)
+  await page.clock.runFor(2000)
+  await page.reload()
+  await page.clock.runFor(1000)
+  expect(await screenUp()).toBe(false)
+  expect(await reachable()).toEqual(['Studio button', 'Studio name'])
+  // Forgotten, not only hidden.
+  await page.reload()
+  expect(await screenUp()).toBe(false)
 })
