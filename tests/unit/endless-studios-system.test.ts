@@ -58,7 +58,7 @@ describe('the declaration', () => {
     )
   })
 
-  test('[SY-161] the libraries are Vue, Nuxt UI with its Button and Card pages, and Lucide icons, each with a version and docs', () => {
+  test('[SY-161] the libraries are Vue, Nuxt UI with its component pages, and Lucide icons, each with a version and docs', () => {
     const libraries = catalog.libraries.map(
       ({ id, label, components, assets, version, docs, description }) => ({
         id,
@@ -75,7 +75,16 @@ describe('the declaration', () => {
       {
         id: 'nuxt-ui',
         label: 'Nuxt UI',
-        components: ['button', 'card'],
+        components: [
+          'button',
+          'card',
+          'badge',
+          'alert',
+          'container',
+          'navigation-menu',
+          'breadcrumb',
+          'carousel',
+        ],
         version: true,
         docs: true,
       },

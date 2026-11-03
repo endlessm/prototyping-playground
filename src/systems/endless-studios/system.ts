@@ -28,7 +28,7 @@ export default {
       package: '@nuxt/ui',
       description: 'The Endless Studios frontend component library, with its app.config customization',
       docs: 'https://ui.nuxt.com/docs/getting-started/installation/vue',
-      components: ['button', 'card'],
+      components: ['button', 'card', 'badge', 'alert', 'container', 'navigation-menu', 'breadcrumb', 'carousel'],
     },
     {
       kind: 'package',
