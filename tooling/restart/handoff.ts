@@ -52,6 +52,11 @@ export interface HandoffKindSetup {
   fromStart: boolean
   /** A pending handoff older than this is forgotten. */
   expires?: number
+  /**
+   * The studio's custom properties its screen takes its colours from, by
+   * name, as they were when the handoff started: `--handoff-<name>`.
+   */
+  colours?: Record<string, string>
   reload: string
   /** The screen's CSS. */
   css: string
@@ -74,6 +79,8 @@ export interface StartHandoff {
 
 export interface PendingHandoff extends StartHandoff {
   started: number
+  /** The colours captured when it started. */
+  look?: Record<string, string>
 }
 
 /** The browser, as the handoff uses it; the replay passes the real one. */
@@ -159,6 +166,19 @@ export function restartHandoff(
   // Whether this page's destination is ready: each page shows its own.
   let ready = false
 
+  // The studio's colours now, for a kind that keeps them.
+  function capture(kind: HandoffKind) {
+    const colours = setup.kinds[kind]?.colours
+    if (!colours) return undefined
+    const style = document.defaultView!.getComputedStyle(
+      document.documentElement,
+    )
+    const look: Record<string, string> = {}
+    for (const [name, property] of Object.entries(colours))
+      look[name] = style.getPropertyValue(property).trim()
+    return look
+  }
+
   // One screen, whatever the kind: the kind's data says how it reads, looks
   // and waits.
   function show(pending: PendingHandoff) {
@@ -184,6 +204,8 @@ export function restartHandoff(
     button.hidden = true
     card.append(spinner, title, description, button)
     cover.append(card)
+    for (const [name, value] of Object.entries(pending.look ?? {}))
+      if (value) cover.style.setProperty(`--handoff-${name}`, value)
     // Once said, the later words stay, whatever the caller says next.
     let late = ''
     const render = (current: PendingHandoff) => {
@@ -356,7 +378,7 @@ export function restartHandoff(
             from: handoff.from,
             confirmation: handoff.confirmation ?? current.confirmation,
           }
-        : { ...handoff, started: clock.now() }
+        : { ...handoff, started: clock.now(), look: capture(handoff.kind) }
       write(pending)
       show(pending)
       leave()
@@ -448,6 +470,12 @@ export function handoffKinds(text: HandoffText): HandoffKinds {
       later: [{ after: 30_000, words: text.system.slow }],
       fromStart: true,
       expires: 120_000,
+      colours: {
+        background: '--ui-bg',
+        foreground: '--ui-text-highlighted',
+        muted: '--ui-text-muted',
+        border: '--ui-border',
+      },
       reload: text.system.reload,
       css: SYSTEM_CSS,
     },

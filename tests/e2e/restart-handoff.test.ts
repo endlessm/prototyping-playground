@@ -455,3 +455,29 @@ test('[SY-25] a system change’s screen older than 2 minutes is forgotten', asy
   await page.reload()
   expect(await screenUp()).toBe(false)
 })
+
+test('a system change’s screen keeps the studio’s colours as they were when it started, across reloads', async () => {
+  const paint = (background: string, foreground: string) =>
+    page.evaluate(
+      ([background, foreground]) => {
+        const root = document.documentElement.style
+        root.setProperty('--ui-bg', background)
+        root.setProperty('--ui-text-highlighted', foreground)
+      },
+      [background, foreground] as const,
+    )
+  const colours = () =>
+    page.getByRole('status').evaluate((screen) => {
+      const style = getComputedStyle(screen)
+      return [style.backgroundColor, style.color]
+    })
+  world.answering = ''
+  await paint('rgb(10, 20, 30)', 'rgb(200, 210, 220)')
+  await start(RENAMING)
+  expect(await colours()).toEqual(['rgb(10, 20, 30)', 'rgb(200, 210, 220)'])
+  // The theme the page changes to meanwhile doesn't reach the screen.
+  await paint('rgb(255, 255, 255)', 'rgb(0, 0, 0)')
+  expect(await colours()).toEqual(['rgb(10, 20, 30)', 'rgb(200, 210, 220)'])
+  await page.reload()
+  expect(await colours()).toEqual(['rgb(10, 20, 30)', 'rgb(200, 210, 220)'])
+})
