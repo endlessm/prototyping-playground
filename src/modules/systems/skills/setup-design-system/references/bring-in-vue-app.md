@@ -18,4 +18,4 @@ How Endless Studios was brought in (`src/systems/endless-studios/`): the app's o
 
 ## Check
 
-Render a representative screen in a prototype, in each declared colour mode, and compare it with the source app. Check the console for stand-in gaps.
+Render a representative screen in a prototype (previews are light only) and compare it with the source app in light. Check the console for stand-in gaps.

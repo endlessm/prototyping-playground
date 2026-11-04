@@ -286,6 +286,14 @@ describe('the studio frame on the dev server', () => {
         page.evaluate(() => localStorage.getItem('design-studio:color-mode')),
       )
       .toBeNull()
+    // Nothing keeps a color mode in this browser any more, under any key.
+    expect(
+      await page.evaluate(() =>
+        [...Object.keys(localStorage), ...Object.keys(sessionStorage)].filter(
+          (key) => /color-mode|light-only/.test(key),
+        ),
+      ),
+    ).toEqual([])
   })
 
   test('[SH-50] shortcut labels show ⌘ on Apple computers', async () => {

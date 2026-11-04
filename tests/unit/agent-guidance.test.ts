@@ -96,7 +96,7 @@ describe('platform skills', () => {
       'check-design-system',
       'Studio UI, prototype or system preview',
       'Inspect source and capture rendered evidence',
-      'light/dark modes',
+      'states and viewport sizes',
       '`yarn check`',
       'stable IDs',
       'Report findings for human review before applying fixes',
@@ -196,7 +196,7 @@ describe('shared context documents', () => {
       'diagrams',
       'Mermaid fence',
       'accTitle and accDescr',
-      'light and dark modes',
+      "legible in the studio's light colours",
       "use the shared renderer's theme",
     )
   })

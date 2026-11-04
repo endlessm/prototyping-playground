@@ -10,7 +10,7 @@ A `.mermaid` or `.mmd` file in a prototype is a diagram: one plain Mermaid diagr
 
 ## How a diagram draws
 
-The shared renderer (`app/utils/mermaid.ts`, `app/components/MermaidDiagram.vue`) draws Mermaid with its `strict` security level (labels can't hold working HTML, and `click` links to scripts do nothing), its `base` theme and colours read from the studio's Nuxt UI variables and accent palette (`app/utils/contentPalette.ts`) for the current colour mode, in the studio's font. Mermaid's configuration is global, so renders take turns. A diagram draws again when the colour mode changes and, locally, when a stylesheet changes.
+The shared renderer (`app/utils/mermaid.ts`, `app/components/MermaidDiagram.vue`) draws Mermaid with its `strict` security level (labels can't hold working HTML, and `click` links to scripts do nothing), its `base` theme and colours read from the studio's Nuxt UI variables and accent palette (`app/utils/contentPalette.ts`) in their light values, in the studio's font. Mermaid's configuration is global, so renders take turns. Locally, a diagram draws again when a stylesheet changes.
 
 | State                                                                          | When                                                                                 |
 | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
