@@ -3,14 +3,20 @@ import type {
   ManifestArtifact,
   ManifestPrototype,
 } from '../../../../app/composables/useManifest'
+import { useArtifactSurfaceProvider } from '../../../../app/composables/useArtifactSurface'
 import { useCanvasAgent } from '../composables/useCanvasAgent'
 import { useCanvasFile } from '../composables/useCanvasFile'
 import { useCanvasItems } from '../composables/useCanvasItems'
 import { useCanvasOpening } from '../composables/useCanvasOpening'
 import type { CanvasEditorProps, CanvasHandle } from '../island/mount'
-import { parseCanvas, type ParsedCanvas } from '../types/canvas/format'
+import {
+  itemAddress,
+  parseCanvas,
+  type ParsedCanvas,
+} from '../types/canvas/format'
 import { cameraKey } from '../utils/camera'
 import { readCanvas, type CanvasText } from '../utils/readCanvas'
+import { createCanvasSurface } from '../utils/canvasSurface'
 import CanvasError from './CanvasError.vue'
 import CanvasItem from './CanvasItem.vue'
 import CanvasOpening from './CanvasOpening.vue'
@@ -75,6 +81,26 @@ const { revealed, statusVisible } = useCanvasOpening(
   computed(() => Boolean(handle.value)),
   () => handle.value?.openingEmbeds() ?? [],
 )
+
+// Tools drawn over the page (comments) point at the scene through the same
+// Excalidraw handle the agent tools use, read-only canvases included. They
+// keep clear of the save status and Excalidraw's footer at the bottom.
+const CONTROLS_HEIGHT = 40
+const surface = computed(() =>
+  handle.value && container.value
+    ? createCanvasSurface({
+        element: container.value,
+        api: handle.value.api,
+        address: (link) => itemAddress(link, location.origin, base),
+        title: (link) => {
+          const found = resolve(link)
+          return found.state === 'resolved' ? found.artifact.title : undefined
+        },
+        bottomInset: CONTROLS_HEIGHT,
+      })
+    : null,
+)
+useArtifactSurfaceProvider(() => surface.value)
 
 const message = (error: unknown) =>
   error instanceof Error ? error.message : String(error)

@@ -300,8 +300,9 @@ describe('the canvas tools in the open canvas', () => {
     )
     expect(text).toBeGreaterThan(80)
     // One undo takes the whole call away.
+    // An empty spot, clear of the Library button and the comment toolbar.
     const box = (await canvas(page).boundingBox())!
-    await page.mouse.click(box.x + box.width - 40, box.y + box.height - 80)
+    await page.mouse.click(box.x + box.width - 40, box.y + 120)
     await page.keyboard.press('Control+z')
     await expect
       .poll(

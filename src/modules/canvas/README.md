@@ -95,6 +95,17 @@ The tools: `describe` (each element's kind, place, size, text, colours, style, s
 
 The [use-canvas](skills/use-canvas/SKILL.md) skill tells agents how to use them.
 
+## The surface
+
+The page offers tools drawn over it (such as comments) an [artifact surface](../../../app/utils/artifactSurface.ts) through `useArtifactSurfaceProvider`, read-only canvases included. It knows nothing about comments and works through the Excalidraw handle the agent tools use (`utils/canvasSurface.ts`, created in `CanvasScene.vue` once the editor is ready). It never changes the scene or the file; revealing a target moves only the camera.
+
+- **Targets.** A point is over the topmost element whose box it is in (a line or an arrow within 6 px of its stroke; rotation counted), text written on a shape or an arrow counting as that shape or arrow, and over a section only when nothing else is there. Its anchor records `element`, the Excalidraw ID, `kind` (`item`, `note`, `shape`, `arrow`, `line`, `text`, `section`, `drawing`, `image` or `embed`), `text` (its own or its label's, whitespace squashed) and `at`, fractions of the element's own box before rotation. An item adds `item`, the address of the artifact it shows, and its `text` is that artifact's title. The label names the kind and the text, clipped to 40 characters: `Sticky note "Ask eng about the empty state"`, `Item "Board"`, `Rectangle`, `Arrow`, `Text "Review board"`. A sticky note is a rectangle with a note's fill and edge, as the agent tools tell them apart. Anywhere else is an empty spot, `{ kind: 'spot', label: 'Empty spot' }` with `point` in scene coordinates.
+- **Finding a target again:** by element ID only, in the scene on screen, so an element moved by the person, by an agent's tool or by a change to the file keeps its comment, and a deleted one is "Target not found" until it comes back. A spot is always there.
+- **Where things are.** Positions come from the scene and the camera (scroll and zoom) over Excalidraw's own box in the window. The surface listens to the handle's `onChange` and `onScrollChange` while a tool listens and tells it once, right after the update that draws the change, so pins follow panning, zooming and moved elements in the same frame, without sampling.
+- **Revealing** an element scrolls it into view (`scrollToContent`, animated, keeping the zoom); a spot is centred.
+- **Taking the pointer.** Capture listeners on the canvas's element stop every press, click, double-click, context menu and pointer move before Excalidraw or an item hears it, previews' frames stop taking the pointer and the cursor is a crosshair; Esc pressed while the canvas has focus goes to the tool, not Excalidraw. The wheel passes through, so trackpad scrolling still pans and ⌘/Ctrl + wheel and pinch still zoom. A two-finger pinch on a touch screen starts with a press, so it doesn't zoom in comment mode.
+- **Room for the canvas's controls.** `bottomInset` (40 px) asks tools to sit above the save status and Excalidraw's footer.
+
 ## Remove it
 
 Preview `yarn studio remove canvas` and apply it with `--yes`. Canvas files stay in prototypes. The `@excalidraw/excalidraw`, `react` and `react-dom` dependencies, the patch and the `optimizeDeps` entries need separate cleanup.

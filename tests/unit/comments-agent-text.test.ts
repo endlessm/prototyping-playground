@@ -352,6 +352,88 @@ Mermaid ID: start --> age
 `)
   })
 
+  test('[CM-47] a canvas names the Excalidraw ID, the linked artifact and an empty spot’s point', () => {
+    const note = thread(
+      'c4n0000000000001',
+      {
+        kind: 'note',
+        label: 'Sticky note "Ask eng about the empty state"',
+        at: { x: 0.5, y: 0.5 },
+        element: 'note',
+        text: 'Ask eng about the empty state',
+      },
+      [[{ contributor: ADA }, 'Who answers this?']],
+    )
+    const item = thread(
+      'c4n0000000000002',
+      {
+        kind: 'item',
+        label: 'Item "Board"',
+        at: { x: 0.5, y: 0.5 },
+        element: 'item',
+        item: '/prototypes/rvw0000000000c01/artifacts/b0ard0000000c001',
+        text: 'Board',
+      },
+      [[{ contributor: ADA }, 'Too busy']],
+    )
+    const spot = thread(
+      'c4n0000000000003',
+      {
+        kind: 'spot',
+        label: 'Empty spot',
+        at: { x: 0, y: 0 },
+        point: { x: 700, y: 150.5 },
+      },
+      [[{ contributor: ADA }, 'A legend here']],
+    )
+    const canvas = agentText(
+      [
+        {
+          type: 'canvas',
+          title: 'Board',
+          file: 'src/prototypes/ada/review/Board.excalidraw',
+          address: '/prototypes/rvw0000000000c01/artifacts/rvwc000000000c01',
+          threads: [note, item, spot],
+          numbers: new Map([
+            [note.id, 1],
+            [item.id, 2],
+            [spot.id, 3],
+          ]),
+          missing: new Set([item.id]),
+        },
+      ],
+      { name },
+    )
+    expect(canvas)
+      .toContain(`### 1. Sticky note "Ask eng about the empty state" · c4n0000000000001
+Excalidraw ID: note
+- Ada Lovelace: Who answers this?`)
+    // Gone: neither its ID nor its link would find it.
+    expect(canvas).toContain(`### 2. Item "Board" · c4n0000000000002
+Target not found: it was removed or changed since.
+- Ada Lovelace: Too busy`)
+    expect(canvas).toContain(`### 3. Empty spot · c4n0000000000003
+Canvas point: x 700, y 150.5
+- Ada Lovelace: A legend here`)
+    const found = agentText(
+      [
+        {
+          type: 'canvas',
+          title: 'Board',
+          file: 'src/prototypes/ada/review/Board.excalidraw',
+          address: '/prototypes/rvw0000000000c01/artifacts/rvwc000000000c01',
+          threads: [item],
+          numbers: new Map([[item.id, 2]]),
+        },
+      ],
+      { name },
+    )
+    expect(found).toContain(`### 2. Item "Board" · c4n0000000000002
+Excalidraw ID: item
+Linked artifact: /prototypes/rvw0000000000c01/artifacts/b0ard0000000c001
+- Ada Lovelace: Too busy`)
+  })
+
   test('nothing to list is no text', () => {
     expect(agentText([{ ...view, threads: [] }], { name })).toBe('')
   })

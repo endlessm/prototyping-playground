@@ -66,6 +66,12 @@ export interface SurfaceInput {
 export interface ArtifactSurface {
   /** The element the page's content covers in the studio. */
   element: HTMLElement
+  /**
+   * Room the page's own controls take along its bottom edge, in pixels
+   * (a canvas's save status and editor controls), which tools drawn over
+   * it keep clear of. None when left out.
+   */
+  bottomInset?: number
   /** What a point in the studio window is over, or null. */
   targetAt: (point: SurfacePoint) => SurfaceTarget | null
   /**

@@ -57,6 +57,9 @@ const LOCATORS: [field: string, name: string, quoted?: true][] = [
   ['embed', 'Embed'],
   // A diagram step's, arrow's or group's ID in the Mermaid source.
   ['mermaid', 'Mermaid ID'],
+  // A canvas element's ID in the scene, and the artifact an item shows.
+  ['element', 'Excalidraw ID'],
+  ['item', 'Linked artifact'],
   ['quote', 'Quote', true],
 ]
 
@@ -91,6 +94,10 @@ function threadText(
     if (missing && !quoted) continue
     lines.push(`${name}: ${quoted ? `"${value}"` : value}`)
   }
+  // A canvas's empty spot, in scene coordinates; a point is never lost.
+  const point = thread.anchor.point as { x?: unknown; y?: unknown } | undefined
+  if (typeof point?.x === 'number' && typeof point.y === 'number')
+    lines.push(`Canvas point: x ${point.x}, y ${point.y}`)
   for (const message of thread.messages)
     lines.push(
       `- ${authorName(message.author, options)}: ${message.body.replace(/\n/g, '\n  ')}`,

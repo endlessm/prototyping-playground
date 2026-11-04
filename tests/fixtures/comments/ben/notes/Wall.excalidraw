@@ -1,0 +1,67 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "studioVersion": 1,
+  "studioId": "b3nc000000000c01",
+  "elements": [
+    {
+      "backgroundColor": "#a5d8ff",
+      "boundElements": [
+        {
+          "id": "wall-text",
+          "type": "text"
+        }
+      ],
+      "height": 200,
+      "id": "wall-note",
+      "index": "a0",
+      "roughness": 0,
+      "seed": 1,
+      "strokeColor": "#87c0ec",
+      "strokeWidth": 1,
+      "type": "rectangle",
+      "version": 1,
+      "versionNonce": 1,
+      "width": 200,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "autoResize": true,
+      "containerId": "wall-note",
+      "fontFamily": 6,
+      "fontSize": 20,
+      "height": 25,
+      "id": "wall-text",
+      "index": "a1",
+      "lineHeight": 1.25,
+      "originalText": "Ben’s idea",
+      "seed": 1,
+      "text": "Ben’s idea",
+      "textAlign": "left",
+      "type": "text",
+      "version": 1,
+      "versionNonce": 1,
+      "verticalAlign": "top",
+      "width": 190,
+      "x": 5,
+      "y": 5
+    },
+    {
+      "height": 120,
+      "id": "wall-box",
+      "index": "a2",
+      "seed": 1,
+      "type": "rectangle",
+      "version": 1,
+      "versionNonce": 1,
+      "width": 200,
+      "x": 300,
+      "y": 50
+    }
+  ],
+  "appState": {
+    "viewBackgroundColor": "#ffffff"
+  },
+  "files": {}
+}

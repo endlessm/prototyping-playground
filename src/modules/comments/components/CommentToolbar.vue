@@ -16,6 +16,8 @@ defineProps<{
   canPoint: boolean
   /** The service's reason the person can't comment here, or null. */
   readOnly: { reason: string; join: boolean } | null
+  /** Room the page's own controls take at its bottom edge. */
+  inset: number
 }>()
 const emit = defineEmits<{ comment: []; pins: []; list: []; copy: [] }>()
 
@@ -28,8 +30,11 @@ const shortcut = shortcutLabel('comment')
     role="toolbar"
     :aria-label="t('comments.toolbar.label')"
     data-comment-ui
-    :style="{ right: `${16 + (listOpen ? 340 : 0)}px` }"
-    class="pointer-events-auto absolute bottom-4 flex items-center gap-1 rounded-full border border-default bg-default p-1 shadow-lg"
+    :style="{
+      right: `${16 + (listOpen ? 340 : 0)}px`,
+      bottom: `${16 + inset}px`,
+    }"
+    class="pointer-events-auto absolute flex items-center gap-1 rounded-full border border-default bg-default p-1 shadow-lg"
   >
     <UPopover v-if="readOnly" :content="{ side: 'top', align: 'end' }">
       <UButton

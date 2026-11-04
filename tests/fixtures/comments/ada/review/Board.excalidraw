@@ -1,0 +1,137 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "studioVersion": 1,
+  "studioId": "rvwc000000000c01",
+  "elements": [
+    {
+      "customData": {
+        "frame": true,
+        "hideLinkIcon": true
+      },
+      "height": 240,
+      "id": "item",
+      "index": "a0",
+      "link": "/prototypes/rvw0000000000c01/artifacts/b0ard0000000c001",
+      "seed": 1,
+      "strokeColor": "transparent",
+      "type": "embeddable",
+      "version": 1,
+      "versionNonce": 1,
+      "width": 320,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "backgroundColor": "#ffec99",
+      "boundElements": [
+        {
+          "id": "note-text",
+          "type": "text"
+        }
+      ],
+      "height": 200,
+      "id": "note",
+      "index": "a1",
+      "roughness": 0,
+      "seed": 1,
+      "strokeColor": "#ecd67a",
+      "strokeWidth": 1,
+      "type": "rectangle",
+      "version": 1,
+      "versionNonce": 1,
+      "width": 200,
+      "x": 400,
+      "y": 0
+    },
+    {
+      "autoResize": true,
+      "containerId": "note",
+      "fontFamily": 6,
+      "fontSize": 20,
+      "height": 50,
+      "id": "note-text",
+      "index": "a2",
+      "lineHeight": 1.25,
+      "originalText": "Ask eng about the empty state",
+      "seed": 1,
+      "text": "Ask eng about the\nempty state",
+      "textAlign": "left",
+      "type": "text",
+      "version": 1,
+      "versionNonce": 1,
+      "verticalAlign": "top",
+      "width": 190,
+      "x": 405,
+      "y": 5
+    },
+    {
+      "height": 100,
+      "id": "box",
+      "index": "a3",
+      "seed": 1,
+      "type": "rectangle",
+      "version": 1,
+      "versionNonce": 1,
+      "width": 160,
+      "x": 0,
+      "y": 320
+    },
+    {
+      "height": 0,
+      "id": "arrow",
+      "index": "a4",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          200,
+          0
+        ]
+      ],
+      "seed": 1,
+      "type": "arrow",
+      "version": 1,
+      "versionNonce": 1,
+      "width": 200,
+      "x": 180,
+      "y": 370
+    },
+    {
+      "autoResize": true,
+      "fontFamily": 6,
+      "fontSize": 20,
+      "height": 25,
+      "id": "title",
+      "index": "a5",
+      "lineHeight": 1.25,
+      "originalText": "Review board",
+      "seed": 1,
+      "text": "Review board",
+      "type": "text",
+      "version": 1,
+      "versionNonce": 1,
+      "width": 150,
+      "x": 400,
+      "y": 260
+    },
+    {
+      "height": 40,
+      "id": "corner",
+      "index": "a6",
+      "seed": 1,
+      "type": "ellipse",
+      "version": 1,
+      "versionNonce": 1,
+      "width": 40,
+      "x": 640,
+      "y": 380
+    }
+  ],
+  "appState": {
+    "viewBackgroundColor": "#ffffff"
+  },
+  "files": {}
+}

@@ -555,6 +555,9 @@ useEventListener(window, 'keydown', (event: KeyboardEvent) => {
     event.preventDefault()
 })
 
+// Room the page's own controls take at its bottom edge, kept clear.
+const inset = computed(() => props.surface?.bottomInset ?? 0)
+
 // A popover beside its point, flipped and kept inside the page and clear of
 // the list; above the toolbar when it has no point.
 const WIDTH = 320
@@ -562,7 +565,10 @@ function beside(point: { x: number; y: number } | null, height: number) {
   const { height: tall } = size.value
   const width = size.value.width - (listOpen.value ? PANEL : 0)
   if (!point)
-    return { left: `${Math.max(12, width - WIDTH - 16)}px`, bottom: '72px' }
+    return {
+      left: `${Math.max(12, width - WIDTH - 16)}px`,
+      bottom: `${72 + inset.value}px`,
+    }
   let left = point.x + 22
   if (left + WIDTH > width - 12) left = point.x - 22 - WIDTH
   left = Math.min(Math.max(12, left), Math.max(12, width - WIDTH - 12))
@@ -749,6 +755,7 @@ const missing = computed(
       :open-count="openCount"
       :can-point="Boolean(surface)"
       :read-only="readOnly"
+      :inset="inset"
       @comment="toggle"
       @pins="pinsShown = !pinsShown"
       @list="listOpen = !listOpen"

@@ -2,11 +2,11 @@
 
 Notes a contributor pins to an artifact, or to a place in it, for colleagues and agents. A comment is a thread with replies, open or resolved. Optional and on by default. Commenting happens only in the studio running locally; the deployed site has no tool and no thread. [ADR 0004](../../../docs/adr/0004-comments-live-in-the-prototype.md) records why comments live in the prototype.
 
-This README is the contract for the thread format, the tool's behaviour and the agent text. Views, documents and diagrams have surfaces; canvases follow.
+This README is the contract for the thread format, the tool's behaviour and the agent text. Views, documents, diagrams and canvases have surfaces.
 
 ## Behavior
 
-Every artifact page whose type offers an [artifact surface](../../../app/utils/artifactSurface.ts) gets a toolbar in its bottom-right corner, 16 px from the edges. Pages without one (canvases, for now) get no tool, so it never covers their own controls:
+Every artifact page whose type offers an [artifact surface](../../../app/utils/artifactSurface.ts) gets a toolbar in its bottom-right corner, 16 px from the edges. A surface may name room its page's own controls take along the bottom (`bottomInset`), and the toolbar and a thread without a pin sit that much higher: on a canvas, clear of the save status and Excalidraw's controls. Pages without a surface get no tool, so it never covers their own controls:
 
 - **Comment** turns comment mode on and off. The shortcut is ⌥⌘M on Apple computers and Ctrl+Alt+M elsewhere (`commentShortcut` in `app/utils/shortcuts.ts`). It works while a view has focus, because the preview document passes it on as the `comment` shortcut. It is ignored while a text field outside the tool has focus.
 - **Hide comments** hides every pin, and **Show comments** shows them again. Comment mode shows them while it lasts.
@@ -60,7 +60,7 @@ Open pages update at once when a thread file changes, whoever changed it: the pa
 What Copy for agent copies and `yarn comments` prints, from one formatter (`agentText.ts`), so the two never differ. For each file it gives a heading with the count, the file's kind and title, then `File:` and `Address:` (the view's, for its states too); then each thread, in number order:
 
 - `### <number>. <target label> · <thread ID>`, "The whole view" (document…) for a whole-file comment;
-- the locator lines the anchor has (`LOCATORS` in `agentText.ts`): `State:` (the named state it is on), `Path:` (a view element), `Heading:` (a document block's or quote's nearest heading), `Embed:` (an embed's file), `Mermaid ID:` (a diagram step, arrow or group), `Quote:`. `Target not found: it was removed or changed since.` replaces all but the quote when the page couldn't find the target; the command can't render a page, so it always prints the stored anchor;
+- the locator lines the anchor has (`LOCATORS` in `agentText.ts`): `State:` (the named state it is on), `Path:` (a view element), `Heading:` (a document block's or quote's nearest heading), `Embed:` (an embed's file), `Mermaid ID:` (a diagram step, arrow or group), `Excalidraw ID:` (a canvas element), `Linked artifact:` (a canvas item's address), `Quote:`, then `Canvas point: x 700, y 150` for a canvas's empty spot, which is never lost. `Target not found: it was removed or changed since.` replaces all but the quote when the page couldn't find the target; the command can't render a page, so it always prints the stored anchor;
 - each message, `- <name>: <text>`, an agent's as "<first name>'s agent", and "Resolved by <name>." for a resolved thread.
 
 It ends with the commands to reply and resolve (or reopen, for resolved threads). Comments on a file removed since are listed under their stored `artifactTitle` with `File removed` in place of the file and address. The command heads each prototype with `# Prototype "<title>"` and its folder. It is a format for agents, so its words are in the formatter, in English, not in the locale.
@@ -125,7 +125,7 @@ A **view element** adds:
 - `text`: the element's own text, trimmed (or what names it: `aria-label`, `alt`, `placeholder`, `title`);
 - `box`: its box in the document when commented (`left`, `top`, `width`, `height`), with the preview's viewport width (`viewport`).
 
-A **document** block or quote adds `block`, `text`, `heading`, `headingId`, `index` and, for an embed, `embed`; a quote also `prefix` and `suffix` (its `kind` is `text`). A **diagram** step, arrow or group adds `mermaid`, its ID in the source; an empty spot is `{ kind: 'spot' }` with `at` as fractions of the drawing. The documents and diagrams READMEs ("The surface") describe them and how each is found again: a quote by its words and context, then its block; a diagram element by its Mermaid ID, then its label.
+A **document** block or quote adds `block`, `text`, `heading`, `headingId`, `index` and, for an embed, `embed`; a quote also `prefix` and `suffix` (its `kind` is `text`). A **diagram** step, arrow or group adds `mermaid`, its ID in the source; an empty spot is `{ kind: 'spot' }` with `at` as fractions of the drawing. A **canvas** element (`kind` `item`, `note`, `shape`, `arrow`, `line`, `text`, `section`, `drawing`, `image` or `embed`) adds `element`, its Excalidraw ID, `text` (an item's artifact title, otherwise its own or its label's text) and, for an item, `item`, the address of the artifact it shows; an empty spot is `{ kind: 'spot' }` with `point`, in scene coordinates. The canvas README ("The surface") describes how it is found again: by element ID only. The documents and diagrams READMEs ("The surface") describe them and how each is found again: a quote by its words and context, then its block; a diagram element by its Mermaid ID, then its label.
 
 A view re-finds a target on every render: by the selector, then by the same tag with the same text. A path selector is only a position, so an element found there with other text is not the target (the next button after the commented one was removed, say). An identifying attribute or an id is trusted whatever the text. "Target not found" is worked out each time and never stored, so a target that comes back gets its pin back. The open thread says "Target not found. It was removed or changed." while its target is gone.
 
