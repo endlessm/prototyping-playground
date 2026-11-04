@@ -10,7 +10,3 @@ export const appServer: string =
   (appHead.meta as { name?: string; content?: string }[] | undefined)?.find(
     (tag) => tag.name === IDENTITY_TAG,
   )?.content ?? ''
-
-// Which server the application came from, for the browser scenarios to read.
-if (import.meta.client && appServer)
-  document.documentElement.dataset.studioApp = appServer
