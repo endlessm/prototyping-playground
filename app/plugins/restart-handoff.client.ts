@@ -1,4 +1,4 @@
-import type { ConfirmationStyle } from '../../tooling/restart/handoff'
+import type { ConfirmationStyle } from '../../tooling/restart/kinds'
 import { NO_RESTART_EVENT, RESTART_EVENT } from '../../tooling/restart/names'
 import { pageHandoff } from '../utils/pageHandoff'
 import { appServer } from '../utils/studioServer'
