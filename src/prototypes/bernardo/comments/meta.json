@@ -1,0 +1,15 @@
+{
+  "formatVersion": 1,
+  "title": "Comments",
+  "created": "2026-11-03",
+  "studioId": "j64q52s6xfvb7503",
+  "ownerContributorId": "ma1xykkc2j3d2x24",
+  "systemId": null,
+  "order": [
+    "1 View.vue",
+    "2 Document.vue",
+    "3 Diagram.vue",
+    "4 Canvas.vue",
+    "5 What the agent gets.md"
+  ]
+}
