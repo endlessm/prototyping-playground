@@ -1,13 +1,19 @@
 <script setup lang="ts">
 import ContributorAvatar from '../../../../app/components/ContributorAvatar.vue'
 import type { ShownAuthor } from '../composables/useCommentAuthors'
+import { useFocusReturn } from '../composables/useFocusReturn'
 import type { Author, CommentThread } from '../threads'
 import { timeAgo } from '../utils/time'
 
-// A thread beside its pin: who said what, Reply, and Resolve.
+// A thread beside its pin: who said what, Reply, and Resolve. It opens
+// with the Reply field focused and gives focus back when it closes.
 const props = defineProps<{
   thread: CommentThread
   number: number
+  /** What it is pinned to, in words. */
+  label: string
+  /** Where focus goes when where it came from is gone. */
+  fallback?: () => HTMLElement | null | undefined
   author: (author: Author) => ShownAuthor
   /** Its target was removed or changed since it was made. */
   missing: boolean
@@ -22,6 +28,8 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const text = defineModel<string>({ default: '' })
 const field = useTemplateRef<{ textareaRef?: HTMLTextAreaElement }>('field')
+const root = useTemplateRef<HTMLElement>('root')
+useFocusReturn(root, () => props.fallback?.())
 const resolver = computed(() =>
   props.thread.resolvedBy ? props.author(props.thread.resolvedBy).name : '',
 )
@@ -36,6 +44,7 @@ onMounted(() => field.value?.textareaRef?.focus())
 
 <template>
   <div
+    ref="root"
     role="dialog"
     :aria-label="t('comments.thread.title', { number })"
     data-comment-ui
@@ -44,11 +53,11 @@ onMounted(() => field.value?.textareaRef?.focus())
     <div class="flex items-center gap-1.5">
       <span
         class="grid h-5 min-w-5 place-items-center rounded-full px-1 text-[11px] font-semibold text-white"
-        :class="thread.status === 'resolved' ? 'bg-neutral-400' : 'bg-info'"
+        :class="thread.status === 'resolved' ? 'bg-neutral-500' : 'bg-info'"
         >{{ number }}</span
       >
       <span class="min-w-0 flex-1 truncate text-xs font-medium text-muted">{{
-        thread.anchor.label ?? thread.anchor.kind
+        label
       }}</span>
       <UTooltip
         v-if="thread.status === 'open'"

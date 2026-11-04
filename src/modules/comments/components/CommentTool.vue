@@ -17,26 +17,32 @@ import {
 } from '../../../../app/utils/shortcuts'
 import { useCommentAuthors } from '../composables/useCommentAuthors'
 import { useCommentThreads } from '../composables/useCommentThreads'
-import { threadNumbers, type CommentThread } from '../threads'
+import { threadNumbers, type Anchor, type CommentThread } from '../threads'
 import CommentComposer from './CommentComposer.vue'
+import CommentList from './CommentList.vue'
 import CommentPin from './CommentPin.vue'
 import CommentThreadPopover from './CommentThreadPopover.vue'
 import CommentToolbar from './CommentToolbar.vue'
 
 // The comment tool over an artifact page, drawn in the studio's overlay: the
-// toolbar, numbered pins on what was commented, the composer and a thread's
-// popover. The page's surface says what is under the pointer and where each
-// anchor is now; the tool asks again whenever the surface says things may
-// have moved, so pins follow scrolling, resizing and re-renders. In comment
-// mode the surface takes the pointer, so no press reaches the page.
+// toolbar, numbered pins on what was commented, the composer, a thread's
+// popover and the list of every comment. The page's surface says what is
+// under the pointer and where each anchor is now; the tool asks again
+// whenever the surface says things may have moved, so pins follow
+// scrolling, resizing and re-renders. In comment mode the surface takes the
+// pointer, so no press reaches the page. The open thread is kept in the
+// address (`?comment=<id>`), so a link or a reload reopens it.
 const props = defineProps<{
   prototype: ManifestPrototype
   /** The open artifact, or a view's named state with the view's record. */
-  artifact: ManifestArtifact & { state?: { id: string; view: string } }
+  artifact: ManifestArtifact & {
+    state?: { id: string; title: string; view: string }
+  }
   surface: ArtifactSurface | null
 }>()
 
 const { t } = useI18n()
+const route = useRoute()
 const toast = useStudioToast()
 const authorOf = await useCommentAuthors()
 const { threads, create, reply, resolve } = useCommentThreads(
@@ -46,11 +52,46 @@ const { threads, create, reply, resolve } = useCommentThreads(
 const root = useTemplateRef<HTMLElement>('root')
 const commenting = ref(false)
 const pinsShown = ref(true)
-const openId = ref<string | null>(null)
-const draft = shallowRef<{ anchor: SurfaceAnchor; label: string } | null>(null)
+const listOpen = ref(false)
+const tab = ref<'open' | 'resolved'>('open')
+// The list's width: it sits over the page and never resizes it.
+const PANEL = 340
+
+// The open thread lives in the address, replaced rather than pushed, so
+// opening and closing threads adds no history entries.
+const openId = computed<string | null>({
+  get: () =>
+    typeof route.query.comment === 'string' ? route.query.comment : null,
+  set: (id) => {
+    if (id === openId.value) return
+    const query = { ...route.query }
+    if (id) query.comment = id
+    else delete query.comment
+    void navigateTo({ query, hash: route.hash }, { replace: true })
+  },
+})
+const draft = shallowRef<{ anchor: Anchor; label: string } | null>(null)
 const draftText = ref('')
 const replyText = ref('')
 const busy = ref(false)
+// The thread whose target is brought into view once the page shows it:
+// one chosen in the list, or one a link opened.
+const revealing = ref<string | null>(openId.value)
+watch(openId, (id) => {
+  if (id !== revealing.value) revealing.value = null
+})
+
+const KINDS = ['view', 'document', 'diagram', 'canvas']
+const kind = computed(() =>
+  t(
+    `comments.kinds.${KINDS.includes(props.artifact.type) ? props.artifact.type : 'other'}`,
+  ),
+)
+const wholeLabel = computed(() => t('comments.whole', { kind: kind.value }))
+const labelOf = (thread: CommentThread) =>
+  thread.anchor.kind === 'artifact'
+    ? wholeLabel.value
+    : (thread.anchor.label ?? thread.anchor.kind)
 
 // A view's threads are numbered together, all its named states included,
 // so the list never repeats a number; pins show the state on screen only.
@@ -62,6 +103,10 @@ const familyThreads = computed(() =>
   threads.value.filter(({ artifact }) => family.value.has(artifact)),
 )
 const numbers = computed(() => threadNumbers(familyThreads.value))
+const openCount = computed(
+  () => familyThreads.value.filter(({ status }) => status === 'open').length,
+)
+// The threads on the page's own targets; a whole-file thread has no pin.
 const pinned = computed(() =>
   familyThreads.value.filter(
     (thread) =>
@@ -69,18 +114,43 @@ const pinned = computed(() =>
       thread.anchor.kind !== 'artifact',
   ),
 )
-// What can show a pin now: open threads (unless hidden outside comment
-// mode) and the open thread, whatever its status.
+// What can show a pin now: the open thread, whatever its status; and unless
+// pins are hidden outside comment mode, open threads, and resolved ones
+// while the list shows them.
 const placed = computed(() =>
   pinned.value.filter(
     (thread) =>
       thread.id === openId.value ||
-      (thread.status === 'open' && (pinsShown.value || commenting.value)),
+      ((pinsShown.value || commenting.value) &&
+        (thread.status === 'open' ||
+          (listOpen.value && tab.value === 'resolved'))),
   ),
 )
-const current = computed(
+const chosen = computed(
   () => familyThreads.value.find(({ id }) => id === openId.value) ?? null,
 )
+// A thread opens on its own state: a link to it from another one goes there.
+const current = computed(() =>
+  chosen.value?.artifact === props.artifact.id ? chosen.value : null,
+)
+const addressOf = (artifact: string) =>
+  `/prototypes/${props.prototype.id}/artifacts/${artifact}`
+watch(
+  chosen,
+  (thread) => {
+    if (thread && thread.artifact !== props.artifact.id)
+      void navigateTo(
+        { path: addressOf(thread.artifact), query: route.query },
+        { replace: true },
+      )
+  },
+  { immediate: true },
+)
+/** The named state a listed thread is on, when another one is on screen. */
+const elsewhere = (thread: CommentThread) =>
+  thread.artifact === props.artifact.id
+    ? undefined
+    : props.artifact.states?.find(({ id }) => id === thread.artifact)?.title
 
 // --- Where things are, in the overlay's own coordinates.
 const DRAFT = '\0draft'
@@ -102,9 +172,17 @@ function measure() {
   if (!surface || !element) return
   const box = element.getBoundingClientRect()
   const next: Record<string, SurfaceLocation> = {}
-  for (const thread of placed.value)
+  for (const thread of pinned.value)
     next[thread.id] = surface.locate(thread.anchor as SurfaceAnchor)
-  if (draft.value) next[DRAFT] = surface.locate(draft.value.anchor)
+  if (draft.value && draft.value.anchor.kind !== 'artifact')
+    next[DRAFT] = surface.locate(draft.value.anchor as SurfaceAnchor)
+  const wanted = revealing.value ? next[revealing.value] : undefined
+  if (wanted && wanted.state !== 'missing') {
+    const thread = pinned.value.find(({ id }) => id === revealing.value)
+    revealing.value = null
+    if (thread && wanted.state === 'offscreen')
+      surface.reveal(thread.anchor as SurfaceAnchor)
+  }
   const target =
     commenting.value && pointer && !draft.value
       ? surface.targetAt(pointer)
@@ -139,11 +217,20 @@ const inOverlay = (location: SurfaceLocation | undefined) =>
       }
     : null
 
-// Measure only while there is something to place; this also measures again
-// whenever what is placed changes.
+// Measure only while there is something to place, list or bring into view;
+// this also measures again whenever what is placed changes.
 watchEffect((onCleanup) => {
   const surface = props.surface
-  if (!surface || !(commenting.value || draft.value || placed.value.length))
+  if (
+    !surface ||
+    !(
+      commenting.value ||
+      draft.value ||
+      placed.value.length ||
+      listOpen.value ||
+      revealing.value
+    )
+  )
     return
   const stop = surface.onChange(measure)
   measure()
@@ -173,12 +260,20 @@ watchEffect((onCleanup) => {
   })
 })
 
+// Selected text is quoted; otherwise a press is about what is under it.
 function begin(point: SurfacePoint) {
-  const target = props.surface?.targetAt(point)
+  const target = props.surface?.selection?.() ?? props.surface?.targetAt(point)
   if (!target) return
   openId.value = null
   draftText.value = ''
   draft.value = { anchor: target.anchor, label: target.label }
+}
+
+/** A comment on the whole file: listed, with no pin. */
+function whole() {
+  openId.value = null
+  draftText.value = ''
+  draft.value = { anchor: { kind: 'artifact' }, label: wholeLabel.value }
 }
 
 /** One write at a time; a refusal shows as a toast with its sentence. */
@@ -214,6 +309,21 @@ function open(thread: CommentThread) {
   openId.value = openId.value === thread.id ? null : thread.id
 }
 
+/** A row of the list: bring its target into view and open it. */
+function choose(thread: CommentThread) {
+  draft.value = null
+  replyText.value = ''
+  if (thread.anchor.kind !== 'artifact') revealing.value = thread.id
+  // Going to another named state is a step the person can go back from;
+  // the thread opens once it shows.
+  if (thread.artifact !== props.artifact.id)
+    void navigateTo({
+      path: addressOf(thread.artifact),
+      query: { ...route.query, comment: thread.id },
+    })
+  else openId.value = thread.id
+}
+
 const send = (body: string) =>
   write(async () => {
     if (!current.value) return
@@ -228,6 +338,13 @@ const resolveCurrent = () =>
     openId.value = null
     toast.success(t('comments.resolved'))
   })
+
+// Where focus goes when a popover's opener is gone, such as the row of a
+// thread just resolved.
+const fallbackFocus = () =>
+  root.value?.querySelector<HTMLElement>(
+    '[data-comment-list] [role="tab"][aria-selected="true"]',
+  ) ?? root.value?.querySelector<HTMLElement>('[role="toolbar"] button:enabled')
 
 /** Esc backs out one step: the draft, then the thread, then comment mode. */
 function back() {
@@ -276,11 +393,14 @@ useEventListener(window, 'keydown', (event: KeyboardEvent) => {
     event.preventDefault()
 })
 
-// A popover beside its point, flipped and kept inside the page.
+// A popover beside its point, flipped and kept inside the page and clear of
+// the list; above the toolbar when it has no point.
 const WIDTH = 320
 function beside(point: { x: number; y: number } | null, height: number) {
-  const { width, height: tall } = size.value
-  if (!point) return { right: '16px', bottom: '72px' }
+  const { height: tall } = size.value
+  const width = size.value.width - (listOpen.value ? PANEL : 0)
+  if (!point)
+    return { left: `${Math.max(12, width - WIDTH - 16)}px`, bottom: '72px' }
   let left = point.x + 22
   if (left + WIDTH > width - 12) left = point.x - 22 - WIDTH
   left = Math.min(Math.max(12, left), Math.max(12, width - WIDTH - 12))
@@ -292,22 +412,30 @@ function beside(point: { x: number; y: number } | null, height: number) {
 }
 
 const preview = (thread: CommentThread) => thread.messages[0]?.body ?? ''
+// Pins under the list are hidden.
 const pins = computed(() =>
   placed.value.flatMap((thread) => {
     const place = inOverlay(places.value[thread.id])
     const active = openId.value === thread.id
-    return place?.shown ? [{ thread, ...place, active }] : []
+    const covered =
+      listOpen.value && place && place.x > size.value.width - PANEL
+    return place?.shown && !covered ? [{ thread, ...place, active }] : []
   }),
+)
+const missingIds = computed(
+  () =>
+    new Set(
+      Object.entries(places.value)
+        .filter(([id, place]) => id !== DRAFT && place.state === 'missing')
+        .map(([id]) => id),
+    ),
 )
 const draftPlace = computed(() => inOverlay(places.value[DRAFT]))
 const currentPlace = computed(() =>
   current.value ? inOverlay(places.value[current.value.id]) : null,
 )
 const missing = computed(
-  () =>
-    Boolean(current.value) &&
-    current.value!.artifact === props.artifact.id &&
-    places.value[current.value!.id]?.state === 'missing',
+  () => Boolean(current.value) && missingIds.value.has(current.value!.id),
 )
 </script>
 
@@ -362,7 +490,9 @@ const missing = computed(
       v-model="draftText"
       :label="draft.label"
       :quote="draft.anchor.quote"
+      :whole="draft.anchor.kind === 'artifact'"
       :posting="busy"
+      :fallback="fallbackFocus"
       :style="beside(draftPlace, 220)"
       @post="post"
       @cancel="draft = null"
@@ -373,7 +503,9 @@ const missing = computed(
       v-model="replyText"
       :thread="current"
       :number="numbers.get(current.id) ?? 0"
+      :label="labelOf(current)"
       :author="authorOf"
+      :fallback="fallbackFocus"
       :missing="missing"
       :sending="busy"
       :style="beside(missing ? null : currentPlace, 320)"
@@ -388,16 +520,45 @@ const missing = computed(
       data-comment-ui
       class="pointer-events-auto absolute top-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-inverted px-3 py-1.5 text-sm text-inverted shadow-lg"
     >
-      <i18n-t keypath="comments.hint" scope="global">
+      <i18n-t
+        :keypath="surface.selection ? 'comments.hintQuote' : 'comments.hint'"
+        scope="global"
+      >
         <template #key><UKbd value="Esc" /></template>
       </i18n-t>
     </p>
 
+    <Transition
+      enter-active-class="motion-safe:transition motion-safe:duration-150 motion-safe:ease-out"
+      enter-from-class="motion-safe:translate-x-3 motion-safe:opacity-0"
+    >
+      <CommentList
+        v-if="listOpen"
+        v-model:tab="tab"
+        data-comment-list
+        :threads="familyThreads"
+        :numbers="numbers"
+        :kind="kind"
+        :label="labelOf"
+        :author="authorOf"
+        :missing="missingIds"
+        :elsewhere="elsewhere"
+        :open-id="openId"
+        @choose="choose"
+        @whole="whole"
+        @close="listOpen = false"
+      />
+    </Transition>
+
     <CommentToolbar
       :commenting="commenting"
       :pins-shown="pinsShown"
+      :list-open="listOpen"
+      :open-count="openCount"
+      :can-point="Boolean(surface)"
       @comment="toggle"
       @pins="pinsShown = !pinsShown"
+      @list="listOpen = !listOpen"
     />
   </div>
 </template>

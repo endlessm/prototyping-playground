@@ -45,6 +45,7 @@ const INTERACTIVE =
 const FOCUSABLE = `${INTERACTIVE}, [tabindex], [contenteditable=""], [contenteditable="true"]`
 const MAX_TEXT = 120
 const MAX_LABEL_TEXT = 40
+const MAX_QUOTE = 300
 const CURSOR_STYLE = 'data-studio-tool-cursor'
 
 const KINDS: Record<string, string> = {
@@ -308,7 +309,44 @@ export function createViewSurface(
       ),
       current.document,
     )
+    return subject ? targetOf(subject, point, current) : null
+  }
+
+  // The selected text, anchored to the element that holds all of it, with
+  // the pin at the end of the selection.
+  function selection(): SurfaceTarget | null {
+    const current = view()
+    const chosen = current?.window.getSelection()
+    if (!current || !chosen?.rangeCount || chosen.isCollapsed) return null
+    const quote = clip(squash(chosen.toString()), MAX_QUOTE)
+    if (!quote) return null
+    const range = chosen.getRangeAt(0)
+    const common = range.commonAncestorContainer
+    const subject = subjectOf(
+      common.nodeType === Node.ELEMENT_NODE
+        ? (common as Element)
+        : common.parentElement,
+      current.document,
+    )
     if (!subject) return null
+    const rects = range.getClientRects()
+    const end = outward(
+      rects.length ? rects[rects.length - 1]! : range.getBoundingClientRect(),
+    )
+    const target = targetOf(
+      subject,
+      { x: end.left + end.width, y: end.top + end.height / 2 },
+      current,
+    )
+    target.anchor.quote = quote
+    return target
+  }
+
+  function targetOf(
+    subject: Element,
+    point: SurfacePoint,
+    current: { document: Document; window: Window },
+  ): SurfaceTarget {
     const rect = subject.getBoundingClientRect()
     const box = outward(rect)
     const label = labelOf(subject)
@@ -395,18 +433,36 @@ export function createViewSurface(
         event.preventDefault()
         event.stopImmediatePropagation()
       }
+      // Selecting text ends with a press too: the tool hears it on
+      // `mouseup`, and the click that may follow is only swallowed.
+      let selected = false
       const down = (event: MouseEvent) => {
         event.stopImmediatePropagation()
+        selected = false
         const target = event.target as Element | null
         const focused =
           document.activeElement && document.activeElement !== document.body
-        if (focused || target?.closest?.(FOCUSABLE)) event.preventDefault()
+        if (focused || target?.closest?.(FOCUSABLE)) {
+          event.preventDefault()
+          // A kept press doesn't clear the selection; this one is over.
+          window.getSelection()?.removeAllRanges()
+        }
+      }
+      const up = (event: MouseEvent) => {
+        swallow(event)
+        if (event.button !== 0) return
+        const chosen = window.getSelection()
+        if (chosen && !chosen.isCollapsed && squash(chosen.toString())) {
+          selected = true
+          input.press(point(event))
+        }
       }
       const pointerdown = (event: PointerEvent) =>
         event.stopImmediatePropagation()
       const click = (event: MouseEvent) => {
         swallow(event)
-        if (event.button === 0) input.press(point(event))
+        if (event.button === 0 && !selected) input.press(point(event))
+        selected = false
       }
       const move = (event: PointerEvent) => input.move(point(event))
       const out = (event: MouseEvent) => {
@@ -424,7 +480,7 @@ export function createViewSurface(
           'pointerup',
           ((event: Event) => event.stopImmediatePropagation()) as EventListener,
         ],
-        ['mouseup', swallow],
+        ['mouseup', up as EventListener],
         ['click', click as EventListener],
         ['dblclick', swallow],
         ['auxclick', swallow],
@@ -456,5 +512,5 @@ export function createViewSurface(
     }
   }
 
-  return { element, targetAt, locate, reveal, onChange, intercept }
+  return { element, targetAt, selection, locate, reveal, onChange, intercept }
 }

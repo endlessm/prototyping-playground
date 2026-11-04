@@ -2,19 +2,41 @@
 
 Notes a contributor pins to an artifact, or to a place in it, for colleagues and agents. A comment is a thread with replies, open or resolved. Optional and on by default. Commenting happens only in the studio running locally; the deployed site has no tool and no thread. [ADR 0004](../../../docs/adr/0004-comments-live-in-the-prototype.md) records why comments live in the prototype.
 
-This README is the contract for the thread format and the tool's behaviour. Views are the first surface; the list, the whole thread lifecycle, agent text and the other surfaces follow.
+This README is the contract for the thread format and the tool's behaviour. Views are the first surface; the whole thread lifecycle, agent text and the other surfaces follow.
 
 ## Behavior
 
 Every artifact page whose type offers an [artifact surface](../../../app/utils/artifactSurface.ts) gets a toolbar in its bottom-right corner, 16 px from the edges. Pages without one (documents, diagrams and canvases, for now) get no tool, so it never covers their own controls:
 
 - **Comment** turns comment mode on and off. The shortcut is ⌥⌘M on Apple computers and Ctrl+Alt+M elsewhere (`commentShortcut` in `app/utils/shortcuts.ts`). It works while a view has focus, because the preview document passes it on as the `comment` shortcut. It is ignored while a text field outside the tool has focus.
-- **Hide comments** hides the pins, and shows them again.
-- **All comments** and **Copy for agent** are placeholders, disabled until the list and the agent text arrive.
+- **Hide comments** hides every pin, and **Show comments** shows them again. Comment mode shows them while it lasts.
+- **All comments** opens the list, and shows how many threads are open (its name says so too: "All comments, 2 open").
+- **Copy for agent** is a placeholder, disabled until the agent text arrives.
 
-In comment mode a hint at the top says how to comment and how to stop. Hovering outlines what a click would comment on, labelled the way an agent reads it (`Button "Invite students"`). A click opens a composer beside that spot, focused, with "Enter to post" (Shift+Enter for a new line). No click reaches the page.
+In comment mode a hint at the top says how to comment and how to stop. Hovering outlines what a click would comment on, labelled the way an agent reads it (`Button "Invite students"`). A click opens a composer beside that spot, focused, with "Enter to post" (Shift+Enter for a new line). No click reaches the page. Selecting text in a page whose surface offers `selection()` (views) opens the composer with the text quoted: the anchor is the element that holds the whole selection, with the selected text as its `quote` and the pin at the selection's end. The quote shows in the composer, the thread and the list.
 
-A posted comment becomes a numbered pin in Nuxt UI's `info` colour on its target, at the spot that was clicked. Hovering a pin previews its author and first message; clicking it opens the thread, with its messages, a Reply field and Resolve. A resolved thread's pin leaves the page. An agent's messages show as "<first name>'s agent" with an "Agent" badge.
+A posted comment becomes a numbered pin in Nuxt UI's `info` colour on its target, at the spot that was clicked. Each pin is a button named with its number, author and first eight words ("Comment 1 by Ada Lovelace: Make this the main action."). Hovering a pin previews its author and first message; clicking it opens the thread, with its messages, a Reply field and Resolve. A resolved thread's pin is grey with a check, and shows only on the list's Resolved tab or while its thread is open. An agent's messages show as "<first name>'s agent" with an "Agent" badge.
+
+### The list
+
+**All comments** opens a 340 px panel over the right of the page. It never resizes the page; pins under it are hidden, popovers stay clear of it and the toolbar moves left of it.
+
+- **Open** and **Resolved** tabs, each with its count.
+- Each row shows the thread's number, its target's label, the quote, the first message, the author's name and picture, the time and the number of replies. A thread whose target the page can't find says "Target not found" and stays listed.
+- A view's list holds the threads of the view and of every named state; a row on another state names that state. Pins show only the state on screen.
+- Choosing a row asks the surface to `reveal` its target (scrolling it into view) and opens the thread. A row on another state goes to that state first, as a step the person can go back from.
+- **Comment on the whole view** (document, diagram or canvas, by the artifact's type) opens the composer for a comment on the whole file, `{ "kind": "artifact" }`. It is listed only and has no pin; its thread opens above the toolbar.
+
+### The address
+
+The open thread is the address's `comment` parameter (`…/artifacts/<id>?comment=<thread id>`). Opening and closing a thread replaces the address rather than adding to the history, and a reload or a shared link opens that thread, going to its named state when it is on another one and bringing its target into view.
+
+### Keyboard, screen readers and comfort
+
+- The composer and a thread take focus when they open (the comment or Reply field) and give it back to what opened them: the pin, the row or the button. When that is gone, such as the row of a thread just resolved, focus goes to the list's current tab, or to the toolbar.
+- Everything in the list works from the keyboard: the tabs, every row, "Comment on the whole view", then replying and resolving in the thread.
+- With reduced motion, pins, their previews and the list appear without animation (transitions only under `motion-safe`); revealing a target jumps instead of scrolling smoothly.
+- The tool uses the studio's colours, light or dark, while the view keeps its own. Popovers sit beside their pin and flip to stay inside the page.
 
 Esc backs out one step at a time: it cancels a draft, then closes an open thread, then leaves comment mode. It counts when pressed in the tool, in the page, or with nothing in particular focused, and not while another studio dialog or menu is open.
 
@@ -88,7 +110,7 @@ One Node module, `service.ts`, holds every rule and every write; the dev-server 
 For now:
 
 - anyone may read;
-- a registered contributor may create, reply and resolve, on any prototype that isn't archived;
+- a registered contributor may create (on a target or on the whole file), reply and resolve, on any prototype that isn't archived;
 - someone whose Git identity matches no profile is refused with a sentence telling them to join (`yarn studio join`).
 
 The page never writes files and never names an author: the handler resolves who is asking.
@@ -105,7 +127,7 @@ The page never writes files and never names an author: the handler resolves who 
 
 - `module.ts` declares the module: its tool, its handler and its build data (every prototype's threads in development, nothing for the build).
 - `threads.ts` is the format, shared by the browser and Node; `service.ts` the rules and writes; `server/threads.ts` the page's writes; `cli.ts` the command (`yarn comments`).
-- `components/CommentTool.vue` is the tool over the page (`CommentToolbar`, `CommentPin`, `CommentComposer`, `CommentThreadPopover`); `composables/` read threads and authors. Its text is under `comments` in `i18n/locales/en.json`.
+- `components/CommentTool.vue` is the tool over the page (`CommentToolbar`, `CommentPin`, `CommentComposer`, `CommentThreadPopover`, `CommentList`); `composables/` read threads and authors and give focus back. Its text is under `comments` in `i18n/locales/en.json`.
 - The view surface is the prototypes module's (`src/modules/prototypes/types/view/viewSurface.ts`). The look and copy follow the Comments prototype (`src/prototypes/bernardo/comments`).
 
 The deployed site gets no tool, no handler and no thread: the build data is empty and the tool list is empty in the build. The tool's interface strings sit in the shared locale file with every module's, so they ship; threads never do.

@@ -52,7 +52,10 @@ export type SurfaceLocation =
 export interface SurfaceInput {
   /** The pointer moved to `point`. */
   move: (point: SurfacePoint) => void
-  /** The pointer pressed at `point`; the page itself never hears it. */
+  /**
+   * The pointer pressed at `point`, or finished selecting text there; the
+   * page itself never hears it.
+   */
   press: (point: SurfacePoint) => void
   /** The pointer left the page. */
   leave: () => void
@@ -65,6 +68,12 @@ export interface ArtifactSurface {
   element: HTMLElement
   /** What a point in the studio window is over, or null. */
   targetAt: (point: SurfacePoint) => SurfaceTarget | null
+  /**
+   * The text selected in the page as a target, its anchor carrying the
+   * `quote`, or null when nothing is selected. Pages whose text can't be
+   * selected leave it out.
+   */
+  selection?: () => SurfaceTarget | null
   locate: (anchor: SurfaceAnchor) => SurfaceLocation
   /** Scrolls, pans or zooms an anchor's target into view. */
   reveal: (anchor: SurfaceAnchor) => void

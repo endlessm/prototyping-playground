@@ -65,6 +65,25 @@ const thread = (page: Page, number: number) =>
 const pin = (page: Page, number: number) =>
   page.getByRole('button', { name: new RegExp(`^Comment ${number} by `) })
 const notFound = 'Target not found. It was removed or changed.'
+const allComments = (page: Page) =>
+  toolbar(page).getByRole('button', { name: /^All comments/ })
+const list = (page: Page) =>
+  page.getByRole('complementary', { name: 'Comments' })
+const tab = (page: Page, name: 'Open' | 'Resolved') =>
+  list(page).getByRole('tab', { name: new RegExp(`^${name}`) })
+/** The list's row for the thread whose first message is `text`. */
+const row = (page: Page, text: string) =>
+  list(page).getByRole('listitem').filter({ hasText: text }).getByRole('button')
+const isFocused = (locator: Locator) =>
+  locator.evaluate((element) => element === document.activeElement)
+/** Presses Tab (or Shift+Tab) until `target` has focus. */
+async function tabTo(page: Page, target: Locator, back = false) {
+  for (let step = 0; step < 80; step++) {
+    if ((await target.count()) && (await isFocused(target))) return
+    await page.keyboard.press(back ? 'Shift+Tab' : 'Tab')
+  }
+  throw new Error('Tab never reached the element')
+}
 
 async function ready(page: Page) {
   await expect
@@ -131,6 +150,86 @@ const centre = async (locator: Locator) => {
 async function offset(page: Page, number: number, target: Locator) {
   const [a, b] = await Promise.all([centre(pin(page, number)), centre(target)])
   return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : Infinity
+}
+
+const ANCHORS = {
+  invite: {
+    kind: 'button',
+    label: 'Button "Invite students"',
+    at: { x: 0.5, y: 0.5 },
+    selector: '[data-testid="invite"]',
+    tag: 'button',
+    path: 'main > button',
+    text: 'Invite students',
+  },
+  deadline: {
+    kind: 'paragraph',
+    label: 'Paragraph "Remember the deadline"',
+    at: { x: 0.05, y: 0.5 },
+    selector: '[data-testid="deadline"]',
+    tag: 'p',
+    path: 'main > p',
+    text: 'Remember the deadline',
+  },
+  bottom: {
+    kind: 'paragraph',
+    label: 'Paragraph "Bottom of the board"',
+    at: { x: 0.05, y: 0.5 },
+    selector: '#bottom',
+    tag: 'p',
+    path: 'main > p#bottom',
+    text: 'Bottom of the board',
+  },
+  removed: {
+    kind: 'paragraph',
+    label: 'Paragraph "A removed note"',
+    at: { x: 0.5, y: 0.5 },
+    selector: '[data-testid="removed"]',
+    tag: 'p',
+    path: 'main > p',
+    text: 'A removed note',
+  },
+}
+let seeded = 0
+/** Writes a thread file as an earlier session would have left it. */
+function seed({
+  artifact = FULL,
+  anchor,
+  messages,
+  status = 'open',
+}: {
+  artifact?: string
+  anchor: Record<string, unknown>
+  messages: string[]
+  status?: 'open' | 'resolved'
+}) {
+  mkdirSync(threadsFolder, { recursive: true })
+  seeded++
+  const id = `5eed${String(seeded).padStart(12, '0')}`
+  const time = (second: number) =>
+    new Date(Date.UTC(2026, 10, 3, 10, seeded, second)).toISOString()
+  const thread = {
+    formatVersion: 1,
+    id,
+    artifact,
+    artifactTitle: 'Board · Full',
+    anchor,
+    status,
+    ...(status === 'resolved'
+      ? { resolvedBy: { contributor: ADA }, resolvedAt: time(59) }
+      : {}),
+    messages: messages.map((body, index) => ({
+      id: `${index}${id.slice(1)}`,
+      author: { contributor: ADA },
+      body,
+      createdAt: time(index),
+    })),
+  }
+  writeFileSync(
+    path.join(threadsFolder, `${id}.json`),
+    `${JSON.stringify(thread, null, 2)}\n`,
+  )
+  return id
 }
 
 const runComments = (...args: string[]) =>
@@ -467,6 +566,304 @@ describe('on the dev server', () => {
     })
     await expect.poll(() => pin(page, 1).count(), { timeout: 30_000 }).toBe(0)
     expect(await page.evaluate(() => performance.timeOrigin)).toBe(runtime)
+  })
+
+  test('[CM-40] [CM-41] [CM-42] [CM-43] All comments lists the threads under Open and Resolved, and choosing one scrolls to it and opens it, without resizing the view', async () => {
+    seed({
+      anchor: ANCHORS.invite,
+      messages: ['Make this the main action.', 'Agreed.'],
+    })
+    seed({
+      anchor: { ...ANCHORS.bottom, quote: 'Bottom of' },
+      messages: ['Is this the end?'],
+    })
+    seed({
+      anchor: ANCHORS.deadline,
+      messages: ['Which deadline?'],
+      status: 'resolved',
+    })
+    const page = await newPage()
+    await open(page, studio)
+    await expect
+      .poll(() => allComments(page).getAttribute('aria-label'))
+      .toBe('All comments, 2 open')
+    const frame = page.locator('iframe[data-preview-frame]')
+    const before = await frame.boundingBox()
+
+    await allComments(page).click()
+    await expect.poll(() => list(page).isVisible()).toBe(true)
+    expect(await allComments(page).getAttribute('aria-pressed')).toBe('true')
+    expect(await tab(page, 'Open').textContent()).toContain('2')
+    expect(await tab(page, 'Resolved').textContent()).toContain('1')
+    const first = row(page, 'Make this the main action.')
+    const text = (await first.textContent()) ?? ''
+    for (const part of [
+      '1',
+      'Button "Invite students"',
+      'Ada Lovelace',
+      '1 reply',
+    ])
+      expect(text).toContain(part)
+    expect(await row(page, 'Is this the end?').textContent()).toContain(
+      'Bottom of',
+    )
+    expect(await row(page, 'Which deadline?').count()).toBe(0)
+
+    // The list sits over the page: the view keeps its size, and the
+    // toolbar moves left of the list.
+    expect(await frame.boundingBox()).toEqual(before)
+    const [bar, panel] = await Promise.all([
+      toolbar(page).boundingBox(),
+      list(page).boundingBox(),
+    ])
+    expect(panel!.width).toBeCloseTo(340, 0)
+    expect(bar!.x + bar!.width).toBeLessThanOrEqual(panel!.x)
+
+    // The bottom paragraph is out of sight until its row is chosen.
+    expect(await pin(page, 2).count()).toBe(0)
+    await row(page, 'Is this the end?').click()
+    await expect.poll(() => thread(page, 2).isVisible()).toBe(true)
+    await expect.poll(() => pin(page, 2).isVisible()).toBe(true)
+    expect(
+      await thread(page, 2).getByText('Bottom of', { exact: true }).isVisible(),
+    ).toBe(true)
+
+    await tab(page, 'Resolved').click()
+    await expect.poll(() => row(page, 'Which deadline?').isVisible()).toBe(true)
+    expect(await row(page, 'Make this the main action.').count()).toBe(0)
+  })
+
+  test('[CM-29] the list shows every state’s comments, and choosing one on another state switches to it', async () => {
+    seed({ anchor: ANCHORS.invite, messages: ['On the full state.'] })
+    seed({
+      artifact: EMPTY,
+      anchor: ANCHORS.deadline,
+      messages: ['On the empty state.'],
+    })
+    const page = await newPage()
+    await open(page, studio, FULL)
+    await allComments(page).click()
+    const other = row(page, 'On the empty state.')
+    await expect.poll(() => other.isVisible()).toBe(true)
+    expect(await other.textContent()).toContain('Empty')
+    expect(await pin(page, 2).count()).toBe(0)
+
+    await other.click()
+    await expect.poll(() => page.url()).toContain(`/artifacts/${EMPTY}`)
+    await sees(view(page), 'No students yet')
+    await expect.poll(() => thread(page, 2).isVisible()).toBe(true)
+    await expect.poll(() => pin(page, 2).isVisible()).toBe(true)
+  })
+
+  test('[CM-17] “Comment on the whole view” comments without pointing, listed with no pin', async () => {
+    const page = await newPage()
+    await open(page, studio)
+    await allComments(page).click()
+    await list(page)
+      .getByRole('button', { name: 'Comment on the whole view' })
+      .click()
+    await expect.poll(() => composer(page).isVisible()).toBe(true)
+    expect(await composer(page).textContent()).toContain('The whole view')
+    await page.keyboard.type('The spacing feels loose overall.')
+    await page.keyboard.press('Enter')
+    await expect.poll(() => stored()[0]?.anchor).toEqual({ kind: 'artifact' })
+    expect(stored()[0]?.artifact).toBe(FULL)
+    const listed = row(page, 'The spacing feels loose overall.')
+    await expect.poll(() => listed.isVisible()).toBe(true)
+    expect(await listed.textContent()).toContain('The whole view')
+    expect(await pin(page, 1).count()).toBe(0)
+
+    await listed.click()
+    await expect.poll(() => thread(page, 1).isVisible()).toBe(true)
+    expect(await thread(page, 1).getByText(notFound).count()).toBe(0)
+  })
+
+  test('[CM-28] a thread whose target is gone stays listed with “Target not found”', async () => {
+    seed({ anchor: ANCHORS.removed, messages: ['This note goes.'] })
+    const page = await newPage()
+    await open(page, studio)
+    await allComments(page).click()
+    const listed = row(page, 'This note goes.')
+    await expect
+      .poll(() => listed.getByText('Target not found').isVisible())
+      .toBe(true)
+    await listed.click()
+    await expect
+      .poll(() => thread(page, 1).getByText(notFound).isVisible())
+      .toBe(true)
+  })
+
+  test('[CM-66] a pin is a button named with its number, author and first words', async () => {
+    seed({
+      anchor: ANCHORS.invite,
+      messages: [
+        'Please make this button much bigger and bolder so it stands out.',
+      ],
+    })
+    const page = await newPage()
+    await open(page, studio)
+    await expect.poll(() => pin(page, 1).isVisible()).toBe(true)
+    expect(await pin(page, 1).getAttribute('aria-label')).toBe(
+      'Comment 1 by Ada Lovelace: Please make this button much bigger and bolder…',
+    )
+  })
+
+  test('[CM-25] [CM-27] Hide comments hides every pin, and resolved pins show only on the Resolved tab', async () => {
+    seed({ anchor: ANCHORS.invite, messages: ['Still to do.'] })
+    seed({
+      anchor: ANCHORS.deadline,
+      messages: ['Done already.'],
+      status: 'resolved',
+    })
+    const page = await newPage()
+    await open(page, studio)
+    await expect.poll(() => pin(page, 1).isVisible()).toBe(true)
+    await page.waitForTimeout(300)
+    expect(await pin(page, 2).count()).toBe(0)
+
+    await toolbar(page).getByRole('button', { name: 'Hide comments' }).click()
+    await expect.poll(() => pin(page, 1).count()).toBe(0)
+    await toolbar(page).getByRole('button', { name: 'Show comments' }).click()
+    await expect.poll(() => pin(page, 1).isVisible()).toBe(true)
+
+    await allComments(page).click()
+    await tab(page, 'Resolved').click()
+    await expect.poll(() => pin(page, 2).isVisible()).toBe(true)
+    await tab(page, 'Open').click()
+    await expect.poll(() => pin(page, 2).count()).toBe(0)
+  })
+
+  test('[CM-30] the open thread is kept in the address, without new history entries, and a reload reopens it', async () => {
+    const id = seed({ anchor: ANCHORS.invite, messages: ['Link to me.'] })
+    const page = await newPage()
+    await open(page, studio)
+    const entries = await page.evaluate(() => history.length)
+    await pin(page, 1).click()
+    await expect.poll(() => thread(page, 1).isVisible()).toBe(true)
+    await expect
+      .poll(() => new URL(page.url()).searchParams.get('comment'))
+      .toBe(id)
+    await thread(page, 1).getByRole('button', { name: 'Close' }).click()
+    await expect
+      .poll(() => new URL(page.url()).searchParams.has('comment'))
+      .toBe(false)
+    expect(await page.evaluate(() => history.length)).toBe(entries)
+
+    await page.goto(`${address(studio, FULL)}?comment=${id}`)
+    await ready(page)
+    await expect.poll(() => thread(page, 1).isVisible()).toBe(true)
+    expect(await thread(page, 1).textContent()).toContain('Link to me.')
+  })
+
+  test('[CM-44] [CM-67] the list works from the keyboard alone: comment on the whole view, reply and resolve, with focus kept in place', async () => {
+    const page = await newPage()
+    await open(page, studio)
+    await page.evaluate(() => (document.activeElement as HTMLElement)?.blur())
+    await tabTo(page, allComments(page))
+    await page.keyboard.press('Enter')
+    await expect.poll(() => list(page).isVisible()).toBe(true)
+
+    const whole = list(page).getByRole('button', {
+      name: 'Comment on the whole view',
+    })
+    await tabTo(page, whole)
+    await page.keyboard.press('Enter')
+    await expect
+      .poll(() =>
+        isFocused(composer(page).getByRole('textbox', { name: 'Comment' })),
+      )
+      .toBe(true)
+    await page.keyboard.type('Read from the keyboard.')
+    await page.keyboard.press('Enter')
+    await expect.poll(() => stored().length).toBe(1)
+    // Focus goes back to where it came from.
+    await expect.poll(() => isFocused(whole)).toBe(true)
+
+    const listed = row(page, 'Read from the keyboard.')
+    await tabTo(page, listed)
+    await page.keyboard.press('Enter')
+    const popover = thread(page, 1)
+    await expect
+      .poll(() => isFocused(popover.getByRole('textbox', { name: 'Reply' })))
+      .toBe(true)
+    await page.keyboard.type('And answered.')
+    await page.keyboard.press('Enter')
+    await expect
+      .poll(() => stored()[0]?.messages.map(({ body }) => body))
+      .toEqual(['Read from the keyboard.', 'And answered.'])
+
+    await tabTo(page, popover.getByRole('button', { name: 'Resolve' }), true)
+    await page.keyboard.press('Enter')
+    await expect.poll(() => stored()[0]?.status).toBe('resolved')
+    await expect.poll(() => popover.count()).toBe(0)
+    // Its row has left the Open tab; focus stays in the list.
+    await expect
+      .poll(() =>
+        list(page).evaluate((element) =>
+          element.contains(document.activeElement),
+        ),
+      )
+      .toBe(true)
+  })
+
+  test('[CM-11] in comment mode, selecting text in a view quotes it', async () => {
+    const page = await newPage()
+    await open(page, studio)
+    await commentButton(page).click()
+    await expect.poll(() => hint(page).isVisible()).toBe(true)
+    expect(await hint(page).textContent()).toContain('Select text to quote it.')
+    const box = await view(page).getByTestId('deadline').boundingBox()
+    await page.mouse.move(box!.x + 1, box!.y + box!.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(box!.x + box!.width - 4, box!.y + box!.height / 2, {
+      steps: 8,
+    })
+    await page.mouse.up()
+    await expect.poll(() => composer(page).isVisible()).toBe(true)
+    expect(await composer(page).textContent()).toContain(
+      'Remember the deadline',
+    )
+    await page.keyboard.type('Which one?')
+    await page.keyboard.press('Enter')
+    await expect
+      .poll(() => stored()[0]?.anchor)
+      .toMatchObject({
+        quote: 'Remember the deadline',
+        selector: '[data-testid="deadline"]',
+      })
+
+    await expect.poll(() => pin(page, 1).isVisible()).toBe(true)
+    await pin(page, 1).click()
+    expect(
+      await thread(page, 1)
+        .locator('blockquote')
+        .textContent()
+        .then((text) => text?.trim()),
+    ).toBe('Remember the deadline')
+    await allComments(page).click()
+    expect(await row(page, 'Which one?').textContent()).toContain(
+      '“Remember the deadline”',
+    )
+  })
+
+  test('[CM-68] with reduced motion, pins and the list appear without animation', async () => {
+    seed({ anchor: ANCHORS.invite, messages: ['Calm, please.'] })
+    const page = await newPage()
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await open(page, studio)
+    await expect.poll(() => pin(page, 1).isVisible()).toBe(true)
+    expect(
+      await pin(page, 1).evaluate(
+        (element) => getComputedStyle(element).transitionDuration,
+      ),
+    ).toBe('0s')
+    await allComments(page).click()
+    expect(
+      await list(page).evaluate((element) => ({
+        transition: getComputedStyle(element).transitionDuration,
+        animations: element.getAnimations({ subtree: true }).length,
+      })),
+    ).toEqual({ transition: '0s', animations: 0 })
   })
 })
 

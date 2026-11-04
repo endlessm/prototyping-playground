@@ -941,9 +941,31 @@
       "hide": "Hide comments",
       "show": "Show comments",
       "all": "All comments",
+      "allCount": "All comments, {count} open",
       "copy": "Copy for agent"
     },
     "hint": "Click anything to comment. Press {key} to stop.",
+    "hintQuote": "Click anything to comment. Select text to quote it. Press {key} to stop.",
+    "kinds": {
+      "view": "view",
+      "document": "document",
+      "diagram": "diagram",
+      "canvas": "canvas",
+      "other": "file"
+    },
+    "whole": "The whole {kind}",
+    "list": {
+      "title": "Comments",
+      "close": "Close comments",
+      "open": "Open",
+      "resolved": "Resolved",
+      "whole": "Comment on the whole {kind}",
+      "onState": "{state} state",
+      "notFound": "Target not found",
+      "replies": "{count} reply | {count} replies",
+      "emptyOpen": "No open comments. Turn on Comment and click anything on the {kind}.",
+      "emptyResolved": "No resolved comments yet."
+    },
     "composer": {
       "title": "New comment",
       "placeholder": "Add a comment",
