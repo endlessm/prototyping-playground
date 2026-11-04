@@ -69,6 +69,12 @@ export interface HandoffKindSetup {
 
 export type HandoffKinds = Record<HandoffKind, HandoffKindSetup>
 
+/**
+ * What a destination waits for, in its caller's terms: plain data, so it
+ * survives a reload in session storage.
+ */
+export type HandoffDestination = Readonly<Record<string, string>>
+
 export interface StartHandoff {
   kind: HandoffKind
   /**
@@ -82,11 +88,12 @@ export interface StartHandoff {
   /** Shown once, on the page where the tab finishes. */
   confirmation?: string
   /**
-   * Whether the tab waits for `markReady` before it finishes. A string
-   * also names what the destination waits for, such as a system's ID, for
-   * the page that loads to read with `destination()`.
+   * Whether the tab waits for `markReady` before it finishes. A
+   * destination as data also names what it waits for, such as
+   * `{ deleted: <system ID> }`, for the page that loads to read with
+   * `destination()`.
    */
-  destination?: boolean | string
+  destination?: boolean | HandoffDestination
   /**
    * Keeps this page, rather than loading it again or finishing, until
    * `update` lifts the hold: a request still in flight would be dropped,
@@ -133,7 +140,7 @@ export interface RestartHandoff {
   /** Changes the pending handoff's words, confirmation, destination or hold. */
   update(changes: Partial<Omit<StartHandoff, 'kind' | 'from'>>): void
   /** What the pending handoff's destination waits for, as its caller named it. */
-  destination(): boolean | string | undefined
+  destination(): boolean | HandoffDestination | undefined
   /** The destination is ready, on this page. */
   markReady(): void
   /** Forgets the handoff and lifts its screen, without a confirmation. */

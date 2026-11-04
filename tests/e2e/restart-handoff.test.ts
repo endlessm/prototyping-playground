@@ -649,7 +649,7 @@ test('[SY-55] [SY-57] a destination named when the change started is what the ne
     kind: 'system',
     from: 'A',
     title: 'Deleting Cove',
-    destination: 'cove-id',
+    destination: { deleted: 'cove-id' },
     confirmation: 'System deleted',
   })
   world.answering = 'B'
@@ -662,7 +662,7 @@ test('[SY-55] [SY-57] a destination named when the change started is what the ne
         ]!.destination(),
       HANDOFF_GLOBAL,
     )
-  expect(await awaited()).toBe('cove-id')
+  expect(await awaited()).toEqual({ deleted: 'cove-id' })
   await page.clock.runFor(5000)
   expect(await heading().textContent()).toBe('Deleting Cove')
   await call('markReady')

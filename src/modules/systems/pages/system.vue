@@ -3,7 +3,7 @@ import AppNotFound from '../../../../app/components/AppNotFound.vue'
 import SystemNav from '../components/SystemNav.vue'
 import { pageHandoff } from '../../../../app/utils/pageHandoff'
 import { useSystemCatalog } from '../composables/useSystemCatalog'
-import { createdSystem } from '../utils/destination'
+import { creationOf } from '../utils/destination'
 
 // A system's frame: its navigation, which stays while the person moves
 // between the system's pages, and the open page beside it. Each page starts
@@ -17,10 +17,7 @@ const system = computed(() => systemOf(route.params.systemId as string))
 const handoff = import.meta.dev ? pageHandoff() : undefined
 if (handoff)
   watchEffect(() => {
-    if (
-      system.value &&
-      handoff.destination() === createdSystem(system.value.id)
-    )
+    if (system.value && creationOf(handoff.destination()) === system.value.id)
       handoff.markReady()
   })
 
