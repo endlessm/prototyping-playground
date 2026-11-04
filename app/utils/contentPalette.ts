@@ -1,50 +1,35 @@
-// The studio's accent palette for code, documents and diagrams: Flexoki
-// (https://stephango.com/flexoki, MIT, by Steph Ango), its 600 shades in
-// light mode and its 400 shades in dark mode. Neutrals come from the
-// studio's Nuxt UI theme; a prototype's system never sees these colours.
+// The studio's accent palette for code, documents and diagrams: the 600
+// shades of Flexoki (https://stephango.com/flexoki, MIT, by Steph Ango).
+// The studio is light only (ADR 0005). Neutrals come from the studio's
+// Nuxt UI theme; a prototype's system never sees these colours.
 // Keywords green, imports red, strings cyan, numbers purple, constants and
 // types yellow, functions orange, variables and attributes blue, tags
 // magenta; comments and punctuation quiet.
 export const contentPalette = {
-  light: {
-    red: '#AF3029',
-    orange: '#BC5215',
-    yellow: '#AD8301',
-    green: '#66800B',
-    cyan: '#24837B',
-    blue: '#205EA6',
-    purple: '#5E409D',
-    magenta: '#A02F6F',
-    comment: '#878580',
-  },
-  dark: {
-    red: '#D14D41',
-    orange: '#DA702C',
-    yellow: '#D0A215',
-    green: '#879A39',
-    cyan: '#3AA99F',
-    blue: '#4385BE',
-    purple: '#8B7EC8',
-    magenta: '#CE5D97',
-    comment: '#878580',
-  },
+  red: '#AF3029',
+  orange: '#BC5215',
+  yellow: '#AD8301',
+  green: '#66800B',
+  cyan: '#24837B',
+  blue: '#205EA6',
+  purple: '#5E409D',
+  magenta: '#A02F6F',
+  comment: '#878580',
 } as const
-
-export type ContentMode = keyof typeof contentPalette
 
 /**
  * The palette as Shiki's theme for code in documents. TextMate scopes differ
  * from the source editor's tags but share the colour roles. Backgrounds
  * come from the studio's prose styles.
  */
-export function documentCodeTheme(mode: ContentMode) {
-  const p = contentPalette[mode]
+export function documentCodeTheme() {
+  const p = contentPalette
   return {
-    name: `studio-${mode}`,
-    type: mode,
+    name: 'studio-light',
+    type: 'light',
     colors: {
-      'editor.background': mode === 'dark' ? '#171717' : '#FFFFFF',
-      'editor.foreground': mode === 'dark' ? '#FAFAFA' : '#171717',
+      'editor.background': '#FFFFFF',
+      'editor.foreground': '#171717',
     },
     tokenColors: [
       { scope: ['keyword', 'storage'], settings: { foreground: p.green } },

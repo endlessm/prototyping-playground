@@ -39,15 +39,9 @@ const mix = (a: string, b: string, weight: number) =>
     )
     .join('')}`
 
-export function mermaidTheme(dark: boolean) {
+export function mermaidTheme() {
   const n = studioColors()
-  // Diagram boundaries carry meaning; divider colours are too faint for
-  // them in dark mode, so strokes lean towards the text colour.
-  if (dark) {
-    n.border = mix(n.background, n.text, 0.45)
-    n.line = mix(n.background, n.text, 0.65)
-  }
-  const p = contentPalette[dark ? 'dark' : 'light']
+  const p = contentPalette
   const accents = [
     p.blue,
     p.cyan,
@@ -62,7 +56,7 @@ export function mermaidTheme(dark: boolean) {
   const tint = (color: string) => mix(n.background, color, 0.18)
   const fontFamily = getComputedStyle(document.body).fontFamily
   return {
-    darkMode: dark,
+    darkMode: false,
     background: n.background,
     fontFamily,
     fontSize: '14px',
@@ -136,19 +130,19 @@ export function mermaidTheme(dark: boolean) {
 }
 
 // Mermaid's configuration is global, so renders take turns: diagrams on
-// one page, or in two colour modes, can't change it under each other. A
+// one page can't change it under each other. A
 // render that never finishes holds the next one back for 15 seconds at
 // most, the time its diagram waits before giving up.
 const TURN_LIMIT_MS = 15_000
 let pending: Promise<unknown> = Promise.resolve()
 
 /** The diagram's SVG; throws with Mermaid's message on invalid source. */
-export function renderMermaid(source: string, id: string, dark: boolean) {
+export function renderMermaid(source: string, id: string) {
   const job = pending
     .catch(() => undefined)
     .then(async () => {
       const { default: mermaid } = await import('mermaid')
-      const themeVariables = mermaidTheme(dark)
+      const themeVariables = mermaidTheme()
       mermaid.initialize({
         startOnLoad: false,
         securityLevel: 'strict',

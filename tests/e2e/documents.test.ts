@@ -174,22 +174,19 @@ describe('in the studio running locally', { timeout: 150_000 }, () => {
     ).toBe('#goals')
   })
 
-  test('[SY-148] [CL-119] [PR-110] code is highlighted with the studio’s accent palette, light and dark', async () => {
+  test('[SY-148] [CL-119] [PR-110] code is highlighted with the studio’s light accent palette, whatever the computer’s colour scheme', async () => {
     reset()
     const page = await open()
+    await page.emulateMedia({ colorScheme: 'dark' })
     const keyword = article(page).locator('pre span', { hasText: /^const$/ })
     await visible(keyword)
-    // Flexoki green: 600 in light mode, 400 in dark mode.
+    // Flexoki green 600: the studio is light only (ADR 0005).
     await expect
       .poll(() => keyword.evaluate((span) => getComputedStyle(span).color))
       .toBe('rgb(102, 128, 11)')
-    await page.emulateMedia({ colorScheme: 'dark' })
-    await expect
-      .poll(() => keyword.evaluate((span) => getComputedStyle(span).color))
-      .toBe('rgb(135, 154, 57)')
   })
 
-  test('[PR-113] [CL-119] a Mermaid fence renders as a diagram, and again in dark mode', async () => {
+  test('[PR-113] [CL-119] a Mermaid fence renders as a diagram, and stays as drawn when the computer turns dark', async () => {
     reset()
     const page = await open()
     const diagram = article(page).locator('[data-diagram-state]')
@@ -201,14 +198,15 @@ describe('in the studio running locally', { timeout: 150_000 }, () => {
     await expect
       .poll(() => diagram.locator('svg').textContent())
       .toContain('Start')
-    const light = await diagram.locator('svg').innerHTML()
-    await page.emulateMedia({ colorScheme: 'dark' })
-    await expect
-      .poll(() => diagram.locator('svg').innerHTML(), { timeout: 30_000 })
-      .not.toBe(light)
     await expect
       .poll(() => diagram.locator('svg').textContent())
       .toContain('Finish')
+    const light = await diagram.locator('svg').innerHTML()
+    await page.emulateMedia({ colorScheme: 'dark' })
+    // Nothing would announce a redraw, so give one time to start.
+    await page.waitForTimeout(1000)
+    expect(await diagram.getAttribute('data-diagram-freshness')).toBe('current')
+    expect(await diagram.locator('svg').innerHTML()).toBe(light)
   })
 
   test('[PR-108] "On this page" lists level 2–3 headings, follows the scroll, and goes to a heading without animation under reduced motion', async () => {

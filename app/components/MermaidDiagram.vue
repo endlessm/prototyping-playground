@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { renderMermaid } from '../utils/mermaid'
 
-// A Mermaid diagram drawn from its text, in the studio's colours for the
-// current colour mode. The previous drawing stays while a new one renders,
+// A Mermaid diagram drawn from its text, in the studio's light colours
+// (the studio is light only, ADR 0005). The previous drawing stays while a new one renders,
 // saying it is updating; invalid text shows Mermaid's message instead. A
 // render that never finishes gives up after 15 seconds. In a document it
 // sits in the text; `fit` fills its container (a diagram's page), and
@@ -15,7 +15,6 @@ const props = defineProps<{
   stale?: boolean
 }>()
 const { t } = useI18n()
-const colorMode = useColorMode()
 const id = `mermaid-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
 
 const TIME_LIMIT_MS = 15_000
@@ -36,8 +35,8 @@ if (import.meta.hot) {
 }
 
 watch(
-  () => [props.source ?? '', colorMode.value === 'dark', theme.value] as const,
-  async ([source, dark]) => {
+  () => [props.source ?? '', theme.value] as const,
+  async ([source]) => {
     const render = ++renders
     rendering.value = true
     timedOut.value = false
@@ -50,7 +49,7 @@ watch(
     }, TIME_LIMIT_MS)
     try {
       // Mermaid replaces any element with the id it draws with.
-      const drawn = await renderMermaid(source, `${id}-${render}`, dark)
+      const drawn = await renderMermaid(source, `${id}-${render}`)
       if (render !== renders) return
       svg.value = drawn
       error.value = undefined
