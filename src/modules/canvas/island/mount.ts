@@ -33,8 +33,6 @@ export function mountCanvas(element: HTMLElement, props: CanvasEditorProps) {
   const root = createRoot(element)
   root.render(createElement(CanvasEditor, props))
   return {
-    update: (next: CanvasEditorProps) =>
-      root.render(createElement(CanvasEditor, next)),
     unmount: () => root.unmount(),
   }
 }
