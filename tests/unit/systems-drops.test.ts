@@ -57,7 +57,13 @@ describe('the Systems area’s dropped parts', () => {
 
   test('[SY-72] there is no example-system alert', () => {
     expect(strings).not.toContain('is an example system')
-    expect(containing('starter')).toEqual([])
+    // A system's own components may name what they wrap, such as Tiptap's
+    // `starterKit`; the example system's starter lived outside them.
+    expect(
+      containing('starter').filter(
+        (file) => !file.startsWith('src/systems/endless-studios/components/'),
+      ),
+    ).toEqual([])
   }, 30_000)
 
   test('[SY-147] [SY-150] there are no Studio React components or shadcn configuration', () => {
