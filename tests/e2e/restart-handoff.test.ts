@@ -501,7 +501,7 @@ test('[SY-25] a system change’s screen older than 2 minutes is forgotten', asy
   expect(await screenUp()).toBe(false)
 })
 
-test('a system change’s screen keeps the studio’s colours as they were when it started, across reloads', async () => {
+test('[SY-25] a system change’s screen keeps the studio’s colours as they were when it started, across reloads', async () => {
   const paint = (background: string, foreground: string) =>
     page.evaluate(
       ([background, foreground]) => {
@@ -603,7 +603,7 @@ test('[SY-24] [SY-27] [SY-28] a creation keeps its page until it is answered, th
   expect(world.loads).toHaveLength(2)
 })
 
-test('a refused system change lifts its screen at once, without loading the page again or confirming anything', async () => {
+test('[SY-25] a refused system change lifts its screen at once, without loading the page again or confirming anything', async () => {
   expect(await reachable()).toEqual(['Studio button', 'Studio name'])
   await start({ ...RENAMING, hold: true, destination: true })
   world.answering = 'B'
@@ -676,7 +676,7 @@ test('[SY-55] [SY-57] a destination named when the change started is what the ne
   expect(await awaited()).toBeUndefined()
 })
 
-test('a system change started without naming a server waits to leave the one its page came from', async () => {
+test('[SH-119] a system change started without naming a server waits to leave the one its page came from', async () => {
   await start({
     kind: 'system',
     title: 'Making Cove the default',
