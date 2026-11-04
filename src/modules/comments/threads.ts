@@ -58,6 +58,39 @@ export interface CommentsData {
   problems: string[]
 }
 
+/** What `access` in service.ts tells the page about the person asking. */
+export interface CommentAccess {
+  /** Why they can't write on this prototype, as the service says it, or null. */
+  refusal: string | null
+  /** The refusal is that they aren't registered: show them how to join. */
+  join: boolean
+  /** Who their writes are made as, when registered. */
+  author: Author | null
+  admin: boolean
+}
+
+// The service's rules for changing what is already written. They are here,
+// with no imports, so the page offers Edit and Delete only to whoever the
+// service will let through; the service checks them on every write.
+
+/**
+ * Only a message's author changes it: the same contributor, whose agent's
+ * messages are theirs too, while an agent changes only an agent's.
+ */
+export const mayChangeMessage = (author: Author, message: CommentMessage) =>
+  message.author.contributor === author.contributor &&
+  (!author.agent || Boolean(message.author.agent))
+
+/** A thread is deleted by the author of its first message, or an Admin. */
+export const mayDeleteThread = (
+  asker: { author: Author | null; admin: boolean },
+  thread: CommentThread,
+) =>
+  Boolean(asker.author) &&
+  (asker.admin ||
+    (Boolean(thread.messages[0]) &&
+      mayChangeMessage(asker.author!, thread.messages[0]!)))
+
 const createdAt = (thread: CommentThread) => thread.messages[0]?.createdAt ?? ''
 
 /** Threads in creation order: the first message's time, then the ID. */

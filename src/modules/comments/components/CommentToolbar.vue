@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { shortcutLabel } from '../../../../app/utils/shortcuts'
+import CommentReadOnly from './CommentReadOnly.vue'
 
 // The tool's controls in the page's bottom-right corner, left of the list
-// while it is open. Copy for agent waits for the agent text.
+// while it is open. Copy for agent waits for the agent text. Where the
+// person can't write, Comment gives way to "Read-only", which says why.
 defineProps<{
   commenting: boolean
   pinsShown: boolean
@@ -11,6 +13,8 @@ defineProps<{
   openCount: number
   /** Comment needs a surface to point at. */
   canPoint: boolean
+  /** The service's reason the person can't comment here, or null. */
+  readOnly: { reason: string; join: boolean } | null
 }>()
 const emit = defineEmits<{ comment: []; pins: []; list: [] }>()
 
@@ -26,7 +30,22 @@ const shortcut = shortcutLabel('comment')
     :style="{ right: `${16 + (listOpen ? 340 : 0)}px` }"
     class="pointer-events-auto absolute bottom-4 flex items-center gap-1 rounded-full border border-default bg-default p-1 shadow-lg"
   >
-    <UTooltip :text="t('comments.toolbar.comment')" :kbds="[shortcut]">
+    <UPopover v-if="readOnly" :content="{ side: 'top', align: 'end' }">
+      <UButton
+        icon="i-lucide-lock"
+        :label="t('comments.readOnly.label')"
+        color="neutral"
+        variant="ghost"
+        size="sm"
+        class="rounded-full"
+      />
+      <template #content>
+        <div data-comment-ui class="w-72 p-1.5">
+          <CommentReadOnly :reason="readOnly.reason" :join="readOnly.join" />
+        </div>
+      </template>
+    </UPopover>
+    <UTooltip v-else :text="t('comments.toolbar.comment')" :kbds="[shortcut]">
       <UButton
         icon="i-lucide-message-square-plus"
         :label="t('comments.toolbar.comment')"

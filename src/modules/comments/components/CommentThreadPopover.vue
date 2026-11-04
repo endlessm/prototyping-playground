@@ -1,12 +1,26 @@
 <script setup lang="ts">
+import type { DropdownMenuItem } from '@nuxt/ui'
 import ContributorAvatar from '../../../../app/components/ContributorAvatar.vue'
+import { afterMenuCloses } from '../../../../app/utils/menus'
 import type { ShownAuthor } from '../composables/useCommentAuthors'
 import { useFocusReturn } from '../composables/useFocusReturn'
-import type { Author, CommentThread } from '../threads'
+import {
+  mayChangeMessage,
+  mayDeleteThread,
+  type Author,
+  type CommentAccess,
+  type CommentMessage,
+  type CommentThread,
+} from '../threads'
 import { timeAgo } from '../utils/time'
+import CommentReadOnly from './CommentReadOnly.vue'
 
-// A thread beside its pin: who said what, Reply, and Resolve. It opens
-// with the Reply field focused and gives focus back when it closes.
+// A thread beside its pin: who said what, Reply, Resolve or Reopen, and its
+// "…" menu (Copy link, and Delete comment for its author or an Admin). Your
+// own messages can be edited and deleted. It offers only what the service
+// will allow, by the service's own rules; where nothing may be written, the
+// service's reason replaces the Reply field. It opens with the Reply field
+// focused and gives focus back when it closes.
 const props = defineProps<{
   thread: CommentThread
   number: number
@@ -18,10 +32,17 @@ const props = defineProps<{
   /** Its target was removed or changed since it was made. */
   missing: boolean
   sending: boolean
+  /** What the service says the person may do, or null until it answers. */
+  access: CommentAccess | null
 }>()
 const emit = defineEmits<{
   reply: [body: string]
   resolve: []
+  reopen: []
+  edit: [message: string, body: string]
+  'delete-message': [message: string]
+  delete: []
+  'copy-link': []
   close: []
 }>()
 
@@ -34,21 +55,108 @@ const resolver = computed(() =>
   props.thread.resolvedBy ? props.author(props.thread.resolvedBy).name : '',
 )
 
+const readOnly = computed(() =>
+  props.access?.refusal
+    ? { reason: props.access.refusal, join: props.access.join }
+    : null,
+)
+const mine = (message: CommentMessage) =>
+  !readOnly.value &&
+  Boolean(props.access?.author) &&
+  mayChangeMessage(props.access!.author!, message)
+
+// The menus only ask the tool, which reports its own failures.
+const failed = () => {}
+const menu = computed<DropdownMenuItem[]>(() => [
+  {
+    label: t('comments.thread.copyLink'),
+    icon: 'i-lucide-link',
+    onSelect: afterMenuCloses(() => emit('copy-link'), failed),
+  },
+  ...(!readOnly.value &&
+  props.access &&
+  mayDeleteThread(props.access, props.thread)
+    ? [
+        {
+          label: t('comments.thread.delete'),
+          icon: 'i-lucide-trash-2',
+          color: 'error' as const,
+          onSelect: afterMenuCloses(() => emit('delete'), failed),
+        },
+      ]
+    : []),
+])
+
+// Editing a message in place: Enter saves, Esc puts it back.
+const editing = ref<string | null>(null)
+const draft = ref('')
+const editField =
+  useTemplateRef<{ textareaRef?: HTMLTextAreaElement }[]>('editField')
+function startEditing(message: CommentMessage) {
+  editing.value = message.id
+  draft.value = message.body
+  void nextTick(() => editField.value?.[0]?.textareaRef?.focus())
+}
+function stopEditing() {
+  editing.value = null
+  void nextTick(() => field.value?.textareaRef?.focus() ?? root.value?.focus())
+}
+function save() {
+  const id = editing.value
+  if (!id || !draft.value.trim()) return
+  emit('edit', id, draft.value)
+  stopEditing()
+}
+function onEditKey(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    // Only the edit backs out, not the thread.
+    event.preventDefault()
+    event.stopPropagation()
+    stopEditing()
+  } else if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+    event.preventDefault()
+    save()
+  }
+}
+const messageMenu = (message: CommentMessage, index: number) => [
+  {
+    label: t('comments.message.edit'),
+    icon: 'i-lucide-pencil',
+    onSelect: afterMenuCloses(() => startEditing(message), failed),
+  },
+  // The first message is the comment itself: it goes with the comment.
+  ...(index > 0
+    ? [
+        {
+          label: t('comments.message.delete'),
+          icon: 'i-lucide-trash-2',
+          color: 'error' as const,
+          onSelect: afterMenuCloses(
+            () => emit('delete-message', message.id),
+            failed,
+          ),
+        },
+      ]
+    : []),
+]
+
 function onKey(event: KeyboardEvent) {
   if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return
   event.preventDefault()
   if (text.value.trim()) emit('reply', text.value)
 }
-onMounted(() => field.value?.textareaRef?.focus())
+// Read-only, there is no Reply field: the thread itself takes focus.
+onMounted(() => (field.value?.textareaRef ?? root.value)?.focus())
 </script>
 
 <template>
   <div
     ref="root"
     role="dialog"
+    tabindex="-1"
     :aria-label="t('comments.thread.title', { number })"
     data-comment-ui
-    class="pointer-events-auto absolute flex max-h-[calc(100%-24px)] w-80 flex-col gap-2.5 rounded-xl border border-default bg-default p-3 shadow-lg"
+    class="pointer-events-auto absolute flex max-h-[calc(100%-24px)] w-80 flex-col gap-2.5 rounded-xl border border-default bg-default p-3 shadow-lg outline-none"
   >
     <div class="flex items-center gap-1.5">
       <span
@@ -60,7 +168,7 @@ onMounted(() => field.value?.textareaRef?.focus())
         label
       }}</span>
       <UTooltip
-        v-if="thread.status === 'open'"
+        v-if="thread.status === 'open' && !readOnly"
         :text="t('comments.thread.resolve')"
       >
         <UButton
@@ -72,6 +180,19 @@ onMounted(() => field.value?.textareaRef?.focus())
           @click="emit('resolve')"
         />
       </UTooltip>
+      <UDropdownMenu
+        :items="menu"
+        :content="{ align: 'end' }"
+        :ui="{ content: 'min-w-40' }"
+      >
+        <UButton
+          icon="i-lucide-ellipsis"
+          :aria-label="t('comments.thread.more')"
+          color="neutral"
+          variant="ghost"
+          size="xs"
+        />
+      </UDropdownMenu>
       <UTooltip :text="t('comments.thread.close')">
         <UButton
           icon="i-lucide-x"
@@ -88,7 +209,18 @@ onMounted(() => field.value?.textareaRef?.focus())
       class="flex items-center gap-1.5 rounded-lg bg-elevated px-2 py-1.5 text-xs text-muted"
     >
       <UIcon name="i-lucide-circle-check" class="size-3.5 shrink-0" />
-      {{ t('comments.thread.resolvedBy', { name: resolver }) }}
+      <span class="flex-1">{{
+        t('comments.thread.resolvedBy', { name: resolver })
+      }}</span>
+      <UButton
+        v-if="!readOnly"
+        :label="t('comments.thread.reopen')"
+        color="neutral"
+        variant="link"
+        size="xs"
+        class="p-0 font-medium text-highlighted"
+        @click="emit('reopen')"
+      />
     </p>
     <p
       v-if="missing"
@@ -106,9 +238,9 @@ onMounted(() => field.value?.textareaRef?.focus())
     </blockquote>
     <ol class="flex min-h-0 flex-col gap-3 overflow-auto">
       <li
-        v-for="message in thread.messages"
+        v-for="(message, index) in thread.messages"
         :key="message.id"
-        class="flex gap-2"
+        class="group flex gap-2"
       >
         <UAvatar
           v-if="message.author.agent"
@@ -135,14 +267,66 @@ onMounted(() => field.value?.textareaRef?.focus())
               size="sm"
             />
             <span class="text-muted">{{ timeAgo(message.createdAt) }}</span>
+            <span v-if="message.editedAt" class="text-muted">{{
+              t('comments.message.edited')
+            }}</span>
+            <UDropdownMenu
+              v-if="mine(message) && editing !== message.id"
+              :items="messageMenu(message, index)"
+              :content="{ align: 'end' }"
+            >
+              <UButton
+                icon="i-lucide-ellipsis"
+                :aria-label="t('comments.message.actions')"
+                color="neutral"
+                variant="ghost"
+                size="xs"
+                class="ml-auto -my-1 opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 focus-visible:opacity-100 aria-expanded:opacity-100"
+              />
+            </UDropdownMenu>
           </p>
-          <p class="text-sm break-words whitespace-pre-wrap text-default">
+          <div v-if="editing === message.id" class="mt-1 flex flex-col gap-1.5">
+            <UTextarea
+              ref="editField"
+              v-model="draft"
+              :rows="1"
+              autoresize
+              :maxrows="6"
+              :aria-label="t('comments.message.field')"
+              @keydown="onEditKey"
+            />
+            <div class="flex justify-end gap-1.5">
+              <UButton
+                :label="t('comments.message.cancel')"
+                color="neutral"
+                variant="ghost"
+                size="xs"
+                @click="stopEditing"
+              />
+              <UButton
+                :label="t('comments.message.save')"
+                color="info"
+                size="xs"
+                :disabled="!draft.trim()"
+                @click="save"
+              />
+            </div>
+          </div>
+          <p
+            v-else
+            class="text-sm break-words whitespace-pre-wrap text-default"
+          >
             {{ message.body }}
           </p>
         </div>
       </li>
     </ol>
-    <div class="flex items-end gap-2">
+    <CommentReadOnly
+      v-if="readOnly"
+      :reason="readOnly.reason"
+      :join="readOnly.join"
+    />
+    <div v-else class="flex items-end gap-2">
       <UTextarea
         ref="field"
         v-model="text"

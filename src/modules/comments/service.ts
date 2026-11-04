@@ -19,14 +19,19 @@ import {
   readContributors,
   type Contributors,
 } from '../../../tooling/contributors/profiles.ts'
+import { roleOf, teamOf } from '../../../tooling/contributors/roles.ts'
 import { newStudioId } from '../../../tooling/contributors/studio-ids.ts'
 import { isResourceId } from '../../../tooling/identity/resource-id.ts'
 import { PROTOTYPES_FOLDER } from '../../../tooling/manifest/build.ts'
+import { readConfig } from '../../../tooling/modules/registry.ts'
 import {
   COMMENTS_FOLDER,
   FORMAT_VERSION,
+  mayChangeMessage,
+  mayDeleteThread,
   type Anchor,
   type Author,
+  type CommentAccess,
   type CommentMessage,
   type CommentThread,
   type CommentsData,
@@ -39,6 +44,8 @@ export interface CommentsContext {
   prototypesFolder?: string
   /** Contributor profiles, relative to the root or absolute. */
   contributorsFolder?: string
+  /** The studio's configuration, for its Admins; `studio.config.json` by default. */
+  configFile?: string
 }
 
 /** Who writes: the contributor Git resolves to, or nobody; and whether as their agent. */
@@ -433,5 +440,134 @@ export function resolveThread(
     thread.status = 'resolved'
     thread.resolvedBy = author
     thread.resolvedAt = new Date().toISOString()
+  })
+}
+
+/** The message `id` of a thread, or a refusal naming it. */
+function messageIn(thread: CommentThread, id: unknown) {
+  const found = thread.messages.find((message) => message.id === id)
+  if (!found)
+    throw new CommentRefusal(
+      `Comment ${thread.id} has no message ${String(id)}. It may have been deleted; reload to see the thread as it is now.`,
+      404,
+    )
+  return found
+}
+
+export function editMessage(
+  context: CommentsContext,
+  actor: CommentsActor,
+  request: { thread: string; message: string; body: unknown },
+) {
+  const author = authorOf(context, actor)
+  const body = bodyOf(request.body)
+  return update(context, request.thread, (thread) => {
+    const found = messageIn(thread, request.message)
+    if (!mayChangeMessage(author, found))
+      throw new CommentRefusal(
+        'Only its author can edit a message. Reply to add to it instead.',
+      )
+    if (found.body === body) return
+    found.body = body
+    found.editedAt = new Date().toISOString()
+  })
+}
+
+export function deleteMessage(
+  context: CommentsContext,
+  actor: CommentsActor,
+  request: { thread: string; message: string },
+) {
+  const author = authorOf(context, actor)
+  return update(context, request.thread, (thread) => {
+    const found = messageIn(thread, request.message)
+    if (!mayChangeMessage(author, found))
+      throw new CommentRefusal('Only its author can delete a message.')
+    if (found === thread.messages[0])
+      throw new CommentRefusal(
+        'The first message is the comment itself. Edit it, or delete the whole comment instead.',
+      )
+    thread.messages.splice(thread.messages.indexOf(found), 1)
+  })
+}
+
+/** Whether the actor is an Admin, by `studio.config.json`. */
+function isAdmin(context: CommentsContext, actor: CommentsActor) {
+  const contributors = contributorsOf(context)
+  const config = readConfig(
+    path.resolve(
+      context.root,
+      context.configFile ?? (process.env.STUDIO_CONFIG || 'studio.config.json'),
+    ),
+  )
+  return (
+    roleOf(teamOf(config, contributors), contributors, actor.key) === 'admin'
+  )
+}
+
+/** Deletes a whole thread, every reply with it. */
+export function deleteThread(
+  context: CommentsContext,
+  actor: CommentsActor,
+  request: { thread: string },
+) {
+  const author = authorOf(context, actor)
+  const { prototype, file } = findThread(context, request.thread)
+  writable(prototype)
+  const { thread, problem } = readThread(
+    file,
+    `${prototype.folder}/${COMMENTS_FOLDER}/${request.thread}.json`,
+  )
+  if (!thread)
+    throw new CommentRefusal(`${problem} Fix the file, then try again.`, 422)
+  if (!mayDeleteThread({ author, admin: isAdmin(context, actor) }, thread))
+    throw new CommentRefusal(
+      'Only the comment’s author or an Admin can delete it. Resolve it instead when it’s done.',
+    )
+  rmSync(file)
+  return { id: thread.id, deleted: true as const }
+}
+
+/**
+ * What the asker may do on a prototype, for the page to offer only that:
+ * the sentence that refuses every write there (someone unregistered, an
+ * archived prototype), or null; who they write as; and whether they are an
+ * Admin. The writes check again, whatever the page offered.
+ */
+export function access(
+  context: CommentsContext,
+  actor: CommentsActor,
+  request: { prototype: string },
+): CommentAccess {
+  let author: Author
+  try {
+    author = authorOf(context, actor)
+  } catch (error) {
+    if (!(error instanceof CommentRefusal) || error.status !== 403) throw error
+    return { refusal: error.message, join: true, author: null, admin: false }
+  }
+  const prototype = prototypeFolders(context).find(
+    ({ id }) => id === request.prototype,
+  )
+  let refusal: string | null = null
+  try {
+    if (prototype) writable(prototype)
+  } catch (error) {
+    refusal = (error as Error).message
+  }
+  return { refusal, join: false, author, admin: isAdmin(context, actor) }
+}
+
+/** Opens a resolved thread again; reopening an open one is fine. */
+export function reopenThread(
+  context: CommentsContext,
+  actor: CommentsActor,
+  request: { thread: string },
+) {
+  authorOf(context, actor)
+  return update(context, request.thread, (thread) => {
+    thread.status = 'open'
+    delete thread.resolvedBy
+    delete thread.resolvedAt
   })
 }

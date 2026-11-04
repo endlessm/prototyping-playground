@@ -2,7 +2,7 @@
 
 Notes a contributor pins to an artifact, or to a place in it, for colleagues and agents. A comment is a thread with replies, open or resolved. Optional and on by default. Commenting happens only in the studio running locally; the deployed site has no tool and no thread. [ADR 0004](../../../docs/adr/0004-comments-live-in-the-prototype.md) records why comments live in the prototype.
 
-This README is the contract for the thread format and the tool's behaviour. Views are the first surface; the whole thread lifecycle, agent text and the other surfaces follow.
+This README is the contract for the thread format and the tool's behaviour. Views are the first surface; agent text and the other surfaces follow.
 
 ## Behavior
 
@@ -15,7 +15,16 @@ Every artifact page whose type offers an [artifact surface](../../../app/utils/a
 
 In comment mode a hint at the top says how to comment and how to stop. Hovering outlines what a click would comment on, labelled the way an agent reads it (`Button "Invite students"`). A click opens a composer beside that spot, focused, with "Enter to post" (Shift+Enter for a new line). No click reaches the page. Selecting text in a page whose surface offers `selection()` (views) opens the composer with the text quoted: the anchor is the element that holds the whole selection, with the selected text as its `quote` and the pin at the selection's end. The quote shows in the composer, the thread and the list.
 
-A posted comment becomes a numbered pin in Nuxt UI's `info` colour on its target, at the spot that was clicked. Each pin is a button named with its number, author and first eight words ("Comment 1 by Ada Lovelace: Make this the main action."). Hovering a pin previews its author and first message; clicking it opens the thread, with its messages, a Reply field and Resolve. A resolved thread's pin is grey with a check, and shows only on the list's Resolved tab or while its thread is open. An agent's messages show as "<first name>'s agent" with an "Agent" badge.
+A posted comment becomes a numbered pin in Nuxt UI's `info` colour on its target, at the spot that was clicked. Each pin is a button named with its number, author and first eight words ("Comment 1 by Ada Lovelace: Make this the main action."). Hovering a pin previews its author and first message; clicking it opens the thread, with its messages, a Reply field and Resolve. A resolved thread's pin is grey with a check, and shows only on the list's Resolved tab or while its thread is open.
+
+### The thread
+
+- Each message shows its author's name, picture (from the contributor profile: their own image, their GitHub photo or their initials) and time, and "Edited" once changed. An agent's messages show as "<first name>'s agent" with an "Agent" badge.
+- **Resolve** closes the thread with the toast "Comment resolved", whose **Undo** reopens it. A resolved thread says "Resolved by <name>", with **Reopen**; reopening moves the list to the Open tab.
+- The **…** menu holds **Copy link** (the address with `?comment=<id>`, on the thread's own named state; toast "Link copied") and, for the thread's author or an Admin, **Delete comment**, which asks first and deletes the thread with its replies (toast "Comment deleted").
+- Your own messages have **Message actions**: **Edit** (in place; Enter saves, Esc puts it back) and **Delete**. The first message is the comment itself, so it is edited, or goes with Delete comment.
+
+The page offers only what the service will allow, using the service's own rules (`mayChangeMessage` and `mayDeleteThread` in `threads.ts`), and asks the service (`access`) whether the person may write on the prototype at all. Where it may not (someone unregistered, an archived prototype), threads and the list can still be read, and the service's sentence replaces the Reply field, the list's "Comment on the whole …" and, in the toolbar, Comment, which becomes **Read-only** with the reason; for someone unregistered it links to the Manual's "How do I join the team?". The comment shortcut does nothing there.
 
 ### The list
 
@@ -52,8 +61,9 @@ Open pages update at once when a thread file changes, whoever changed it: the pa
 - `yarn comments show <id>` prints one thread.
 - `yarn comments reply <id> "<text>"` replies.
 - `yarn comments resolve <id> [--reply "<text>"]` resolves, with an optional last reply.
+- `yarn comments reopen <id>` opens a resolved comment again.
 
-It writes as the agent of the contributor your Git identity resolves to (`agent: true`). Refusals go to standard error with exit status 1. Reading needs no registration.
+It writes as the agent of the contributor your Git identity resolves to (`agent: true`). Refusals go to standard error with exit status 1, in the same sentence the page shows. Reading needs no registration. Editing and deleting are the page's only: agents never change people's messages.
 
 ## Where comments are kept
 
@@ -107,13 +117,16 @@ A view re-finds a target on every render: by the selector, then by the same tag 
 
 One Node module, `service.ts`, holds every rule and every write; the dev-server handler (`server/threads.ts`) and the command use it. Each write re-reads the thread file just before writing, applies itself to the current content and replaces the file atomically (a temporary file renamed over it), so a reply from the page and a resolve from an agent can't overwrite each other.
 
-For now:
+Operations: create, reply, resolve, reopen, edit a message, delete a message, delete a thread, and `access` (what the asker may do on a prototype, for the page). The rules:
 
 - anyone may read;
-- a registered contributor may create (on a target or on the whole file), reply and resolve, on any prototype that isn't archived;
-- someone whose Git identity matches no profile is refused with a sentence telling them to join (`yarn studio join`).
+- a registered contributor may create (on a target or on the whole file), reply, resolve and reopen on any prototype that isn't archived, other people's included;
+- only a message's author edits or deletes it. A person's agent's messages are theirs too, while an agent (the command) changes only agents' messages. The first message can't be deleted on its own: it goes with its thread;
+- a thread is deleted by the author of its first message or an Admin (`admins` in `studio.config.json`, through `tooling/contributors/roles.ts`);
+- an archived prototype's comments are read-only;
+- someone whose Git identity matches no profile is told to join (`yarn studio join`).
 
-The page never writes files and never names an author: the handler resolves who is asking.
+Each refusal is a sentence saying what to do, and the page (as an error toast, or in place of a field) and the command (on standard error) show the same one. The page never writes files and never names an author: the handler resolves who is asking.
 
 ## Hard parts
 
@@ -127,7 +140,7 @@ The page never writes files and never names an author: the handler resolves who 
 
 - `module.ts` declares the module: its tool, its handler and its build data (every prototype's threads in development, nothing for the build).
 - `threads.ts` is the format, shared by the browser and Node; `service.ts` the rules and writes; `server/threads.ts` the page's writes; `cli.ts` the command (`yarn comments`).
-- `components/CommentTool.vue` is the tool over the page (`CommentToolbar`, `CommentPin`, `CommentComposer`, `CommentThreadPopover`, `CommentList`); `composables/` read threads and authors and give focus back. Its text is under `comments` in `i18n/locales/en.json`.
+- `components/CommentTool.vue` is the tool over the page (`CommentToolbar`, `CommentPin`, `CommentComposer`, `CommentThreadPopover`, `CommentList`, `CommentReadOnly`, `CommentDeleteModal`); `composables/` read threads, authors and what the person may do, and give focus back. Its text is under `comments` in `i18n/locales/en.json`.
 - The view surface is the prototypes module's (`src/modules/prototypes/types/view/viewSurface.ts`). The look and copy follow the Comments prototype (`src/prototypes/bernardo/comments`).
 
 The deployed site gets no tool, no handler and no thread: the build data is empty and the tool list is empty in the build. The tool's interface strings sit in the shared locale file with every module's, so they ship; threads never do.

@@ -15,10 +15,12 @@ import {
   isTyping,
   onApple,
 } from '../../../../app/utils/shortcuts'
+import { useCommentAccess } from '../composables/useCommentAccess'
 import { useCommentAuthors } from '../composables/useCommentAuthors'
 import { useCommentThreads } from '../composables/useCommentThreads'
 import { threadNumbers, type Anchor, type CommentThread } from '../threads'
 import CommentComposer from './CommentComposer.vue'
+import CommentDeleteModal from './CommentDeleteModal.vue'
 import CommentList from './CommentList.vue'
 import CommentPin from './CommentPin.vue'
 import CommentThreadPopover from './CommentThreadPopover.vue'
@@ -31,7 +33,9 @@ import CommentToolbar from './CommentToolbar.vue'
 // whenever the surface says things may have moved, so pins follow
 // scrolling, resizing and re-renders. In comment mode the surface takes the
 // pointer, so no press reaches the page. The open thread is kept in the
-// address (`?comment=<id>`), so a link or a reload reopens it.
+// address (`?comment=<id>`), so a link or a reload reopens it. What the
+// person may write is the service's to say: where it refuses everything
+// (not registered, an archived prototype) its reason replaces the fields.
 const props = defineProps<{
   prototype: ManifestPrototype
   /** The open artifact, or a view's named state with the view's record. */
@@ -43,10 +47,25 @@ const props = defineProps<{
 
 const { t } = useI18n()
 const route = useRoute()
+const router = useRouter()
+const overlay = useOverlay()
 const toast = useStudioToast()
 const authorOf = await useCommentAuthors()
-const { threads, create, reply, resolve } = useCommentThreads(
-  () => props.prototype.id,
+const {
+  threads,
+  create,
+  reply,
+  resolve,
+  reopen,
+  edit,
+  deleteMessage,
+  deleteThread,
+} = useCommentThreads(() => props.prototype.id)
+const access = useCommentAccess(() => props.prototype)
+const readOnly = computed(() =>
+  access.value?.refusal
+    ? { reason: access.value.refusal, join: access.value.join }
+    : null,
 )
 
 const root = useTemplateRef<HTMLElement>('root')
@@ -237,6 +256,13 @@ watchEffect((onCleanup) => {
   onCleanup(stop)
 })
 
+// Nothing to write with where the service refuses every write.
+watch(readOnly, (refused) => {
+  if (!refused) return
+  commenting.value = false
+  draft.value = null
+})
+
 // --- Comment mode: the surface takes the pointer.
 watchEffect((onCleanup) => {
   const surface = props.surface
@@ -334,10 +360,69 @@ const send = (body: string) =>
 const resolveCurrent = () =>
   write(async () => {
     if (!current.value) return
-    await resolve(current.value.id)
+    const { id } = current.value
+    await resolve(id)
     openId.value = null
-    toast.success(t('comments.resolved'))
+    toast.success(t('comments.resolved'), undefined, {
+      label: t('comments.undo'),
+      onClick: () => write(() => reopen(id)),
+    })
   })
+
+// The list follows a reopened thread to the Open tab.
+const reopenCurrent = () =>
+  write(async () => {
+    if (!current.value) return
+    await reopen(current.value.id)
+    tab.value = 'open'
+  })
+
+const editCurrent = (message: string, body: string) =>
+  write(async () => {
+    if (current.value) await edit(current.value.id, message, body)
+  })
+
+const deleteCurrentMessage = (message: string) =>
+  write(async () => {
+    if (!current.value) return
+    await deleteMessage(current.value.id, message)
+    toast.success(t('comments.messageDeleted'))
+  })
+
+async function deleteCurrent() {
+  const thread = current.value
+  if (!thread) return
+  const confirmed = await overlay
+    .create(CommentDeleteModal, { destroyOnClose: true })
+    .open({
+      number: numbers.value.get(thread.id) ?? 0,
+      replies: thread.messages.length - 1,
+    })
+  if (!confirmed) return
+  await write(async () => {
+    await deleteThread(thread.id)
+    if (openId.value === thread.id) openId.value = null
+    toast.success(t('comments.deleted'))
+  })
+}
+
+/** The address that opens the thread, on its own state. */
+async function copyLink() {
+  const thread = current.value
+  if (!thread) return
+  const { href } = router.resolve({
+    path: addressOf(thread.artifact),
+    query: { comment: thread.id },
+  })
+  try {
+    await navigator.clipboard.writeText(
+      new URL(href, window.location.origin).href,
+    )
+    toast.success(t('comments.linkCopied'))
+  } catch (error) {
+    toast.error(t('comments.copyFailed'), (error as Error).message)
+  }
+}
 
 // Where focus goes when a popover's opener is gone, such as the row of a
 // thread just resolved.
@@ -370,7 +455,7 @@ useEventListener(window, 'keydown', (event: KeyboardEvent) => {
     if (isTyping(event.target) && !ours) return
     if (ours && isTyping(event.target) && !onApple() && event.key !== 'm')
       return
-    if (!props.surface) return
+    if (!props.surface || readOnly.value) return
     event.preventDefault()
     toggle()
     return
@@ -508,9 +593,15 @@ const missing = computed(
       :fallback="fallbackFocus"
       :missing="missing"
       :sending="busy"
+      :access="access"
       :style="beside(missing ? null : currentPlace, 320)"
       @reply="send"
       @resolve="resolveCurrent"
+      @reopen="reopenCurrent"
+      @edit="editCurrent"
+      @delete-message="deleteCurrentMessage"
+      @delete="deleteCurrent"
+      @copy-link="copyLink"
       @close="openId = null"
     />
 
@@ -544,6 +635,7 @@ const missing = computed(
         :missing="missingIds"
         :elsewhere="elsewhere"
         :open-id="openId"
+        :read-only="readOnly"
         @choose="choose"
         @whole="whole"
         @close="listOpen = false"
@@ -556,6 +648,7 @@ const missing = computed(
       :list-open="listOpen"
       :open-count="openCount"
       :can-point="Boolean(surface)"
+      :read-only="readOnly"
       @comment="toggle"
       @pins="pinsShown = !pinsShown"
       @list="listOpen = !listOpen"

@@ -3,12 +3,14 @@ import ContributorAvatar from '../../../../app/components/ContributorAvatar.vue'
 import type { ShownAuthor } from '../composables/useCommentAuthors'
 import type { Author, CommentThread } from '../threads'
 import { timeAgo } from '../utils/time'
+import CommentReadOnly from './CommentReadOnly.vue'
 
 // Every comment on the open file, every named state of a view included, in
 // a panel over the right of the page that never resizes it. Rows read the
 // way the agent will (number, target, quote, first message) and choosing
 // one brings its target into view and opens it. "Comment on the whole …"
 // comments without pointing, so the tool works from the keyboard alone.
+// Where the person can't write, the service's reason takes its place.
 const props = defineProps<{
   threads: CommentThread[]
   numbers: Map<string, number>
@@ -21,6 +23,8 @@ const props = defineProps<{
   /** The named state a thread is on, when it isn't the one on screen. */
   elsewhere: (thread: CommentThread) => string | undefined
   openId: string | null
+  /** The service's reason the person can't comment here, or null. */
+  readOnly: { reason: string; join: boolean } | null
 }>()
 const emit = defineEmits<{
   choose: [thread: CommentThread]
@@ -89,7 +93,14 @@ const replies = (thread: CommentThread) => thread.messages.length - 1
         trigger: 'data-[state=active]:text-highlighted',
       }"
     />
+    <CommentReadOnly
+      v-if="readOnly"
+      :reason="readOnly.reason"
+      :join="readOnly.join"
+      class="mx-3 mt-2.5 mb-1"
+    />
     <UButton
+      v-else
       icon="i-lucide-file"
       :label="t('comments.list.whole', { kind })"
       color="neutral"

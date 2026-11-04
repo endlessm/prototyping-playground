@@ -981,13 +981,42 @@
       "reply": "Reply",
       "send": "Send reply",
       "resolvedBy": "Resolved by {name}",
-      "notFound": "Target not found. It was removed or changed."
+      "notFound": "Target not found. It was removed or changed.",
+      "reopen": "Reopen",
+      "more": "More",
+      "copyLink": "Copy link",
+      "delete": "Delete comment"
     },
     "pin": "Comment {number} by {name}: {preview}",
     "agentName": "{name}’s agent",
     "agentBadge": "Agent",
     "someone": "Someone",
     "resolved": "Comment resolved",
-    "failed": "The comment wasn’t saved"
+    "failed": "The comment wasn’t saved",
+    "message": {
+      "actions": "Message actions",
+      "edit": "Edit",
+      "delete": "Delete",
+      "edited": "Edited",
+      "field": "Edit message",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "readOnly": {
+      "label": "Read-only",
+      "join": "How to join"
+    },
+    "deleteDialog": {
+      "title": "Delete comment {number}?",
+      "description": "It is deleted for everyone, and this can’t be undone.",
+      "withReplies": "It is deleted for everyone with its reply, and this can’t be undone. | It is deleted for everyone with its {count} replies, and this can’t be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete comment"
+    },
+    "undo": "Undo",
+    "deleted": "Comment deleted",
+    "messageDeleted": "Message deleted",
+    "linkCopied": "Link copied",
+    "copyFailed": "The link wasn’t copied"
   }
 }

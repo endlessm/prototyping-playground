@@ -4,6 +4,7 @@
 //   yarn comments show <id>                        one thread, every message
 //   yarn comments reply <id> "<text>"              reply as your agent
 //   yarn comments resolve <id> [--reply "<text>"]  resolve, with a last reply
+//   yarn comments reopen <id>                      open a resolved one again
 //
 // With no folder it lists the prototypes you own. Writes go through the same
 // service as the page's, as the agent of the contributor your Git identity
@@ -25,6 +26,7 @@ import {
   findThread,
   prototypeFolders,
   prototypeThreads,
+  reopenThread,
   replyToThread,
   resolveThread,
   type CommentsActor,
@@ -44,6 +46,7 @@ const USAGE = [
   'yarn comments show <id>',
   'yarn comments reply <id> "<text>"',
   'yarn comments resolve <id> [--reply "<text>"]',
+  'yarn comments reopen <id>',
 ].join('\n')
 
 class Stop extends Error {}
@@ -253,6 +256,11 @@ async function main(argv: string[]) {
       ...(reply !== undefined && { reply }),
     })
     return `Resolved comment ${id}.`
+  }
+  if (command === 'reopen') {
+    if (!id) fail(`Name the comment to reopen.\n${USAGE}`)
+    reopenThread(CONTEXT, actor(people), { thread: id! })
+    return `Reopened comment ${id}.`
   }
   if (positional.length > 1) fail(USAGE)
   return list(command, people)
