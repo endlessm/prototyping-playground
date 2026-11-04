@@ -4,7 +4,6 @@ import tailwindcss from '@tailwindcss/vite'
 import { defineNuxtConfig } from 'nuxt/config'
 import { nodeVersionWarning } from './tooling/check-node.ts'
 import { basePathFromEnv, publicUrlFromEnv } from './tooling/deployment.ts'
-import { COLOR_MODE_KEY } from './tooling/preview/constants.ts'
 import { deploymentRecoveryScript } from './tooling/deployment-recovery.ts'
 import en from './i18n/locales/en.json'
 import { restartScript } from './tooling/settings/restart.ts'
@@ -118,9 +117,15 @@ export default defineNuxtConfig({
     },
   },
 
-  // Remembered in this browser, applied before the first paint.
+  // The studio is light only (ADR 0005): Nuxt UI keeps its color-mode module,
+  // held at light whatever the computer prefers. The module writes its value
+  // back on every load, so it goes to this tab's session under a key of its
+  // own, never read as anyone's preference.
   colorMode: {
-    storageKey: COLOR_MODE_KEY,
+    preference: 'light',
+    fallback: 'light',
+    storage: 'sessionStorage',
+    storageKey: 'design-studio:light-only',
   },
 
   css: ['~/assets/css/main.css'],
