@@ -8,7 +8,7 @@ export default {
   role: 'prototype',
   themeClass: '__ID__-theme',
   styling: 'custom',
-  colorModes: ['light', 'dark'],
+  colorModes: ['light'],
   docs: 'warn',
   libraries: [
     {

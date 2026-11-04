@@ -25,7 +25,7 @@ The [Diagrams README](../../README.md) is the contract; read it for how diagrams
      start[Sign in] --> home[Home]
    ```
 
-6. Leave colours and fonts to the studio: diagrams follow its theme in light and dark mode. Set a colour only when it carries meaning, and check it in both modes.
+6. Leave colours and fonts to the studio: diagrams follow its light theme. Set a colour only when it carries meaning, and check its contrast.
 7. To show the diagram in a document, link it with image syntax on its own line: `![Sign-in flow](./sign-in-flow.mermaid)`. Keep the path relative, with its extension, and the file in the same prototype. The preview's header opens the diagram.
 8. Excalidraw can import Mermaid into a canvas. That copy is a separate drawing: later edits to the `.mermaid` file don't reach it.
 

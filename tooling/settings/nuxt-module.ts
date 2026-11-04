@@ -1,11 +1,10 @@
-import path from 'node:path'
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { addVitePlugin, defineNuxtModule } from 'nuxt/kit'
-import { systemsFolder } from '../systems/registry.ts'
-import { OPERATION_MARKER } from '../systems/lifecycle.ts'
-import { INSTANCE_META } from './restart.ts'
+import { serverIdentity } from '../restart/nuxt-module.ts'
 import { settingsSnapshot, saveSettings } from './service.ts'
 
+// Reading and saving Settings. Whether a save restarts the studio is the
+// restart trigger's to decide (`../restart/`); the answers name this dev
+// server, which the page waits to leave.
 export default defineNuxtModule({
   meta: { name: 'studio-settings' },
   setup(_options, nuxt) {
@@ -16,9 +15,7 @@ export default defineNuxtModule({
       modulesFolder: process.env.STUDIO_MODULES || undefined,
       contributorsFolder: process.env.STUDIO_CONTRIBUTORS || undefined,
     }
-    const instance = crypto.randomUUID()
-    nuxt.options.app.head.meta ??= []
-    nuxt.options.app.head.meta.push({ name: INSTANCE_META, content: instance })
+    const instance = serverIdentity(nuxt)
     addVitePlugin(
       {
         name: 'studio-settings',
@@ -71,64 +68,6 @@ export default defineNuxtModule({
               }
             },
           )
-          let timer: ReturnType<typeof setTimeout> | undefined
-          const systems = path.resolve(root, systemsFolder())
-          // What this server started with: a change rolled back restores it,
-          // and needs no restart.
-          const snapshot = () => {
-            const text = (file: string) =>
-              existsSync(file) ? readFileSync(file, 'utf8') : ''
-            const declarations = existsSync(systems)
-              ? readdirSync(systems)
-                  .sort()
-                  .map((key) => [
-                    key,
-                    text(path.join(systems, key, 'system.ts')),
-                  ])
-              : []
-            return JSON.stringify([
-              text(path.resolve(root, options.configFile)),
-              declarations,
-            ])
-          }
-          const started = snapshot()
-          // A system change in progress (its marker) restarts once it is done.
-          const restart = () => {
-            if (existsSync(path.join(root, OPERATION_MARKER))) {
-              timer = setTimeout(restart, 250)
-              return
-            }
-            if (snapshot() === started) return
-            server.ws.send({
-              type: 'custom',
-              event: 'studio:restarting',
-              data: { instance },
-            })
-            setTimeout(() => void nuxt.callHook('restart', { hard: true }), 200)
-          }
-          const changed = (file: string) => {
-            const resolved = path.resolve(file)
-            if (
-              resolved !== path.resolve(root, options.configFile) &&
-              !(
-                resolved.startsWith(systems + path.sep) &&
-                path.basename(file) === 'system.ts'
-              )
-            )
-              return
-            clearTimeout(timer)
-            timer = setTimeout(restart, 150)
-          }
-          server.watcher.add([path.resolve(root, options.configFile), systems])
-          // New and removed declarations count too: a system created or
-          // deleted.
-          for (const event of ['change', 'add', 'unlink'])
-            server.watcher.on(event, changed)
-          server.httpServer?.once('close', () => {
-            clearTimeout(timer)
-            for (const event of ['change', 'add', 'unlink'])
-              server.watcher.off(event, changed)
-          })
         },
       },
       { server: false },

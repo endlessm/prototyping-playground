@@ -1,7 +1,7 @@
 // The canvas's menu and the parts of Excalidraw's UI it keeps. It removes only
 // what would do harm ("Open" replaces the canvas with a file, "Reset the
-// canvas" wipes it) or has its own control elsewhere (export; light and dark
-// follow the studio's colour mode). Help, Undo and Redo live only in this
+// canvas" wipes it) or doesn't apply (export has its own control elsewhere;
+// the studio is light only). Help, Undo and Redo live only in this
 // menu (their corner buttons are hidden in canvas.css). A canvas you can't
 // edit keeps only Hide controls: the rest would change it.
 import { MainMenu } from '@excalidraw/excalidraw'
@@ -18,7 +18,7 @@ export const UI_OPTIONS: ExcalidrawProps['UIOptions'] = {
     clearCanvas: false,
     saveToActiveFile: false,
     export: false,
-    // Also turns off its shortcut; the `theme` prop follows the studio.
+    // Also turns off its shortcut; the studio is light only.
     toggleTheme: false,
   },
   // Images are on: the toolbar button, the 9 shortcut, pasting and dropping.

@@ -1,19 +1,17 @@
 <script setup lang="ts">
-import type { DropdownMenuItem } from '@nuxt/ui'
 import AppLogo from './AppLogo.vue'
 import AppRailButton from './AppRailButton.vue'
 
 // The main navigation: a narrow icon rail on every page. Top: the logo
 // (Home), search, then each enabled module's section. Bottom: the section
 // navigation toggle (only where the page has one), the modules placed
-// there, Studio settings (locally) and the color mode.
+// there and Studio settings (locally).
 const studio = useStudioConfig()
 const modules = useStudioModules()
 const route = useRoute()
 const { t } = useI18n()
 const palette = useCommandPalette()
 const sectionNav = useSectionNav()
-const { choice, resolved, choose } = useColorModeChoice()
 const local = import.meta.dev
 
 function railItems(position: 'top' | 'bottom') {
@@ -35,27 +33,6 @@ const bottom = railItems('bottom')
 // You are in a section anywhere under its address.
 const inSection = (to: string) =>
   route.path === to || route.path.startsWith(`${to.replace(/\/$/, '')}/`)
-
-const modeIcon = computed(() =>
-  choice.value === 'system'
-    ? 'i-lucide-monitor'
-    : resolved.value === 'dark'
-      ? 'i-lucide-moon'
-      : 'i-lucide-sun',
-)
-const modeItems = computed<DropdownMenuItem[]>(() =>
-  (['system', 'light', 'dark'] as const).map((mode) => ({
-    label: t(`colorMode.${mode}`),
-    icon: {
-      system: 'i-lucide-monitor',
-      light: 'i-lucide-sun',
-      dark: 'i-lucide-moon',
-    }[mode],
-    type: 'checkbox',
-    checked: choice.value === mode,
-    onUpdateChecked: () => void choose(mode),
-  })),
-)
 </script>
 
 <template>
@@ -128,21 +105,6 @@ const modeItems = computed<DropdownMenuItem[]>(() =>
         icon="i-lucide-settings"
         :current="route.path === '/settings'"
       />
-      <UDropdownMenu
-        :items="modeItems"
-        :content="{ side: 'right', align: 'end' }"
-      >
-        <UTooltip :text="t('rail.colorMode')" :content="{ side: 'right' }">
-          <UButton
-            :icon="modeIcon"
-            :aria-label="t('rail.colorMode')"
-            color="neutral"
-            variant="ghost"
-            square
-            class="size-8 justify-center"
-          />
-        </UTooltip>
-      </UDropdownMenu>
     </template>
   </UDashboardSidebar>
 </template>

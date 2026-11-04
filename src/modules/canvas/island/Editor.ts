@@ -1,6 +1,6 @@
 // The canvas editor: Excalidraw with the studio's menu, shortcuts, sticky
 // notes, tooltips and look. The Vue page around it owns the opening, the
-// empty hint, the colour mode and saving; this owns the scene, reports its
+// empty hint and saving; this owns the scene, reports its
 // changes and takes in the file when it changes on disk.
 import {
   CaptureUpdateAction,
@@ -92,7 +92,7 @@ export interface CanvasItemState {
 /**
  * Where the Vue page draws items: Excalidraw gives each item a box, and the
  * page renders the item into it with the studio's own context (router,
- * i18n, manifest, colour mode).
+ * i18n, manifest).
  */
 export interface CanvasItemHost {
   show: (id: string, box: HTMLElement, state: CanvasItemState) => void
@@ -111,7 +111,6 @@ export interface CanvasEditorProps {
   background: string
   gridSize: number | null
   editable: boolean
-  dark: boolean
   /** The app's address, for turning stored links into whole URLs. */
   base: string
   /** Where this browser remembers the camera. */
@@ -473,7 +472,7 @@ function useWheelOverTitleBars(
 }
 
 export function CanvasEditor(props: CanvasEditorProps) {
-  const { editable, dark, labels } = props
+  const { editable, labels } = props
   const container = useRef<HTMLDivElement>(null)
   const [api, setApi] = useState<ExcalidrawImperativeAPI | null>(null)
   const [itemsOnly, setItemsOnly] = useState(false)
@@ -516,7 +515,6 @@ export function CanvasEditor(props: CanvasEditorProps) {
     setInitialData({
       elements,
       appState: {
-        theme: dark ? 'dark' : 'light',
         viewBackgroundColor: props.background,
         gridSize: props.gridSize ?? undefined,
         currentItemFontFamily: FONT_FAMILY.Nunito,
@@ -655,7 +653,7 @@ export function CanvasEditor(props: CanvasEditorProps) {
           renderEmbeddable,
           UIOptions: UI_OPTIONS,
           viewModeEnabled: !editable,
-          theme: dark ? 'dark' : 'light',
+          theme: 'light',
         },
         h(CanvasMenu, {
           api,

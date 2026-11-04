@@ -24,7 +24,7 @@ The [Systems README](../../README.md#component-pages) is the contract: file name
 
 ## Check
 
-7. Open `/systems/<system-id>/components/<name>` (the system's permanent ID, from `system.ts`'s `studioId`). Every example should render; one that throws shows its error in its own frame. Look at each example in the colour modes the system supports.
+7. Open `/systems/<system-id>/components/<name>` (the system's permanent ID, from `system.ts`'s `studioId`). Every example should render; one that throws shows its error in its own frame. Look at each example; previews render light only, whatever colour modes the system declares.
 8. The dev server's start and `yarn build` warn about documentation gaps, the first five per system; a system with `docs: 'strict'` fails the build until they're fixed.
 
 Report the files you created and anything the component can't show yet. Don't call it done while examples hold placeholders.

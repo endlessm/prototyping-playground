@@ -542,9 +542,7 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     // Local fonts, icons and images, and the copied app's images.
     expect(await text(toolkit)).toContain('6 Assets')
     expect(await text(toolkit)).toContain('Plain Vue with Harbor’s theme.')
-    expect(await text(toolkit)).toContain(
-      'Color modes: Light only. This system stays in light mode while Studio follows its global color mode.',
-    )
+    expect(await text(toolkit)).toContain('Color modes: Light only.')
 
     const usage = region(page, 'Where it’s used')
     // Harbor's archived prototype, the newest, neither counts nor shows.
@@ -576,9 +574,7 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     await visible(page.getByText('The guidance and code included in Lantern.'))
     await visible(page.getByText('No system instructions have been added yet.'))
     await visible(
-      page.getByText(
-        'Color modes: Light and dark. Follows Studio’s global color mode.',
-      ),
+      page.getByText('Color modes: Light and dark. Previews use light.'),
     )
     await visible(
       page.getByText(
@@ -996,24 +992,15 @@ describe('in the studio running locally', { timeout: 120_000 }, () => {
     }
   })
 
-  test('[SY-118] the source editor keeps the studio’s dark mode in a light-only system', async () => {
-    const page = await newPage()
-    await page.addInitScript(() =>
-      localStorage.setItem('design-studio:color-mode', 'dark'),
-    )
-    await page.goto(`${studio.url}systems/${HARBOR}/colors?mode=source`)
+  test('[SY-118] the source editor keeps the studio’s look in a light-only system', async () => {
+    const page = await open(`systems/${HARBOR}/colors?mode=source`)
     const source = editor(page, systemsPath('harbor/styles/theme.css'))
     await visible(source)
-    expect(
-      await page
-        .locator('html')
-        .evaluate((html) => html.classList.contains('dark')),
-    ).toBe(true)
     expect(
       await source.evaluate(
         (node) => getComputedStyle(node.closest('.cm-editor')!).colorScheme,
       ),
-    ).toBe('dark')
+    ).toBe('light')
     expect(await page.locator('.harbor-theme').count()).toBe(0)
   })
 

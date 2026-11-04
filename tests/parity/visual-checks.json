@@ -1331,113 +1331,85 @@
   },
   {
     "row": "PR-117",
-    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, in dark mode, broken, and embedded in a document",
+    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, broken, and embedded in a document",
     "step": "1. A diagram filling its page",
     "verdict": "same",
     "reviewed": "2026-11-01 Bernardo"
   },
   {
     "row": "PR-118",
-    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, in dark mode, broken, and embedded in a document",
+    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, broken, and embedded in a document",
     "step": "1. A diagram filling its page",
     "verdict": "same",
     "reviewed": "2026-11-01 Bernardo"
   },
   {
     "row": "PR-120",
-    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, in dark mode, broken, and embedded in a document",
+    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, broken, and embedded in a document",
     "step": "1. A diagram filling its page",
     "verdict": "same",
     "reviewed": "2026-11-01 Bernardo"
   },
   {
     "row": "PR-121",
-    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, in dark mode, broken, and embedded in a document",
+    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, broken, and embedded in a document",
     "step": "1. A diagram filling its page",
     "verdict": "same",
     "reviewed": "2026-11-01 Bernardo"
   },
   {
     "row": "PR-117",
-    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, in dark mode, broken, and embedded in a document",
-    "step": "2. The same diagram in dark mode",
+    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, broken, and embedded in a document",
+    "step": "2. Invalid Mermaid with its message",
     "verdict": "same",
     "reviewed": "2026-11-01 Bernardo"
   },
   {
     "row": "PR-118",
-    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, in dark mode, broken, and embedded in a document",
-    "step": "2. The same diagram in dark mode",
+    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, broken, and embedded in a document",
+    "step": "2. Invalid Mermaid with its message",
     "verdict": "same",
     "reviewed": "2026-11-01 Bernardo"
   },
   {
     "row": "PR-120",
-    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, in dark mode, broken, and embedded in a document",
-    "step": "2. The same diagram in dark mode",
+    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, broken, and embedded in a document",
+    "step": "2. Invalid Mermaid with its message",
     "verdict": "same",
     "reviewed": "2026-11-01 Bernardo"
   },
   {
     "row": "PR-121",
-    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, in dark mode, broken, and embedded in a document",
-    "step": "2. The same diagram in dark mode",
+    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, broken, and embedded in a document",
+    "step": "2. Invalid Mermaid with its message",
     "verdict": "same",
     "reviewed": "2026-11-01 Bernardo"
   },
   {
     "row": "PR-117",
-    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, in dark mode, broken, and embedded in a document",
-    "step": "3. Invalid Mermaid with its message",
+    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, broken, and embedded in a document",
+    "step": "3. A diagram embedded in a document",
     "verdict": "same",
     "reviewed": "2026-11-01 Bernardo"
   },
   {
     "row": "PR-118",
-    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, in dark mode, broken, and embedded in a document",
-    "step": "3. Invalid Mermaid with its message",
+    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, broken, and embedded in a document",
+    "step": "3. A diagram embedded in a document",
     "verdict": "same",
     "reviewed": "2026-11-01 Bernardo"
   },
   {
     "row": "PR-120",
-    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, in dark mode, broken, and embedded in a document",
-    "step": "3. Invalid Mermaid with its message",
+    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, broken, and embedded in a document",
+    "step": "3. A diagram embedded in a document",
     "verdict": "same",
     "reviewed": "2026-11-01 Bernardo"
   },
   {
     "row": "PR-121",
-    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, in dark mode, broken, and embedded in a document",
-    "step": "3. Invalid Mermaid with its message",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "PR-117",
-    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, in dark mode, broken, and embedded in a document",
-    "step": "4. A diagram embedded in a document",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "PR-118",
-    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, in dark mode, broken, and embedded in a document",
-    "step": "4. A diagram embedded in a document",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "PR-120",
-    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, in dark mode, broken, and embedded in a document",
-    "step": "4. A diagram embedded in a document",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "PR-121",
-    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, in dark mode, broken, and embedded in a document",
-    "step": "4. A diagram embedded in a document",
+    "scenario": "[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, broken, and embedded in a document",
+    "step": "3. A diagram embedded in a document",
     "verdict": "same",
     "reviewed": "2026-11-01 Bernardo"
   },
@@ -4297,398 +4269,6 @@
     "reviewed": "2026-11-01 Bernardo"
   },
   {
-    "row": "SH-51",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "1. Home, following the computer’s dark mode",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-31",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "1. Home, following the computer’s dark mode",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-24",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "1. Home, following the computer’s dark mode",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-55",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "1. Home, following the computer’s dark mode",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "PR-80",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "1. Home, following the computer’s dark mode",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "CV-48",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "1. Home, following the computer’s dark mode",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SY-134",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "1. Home, following the computer’s dark mode",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SY-87",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "1. Home, following the computer’s dark mode",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-51",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "2. An Endless Studios view stays light",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-31",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "2. An Endless Studios view stays light",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-24",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "2. An Endless Studios view stays light",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-55",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "2. An Endless Studios view stays light",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "PR-80",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "2. An Endless Studios view stays light",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "CV-48",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "2. An Endless Studios view stays light",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SY-134",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "2. An Endless Studios view stays light",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SY-87",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "2. An Endless Studios view stays light",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-51",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "3. A view with no system",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-31",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "3. A view with no system",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-24",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "3. A view with no system",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-55",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "3. A view with no system",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "PR-80",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "3. A view with no system",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "CV-48",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "3. A view with no system",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SY-134",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "3. A view with no system",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SY-87",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "3. A view with no system",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-51",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "4. A canvas",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-31",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "4. A canvas",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-24",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "4. A canvas",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-55",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "4. A canvas",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "PR-80",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "4. A canvas",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "CV-48",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "4. A canvas",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SY-134",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "4. A canvas",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SY-87",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "4. A canvas",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-51",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "5. Endless Studios’ Colors stay light",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-31",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "5. Endless Studios’ Colors stay light",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-24",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "5. Endless Studios’ Colors stay light",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-55",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "5. Endless Studios’ Colors stay light",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "PR-80",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "5. Endless Studios’ Colors stay light",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "CV-48",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "5. Endless Studios’ Colors stay light",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SY-134",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "5. Endless Studios’ Colors stay light",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SY-87",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "5. Endless Studios’ Colors stay light",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-51",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "6. The colour mode control in the rail",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-31",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "6. The colour mode control in the rail",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-24",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "6. The colour mode control in the rail",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-55",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "6. The colour mode control in the rail",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "PR-80",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "6. The colour mode control in the rail",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "CV-48",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "6. The colour mode control in the rail",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SY-134",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "6. The colour mode control in the rail",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SY-87",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "6. The colour mode control in the rail",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-51",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "7. Light mode chosen in the rail, the computer still dark",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-31",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "7. Light mode chosen in the rail, the computer still dark",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-24",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "7. Light mode chosen in the rail, the computer still dark",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-55",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "7. Light mode chosen in the rail, the computer still dark",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "PR-80",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "7. Light mode chosen in the rail, the computer still dark",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "CV-48",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "7. Light mode chosen in the rail, the computer still dark",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SY-134",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "7. Light mode chosen in the rail, the computer still dark",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SY-87",
-    "scenario": "[SH-51] [SH-31] [SH-24] [SH-55] [PR-80] [CV-48] [SY-134] [SY-87] the studio in dark mode",
-    "step": "7. Light mode chosen in the rail, the computer still dark",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
     "row": "SH-01",
     "scenario": "[SH-01] [SH-24] [SH-26] [SH-37] [SH-96] [SH-98] the studio’s frame, Home and the rows of a section",
     "step": "1. Home in the frame: the rail, the search row and the blocks",
@@ -4859,63 +4439,42 @@
   {
     "row": "SH-130",
     "scenario": "[SH-130] [SH-131] [SH-132] The welcome on a first visit",
-    "step": "5. The second step in dark mode",
+    "step": "5. The last step",
     "verdict": "same",
     "reviewed": "2026-11-01 Bernardo"
   },
   {
     "row": "SH-131",
     "scenario": "[SH-130] [SH-131] [SH-132] The welcome on a first visit",
-    "step": "5. The second step in dark mode",
+    "step": "5. The last step",
     "verdict": "same",
     "reviewed": "2026-11-01 Bernardo"
   },
   {
     "row": "SH-132",
     "scenario": "[SH-130] [SH-131] [SH-132] The welcome on a first visit",
-    "step": "5. The second step in dark mode",
+    "step": "5. The last step",
     "verdict": "same",
     "reviewed": "2026-11-01 Bernardo"
   },
   {
     "row": "SH-130",
     "scenario": "[SH-130] [SH-131] [SH-132] The welcome on a first visit",
-    "step": "6. The last step",
+    "step": "6. Home after the welcome",
     "verdict": "same",
     "reviewed": "2026-11-01 Bernardo"
   },
   {
     "row": "SH-131",
     "scenario": "[SH-130] [SH-131] [SH-132] The welcome on a first visit",
-    "step": "6. The last step",
+    "step": "6. Home after the welcome",
     "verdict": "same",
     "reviewed": "2026-11-01 Bernardo"
   },
   {
     "row": "SH-132",
     "scenario": "[SH-130] [SH-131] [SH-132] The welcome on a first visit",
-    "step": "6. The last step",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-130",
-    "scenario": "[SH-130] [SH-131] [SH-132] The welcome on a first visit",
-    "step": "7. Home after the welcome",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-131",
-    "scenario": "[SH-130] [SH-131] [SH-132] The welcome on a first visit",
-    "step": "7. Home after the welcome",
-    "verdict": "same",
-    "reviewed": "2026-11-01 Bernardo"
-  },
-  {
-    "row": "SH-132",
-    "scenario": "[SH-130] [SH-131] [SH-132] The welcome on a first visit",
-    "step": "7. Home after the welcome",
+    "step": "6. Home after the welcome",
     "verdict": "same",
     "reviewed": "2026-11-01 Bernardo"
   }

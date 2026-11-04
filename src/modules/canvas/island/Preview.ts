@@ -46,7 +46,6 @@ export interface CanvasPreviewHandle {
 
 export interface CanvasPreviewProps {
   file: ParsedCanvas
-  dark: boolean
   /** The app's address, for turning stored links into whole URLs. */
   base: string
   width: number
@@ -58,7 +57,7 @@ export interface CanvasPreviewProps {
 }
 
 export function CanvasPreview(props: CanvasPreviewProps) {
-  const { file, dark, base, width, height, items, onReady, loadImages } = props
+  const { file, base, width, height, items, onReady, loadImages } = props
   const [api, setApi] = useState<ExcalidrawImperativeAPI | null>(null)
   const elements = useMemo(
     () =>
@@ -78,7 +77,6 @@ export function CanvasPreview(props: CanvasPreviewProps) {
   const initialData = useRef<ExcalidrawInitialDataState>({
     elements,
     appState: {
-      theme: dark ? 'dark' : 'light',
       viewBackgroundColor: file.background,
       currentItemFontFamily: FONT_FAMILY.Nunito,
       ...camera,
@@ -150,7 +148,7 @@ export function CanvasPreview(props: CanvasPreviewProps) {
       renderEmbeddable,
       viewModeEnabled: true,
       zenModeEnabled: true,
-      theme: dark ? 'dark' : 'light',
+      theme: 'light',
     }),
   )
 }

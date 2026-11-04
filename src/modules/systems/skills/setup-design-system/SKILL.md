@@ -25,7 +25,7 @@ The [systems README](../../README.md) is the contract: "System lifecycle", "Sett
 2. Install packages in the system's workspace (`yarn workspace @studio-system/<studioId> add <package>`), and list the meaningful ones in `libraries` in `system.ts`, with `components` and `assets` where the library supplies them.
 3. Every Vue app of the system comes from the factory `app.factory` names; install plugins (Nuxt UI, icons, i18n, stores) there, never in a view. Declare `stylesheet`, `themeClass`, `nuxtUi`, `standIns`, `source` and `aliases` as the contract describes.
 4. Document components with [document-component](../document-component/SKILL.md).
-5. Make or reuse one prototype in the person's folder assigned to the system (`yarn new "<Title>" --system <studioId>`) and check it renders, in every colour mode the system declares.
+5. Make or reuse one prototype in the person's folder assigned to the system (`yarn new "<Title>" --system <studioId>`) and check it renders. Previews are light only, so a system's dark colours stay in its stylesheet unseen.
 
 ## Record the setup
 

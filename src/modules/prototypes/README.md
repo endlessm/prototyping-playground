@@ -119,7 +119,7 @@ A view renders in its system's preview document, a same-origin iframe at `<base>
 
 A prototype with no system renders in a document with plain Vue, browser colours and a system font. Its views import what they use from `vue` and style themselves.
 
-A preview document starts in the studio's color mode before it paints, and follows it while open without reloading, so a view keeps its state. The root element gets the `dark` class and a matching `color-scheme`. A system whose `colorModes` has no `dark` stays light (Endless Studios is light only).
+A preview document is always light: it sets `color-scheme: light` before it paints and never gets the `dark` class, whatever its system's `colorModes` declares or the computer prefers (ADR 0005).
 
 In development each preview document has its own Vite server, started on its first request; the build emits each document under `_preview/` beside the app. Besides views, a system's document shows the examples of its component pages and its own Overview content (`overview.vue`), each under a fixed ID; an examples file imports `Example` from `#studio/examples` (`tooling/preview/runtime/example.ts`), and the document renders only the example it was asked for (the Systems README has the details).
 
@@ -207,7 +207,7 @@ Locally, any artifact's source opens in place of its page: from "File actions" �
 
 The rendered page stays alive while its source is open, hidden and inert: a view keeps its state and its hot updates, so returning shows the saved change in the running view.
 
-The editor (`app/components/source/`, CodeMirror 6 wrapped in `SourceCode.vue`) shows the file's path, "Read-only" or "Unsaved changes", Save (tooltip "Save (Ctrl+S)", ⌘S on Apple computers) and Done. It has line numbers, the active line, bracket matching and closing, folding, undo history, search (⌘F / Ctrl+F) and matching-selection highlights, in the studio's colours (Flexoki syntax colours, light and dark). Syntax comes from the extension: Vue for views, TypeScript and JavaScript, Markdown (wrapping, with YAML frontmatter and Mermaid fences), JSON, Mermaid, CSS and YAML. Screen readers hear it as "Source of <path>"; a read-only editor stays focusable for search and keyboard selection.
+The editor (`app/components/source/`, CodeMirror 6 wrapped in `SourceCode.vue`) shows the file's path, "Read-only" or "Unsaved changes", Save (tooltip "Save (Ctrl+S)", ⌘S on Apple computers) and Done. It has line numbers, the active line, bracket matching and closing, folding, undo history, search (⌘F / Ctrl+F) and matching-selection highlights, in the studio's colours (Flexoki syntax colours, light only). Syntax comes from the extension: Vue for views, TypeScript and JavaScript, Markdown (wrapping, with YAML frontmatter and Mermaid fences), JSON, Mermaid, CSS and YAML. Screen readers hear it as "Source of <path>"; a read-only editor stays focusable for search and keyboard selection.
 
 - **Saving.** ⌘S / Ctrl+S or Save writes through the file service and confirms with "Saved"; the service's warnings show as error toasts, and a refused save shows its reason.
 - **Changes on disk.** A clean editor reloads by itself when the file changes elsewhere. With unsaved changes, a bar says "This file changed on disk while you were editing it." with "Load the new version" and "Keep mine" (the next save overwrites). A save over a version the editor hasn't seen is refused, and the bar shows.

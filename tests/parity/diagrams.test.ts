@@ -10,7 +10,7 @@ const BROKEN = 'd1a6000000000p03'
 const GUIDE = 'd1a6000000000p04'
 
 scenario(
-  '[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, in dark mode, broken, and embedded in a document',
+  '[PR-117] [PR-118] [PR-120] [PR-121] diagrams on their pages, broken, and embedded in a document',
   async ({ page, url, step }) => {
     const address = (id: string) =>
       `${url}prototypes/${DIAGRAMS}/artifacts/${id}`
@@ -27,13 +27,6 @@ scenario(
     await page.goto(address(SIGN_IN))
     await drawn('Try again')
     await step('A diagram filling its page')
-
-    await page.emulateMedia({ colorScheme: 'dark' })
-    // Both studios draw again for the new colour mode.
-    await page.waitForTimeout(1500)
-    await drawn('Try again')
-    await step('The same diagram in dark mode')
-    await page.emulateMedia({ colorScheme: 'light' })
 
     await page.goto(address(BROKEN))
     await expect

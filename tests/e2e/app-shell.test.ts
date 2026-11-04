@@ -87,7 +87,7 @@ describe('the studio frame on the dev server', () => {
       document: document.documentElement.scrollHeight,
     }))
     expect(sizes.document).toBe(sizes.window)
-    for (const label of [name, 'Search (Ctrl+K)', 'Color mode'])
+    for (const label of [name, 'Search (Ctrl+K)'])
       expect(await rail(page).getByLabel(label).count()).toBe(1)
   })
 
@@ -251,82 +251,49 @@ describe('the studio frame on the dev server', () => {
     ).toBe('auto')
   })
 
-  test('[SH-31] [SH-51] [SH-53] [SH-143] [CL-113] color mode offers System, Light and Dark and applies the choice before the first paint', async () => {
+  test('[SH-31] [SH-51] the studio is light only: no Color mode control, and neither the computer’s dark mode nor an old preference has any effect', async () => {
     const page = await newPage()
-    await page.emulateMedia({ colorScheme: 'light' })
-    // What the root element holds at the first frame, before anything paints.
+    await page.emulateMedia({ colorScheme: 'dark' })
+    // A preference remembered from when the studio had dark mode, and what
+    // the root element holds at the first frame, before anything paints.
     await page.addInitScript(() => {
+      if (!sessionStorage.getItem('seeded')) {
+        sessionStorage.setItem('seeded', 'yes')
+        localStorage.setItem('design-studio:color-mode', 'dark')
+      }
       requestAnimationFrame(() => {
         ;(window as unknown as { firstFrame: string }).firstFrame =
           document.documentElement.className
       })
     })
     await open(page, studio.url)
-    expect(await htmlClass(page)).not.toContain('dark')
-    await rail(page).getByRole('button', { name: 'Color mode' }).click()
-    const choices = page.getByRole('menuitemcheckbox')
     expect(
-      (await choices.allTextContents()).map((text) => text.trim()),
-    ).toEqual(['System', 'Light', 'Dark'])
-    await page.getByRole('menuitemcheckbox', { name: 'Dark' }).click()
-    await expect.poll(() => htmlClass(page)).toContain('dark')
-    expect(
-      await page.evaluate(
-        () => getComputedStyle(document.documentElement).colorScheme,
-      ),
-    ).toBe('dark')
-    expect(
-      await page.evaluate(() =>
-        localStorage.getItem('design-studio:color-mode'),
-      ),
-    ).toBe('dark')
-    await page.reload()
-    await expect.poll(() => rail(page).isVisible()).toBe(true)
+      await rail(page).getByRole('button', { name: 'Color mode' }).count(),
+    ).toBe(0)
     expect(
       await page.evaluate(
         () => (window as unknown as { firstFrame: string }).firstFrame,
       ),
-    ).toContain('dark')
-  })
-
-  test('[SH-51] System follows the computer again, including live changes', async () => {
-    const page = await newPage()
-    await page.emulateMedia({ colorScheme: 'light' })
-    await page.addInitScript(() =>
-      localStorage.setItem('design-studio:color-mode', 'dark'),
-    )
-    await open(page, studio.url)
-    await expect.poll(() => htmlClass(page)).toContain('dark')
-    await rail(page).getByRole('button', { name: 'Color mode' }).click()
-    await page.getByRole('menuitemcheckbox', { name: 'System' }).click()
-    await expect.poll(() => htmlClass(page)).not.toContain('dark')
-    await page.emulateMedia({ colorScheme: 'dark' })
-    await expect.poll(() => htmlClass(page)).toContain('dark')
-  })
-
-  test('[SH-52] switching mode cross-fades, except when reduced motion is preferred', async () => {
-    const transitions = async (reducedMotion: 'reduce' | 'no-preference') => {
-      const page = await newPage()
-      await page.emulateMedia({ reducedMotion, colorScheme: 'light' })
-      await page.addInitScript(() => {
-        const original = document.startViewTransition?.bind(document)
-        const counted = window as unknown as { transitions: number }
-        counted.transitions = 0
-        document.startViewTransition = ((update: () => void) => {
-          counted.transitions++
-          return original!(update)
-        }) as typeof document.startViewTransition
-      })
-      await open(page, studio.url)
-      await rail(page).getByRole('button', { name: 'Color mode' }).click()
-      await page.getByRole('menuitemcheckbox', { name: 'Dark' }).click()
-      await expect.poll(() => htmlClass(page)).toContain('dark')
-      return page.evaluate(
-        () => (window as unknown as { transitions: number }).transitions,
+    ).not.toContain('dark')
+    expect(await htmlClass(page)).not.toContain('dark')
+    expect(
+      await page.evaluate(
+        () => getComputedStyle(document.documentElement).colorScheme,
+      ),
+    ).toBe('light')
+    await expect
+      .poll(() =>
+        page.evaluate(() => localStorage.getItem('design-studio:color-mode')),
       )
-    }
-    expect(await transitions('no-preference')).toBe(1)
-    expect(await transitions('reduce')).toBe(0)
+      .toBeNull()
+    // Nothing keeps a color mode in this browser any more, under any key.
+    expect(
+      await page.evaluate(() =>
+        [...Object.keys(localStorage), ...Object.keys(sessionStorage)].filter(
+          (key) => /color-mode/.test(key),
+        ),
+      ),
+    ).toEqual([])
   })
 
   test('[SH-50] shortcut labels show ⌘ on Apple computers', async () => {
@@ -571,8 +538,8 @@ describe('the studio frame on the dev server', () => {
   test('[SH-56] a menu item keeps its hover highlight while the studio’s window doesn’t have focus', async () => {
     const page = await newPage()
     await open(page, `${studio.url}garden`)
-    await rail(page).getByRole('button', { name: 'Color mode' }).click()
-    const item = page.getByRole('menuitemcheckbox', { name: 'Dark' })
+    await page.getByRole('button', { name: 'Garden actions' }).click()
+    const item = page.getByRole('menuitem', { name: 'Water' })
     await expect.poll(() => item.isVisible()).toBe(true)
     // Another app (an editor, the file browser) took focus: the page loses
     // it, and nothing in it can take it back. Headless Chromium keeps every

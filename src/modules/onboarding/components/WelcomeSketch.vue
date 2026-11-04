@@ -1,8 +1,8 @@
 <script setup lang="ts">
 // The welcome's drawings, ported from the React studio's onboarding
 // illustrations (AgentSketch, StorySketch and the canvas ArtifactSketch).
-// They use the studio's theme colours, so they follow light and dark mode,
-// and human labels: they introduce ideas, not file formats.
+// They use the studio's theme colours and human labels: they introduce
+// ideas, not file formats.
 export type SketchKind =
   'agent' | 'toolkit' | 'context' | 'skills' | 'canvas' | 'brief'
 

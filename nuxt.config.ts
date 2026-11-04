@@ -4,11 +4,9 @@ import tailwindcss from '@tailwindcss/vite'
 import { defineNuxtConfig } from 'nuxt/config'
 import { nodeVersionWarning } from './tooling/check-node.ts'
 import { basePathFromEnv, publicUrlFromEnv } from './tooling/deployment.ts'
-import { COLOR_MODE_KEY } from './tooling/preview/constants.ts'
 import { deploymentRecoveryScript } from './tooling/deployment-recovery.ts'
 import en from './i18n/locales/en.json'
-import { restartScript } from './tooling/settings/restart.ts'
-import { transitionScript } from './tooling/systems/transition.ts'
+import { handoffScript } from './tooling/restart/handoff.ts'
 
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
 const warning = nodeVersionWarning(process.version, pkg.engines.node)
@@ -118,20 +116,12 @@ export default defineNuxtConfig({
     },
   },
 
-  // Remembered in this browser, applied before the first paint.
-  colorMode: {
-    storageKey: COLOR_MODE_KEY,
-  },
-
   css: ['~/assets/css/main.css'],
 
   // MDC loads a highlighting theme named `<name>` from `@shikijs/themes/<name>`.
   alias: {
     '@shikijs/themes/studio-light': fileURLToPath(
       new URL('./app/markdown/code-theme-light.ts', import.meta.url),
-    ),
-    '@shikijs/themes/studio-dark': fileURLToPath(
-      new URL('./app/markdown/code-theme-dark.ts', import.meta.url),
     ),
   },
 
@@ -144,6 +134,7 @@ export default defineNuxtConfig({
     './tooling/dev-server/nuxt-module.ts',
     './tooling/contributors/nuxt-module.ts',
     './tooling/contributors/pages-module.ts',
+    './tooling/restart/nuxt-module.ts',
     './tooling/settings/nuxt-module.ts',
     './tooling/identity/nuxt-module.ts',
     './tooling/manifest/nuxt-module.ts',
@@ -154,6 +145,9 @@ export default defineNuxtConfig({
   // components (`app/markdown/`).
   ui: {
     mdc: true,
+    // The studio is light only (ADR 0005): without Nuxt UI's color-mode
+    // module nothing sets the `dark` class or remembers a mode.
+    colorMode: false,
   },
   mdc: {
     // Documents are plain Markdown: no emoji shortcodes.
@@ -165,12 +159,8 @@ export default defineNuxtConfig({
     highlight: {
       // Highlighted in the browser: the deployed site has no server.
       noApiRoute: true,
-      // The studio's palette (`app/utils/contentPalette.ts`), by these names.
-      theme: {
-        default: 'studio-light',
-        light: 'studio-light',
-        dark: 'studio-dark',
-      },
+      // The studio's palette (`app/utils/contentPalette.ts`), light only.
+      theme: 'studio-light',
       langs: [
         'bash',
         'css',
@@ -214,17 +204,25 @@ export default defineNuxtConfig({
     app: {
       head: {
         script: [
+          // One script, before the application: the restart handoff, which
+          // covers a restart and a system change alike.
           {
-            innerHTML: restartScript(
-              { ...en.settings, reload: en.settings.reloadStudio },
+            innerHTML: handoffScript(
+              {
+                restart: {
+                  applying: en.settings.applying,
+                  preparing: en.settings.preparing,
+                  fallback: en.settings.fallback,
+                  slow: en.settings.slow,
+                  reload: en.settings.reloadStudio,
+                },
+                system: {
+                  slow: en.systems.transition.slow,
+                  reload: en.systems.transition.reload,
+                },
+              },
               baseURL,
             ),
-            tagPosition: 'head',
-            tagPriority: 'critical',
-          },
-          // A system change's status screen, over the restart's cover.
-          {
-            innerHTML: transitionScript(en.systems.transition, baseURL),
             tagPosition: 'head',
             tagPriority: 'critical',
           },

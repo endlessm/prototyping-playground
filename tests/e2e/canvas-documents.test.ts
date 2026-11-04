@@ -1,7 +1,7 @@
 // A canvas linked on its own line in a document shows as a fitted,
 // read-only picture of the whole scene, through the same island as the
 // canvas page, with its items live. It opens the way the page does, follows
-// the colour mode and its file, and says so when it can't load. On the
+// its file, and says so when it can't load. On the
 // deployed site it shows from the committed file, and the agent tools are
 // not there at all.
 import {
@@ -316,7 +316,7 @@ describe('a canvas in a document, in the studio running locally', () => {
     ).toEqual(['loading', 'ready'])
   })
 
-  test('[CV-112] it follows the colour mode and its file live, without opening again; another canvas opens afresh', async () => {
+  test('[CV-112] it follows its file live, without opening again; another canvas opens afresh', async () => {
     const page = await documentPage()
     await read(page, studio, LIVE_DOC)
     await revealed(page)
@@ -330,17 +330,6 @@ describe('a canvas in a document, in the studio running locally', () => {
         if (state && seen.at(-1) !== state) seen.push(state)
       }).observe(document, { subtree: true, attributes: true })
     })
-    const dark = () =>
-      page.evaluate(() =>
-        document
-          .querySelector('.canvas-preview .excalidraw')
-          ?.classList.contains('theme--dark'),
-      )
-    expect(await dark()).toBe(false)
-    await page.getByRole('button', { name: 'Color mode' }).click()
-    await page.getByRole('menuitemcheckbox', { name: 'Dark' }).click()
-    await expect.poll(dark).toBe(true)
-
     // An agent adds a view to the canvas file.
     write(
       'Live.excalidraw',

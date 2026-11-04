@@ -37,7 +37,7 @@ const name = computed(() =>
     type="button"
     data-comment-ui
     data-comment-pin
-    class="group pointer-events-auto absolute -mt-[13px] -ml-[13px] grid size-[26px] place-items-center rounded-full rounded-bl-sm text-xs font-semibold text-white shadow-md ring-2 ring-white hover:scale-110 motion-safe:transition-transform motion-safe:duration-150 motion-safe:ease-out dark:ring-neutral-900"
+    class="group pointer-events-auto absolute -mt-[13px] -ml-[13px] grid size-[26px] place-items-center rounded-full rounded-bl-sm text-xs font-semibold text-white shadow-md ring-2 ring-white hover:scale-110 motion-safe:transition-transform motion-safe:duration-150 motion-safe:ease-out"
     :class="[resolved ? 'bg-neutral-500' : 'bg-info', active && 'scale-110']"
     :style="{ left: `${x}px`, top: `${y}px` }"
     :aria-label="name"
