@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FormError, FormSubmitEvent } from '@nuxt/ui'
-import { restartHandoff } from '../../../../app/utils/restartHandoff'
+import { pageHandoff } from '../../../../app/utils/pageHandoff'
 import { createdSystem } from '../utils/destination'
 
 // "New system": a name, which becomes its folder. The dev server makes an
@@ -11,7 +11,7 @@ import { createdSystem } from '../utils/destination'
 const emit = defineEmits<{ close: [] }>()
 const { t } = useI18n()
 const base = useRuntimeConfig().app.baseURL
-const handoff = restartHandoff()
+const handoff = pageHandoff()
 
 const state = reactive({ name: '' })
 const saving = ref(false)

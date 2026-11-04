@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FormError, FormSubmitEvent } from '@nuxt/ui'
-import { restartHandoff } from '../../../../app/utils/restartHandoff'
+import { pageHandoff } from '../../../../app/utils/pageHandoff'
 
 // "Rename system": a new name. The dev server renames the folder and its
 // registration and repairs references; the permanent ID, and so the
@@ -11,7 +11,7 @@ const props = defineProps<{ system: { id: string; label: string } }>()
 const emit = defineEmits<{ close: [] }>()
 const { t } = useI18n()
 const base = useRuntimeConfig().app.baseURL
-const handoff = restartHandoff()
+const handoff = pageHandoff()
 
 const state = reactive({ name: props.system.label })
 const saving = ref(false)

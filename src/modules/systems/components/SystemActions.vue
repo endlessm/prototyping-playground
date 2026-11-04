@@ -5,7 +5,7 @@ import type { SystemCatalog } from '../../../../tooling/systems/catalog'
 import { menuGroups } from '../../../../app/utils/menus'
 import { onApple } from '../../../../app/utils/shortcuts'
 import { useCopy } from '../composables/useCopy'
-import { restartHandoff } from '../../../../app/utils/restartHandoff'
+import { pageHandoff } from '../../../../app/utils/pageHandoff'
 import { systemMenu, type SystemActionId } from '../utils/actions'
 import { systemAddress } from '../utils/pages'
 
@@ -96,7 +96,7 @@ function lifecycle(operation: 'archive' | 'restore' | 'delete') {
 
 async function makeDefault() {
   const { label } = props.system
-  const handoff = restartHandoff()
+  const handoff = pageHandoff()
   handoff?.start({
     kind: 'system',
     title: t('systems.transition.titles.default', { name: label }),

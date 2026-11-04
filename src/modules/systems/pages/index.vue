@@ -3,7 +3,7 @@ import CollectionArchivedHeading from '../../../../app/components/CollectionArch
 import CollectionViewToggle from '../../../../app/components/CollectionViewToggle.vue'
 import SystemNewButton from '../components/SystemNewButton.vue'
 import SystemsCollection from '../components/SystemsCollection.vue'
-import { restartHandoff } from '../../../../app/utils/restartHandoff'
+import { pageHandoff } from '../../../../app/utils/pageHandoff'
 import { useSystemCatalog } from '../composables/useSystemCatalog'
 import { deletionOf } from '../utils/destination'
 import { inSystemOrder } from '../utils/pages'
@@ -20,7 +20,7 @@ const { systems } = await useSystemCatalog()
 
 useHead({ title: () => `${t('systems.title')} — ${studio.name}` })
 // A deletion's tab finishes once the collection no longer lists the system.
-const handoff = import.meta.dev ? restartHandoff() : undefined
+const handoff = import.meta.dev ? pageHandoff() : undefined
 if (handoff)
   watchEffect(() => {
     const deleted = deletionOf(handoff.destination())

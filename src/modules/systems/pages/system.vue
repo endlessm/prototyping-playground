@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppNotFound from '../../../../app/components/AppNotFound.vue'
 import SystemNav from '../components/SystemNav.vue'
-import { restartHandoff } from '../../../../app/utils/restartHandoff'
+import { pageHandoff } from '../../../../app/utils/pageHandoff'
 import { useSystemCatalog } from '../composables/useSystemCatalog'
 import { createdSystem } from '../utils/destination'
 
@@ -14,7 +14,7 @@ const route = useRoute()
 const { systemOf } = await useSystemCatalog()
 const system = computed(() => systemOf(route.params.systemId as string))
 // A new system's tab finishes once its Overview shows.
-const handoff = import.meta.dev ? restartHandoff() : undefined
+const handoff = import.meta.dev ? pageHandoff() : undefined
 if (handoff)
   watchEffect(() => {
     if (

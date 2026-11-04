@@ -1,5 +1,5 @@
 import { NO_RESTART_EVENT, RESTART_EVENT } from '../../tooling/restart/names'
-import { restartHandoff } from '../utils/restartHandoff'
+import { pageHandoff } from '../utils/pageHandoff'
 import { appServer } from '../utils/studioServer'
 
 // Wires the application to the restart handoff its page's head script
@@ -8,7 +8,7 @@ import { appServer } from '../utils/studioServer'
 // once the application is ready the handoff learns where its code came from
 // and how to show a confirmation.
 export default defineNuxtPlugin(() => {
-  const handoff = restartHandoff()
+  const handoff = pageHandoff()
   if (!import.meta.dev || !handoff) return
   const toast = useToast()
   const studioToast = useStudioToast()

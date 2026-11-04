@@ -2,7 +2,7 @@
 import { useEventListener } from '@vueuse/core'
 import AppNotFound from '../components/AppNotFound.vue'
 import SettingsDiscardModal from '../components/settings/SettingsDiscardModal.vue'
-import { restartHandoff } from '../utils/restartHandoff'
+import { pageHandoff } from '../utils/pageHandoff'
 
 interface SettingsData {
   config: Record<string, unknown>
@@ -126,7 +126,7 @@ async function save() {
     restarting.value = true
     // Covers the studio until it has restarted; "Settings saved" shows once,
     // on the page where it finishes.
-    restartHandoff()?.start({
+    pageHandoff()?.start({
       kind: 'restart',
       from: body.instance,
       confirmation: t('settings.saved'),

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { restartHandoff } from '../../../../app/utils/restartHandoff'
+import { pageHandoff } from '../../../../app/utils/pageHandoff'
 import { deletedSystem } from '../utils/destination'
 
 // Archiving, restoring or deleting a system. The dialog first asks the dev
@@ -30,7 +30,7 @@ const { t } = useI18n()
 const base = useRuntimeConfig().app.baseURL
 const route = `${base}_studio/files/systems`
 const name = props.system.label
-const handoff = restartHandoff()
+const handoff = pageHandoff()
 
 const blocked = props.operation !== 'restore' && props.isDefault
 const checking = ref(!blocked)
