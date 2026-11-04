@@ -219,6 +219,26 @@ export type ModuleServerHandler = (
   request: ModuleServerRequest,
 ) => unknown | Promise<unknown>
 
+/**
+ * A hidden folder the module keeps in each prototype, such as comments.
+ * Renaming, moving, archiving and restoring the prototype carry it along;
+ * duplicating leaves it behind; deleting counts its files; and anyone
+ * registered may commit to it in anyone's prototype. All of this holds
+ * while the module is turned off.
+ */
+export interface ModulePrototypeFolder {
+  /**
+   * A dot, then lowercase letters, numbers and dashes, such as `.comments`.
+   * Written out as a string in `module.ts` itself: the scope check reads it
+   * from Git.
+   */
+  name: string
+  /** Plain text: what one file in it is, for the deletion's count ("comment"). */
+  one: string
+  /** Plain text: what several are ("comments"). */
+  other: string
+}
+
 export interface StudioModule {
   /** Lowercase letters, numbers and dashes; also the module's folder name. */
   id: string
@@ -277,4 +297,6 @@ export interface StudioModule {
    * source, and the deployed site gets none.
    */
   artifactTool?: string
+  /** A hidden folder the module keeps in each prototype. */
+  prototypeFolder?: ModulePrototypeFolder
 }

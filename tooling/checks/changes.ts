@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process'
 import path from 'node:path'
+import { declaredPrototypeFolder } from '../modules/prototype-folder.ts'
 
 export function git(root: string, ...args: string[]) {
   return execFileSync('git', args, {
@@ -104,11 +105,23 @@ export function scopeReport(
   const key = keys.length === 1 ? keys[0]! : null
   const id = key ? profiles[key]!.studioId : null
   const admin = id && (config.admins ?? []).includes(id)
+  // Every module's hidden prototype folder, on or off, as the before
+  // revision declares it: anyone registered may commit to it in any
+  // prototype, such as comments on a colleague's work.
+  const shared = new Set(
+    git(root, 'ls-tree', '-r', '--name-only', before, '--', 'src/modules')
+      .split('\n')
+      .filter((file) => /^src\/modules\/[^/]+\/module\.ts$/.test(file))
+      .map((file) => declaredPrototypeFolder(contentAt(root, file, before)))
+      .filter((name) => name !== null),
+  )
   const outside: string[] = []
   const lines = files.map((file) => {
     let allowed = Boolean(admin)
     const prototype = /^src\/prototypes\/([^/]+)\//.exec(file)
     if (prototype) allowed ||= prototype[1] === key
+    const folder = /^src\/prototypes\/[^/]+\/[^/]+\/([^/]+)\//.exec(file)
+    if (folder && key) allowed ||= shared.has(folder[1]!)
     if (file === `contributors/${key}.json`) allowed = true
     const system = /^src\/systems\/([^/]+)\//.exec(file)
     if (system && id) {

@@ -189,6 +189,7 @@
       "deleteDialog": {
         "title": "Delete “{title}”?",
         "description": "Everything in it moves to {place}, where you can restore it. Its link stops working until you do.",
+        "held": "That includes {things}.",
         "cancel": "Cancel",
         "confirm": "Delete prototype",
         "deleting": "Deleting"

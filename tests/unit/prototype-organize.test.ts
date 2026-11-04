@@ -28,6 +28,9 @@ const SHARED = 'dem0000000000002'
 const BOARD = 'vw00000000000003'
 const BEN = 'ben0000000000002'
 const ADA = 'ada0000000000001'
+// A comment, kept by the comments module in its hidden prototype folder.
+const COMMENT = 'src/prototypes/ben/demo/.comments/c0mm000000000001.json'
+const THREAD = `{\n  "id": "c0mm000000000001",\n  "artifact": "${HOME}"\n}\n`
 
 let root: string
 let actor: string | null
@@ -140,6 +143,9 @@ const organizer = () =>
       { id: 'canvas', extensions: ['.excalidraw'], identity: canvasIdentity },
     ],
     references: [...viewReferences, ...documentReferences, ...canvasReferences],
+    prototypeFolders: [
+      { name: '.comments', one: 'comment', other: 'comments' },
+    ],
     identify: () => ({ key: actor, email: `${actor}@endless.example` }),
     trash: async (file) => {
       trashed.push(file)
@@ -198,6 +204,15 @@ describe('renaming a prototype', () => {
     expect(read('src/prototypes/ada/shared/Guide.md')).toContain(
       '[Demo’s details](../../ben/renamed/flows/Details.vue)',
     )
+  })
+
+  test('[CM-58] a module’s hidden prototype folder moves with the renamed prototype', async () => {
+    write(COMMENT, THREAD)
+    await organizer().rename({ prototype: DEMO, title: 'Moved' })
+    expect(
+      read('src/prototypes/ben/moved/.comments/c0mm000000000001.json'),
+    ).toBe(THREAD)
+    expect(exists('src/prototypes/ben/demo')).toBe(false)
   })
 
   test('[PR-36] a new title with the same folder name only changes the title', async () => {
@@ -379,6 +394,15 @@ describe('duplicating a prototype', () => {
     expect(exists(`${copy.folder}/.git`)).toBe(false)
   })
 
+  test('[CM-59] a module’s hidden prototype folder stays behind; a folder of that name deeper in is copied', async () => {
+    write(COMMENT, '{}\n')
+    write('src/prototypes/ben/demo/flows/.comments/x.json', '{}\n')
+    const copy = await organizer().duplicate({ prototype: DEMO, title: 'Copy' })
+    expect(exists(`${copy.folder}/.comments`)).toBe(false)
+    expect(exists(`${copy.folder}/flows/.comments/x.json`)).toBe(true)
+    expect(read(COMMENT)).toBe('{}\n')
+  })
+
   test('[PR-38] refuses symbolic links, a taken title, and leaves nothing behind', async () => {
     write(
       'src/prototypes/ben/taken/meta.json',
@@ -480,6 +504,14 @@ describe('archiving, restoring and deleting a prototype', () => {
     ).toBe(403)
   })
 
+  test('[CM-58] archiving and restoring keep a module’s hidden prototype folder', async () => {
+    write(COMMENT, THREAD)
+    await organizer().archive({ prototype: DEMO })
+    expect(read(COMMENT)).toBe(THREAD)
+    await organizer().restore({ prototype: DEMO })
+    expect(read(COMMENT)).toBe(THREAD)
+  })
+
   test('[PR-42] restoring is refused while its system is deleted or archived', async () => {
     write(
       'src/prototypes/ben/demo/meta.json',
@@ -523,5 +555,19 @@ describe('archiving, restoring and deleting a prototype', () => {
     const other = await refusal(() => organizer().remove({ prototype: SHARED }))
     expect(other.status).toBe(403)
     expect(exists('src/prototypes/ada/shared')).toBe(true)
+  })
+
+  test('[CM-60] before deleting, says what modules keep in the prototype', async () => {
+    expect(await organizer().held({ prototype: DEMO })).toEqual({ held: [] })
+    write(COMMENT, THREAD)
+    write('src/prototypes/ben/demo/.comments/c0mm000000000002.json', '{}\n')
+    expect(await organizer().held({ prototype: DEMO })).toEqual({
+      held: [
+        { name: '.comments', one: 'comment', other: 'comments', count: 2 },
+      ],
+    })
+    expect(
+      (await refusal(() => organizer().held({ prototype: SHARED }))).status,
+    ).toBe(403)
   })
 })

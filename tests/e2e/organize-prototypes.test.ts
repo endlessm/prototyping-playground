@@ -55,10 +55,36 @@ const meta = (
 ) =>
   `${JSON.stringify({ formatVersion: 1, title, created: '2026-01-02', studioId: id, ownerContributorId: owner, systemId: null, ...more }, null, 2)}\n`
 
+// A comment on Home, kept by the comments module in the prototype.
+const comment = (id: string) =>
+  `${JSON.stringify(
+    {
+      formatVersion: 1,
+      id,
+      artifact: HOME,
+      artifactTitle: 'Home',
+      anchor: { kind: 'artifact' },
+      status: 'open',
+      messages: [
+        {
+          id: `m${id.slice(1)}`,
+          author: { contributor: BEN_ID },
+          body: 'Looks good.',
+          createdAt: '2026-11-01T10:00:00.000Z',
+        },
+      ],
+    },
+    null,
+    2,
+  )}
+`
+
 const FILES: Record<string, string> = {
   'ben/demo/meta.json': meta('Demo', DEMO, BEN_ID),
   'ben/demo/Home.vue': view(HOME, 'Home screen'),
   'ben/demo/flows/Details.vue': view(DETAILS, 'Details screen'),
+  'ben/demo/.comments/c0mm000000000001.json': comment('c0mm000000000001'),
+  'ben/demo/.comments/c0mm000000000002.json': comment('c0mm000000000002'),
   'ben/demo/Notes.md': `---\nstudioId: ${NOTES}\n---\n\n# Notes\n\nSee [the old sketch](/prototypes/${OLD}/artifacts/${SKETCH}) and [details](./flows/Details.vue).\n`,
   'ben/old/meta.json': meta('Old', OLD, BEN_ID, { status: 'archived' }),
   'ben/old/Sketch.vue': view(SKETCH, 'Old sketch heading'),
@@ -477,7 +503,7 @@ describe('organizing on the dev server, as Ben', { timeout: 180_000 }, () => {
     expect(json('ben/demo/meta.json').status).toBeUndefined()
   })
 
-  test('[PR-43] deleting from inside asks first, moves it to the trash and goes back to the Prototypes page', async () => {
+  test('[PR-43] [CM-60] deleting from inside asks first, says how many comments go with it, moves it to the trash and goes back to the Prototypes page', async () => {
     reset()
     const page = await open()
     await menu(page)
@@ -488,6 +514,7 @@ describe('organizing on the dev server, as Ben', { timeout: 180_000 }, () => {
         `Everything in it moves to ${TRASH}, where you can restore it. Its link stops working until you do.`,
       ),
     )
+    await visible(dialog(page).getByText('That includes 2 comments.'))
     await dialog(page).getByRole('button', { name: 'Cancel' }).click()
     await gone(dialog(page))
     expect(existsSync(at('ben/demo/meta.json'))).toBe(true)

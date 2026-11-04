@@ -23,7 +23,12 @@ import {
 import type { Plugin } from 'vite'
 import { posix, PROTOTYPES_FOLDER } from '../manifest/build.ts'
 import { platformFolder } from '../guidance/sources.ts'
-import { loadRegistry, MODULES_FOLDER } from '../modules/registry.ts'
+import type { ModulePrototypeFolder } from '../modules/contract.ts'
+import {
+  loadRegistry,
+  MODULES_FOLDER,
+  prototypeFolders,
+} from '../modules/registry.ts'
 import { systemsFolder } from '../systems/registry.ts'
 import {
   RELEASE_ROUTE,
@@ -63,6 +68,8 @@ export interface FileServiceConfig {
   }[]
   /** The files of every module's reference adapters, turned off or not. */
   references: string[]
+  /** Every module's hidden prototype folder, turned off or not. */
+  prototypeFolders: ModulePrototypeFolder[]
   /**
    * Where to note the programs the service would start (file browser, code
    * editor) instead of starting them, with no code editor found; for the
@@ -107,6 +114,7 @@ export default defineNuxtModule({
       references: registry.modules.flatMap(({ spec, dir }) =>
         spec.references ? [path.join(dir, spec.references)] : [],
       ),
+      prototypeFolders: prototypeFolders(registry.modules),
       launchLog: process.env.STUDIO_LAUNCH_LOG || undefined,
       releaseToken: randomBytes(16).toString('hex'),
     }

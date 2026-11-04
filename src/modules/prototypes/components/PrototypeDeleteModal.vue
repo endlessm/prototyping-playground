@@ -10,10 +10,34 @@ const props = defineProps<{
   place: 'recycle-bin' | 'trash'
 }>()
 const emit = defineEmits<{ close: [deleted: boolean] }>()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const base = useRuntimeConfig().app.baseURL
 const deleting = ref(false)
 const failure = ref('')
+
+// What modules keep in the prototype's hidden folders, such as comments,
+// counted in each module's words. Unknown until the dev server answers;
+// the question stands without it.
+interface Held {
+  count: number
+  one: string
+  other: string
+}
+const held = ref<Held[]>([])
+const things = computed(() =>
+  new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(
+    held.value.map(
+      ({ count, one, other }) => `${count} ${count === 1 ? one : other}`,
+    ),
+  ),
+)
+requestJson<{ held: Held[] }>(`${base}_studio/files/prototypes`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ op: 'held', prototype: props.prototype.id }),
+})
+  .then((answer) => (held.value = answer.held))
+  .catch(() => {})
 
 async function remove() {
   deleting.value = true
@@ -46,8 +70,13 @@ async function remove() {
     :close="false"
     @update:open="(open: boolean) => !open && emit('close', false)"
   >
-    <template v-if="failure" #body>
-      <p role="alert" class="text-sm text-error">{{ failure }}</p>
+    <template v-if="failure || held.length" #body>
+      <div class="space-y-2 text-sm">
+        <p v-if="held.length">
+          {{ t('prototypes.organize.deleteDialog.held', { things }) }}
+        </p>
+        <p v-if="failure" role="alert" class="text-error">{{ failure }}</p>
+      </div>
     </template>
     <template #footer>
       <div class="flex w-full justify-end gap-2">

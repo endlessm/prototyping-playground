@@ -6,6 +6,10 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import type { ModulePreferences, StudioModule } from './contract.ts'
 import { parseConfig } from '../settings/config-file.ts'
+import {
+  declaredPrototypeFolder,
+  PROTOTYPE_FOLDER,
+} from './prototype-folder.ts'
 
 export const MODULES_FOLDER = 'src/modules'
 export const CONFIG_FILE = 'studio.config.json'
@@ -70,7 +74,10 @@ const KEYS = new Set([
   'library',
   'server',
   'artifactTool',
+  'prototypeFolder',
 ])
+// Hidden folders the platform already gives a meaning in a prototype.
+const RESERVED_FOLDERS = new Set(['.git', '.trash', '.studio'])
 const RAIL = new Set(['top', 'bottom', 'none'])
 
 /** Whether a page's children are malformed, at any depth. */
@@ -262,6 +269,24 @@ export function moduleProblems(spec: unknown, folderName: string): string[] {
     problems.push(
       `${where}: "artifactTool" names the .vue component drawn over artifact pages while the studio runs locally.`,
     )
+  if (module.prototypeFolder !== undefined) {
+    const { name, one, other } = (module.prototypeFolder ?? {}) as Record<
+      string,
+      unknown
+    >
+    if (
+      typeof module.prototypeFolder !== 'object' ||
+      typeof name !== 'string' ||
+      !PROTOTYPE_FOLDER.test(name) ||
+      RESERVED_FOLDERS.has(name) ||
+      [one, other].some(
+        (value) => typeof value !== 'string' || !PLAIN_TEXT.test(value),
+      )
+    )
+      problems.push(
+        `${where}: "prototypeFolder" names a hidden folder (a dot, then lowercase letters, numbers and dashes) and, as plain text, what one file in it is and what several are: { name: '.notes', one: 'note', other: 'notes' }.`,
+      )
+  }
   const data = module.data
   if (data !== undefined) {
     if (!data || typeof data !== 'object' || Array.isArray(data))
@@ -348,6 +373,16 @@ export const preferenceDefaults = (modules: InstalledModule[]) =>
       ]),
   )
 
+/**
+ * The hidden folders modules keep in each prototype, from every installed
+ * module, on or off: a turned-off module's files stay in prototypes, and
+ * the platform still carries, skips and counts them.
+ */
+export const prototypeFolders = (modules: InstalledModule[]) =>
+  modules.flatMap(({ spec }) =>
+    spec.prototypeFolder ? [{ ...spec.prototypeFolder }] : [],
+  )
+
 /** Repository-relative paths or globs, never outside the studio. */
 export function validWatch(pattern: unknown) {
   return (
@@ -417,6 +452,16 @@ export async function loadRegistry(
     url.search = `?t=${Date.now()}`
     const spec = (await import(url.href)).default
     const found = moduleProblems(spec, name)
+    if (
+      !found.length &&
+      spec.prototypeFolder &&
+      declaredPrototypeFolder(
+        readFileSync(path.join(dir, 'module.ts'), 'utf8'),
+      ) !== spec.prototypeFolder.name
+    )
+      found.push(
+        `${name}/module.ts: write "prototypeFolder" out as { name: '${spec.prototypeFolder.name}', … } in the declaration itself, so the scope check can read it from Git.`,
+      )
     problems.push(...found)
     if (found.length) continue
     const switched = config.modules?.[name]

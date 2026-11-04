@@ -8,7 +8,7 @@ import {
 } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { afterEach, beforeEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import {
   assetProblems,
   changedFiles,
@@ -77,8 +77,12 @@ test('[CL-131] scope reads permissions before the proposal and warns about chang
 
 test('[CL-131] [CL-147] CLI warns locally, flags PRs, and fails out-of-scope pushes', () => {
   write('package.json', '{"type":"module"}')
-  for (const file of ['run.ts', 'changes.ts'])
-    write(`tooling/checks/${file}`, readFileSync(`tooling/checks/${file}`))
+  for (const file of [
+    'checks/run.ts',
+    'checks/changes.ts',
+    'modules/prototype-folder.ts',
+  ])
+    write(`tooling/${file}`, readFileSync(`tooling/${file}`))
   write('private.ts', 'export const changed = true')
   git(root, 'add', '.')
   execFileSync('git', ['-c', 'core.hooksPath=', 'commit', '-m', 'proposal'], {
@@ -96,6 +100,84 @@ test('[CL-131] [CL-147] CLI warns locally, flags PRs, and fails out-of-scope pus
   expect(push.status).toBe(1)
   expect(push.stdout).toContain('outside scope: private.ts')
   expect(run('--ci', 'HEAD~1', 'HEAD', '--review').status).toBe(0)
+})
+
+describe('a module’s prototype folder', () => {
+  // Cara is registered but no Admin; the comments module is turned off,
+  // and its declaration still counts.
+  beforeEach(() => {
+    write(
+      'studio.config.json',
+      JSON.stringify({
+        admins: ['ada0000000000001'],
+        modules: { comments: false },
+      }),
+    )
+    write(
+      'contributors/cara.json',
+      JSON.stringify({
+        studioId: 'cara000000000003',
+        email: 'cara@example.com',
+      }),
+    )
+    write(
+      'src/modules/comments/module.ts',
+      "export default {\n  id: 'comments',\n  prototypeFolder: { name: '.comments', one: 'comment', other: 'comments' },\n}\n",
+    )
+    write('src/prototypes/ben/demo/.comments/c0mm000000000001.json', '{}\n')
+    git(root, 'add', '.')
+    execFileSync('git', ['-c', 'core.hooksPath=', 'commit', '-m', 'comments'], {
+      cwd: root,
+      stdio: 'ignore',
+    })
+    git(root, 'config', 'user.email', 'cara@example.com')
+  })
+
+  test('[CM-56] committing to someone else’s comments is inside scope; their view stays outside', () => {
+    write(
+      'src/prototypes/ben/demo/.comments/c0mm000000000001.json',
+      '{"a":1}\n',
+    )
+    write('src/prototypes/ben/demo/.comments/c0mm000000000002.json', '{}\n')
+    write(
+      'src/prototypes/ben/demo/Home.vue',
+      '<!-- @studio-id abc0000000000001 -->\n<template>Changed</template>',
+    )
+    git(root, 'add', '.')
+    const report = scopeReport(root, changedFiles(root))
+    expect(report.lines).toEqual([
+      'inside scope: src/prototypes/ben/demo/.comments/c0mm000000000001.json',
+      'inside scope: src/prototypes/ben/demo/.comments/c0mm000000000002.json',
+      'outside scope: src/prototypes/ben/demo/Home.vue',
+    ])
+    expect(report.outside).toEqual(['src/prototypes/ben/demo/Home.vue'])
+  })
+
+  test('[CM-56] someone unregistered stays outside, and so does a hidden folder no module declares', () => {
+    write('src/prototypes/ben/demo/.drafts/x.json', '{}\n')
+    git(root, 'add', '.')
+    expect(scopeReport(root, changedFiles(root)).outside).toEqual([
+      'src/prototypes/ben/demo/.drafts/x.json',
+    ])
+    git(root, 'config', 'user.email', 'nobody@example.com')
+    write('src/prototypes/ben/demo/.comments/c0mm000000000002.json', '{}\n')
+    git(root, 'add', '.')
+    expect(scopeReport(root, changedFiles(root)).outside).toContain(
+      'src/prototypes/ben/demo/.comments/c0mm000000000002.json',
+    )
+  })
+
+  test('[CM-56] a folder a proposal declares only grants scope once it is in', () => {
+    write(
+      'src/modules/notes/module.ts',
+      "export default { id: 'notes', prototypeFolder: { name: '.notes', one: 'note', other: 'notes' } }\n",
+    )
+    write('src/prototypes/ben/demo/.notes/x.json', '{}\n')
+    git(root, 'add', '.')
+    expect(scopeReport(root, changedFiles(root)).outside).toContain(
+      'src/prototypes/ben/demo/.notes/x.json',
+    )
+  })
 })
 
 test('[CL-131] document frontmatter and canvas identities cannot change unnoticed', () => {

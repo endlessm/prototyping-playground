@@ -79,6 +79,8 @@ It writes as the agent of the contributor your Git identity resolves to (`agent:
 
 Each thread is one file, `<prototype>/.comments/<id>.json`, named by its permanent ID. Dot folders are hidden from the manifest, the file tree and identity tooling; thread files are not artifacts.
 
+`module.ts` declares the folder as `prototypeFolder: { name: '.comments', one: 'comment', other: 'comments' }`, written out because the scope check reads it from Git (a unit test keeps it equal to `COMMENTS_FOLDER`). The platform then handles it with the module on or off: renaming, moving, archiving and restoring the prototype carry the threads; duplicating leaves them behind; deleting says how many go ("It holds 2 comments, …", "That includes 2 comments."); and anyone registered may commit to it in anyone's prototype, while the rest of that prototype stays outside their scope. Threads refer to artifacts by permanent ID, so a renamed or moved file keeps its comments. Turned off, the files stay on disk and nothing renders them.
+
 The file is exactly what Prettier writes for JSON (`JSON.stringify(thread, null, 2)` and a newline, fields in the order below), so formatting never rewrites it.
 
 ```ts

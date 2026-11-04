@@ -3,7 +3,7 @@
 // resolves to, on thread files on disk, and the rules the page and the
 // command share. Thread files stay exactly as
 // Prettier writes them, and someone unregistered is told to join.
-import { readFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, renameSync } from 'node:fs'
 import path from 'node:path'
 import { format, resolveConfig } from 'prettier'
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
@@ -253,6 +253,26 @@ File removed
 ### 1. Button "Share" · c0mm000000000006
 Path: main > .toolbar > button
 - Ada Lovelace: About Old board.`)
+  })
+
+  test('[CM-62] [CM-58] comments stay on a file that is renamed and moved, in a prototype whose folder is renamed', () => {
+    const moved = 'src/prototypes/ben/sign-up'
+    renameSync(path.join(studio.root, FOLDER), path.join(studio.root, moved))
+    mkdirSync(path.join(studio.root, moved, 'flows'))
+    renameSync(
+      path.join(studio.root, moved, 'Home.vue'),
+      path.join(studio.root, moved, 'flows/Start.vue'),
+    )
+    const output = ok(moved)
+    expect(output).toContain(`## 2 open comments on View "Start"
+
+File: ${moved}/flows/Start.vue
+Address: /prototypes/${PROTOTYPE}/artifacts/${HOME}
+
+### 2. Button "Invite students" · ${FIRST}
+State: Member`)
+    expect(output).toContain(`### 3. Button "Invite students" · ${SECOND}`)
+    expect(output).not.toContain('File removed')
   })
 
   test('[CM-46] an address names one file, a view with its states, or the whole prototype', () => {

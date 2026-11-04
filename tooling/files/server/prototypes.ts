@@ -13,6 +13,9 @@
 //                                          → 201 { id, folder, rebuild }
 //       archive    { prototype }           → { status }
 //       restore    { prototype }           → { status }
+//       held       { prototype }           what modules keep in it, such as
+//                                          comments → { held: [{ name, one,
+//                                          other, count }] }
 //       delete     { prototype }           to the computer's trash
 //                                          → { trashedTo, title }
 //
@@ -77,6 +80,8 @@ export default defineEventHandler(async (event) => {
         }
         case 'archive':
           return await organizer.archive(request)
+        case 'held':
+          return await organizer.held(request)
         case 'restore':
           return await organizer.restore(request)
         case 'delete':

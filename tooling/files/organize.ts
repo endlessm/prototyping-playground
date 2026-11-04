@@ -23,8 +23,10 @@ import { newStudioId } from '../contributors/studio-ids.ts'
 import { identityLock } from '../identity/assign.ts'
 import { auditIdentities, identitiesInUse } from '../identity/audit.ts'
 import { posix, PROTOTYPES_FOLDER, treeFiles } from '../manifest/build.ts'
+import type { ModulePrototypeFolder } from '../modules/contract.ts'
 import { CONFIG_FILE } from '../modules/registry.ts'
 import { registeredSystems } from '../studio/systems.ts'
+import { heldFiles } from './deletion.ts'
 import { localDate, slugify, systemFor, titleProblem } from './prototypes.ts'
 import {
   movesOf,
@@ -53,6 +55,12 @@ export interface OrganizeOptions extends FileServiceOptions {
    * again.
    */
   release?: (dir: string) => Promise<() => Promise<void>>
+  /**
+   * The hidden folders modules keep in each prototype (`prototypeFolders`
+   * in the module registry): a copy leaves them behind, and deleting
+   * counts their files.
+   */
+  prototypeFolders?: ModulePrototypeFolder[]
 }
 
 const META = 'meta.json'
@@ -88,16 +96,17 @@ function renameFolder(from: string, to: string) {
 }
 
 /** Refuses anything but ordinary files and folders, before copying. */
-function checkFiles(dir: string) {
+function checkFiles(dir: string, kept: Set<string>) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    if (SKIPPED.has(entry.name)) continue
+    if (SKIPPED.has(entry.name) || kept.has(path.join(dir, entry.name)))
+      continue
     if (entry.isSymbolicLink())
       throw refuse(
         400,
         'invalid',
         'Remove symbolic links from the prototype before duplicating it.',
       )
-    if (entry.isDirectory()) checkFiles(path.join(dir, entry.name))
+    if (entry.isDirectory()) checkFiles(path.join(dir, entry.name), kept)
     else if (!entry.isFile())
       throw refuse(
         400,
@@ -312,7 +321,13 @@ export function createOrganizer(options: OrganizeOptions) {
           : systemFor(root, readConfig(), request.system)
       const copy = path.join(space, slugify(title))
       if (existsSync(copy)) throw taken(title)
-      checkFiles(dir)
+      // Modules' hidden folders, such as comments, stay with the original.
+      const kept = new Set(
+        (options.prototypeFolders ?? []).map(({ name }) =>
+          path.join(dir, name),
+        ),
+      )
+      checkFiles(dir, kept)
       mkdirSync(space, { recursive: true })
       const release = identityLock(root)
       try {
@@ -328,7 +343,9 @@ export function createOrganizer(options: OrganizeOptions) {
             recursive: true,
             force: false,
             errorOnExist: true,
-            filter: (file) => file === dir || !SKIPPED.has(path.basename(file)),
+            filter: (file) =>
+              file === dir ||
+              (!SKIPPED.has(path.basename(file)) && !kept.has(file)),
           })
           replaceIds(
             copy,
@@ -408,6 +425,15 @@ export function createOrganizer(options: OrganizeOptions) {
       delete next.archivedBySystemId
       writeJson(path.join(dir, META), next)
       return { status: 'active' as const }
+    },
+
+    /**
+     * What modules keep in the prototype's hidden folders, such as comments,
+     * for the question before deleting it.
+     */
+    async held(request: { prototype: unknown }) {
+      const { dir } = changeable(request.prototype, false)
+      return { held: heldFiles(dir, options.prototypeFolders ?? []) }
     },
 
     /** Moves the whole prototype to the computer's trash. */

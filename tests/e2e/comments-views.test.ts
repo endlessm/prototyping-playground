@@ -568,6 +568,20 @@ describe('on the dev server', () => {
     expect(await page.evaluate(() => performance.timeOrigin)).toBe(runtime)
   })
 
+  test('[CM-55] a colleague’s comment arriving with a pull shows on the open page without a reload', async () => {
+    const page = await newPage()
+    await open(page, studio)
+    expect(await pin(page, 1).count()).toBe(0)
+    const runtime = await page.evaluate(() => performance.timeOrigin)
+
+    // A pull writes the thread file to disk, as Git does.
+    seed({ anchor: ANCHORS.invite, messages: ['Pulled in from Ada.'] })
+    await expect
+      .poll(() => pin(page, 1).isVisible(), { timeout: 30_000 })
+      .toBe(true)
+    expect(await page.evaluate(() => performance.timeOrigin)).toBe(runtime)
+  })
+
   test('[CM-40] [CM-41] [CM-42] [CM-43] All comments lists the threads under Open and Resolved, and choosing one scrolls to it and opens it, without resizing the view', async () => {
     seed({
       anchor: ANCHORS.invite,

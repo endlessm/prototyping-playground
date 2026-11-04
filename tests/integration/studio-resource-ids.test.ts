@@ -79,6 +79,28 @@ describe('identity-audit', () => {
     ])
   })
 
+  test('[CM-58] never reports what a module keeps in a prototype’s hidden folder, such as comments', () => {
+    studio.withModule('comments')
+    prototype()
+    studio.write('src/prototypes/ada/demo/Home.vue', view(HOME))
+    studio.write(
+      'src/prototypes/ada/demo/.comments/c0mm000000000001.json',
+      `${JSON.stringify({ formatVersion: 1, id: 'c0mm000000000001', artifact: HOME })}\n`,
+    )
+    // Even files of artifact types, with or without an ID.
+    studio.write('src/prototypes/ada/demo/.comments/Draft.vue', view())
+    studio.write('src/prototypes/ada/demo/.comments/Copy.vue', view(HOME))
+
+    const result = studio.studio('identity-audit', '--json')
+    expect(result.status).toBe(0)
+    const audit: Audit = JSON.parse(result.stdout)
+    expect(audit.missing).toEqual([])
+    expect(audit.problems).toEqual([])
+    expect(
+      audit.resources.filter(({ path }) => path.includes('.comments')),
+    ).toEqual([])
+  })
+
   test('[CL-48] reports a missing ID, exits non-zero and writes nothing', () => {
     prototype()
     studio.write('src/prototypes/ada/demo/Home.vue', view())

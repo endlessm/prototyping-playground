@@ -18,9 +18,9 @@ When the studio is running, the person can do each of these from the prototype's
 
 ## Duplicate
 
-- Prefer the studio's **Duplicate**: it copies the folder (skipping `.git` and `node_modules`, refusing symbolic links), gives the copy, each artifact and each named state fresh permanent IDs, points the copy's own permanent links at the copy, resets `created`, and makes an archived source's copy active. The original stays untouched. An Admin's copy of someone else's prototype goes to the Admin's own folder.
+- Prefer the studio's **Duplicate**: it copies the folder (skipping `.git`, `node_modules` and modules' hidden folders such as `.comments`, refusing symbolic links), gives the copy, each artifact and each named state fresh permanent IDs, points the copy's own permanent links at the copy, resets `created`, and makes an archived source's copy active. The original stays untouched. An Admin's copy of someone else's prototype goes to the Admin's own folder.
 - A different system makes a **rebuild copy**: the copy keeps its current `systemId` and gets `meta.json` `rebuild: { targetSystemId, sourcePrototypeId }`. Rebuild it with [build-prototype](../build-prototype/SKILL.md), in the copy only: read the target system's `AGENTS.md`, move the system-dependent views and `systemId` together, and remove `rebuild` only when the migration is complete and checked. The copy's sidebar offers ready-made instructions.
-- By hand, never reuse an ID: copy, then give every file its own new ID with `yarn studio identify` (remove the copied identity comments first).
+- By hand, leave modules' hidden folders (such as `.comments`) behind and never reuse an ID: copy, then give every file its own new ID with `yarn studio identify` (remove the copied identity comments first).
 
 ## Archive or restore
 
@@ -33,7 +33,7 @@ When the studio is running, the person can do each of these from the prototype's
 
 Delete only when the person asks.
 
-1. Run `yarn studio delete-prototype src/prototypes/<key>/<folder>` and show the person its preview: links from other prototypes and canvas and document references that would break, untracked files and uncommitted changes that would be lost. `--json` gives it as data.
+1. Run `yarn studio delete-prototype src/prototypes/<key>/<folder>` and show the person its preview: links from other prototypes and canvas and document references that would break, what modules keep in it (such as comments), untracked files and uncommitted changes that would be lost. `--json` gives it as data.
 2. Apply with `--yes` only after they confirm. The command deletes the folder for good (it is not moved to the trash) and a running studio updates by itself. If it reports that another program is using the folder, close that program and run it again; nothing was deleted.
 3. Report the links it listed, for their owners to update.
 

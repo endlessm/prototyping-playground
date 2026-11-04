@@ -3,6 +3,7 @@
 // canvas and document references, files Git doesn't have), then apply it
 // with --yes. The owner or an Admin only; --as runs it as your profile.
 import { spawn, spawnSync } from 'node:child_process'
+import { rmSync } from 'node:fs'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 import { ADA, BEN, tempStudio, type TempStudio } from './setup/temp-studio'
@@ -96,6 +97,34 @@ describe('yarn studio delete-prototype', () => {
       'canvas',
       'document',
     ])
+  })
+
+  test('[CM-60] counts what modules keep in the prototype, in each module’s words', () => {
+    studio.withModule('comments')
+    studio.write(`${FOLDER}/.comments/c0mm000000000001.json`, '{}\n')
+    studio.write(`${FOLDER}/.comments/c0mm000000000002.json`, '{}\n')
+    const result = remove()
+    expect(result.stdout.split('\n').slice(0, 2)).toEqual([
+      `Delete prototype ${FOLDER} (“Demo”). This permanently removes the folder.`,
+      'It holds 2 comments, which would be deleted with it.',
+    ])
+    expect(JSON.parse(remove('--json').stdout).held).toEqual([
+      { name: '.comments', one: 'comment', other: 'comments', count: 2 },
+    ])
+  })
+
+  test('[CM-60] says nothing of a missing or empty module folder, as deleting the last comment leaves', () => {
+    studio.withModule('comments')
+    expect(remove().stdout).not.toContain('It holds')
+    expect(JSON.parse(remove('--json').stdout).held).toEqual([])
+    studio.write(`${FOLDER}/.comments/c0mm000000000001.json`, '{}\n')
+    rmSync(path.join(studio.root, `${FOLDER}/.comments/c0mm000000000001.json`))
+    expect(remove().stdout).not.toContain('It holds')
+    studio.write(`${FOLDER}/.comments/c0mm000000000001.json`, '{}\n')
+    expect(remove().stdout).toContain(
+      'It holds 1 comment, which would be deleted with it.',
+    )
+    expect(JSON.parse(remove('--json').stdout).held).toHaveLength(1)
   })
 
   test('[PR-45] [CL-50] lists untracked and uncommitted files from Git', () => {

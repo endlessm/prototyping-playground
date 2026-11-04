@@ -6,6 +6,7 @@ import {
   modulesForApp,
   type InstalledModule,
 } from '../../tooling/modules/registry'
+import { declaredPrototypeFolder } from '../../tooling/modules/prototype-folder'
 
 const base = { id: 'notes', label: 'Notes' }
 
@@ -229,6 +230,74 @@ describe('a module’s artifact tool', () => {
       expect(moduleProblems({ ...base, artifactTool }, 'notes')).toEqual([
         'notes/module.ts: "artifactTool" names the .vue component drawn over artifact pages while the studio runs locally.',
       ])
+  })
+})
+
+describe('a module’s prototype folder', () => {
+  test('[CM-58] a module may keep a hidden folder in each prototype, naming what one file in it is', () => {
+    const prototypeFolder = { name: '.notes', one: 'note', other: 'notes' }
+    expect(moduleProblems({ ...base, prototypeFolder }, 'notes')).toEqual([])
+    for (const wrong of [
+      '.notes',
+      { ...prototypeFolder, name: 'notes' },
+      { ...prototypeFolder, name: '.Notes' },
+      { ...prototypeFolder, name: '.notes/inner' },
+      { ...prototypeFolder, name: '.git' },
+      { ...prototypeFolder, one: '' },
+      { name: '.notes', one: 'note' },
+    ])
+      expect(
+        moduleProblems({ ...base, prototypeFolder: wrong }, 'notes'),
+      ).toEqual([
+        `notes/module.ts: "prototypeFolder" names a hidden folder (a dot, then lowercase letters, numbers and dashes) and, as plain text, what one file in it is and what several are: { name: '.notes', one: 'note', other: 'notes' }.`,
+      ])
+  })
+
+  test('[CM-58] the comments module keeps its threads in its declared folder', async () => {
+    const { default: comments } =
+      await import('../../src/modules/comments/module')
+    const { COMMENTS_FOLDER } =
+      await import('../../src/modules/comments/threads')
+    expect(comments.prototypeFolder).toEqual({
+      name: COMMENTS_FOLDER,
+      one: 'comment',
+      other: 'comments',
+    })
+  })
+
+  test('[CM-56] the folder’s name reads the same from the declaration’s text, as the scope check reads it from Git', () => {
+    expect(
+      declaredPrototypeFolder(
+        "export default {\n  id: 'notes',\n  prototypeFolder: { one: 'note', name: '.notes', other: 'notes' },\n}\n",
+      ),
+    ).toBe('.notes')
+    expect(
+      declaredPrototypeFolder(
+        "const NAME = '.notes'\nexport default { prototypeFolder: { name: NAME } }",
+      ),
+    ).toBeNull()
+    expect(declaredPrototypeFolder("export default { id: 'notes' }")).toBeNull()
+  })
+
+  test('[CM-56] a declaration whose folder isn’t written out is refused, since Git can’t read it', async () => {
+    const { mkdtempSync, mkdirSync, writeFileSync, rmSync } =
+      await import('node:fs')
+    const os = await import('node:os')
+    const path = await import('node:path')
+    const root = mkdtempSync(path.join(os.tmpdir(), 'prototype-folder-'))
+    try {
+      writeFileSync(path.join(root, 'studio.config.json'), '{}')
+      mkdirSync(path.join(root, 'src/modules/notes'), { recursive: true })
+      writeFileSync(
+        path.join(root, 'src/modules/notes/module.ts'),
+        "const name = '.notes'\nexport default { id: 'notes', label: 'Notes', prototypeFolder: { name, one: 'note', other: 'notes' } }\n",
+      )
+      await expect(loadRegistry(root)).rejects.toThrow(
+        'notes/module.ts: write "prototypeFolder" out as { name: \'.notes\', … } in the declaration itself, so the scope check can read it from Git.',
+      )
+    } finally {
+      rmSync(root, { recursive: true, force: true })
+    }
   })
 })
 

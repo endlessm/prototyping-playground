@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
-import { tempStudio, type TempStudio } from './setup/temp-studio'
+import { BEN, tempStudio, type TempStudio } from './setup/temp-studio'
 
 let studio: TempStudio
 beforeEach(() => {
@@ -79,6 +79,34 @@ describe('switching modules', () => {
     expect(on.status).toBe(0)
     expect(studio.config().modules.sample).toBe(true)
     expect(on.stdout).toMatch(/Restart the dev server/)
+  })
+
+  test('[CM-64] turning Comments off keeps the comment files, and the platform still counts them', () => {
+    studio.withModule('prototypes')
+    studio.withModule('comments')
+    expect(studio.studio('enable', 'comments').status).toBe(0)
+    const folder = 'src/prototypes/ben/demo'
+    studio.write(
+      `${folder}/meta.json`,
+      JSON.stringify({
+        formatVersion: 1,
+        title: 'Demo',
+        studioId: 'dem0000000000001',
+        ownerContributorId: 'ben0000000000002',
+        systemId: null,
+      }),
+    )
+    studio.write(`${folder}/.comments/c0mm000000000001.json`, '{}\n')
+
+    expect(studio.studio('disable', 'comments').status).toBe(0)
+    expect(studio.config().modules.comments).toBe(false)
+    expect(studio.exists(`${folder}/.comments/c0mm000000000001.json`)).toBe(
+      true,
+    )
+    studio.identify(BEN)
+    expect(studio.studio('delete-prototype', folder).stdout).toContain(
+      'It holds 1 comment, which would be deleted with it.',
+    )
   })
 
   test('[CL-21] a required module refuses to turn off', () => {

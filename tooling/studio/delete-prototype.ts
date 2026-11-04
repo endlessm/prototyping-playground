@@ -12,6 +12,7 @@ import {
   planDeletion,
 } from '../files/deletion.ts'
 import { PROTOTYPES_FOLDER } from '../manifest/build.ts'
+import { loadRegistry, prototypeFolders } from '../modules/registry.ts'
 import { NOTHING_CHANGED, Refusal, say, type Flags } from './output.ts'
 import { session } from './permissions.ts'
 import { realFolder } from './status.ts'
@@ -19,7 +20,11 @@ import { realFolder } from './status.ts'
 const USAGE =
   'Usage: yarn studio delete-prototype src/prototypes/<contributor>/<prototype> [--yes] [--json] [--as <key>]'
 
-export function deletePrototype(root: string, args: string[], flags: Flags) {
+export async function deletePrototype(
+  root: string,
+  args: string[],
+  flags: Flags,
+) {
   if (args.length !== 1) throw new Refusal(USAGE)
   const folder = path
     .relative(root, path.resolve(root, args[0]!.replace(/[\\/]+$/, '')))
@@ -48,7 +53,14 @@ export function deletePrototype(root: string, args: string[], flags: Flags) {
     )
 
   const dir = path.join(root, folder)
-  const plan = planDeletion(root, path.join(root, PROTOTYPES_FOLDER), dir)
+  // Turned-off modules' folders too: their files are still there.
+  const { modules } = await loadRegistry(root)
+  const plan = planDeletion(
+    root,
+    path.join(root, PROTOTYPES_FOLDER),
+    dir,
+    prototypeFolders(modules),
+  )
   if (!flags.yes) {
     if (flags.json) say(JSON.stringify(plan, null, 2))
     else

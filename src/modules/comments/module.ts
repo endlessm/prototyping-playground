@@ -19,6 +19,9 @@ export default {
     },
   ],
   artifactTool: 'components/CommentTool.vue',
+  // Each thread is one file in it. Written out (not COMMENTS_FOLDER): the
+  // scope check reads this declaration from Git.
+  prototypeFolder: { name: '.comments', one: 'comment', other: 'comments' },
   server: { threads: 'server/threads.ts' },
   data: {
     // Every prototype's threads in development, refreshed whenever a thread

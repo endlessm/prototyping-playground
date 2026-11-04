@@ -15,6 +15,7 @@ import {
   rmSync,
 } from 'node:fs'
 import path from 'node:path'
+import type { ModulePrototypeFolder } from '../modules/contract.ts'
 import { MAX_SOURCE_BYTES } from './source.ts'
 
 /** A file in another prototype that names the one being deleted. */
@@ -41,6 +42,13 @@ export interface DeletionPlan {
   git: boolean
   untracked: string[]
   modified: string[]
+  /** What modules keep in its hidden folders, such as comments; none empty. */
+  held: HeldFiles[]
+}
+
+/** The files in one module's hidden prototype folder. */
+export interface HeldFiles extends ModulePrototypeFolder {
+  count: number
 }
 
 const slash = (value: string) => value.split(path.sep).join('/')
@@ -118,6 +126,45 @@ export function incomingReferences(
   )
 }
 
+function countFiles(dir: string): number {
+  return readdirSync(dir, { withFileTypes: true }).reduce(
+    (total, entry) =>
+      total +
+      (entry.isDirectory()
+        ? countFiles(path.join(dir, entry.name))
+        : entry.isFile()
+          ? 1
+          : 0),
+    0,
+  )
+}
+
+/**
+ * How many files each module keeps in the prototype in `dir`, leaving out
+ * folders that are missing or empty (deleting the last comment leaves one).
+ */
+export function heldFiles(
+  dir: string,
+  folders: ModulePrototypeFolder[],
+): HeldFiles[] {
+  return folders.flatMap((folder) => {
+    const inside = path.join(dir, folder.name)
+    const count =
+      existsSync(inside) && lstatSync(inside).isDirectory()
+        ? countFiles(inside)
+        : 0
+    return count ? [{ ...folder, count }] : []
+  })
+}
+
+/** "2 comments and 1 note", in each module's words. */
+export const heldPhrase = (held: HeldFiles[]) =>
+  new Intl.ListFormat('en', { type: 'conjunction' }).format(
+    held.map(
+      ({ count, one, other }) => `${count} ${count === 1 ? one : other}`,
+    ),
+  )
+
 /** Untracked and modified files under `folder`, from Git, if it is there. */
 export function gitChanges(root: string, folder: string) {
   const files = (...args: string[]) =>
@@ -148,6 +195,7 @@ export function planDeletion(
   root: string,
   prototypesDir: string,
   dir: string,
+  folders: ModulePrototypeFolder[] = [],
 ): DeletionPlan {
   const folder = slash(path.relative(root, dir))
   let meta: Record<string, unknown> = {}
@@ -166,6 +214,7 @@ export function planDeletion(
     incoming: incoming.filter(({ kind }) => kind === 'link'),
     breaking: incoming.filter(({ kind }) => kind !== 'link'),
     ...gitChanges(root, folder),
+    held: heldFiles(dir, folders),
   }
 }
 
@@ -177,6 +226,9 @@ export function deletionPreview(plan: DeletionPlan) {
     `${file.path}: ${file.references.join(', ')}`
   return [
     `Delete prototype ${plan.folder} (“${plan.title}”). This permanently removes the folder.`,
+    ...(plan.held.length
+      ? [`It holds ${heldPhrase(plan.held)}, which would be deleted with it.`]
+      : []),
     ...list(
       'Incoming links from other prototypes that would break:',
       plan.incoming,
