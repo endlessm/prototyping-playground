@@ -1,5 +1,5 @@
 // The studio once remembered a Color mode here. It is light only now
-// (ADR 0005), so the old preference is cleared once, whatever it held.
+// (ADR 0005), so any old preference is cleared on load, whatever it held.
 export default defineNuxtPlugin({
   name: 'obsolete-color-mode',
   setup() {

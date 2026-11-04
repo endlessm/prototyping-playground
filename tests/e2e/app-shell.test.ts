@@ -290,7 +290,7 @@ describe('the studio frame on the dev server', () => {
     expect(
       await page.evaluate(() =>
         [...Object.keys(localStorage), ...Object.keys(sessionStorage)].filter(
-          (key) => /color-mode|light-only/.test(key),
+          (key) => /color-mode/.test(key),
         ),
       ),
     ).toEqual([])

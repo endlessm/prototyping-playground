@@ -1,5 +1,5 @@
 // Canvases: a designer opens an `.excalidraw` file and draws on it with
-// Excalidraw's tools, in the studio's trimmed menu, look and colour mode.
+// Excalidraw's tools, in the studio's trimmed menu and look.
 // The studio runs as Ben (a contributor) on a disposable copy of the
 // fixtures: his own canvases are editable, Bernardo's are read-only, and the
 // deployed site opens every canvas read-only. Excalidraw's fonts come from

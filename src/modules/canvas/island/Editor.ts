@@ -1,6 +1,6 @@
 // The canvas editor: Excalidraw with the studio's menu, shortcuts, sticky
 // notes, tooltips and look. The Vue page around it owns the opening, the
-// empty hint, the colour mode and saving; this owns the scene, reports its
+// empty hint and saving; this owns the scene, reports its
 // changes and takes in the file when it changes on disk.
 import {
   CaptureUpdateAction,
@@ -89,7 +89,7 @@ export interface CanvasItemState {
 /**
  * Where the Vue page draws items: Excalidraw gives each item a box, and the
  * page renders the item into it with the studio's own context (router,
- * i18n, manifest, colour mode).
+ * i18n, manifest).
  */
 export interface CanvasItemHost {
   show: (id: string, box: HTMLElement, state: CanvasItemState) => void

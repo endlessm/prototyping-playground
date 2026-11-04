@@ -16,8 +16,8 @@ import { loadRegistry } from '../modules/registry.ts'
 import { standInNames } from './stand-ins.ts'
 
 import {
-  LIGHT_ONLY_SCRIPT,
   COMPILE_ROUTE,
+  LIGHT_ONLY_SCRIPT,
   NO_SYSTEM,
   PREVIEW_ROUTE,
 } from './constants.ts'
