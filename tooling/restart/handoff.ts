@@ -120,6 +120,10 @@ export interface PendingHandoff extends StartHandoff {
 /** The browser, as the handoff uses it; the replay passes the real one. */
 export interface HandoffEnvironment {
   storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
+  /**
+   * The page, and through its window the DOM the handoff builds with:
+   * elements, `MutationObserver` and computed styles.
+   */
   document: Document
   clock: {
     now(): number
@@ -173,6 +177,9 @@ export function restartHandoff(
   setup: HandoffSetup,
 ): RestartHandoff {
   const { storage, document, clock } = env
+  // The page's own window, never the global one, so the same source runs
+  // against whichever page it is given.
+  const view = document.defaultView!
   const read = (): PendingHandoff | null => {
     try {
       const pending = JSON.parse(storage.getItem(setup.key) || 'null')
@@ -218,9 +225,7 @@ export function restartHandoff(
   function capture(kind: HandoffKind) {
     const colours = setup.kinds[kind]?.colours
     if (!colours) return undefined
-    const style = document.defaultView!.getComputedStyle(
-      document.documentElement,
-    )
+    const style = view.getComputedStyle(document.documentElement)
     const look: Record<string, string> = {}
     for (const [name, property] of Object.entries(colours))
       look[name] = style.getPropertyValue(property).trim()
@@ -286,12 +291,13 @@ export function restartHandoff(
     // what the app itself had made inert stays so.
     const held: HTMLElement[] = []
     const hold = (node: Node) => {
-      if (node === cover || !(node instanceof HTMLElement) || node.inert) return
+      if (node === cover || !(node instanceof view.HTMLElement) || node.inert)
+        return
       node.inert = true
       held.push(node)
     }
     // What the app adds meanwhile, such as a dialog, is held too.
-    const observer = new MutationObserver((records) => {
+    const observer = new view.MutationObserver((records) => {
       for (const record of records) record.addedNodes.forEach(hold)
     })
     const attach = () => {
