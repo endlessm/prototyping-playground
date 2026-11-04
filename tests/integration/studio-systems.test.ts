@@ -95,7 +95,7 @@ describe('yarn studio create-system', () => {
     const declaration = studio.read('src/systems/harbor/system.ts')
     expect(declaration).toContain("label: 'Harbor Ops'")
     expect(declaration).toContain("status: 'active'")
-    expect(declaration).toContain("colorModes: ['light', 'dark']")
+    expect(declaration).toContain("colorModes: ['light']")
     expect(declaration).toContain(`studioId: '${studioId}'`)
     expect(declaration).not.toMatch(/react|shadcn/i)
     // An empty theme scope: no tokens yet.
