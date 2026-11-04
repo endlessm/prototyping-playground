@@ -4,7 +4,8 @@ import CollectionViewToggle from '../../../../app/components/CollectionViewToggl
 import SystemNewButton from '../components/SystemNewButton.vue'
 import SystemsCollection from '../components/SystemsCollection.vue'
 import { useSystemCatalog } from '../composables/useSystemCatalog'
-import { useSystemTransition } from '../composables/useSystemTransition'
+import { useSystemDestination } from '../composables/useSystemChange'
+import { deletionOf } from '../utils/destination'
 import { inSystemOrder } from '../utils/pages'
 
 // The collection: every system as a card or a row, the default first and
@@ -18,10 +19,11 @@ const manifest = await useManifest()
 const { systems } = await useSystemCatalog()
 
 useHead({ title: () => `${t('systems.title')} — ${studio.name}` })
-useSystemTransition(
-  () => systems.value.map(({ id }) => id),
-  () => undefined,
-)
+// A deletion's tab finishes once the collection no longer lists the system.
+useSystemDestination((destination) => {
+  const deleted = deletionOf(destination)
+  return Boolean(deleted) && !systems.value.some(({ id }) => id === deleted)
+})
 
 const query = computed(() =>
   typeof route.query.q === 'string' ? route.query.q : '',

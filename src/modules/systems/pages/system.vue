@@ -2,7 +2,8 @@
 import AppNotFound from '../../../../app/components/AppNotFound.vue'
 import SystemNav from '../components/SystemNav.vue'
 import { useSystemCatalog } from '../composables/useSystemCatalog'
-import { useSystemTransition } from '../composables/useSystemTransition'
+import { useSystemDestination } from '../composables/useSystemChange'
+import { creationOf } from '../utils/destination'
 
 // A system's frame: its navigation, which stays while the person moves
 // between the system's pages, and the open page beside it. Each page starts
@@ -10,12 +11,12 @@ import { useSystemTransition } from '../composables/useSystemTransition'
 definePageMeta({ key: (route) => `system:${route.params.systemId}` })
 
 const route = useRoute()
-const { systems, systemOf } = await useSystemCatalog()
+const { systemOf } = await useSystemCatalog()
 const system = computed(() => systemOf(route.params.systemId as string))
-// A change made from the system's menu ends here once the studio reloads.
-useSystemTransition(
-  () => systems.value.map(({ id }) => id),
-  () => system.value?.id,
+// A new system's tab finishes once its Overview shows.
+useSystemDestination(
+  (destination) =>
+    Boolean(system.value) && creationOf(destination) === system.value?.id,
 )
 
 const page = useTemplateRef<HTMLElement>('page')

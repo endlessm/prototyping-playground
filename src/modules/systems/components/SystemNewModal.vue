@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import type { FormError, FormSubmitEvent } from '@nuxt/ui'
-import {
-  beginSystemTransition,
-  finishSystemTransition,
-  systemCreated,
-} from '../composables/useSystemTransition'
+import { useSystemChange } from '../composables/useSystemChange'
+import { createdSystem } from '../utils/destination'
 
 // "New system": a name, which becomes its folder. The dev server makes an
 // empty Vue system and registers it; the studio restarts behind the status
@@ -14,6 +11,7 @@ import {
 const emit = defineEmits<{ close: [] }>()
 const { t } = useI18n()
 const base = useRuntimeConfig().app.baseURL
+const change = useSystemChange()
 
 const state = reactive({ name: '' })
 const saving = ref(false)
@@ -30,21 +28,22 @@ async function create(event: FormSubmitEvent<typeof state>) {
   const name = event.data.name.trim()
   saving.value = true
   failure.value = ''
-  beginSystemTransition('create', name)
   try {
-    const { studioId } = await requestJson<{ studioId: string }>(
-      `${base}_studio/files/systems`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ op: 'create', name }),
-      },
-    )
-    systemCreated(studioId)
+    const { studioId } = await change({
+      operation: 'create',
+      name,
+      request: () =>
+        requestJson<{ studioId: string }>(`${base}_studio/files/systems`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ op: 'create', name }),
+        }),
+      // Only the answer says where the new system is.
+      destination: ({ studioId }) => createdSystem(studioId),
+    })
     // The restart reloads this address: the new system's Overview.
     history.replaceState(history.state, '', `${base}systems/${studioId}`)
   } catch (error) {
-    finishSystemTransition()
     failure.value = (error as Error).message
     saving.value = false
   }

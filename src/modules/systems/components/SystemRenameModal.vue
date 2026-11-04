@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import type { FormError, FormSubmitEvent } from '@nuxt/ui'
-import {
-  beginSystemTransition,
-  finishSystemTransition,
-  queueSystemToast,
-} from '../composables/useSystemTransition'
+import { useSystemChange } from '../composables/useSystemChange'
 
 // "Rename system": a new name. The dev server renames the folder and its
 // registration and repairs references; the permanent ID, and so the
@@ -15,6 +11,7 @@ const props = defineProps<{ system: { id: string; label: string } }>()
 const emit = defineEmits<{ close: [] }>()
 const { t } = useI18n()
 const base = useRuntimeConfig().app.baseURL
+const change = useSystemChange()
 
 const state = reactive({ name: props.system.label })
 const saving = ref(false)
@@ -31,16 +28,19 @@ async function save(event: FormSubmitEvent<typeof state>) {
   if (name === props.system.label) return emit('close')
   saving.value = true
   failure.value = ''
-  beginSystemTransition('rename', props.system.label, props.system.id)
   try {
-    await requestJson(`${base}_studio/files/systems`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ op: 'rename', system: props.system.id, name }),
+    await change({
+      operation: 'rename',
+      name: props.system.label,
+      request: () =>
+        requestJson(`${base}_studio/files/systems`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ op: 'rename', system: props.system.id, name }),
+        }),
+      confirmation: t('systems.toasts.renamed'),
     })
-    queueSystemToast(t('systems.toasts.renamed'))
   } catch (error) {
-    finishSystemTransition()
     failure.value = (error as Error).message
     saving.value = false
   }
