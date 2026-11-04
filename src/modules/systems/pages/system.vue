@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import AppNotFound from '../../../../app/components/AppNotFound.vue'
 import SystemNav from '../components/SystemNav.vue'
-import { pageHandoff } from '../../../../app/utils/pageHandoff'
 import { useSystemCatalog } from '../composables/useSystemCatalog'
+import { useSystemDestination } from '../composables/useSystemChange'
 import { creationOf } from '../utils/destination'
 
 // A system's frame: its navigation, which stays while the person moves
@@ -14,12 +14,10 @@ const route = useRoute()
 const { systemOf } = await useSystemCatalog()
 const system = computed(() => systemOf(route.params.systemId as string))
 // A new system's tab finishes once its Overview shows.
-const handoff = import.meta.dev ? pageHandoff() : undefined
-if (handoff)
-  watchEffect(() => {
-    if (system.value && creationOf(handoff.destination()) === system.value.id)
-      handoff.markReady()
-  })
+useSystemDestination(
+  (destination) =>
+    Boolean(system.value) && creationOf(destination) === system.value?.id,
+)
 
 const page = useTemplateRef<HTMLElement>('page')
 watch(

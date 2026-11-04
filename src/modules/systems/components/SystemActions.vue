@@ -5,7 +5,7 @@ import type { SystemCatalog } from '../../../../tooling/systems/catalog'
 import { menuGroups } from '../../../../app/utils/menus'
 import { onApple } from '../../../../app/utils/shortcuts'
 import { useCopy } from '../composables/useCopy'
-import { pageHandoff } from '../../../../app/utils/pageHandoff'
+import { useSystemChange } from '../composables/useSystemChange'
 import { systemMenu, type SystemActionId } from '../utils/actions'
 import { systemAddress } from '../utils/pages'
 
@@ -94,26 +94,14 @@ function lifecycle(operation: 'archive' | 'restore' | 'delete') {
   })
 }
 
-async function makeDefault() {
-  const { label } = props.system
-  const handoff = pageHandoff()
-  handoff?.start({
-    kind: 'system',
-    title: t('systems.transition.titles.default', { name: label }),
-    description: t('systems.transition.descriptions.default'),
-    hold: true,
+const change = useSystemChange()
+const makeDefault = () =>
+  change({
+    operation: 'default',
+    name: props.system.label,
+    request: () => post({ op: 'default' }),
+    confirmation: t('systems.toasts.isDefault', { name: props.system.label }),
   })
-  try {
-    await post({ op: 'default' })
-    handoff?.update({
-      hold: false,
-      confirmation: t('systems.toasts.isDefault', { name: label }),
-    })
-  } catch (error) {
-    handoff?.cancel()
-    throw error
-  }
-}
 
 const revealLabel = () => {
   if (onApple()) return t('files.reveal.apple')

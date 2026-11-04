@@ -3,8 +3,8 @@ import CollectionArchivedHeading from '../../../../app/components/CollectionArch
 import CollectionViewToggle from '../../../../app/components/CollectionViewToggle.vue'
 import SystemNewButton from '../components/SystemNewButton.vue'
 import SystemsCollection from '../components/SystemsCollection.vue'
-import { pageHandoff } from '../../../../app/utils/pageHandoff'
 import { useSystemCatalog } from '../composables/useSystemCatalog'
+import { useSystemDestination } from '../composables/useSystemChange'
 import { deletionOf } from '../utils/destination'
 import { inSystemOrder } from '../utils/pages'
 
@@ -20,13 +20,10 @@ const { systems } = await useSystemCatalog()
 
 useHead({ title: () => `${t('systems.title')} — ${studio.name}` })
 // A deletion's tab finishes once the collection no longer lists the system.
-const handoff = import.meta.dev ? pageHandoff() : undefined
-if (handoff)
-  watchEffect(() => {
-    const deleted = deletionOf(handoff.destination())
-    if (deleted && !systems.value.some(({ id }) => id === deleted))
-      handoff.markReady()
-  })
+useSystemDestination((destination) => {
+  const deleted = deletionOf(destination)
+  return Boolean(deleted) && !systems.value.some(({ id }) => id === deleted)
+})
 
 const query = computed(() =>
   typeof route.query.q === 'string' ? route.query.q : '',

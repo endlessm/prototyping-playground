@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FormError, FormSubmitEvent } from '@nuxt/ui'
-import { pageHandoff } from '../../../../app/utils/pageHandoff'
+import { useSystemChange } from '../composables/useSystemChange'
 import { createdSystem } from '../utils/destination'
 
 // "New system": a name, which becomes its folder. The dev server makes an
@@ -11,7 +11,7 @@ import { createdSystem } from '../utils/destination'
 const emit = defineEmits<{ close: [] }>()
 const { t } = useI18n()
 const base = useRuntimeConfig().app.baseURL
-const handoff = pageHandoff()
+const change = useSystemChange()
 
 const state = reactive({ name: '' })
 const saving = ref(false)
@@ -28,36 +28,22 @@ async function create(event: FormSubmitEvent<typeof state>) {
   const name = event.data.name.trim()
   saving.value = true
   failure.value = ''
-  handoff?.start({
-    kind: 'system',
-    title: t('systems.transition.titles.create', { name }),
-    description: t('systems.transition.descriptions.create'),
-    // The page waits for the answer, which says where the new system is.
-    hold: true,
-    destination: true,
-  })
-  const opening = {
-    title: t('systems.transition.titles.opening', { name }),
-    description: t('systems.transition.descriptions.opening'),
-  }
   try {
-    const { studioId } = await requestJson<{ studioId: string }>(
-      `${base}_studio/files/systems`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ op: 'create', name }),
-      },
-    )
-    handoff?.update({
-      ...opening,
-      hold: false,
-      destination: createdSystem(studioId),
+    const { studioId } = await change({
+      operation: 'create',
+      name,
+      request: () =>
+        requestJson<{ studioId: string }>(`${base}_studio/files/systems`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ op: 'create', name }),
+        }),
+      // Only the answer says where the new system is.
+      destination: ({ studioId }) => createdSystem(studioId),
     })
     // The restart reloads this address: the new system's Overview.
     history.replaceState(history.state, '', `${base}systems/${studioId}`)
   } catch (error) {
-    handoff?.cancel()
     failure.value = (error as Error).message
     saving.value = false
   }
