@@ -119,7 +119,7 @@ describe('the use-canvas skill', () => {
       /Preserve the person's arrangement/,
       /small, reviewable steps/,
       /`point`/,
-      /Never store images/,
+      /Never write images yourself/,
       /canvas's link/,
     ])
       expect(skill).toMatch(point)

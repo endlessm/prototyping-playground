@@ -26,11 +26,11 @@ Work in small, reviewable steps:
 3. Prefer native elements: `text` for annotations, with shapes, arrows, lines and `section`s. Sticky `note`s are optional, not the default.
 4. To show a view's named states, use `states` with the view's file, such as `{ "artifact": "flows/Home.vue" }`: one call places every state side by side, titled and linked to each state's permanent address. For a view without states, use `create` with `type: "artifact"`.
 5. Preserve the person's arrangement; move existing content only when the request needs it.
-6. Never store images; put the working view on the canvas instead.
+6. Never write images yourself: a person pastes or drops them in the studio, which stores each picture in the prototype's `_canvas-images/` folder. Prefer the working view to a screenshot of it.
 7. `describe` again afterwards, and in the browser `point` at what you placed so the person sees it.
 
-If you must edit the JSON directly, keep each element's `id`, raise its `version` with a new `versionNonce` when you change it, keep `"files": {}` and `"studioVersion": 1`, and write the file in one go. An item is an `"embeddable"` whose `link` is `/prototypes/<prototype-id>/artifacts/<artifact-id>`.
+If you must edit the JSON directly, keep each element's `id`, raise its `version` with a new `versionNonce` when you change it, keep `"files"` and `"studioVersion"` as they are, and write the file in one go. An item is an `"embeddable"` whose `link` is `/prototypes/<prototype-id>/artifacts/<artifact-id>`.
 
 ## Check the result
 
-Open the canvas in the studio and look at the rendered result: items show live previews or cards, nothing overlaps by accident (`create` warns about overlaps), arrows join what they should. `yarn build` refuses a canvas with invalid JSON, images, stored files, links to another prototype or an unknown `studioVersion`. Report which canvas changed, what you placed, and the canvas's link.
+Open the canvas in the studio and look at the rendered result: items show live previews or cards, nothing overlaps by accident (`create` warns about overlaps), arrows join what they should. `yarn build` refuses a canvas with invalid JSON, a picture's bytes inside the file, images whose picture `files` doesn't list, links to another prototype or an unknown `studioVersion`. Report which canvas changed, what you placed, and the canvas's link.

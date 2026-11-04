@@ -33,6 +33,8 @@ export type SaveState = 'saved' | 'unsaved' | 'saving' | 'failed'
 export interface CanvasSnapshot {
   elements: readonly Stored[]
   appState: { viewBackgroundColor?: string; gridSize?: number | null }
+  /** The pictures it has loaded or been given, by file id. */
+  files?: Readonly<Record<string, { mimeType: string; dataURL: string }>>
 }
 
 export interface CanvasFileText {

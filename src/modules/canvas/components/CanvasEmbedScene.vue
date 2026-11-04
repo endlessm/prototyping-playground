@@ -7,6 +7,7 @@ import { useCanvasItems } from '../composables/useCanvasItems'
 import { useCanvasOpening } from '../composables/useCanvasOpening'
 import type { CanvasPreviewHandle, CanvasPreviewProps } from '../island/mount'
 import { parseCanvas, type ParsedCanvas } from '../types/canvas/format'
+import { loadImages } from '../utils/canvasImages'
 import { readCanvas } from '../utils/readCanvas'
 import CanvasItem from './CanvasItem.vue'
 import CanvasOpening from './CanvasOpening.vue'
@@ -47,10 +48,14 @@ const { revealed, statusVisible } = useCanvasOpening(
   props.startedAt,
 )
 
+const pictures: CanvasPreviewProps['loadImages'] = (wanted) =>
+  loadImages(base, props.prototype.id, wanted)
+
 let island:
   ReturnType<typeof import('../island/mount').mountPreview> | undefined
 const previewProps = (): CanvasPreviewProps => ({
   file: file.value!,
+  loadImages: pictures,
   dark: colorMode.value === 'dark',
   base,
   width: props.width,

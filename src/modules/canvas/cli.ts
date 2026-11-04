@@ -39,6 +39,7 @@ import { loadSystems } from '../../../tooling/systems/registry.ts'
 import { toolContext } from './tools/context.ts'
 import { help, run, ToolError } from './tools/tools.ts'
 import { identity } from './types/canvas/identity.ts'
+import { pruneImages } from './types/canvas/images.ts'
 import {
   FORMAT_VERSION,
   parseCanvas,
@@ -308,10 +309,17 @@ async function main(argv: string[]) {
     { viewBackgroundColor: scene.background, gridSize: scene.gridSize },
     undefined,
     identity.read(text),
+    // Pictures stay where they are: a tool moves images, never their bytes.
+    scene.files,
   )
   const temporary = `${real}.${process.pid}.tmp`
   writeFileSync(temporary, next)
   renameSync(temporary, real)
+  // A picture the canvas stopped showing goes, unless another canvas of the
+  // prototype still shows it.
+  const kept = parseCanvas(next).files
+  if (Object.keys(scene.files).some((id) => !(id in kept)))
+    pruneImages(path.join(ROOT, folder))
   return result.result
 }
 

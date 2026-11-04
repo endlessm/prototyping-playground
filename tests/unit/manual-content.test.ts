@@ -210,7 +210,7 @@ test('[CV-157] the Manual says how canvases work', () => {
     /follow their source/,
     /documents and other canvases show as cards/,
     /only artifacts from its own prototype/,
-    /no images/,
+    /Paste or drop an image/,
     /saves itself/,
     /Other people's canvases and canvases on the deployed site are read-only/,
     /Mermaid to Excalidraw.*separate shapes/,

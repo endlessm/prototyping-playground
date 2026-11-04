@@ -15,6 +15,8 @@ export default {
     },
   ],
   references: 'references.ts',
+  // Reading and storing pictures for the canvases being edited locally.
+  server: { images: 'server/images.ts' },
   fileTypes: [
     {
       id: 'canvas',
@@ -39,6 +41,16 @@ export default {
       watch: ['src/prototypes/**/*.excalidraw'],
       load: async ({ root }) =>
         (await import('./types/canvas/bundle.ts')).canvasFiles(root),
+    },
+    // Their pictures, by prototype and file id. Fetched only when a canvas
+    // on the deployed site shows one.
+    images: {
+      watch: [
+        'src/prototypes/**/*.excalidraw',
+        'src/prototypes/**/_canvas-images/*',
+      ],
+      load: async ({ root }) =>
+        (await import('./types/canvas/bundle.ts')).canvasImages(root),
     },
   },
 } satisfies StudioModule

@@ -1,7 +1,7 @@
-// Every canvas's text by its permanent ID, for the deployed site, which has
-// no file service to read them from; the canvases of archived prototypes
-// and of prototypes waiting for a rebuild (their system was deleted) stay
-// out, as their prototypes do. Runs on Node.
+// Every canvas's text by its permanent ID, and its pictures, for the
+// deployed site, which has no file service to read them from; the canvases
+// of archived prototypes and of prototypes waiting for a rebuild (their
+// system was deleted) stay out, as their prototypes do. Runs on Node.
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import {
@@ -9,7 +9,9 @@ import {
   PROTOTYPES_FOLDER,
   treeFiles,
 } from '../../../../../tooling/manifest/build.ts'
+import { imagePath, parseCanvas } from './format.ts'
 import { identity } from './identity.ts'
+import { readImage } from './images.ts'
 
 function archived(metaFile: string) {
   try {
@@ -45,4 +47,56 @@ export function canvasFiles(
       }
     }
   return files
+}
+
+/**
+ * The pictures the deployed site's canvases show, as data URLs, by their
+ * prototype's permanent ID and then their file id. A canvas naming a picture
+ * that isn't stored stops the build, naming both.
+ */
+export function canvasImages(
+  root: string,
+  folder = process.env.STUDIO_PROTOTYPES || PROTOTYPES_FOLDER,
+) {
+  const base = path.resolve(root, folder)
+  const images: Record<string, Record<string, string>> = {}
+  const missing: string[] = []
+  for (const contributor of directories(base))
+    for (const name of directories(path.join(base, contributor))) {
+      const dir = path.join(base, contributor, name)
+      const metaFile = path.join(dir, 'meta.json')
+      if (!existsSync(metaFile) || archived(metaFile)) continue
+      let prototypeId: unknown
+      try {
+        prototypeId = JSON.parse(readFileSync(metaFile, 'utf8')).studioId
+      } catch {
+        continue
+      }
+      if (typeof prototypeId !== 'string') continue
+      for (const file of treeFiles(dir)) {
+        if (path.extname(file).toLowerCase() !== '.excalidraw') continue
+        let files: ReturnType<typeof parseCanvas>['files']
+        try {
+          files = parseCanvas(readFileSync(path.join(dir, file), 'utf8')).files
+        } catch {
+          // The build's file check names it.
+          continue
+        }
+        for (const image of Object.values(files)) {
+          const dataURL = readImage(dir, image)
+          if (!dataURL) {
+            missing.push(
+              `${path.posix.join(contributor, name, file.replaceAll(path.sep, '/'))} shows ${imagePath(image.id, image.mimeType)}, which isn’t in the prototype`,
+            )
+            continue
+          }
+          ;(images[prototypeId] ??= {})[image.id] = dataURL
+        }
+      }
+    }
+  if (missing.length)
+    throw new Error(
+      `Canvas pictures are missing: ${missing.join('; ')}. Restore the file, or remove the image from the canvas.`,
+    )
+  return images
 }

@@ -106,7 +106,7 @@ function content(name: string, { broken }: { broken: boolean }) {
     )
     write(
       'ben/sketches/Newer.excalidraw',
-      scene(NEWER, [shape('5', 'diamond', 0, 0)], { studioVersion: 2 }),
+      scene(NEWER, [shape('5', 'diamond', 0, 0)], { studioVersion: 3 }),
     )
   }
   return dir
@@ -509,9 +509,9 @@ describe('a canvas in the studio running locally', () => {
           .map((element) => element.firstElementChild?.textContent?.trim()),
       )
     expect(rows).toContain('Rectangle')
+    expect(rows).toContain('Insert image')
     for (const hidden of [
       'Toggle grid',
-      'Insert image',
       'Reset the canvas',
       'Toggle light/dark theme',
       'View mode',
@@ -676,7 +676,7 @@ describe('a canvas in the studio running locally', () => {
     await expect.poll(() => empty(page)).toBe(true)
   })
 
-  test('[CV-54] [CV-58] tools answer their letters; there is no image tool', async () => {
+  test('[CV-54] [CV-58] tools answer their letters, 9 included: it picks an image', async () => {
     const page = await canvasPage()
     await open(page, studio, BOARD)
     await focusCanvas(page)
@@ -684,14 +684,24 @@ describe('a canvas in the studio running locally', () => {
     await expect.poll(() => tool(page, 'Rectangle').isChecked()).toBe(true)
     await page.keyboard.press('o')
     await expect.poll(() => tool(page, 'Ellipse').isChecked()).toBe(true)
-    expect(await page.getByRole('radio', { name: /image/i }).count()).toBe(0)
-    // 9 would ask for an image file.
-    let chooser = false
-    page.on('filechooser', () => (chooser = true))
+    expect(await page.getByRole('radio', { name: /image/i }).count()).toBe(1)
+    // 9 asks for an image file, through Chromium's file picker.
+    await page.evaluate(() => {
+      const scope = window as unknown as Record<string, unknown>
+      scope.__picked = false
+      scope.showOpenFilePicker = async () => {
+        scope.__picked = true
+        throw new DOMException('Closed', 'AbortError')
+      }
+    })
     await page.keyboard.press('9')
-    await page.waitForTimeout(500)
-    expect(chooser).toBe(false)
-    expect(await tool(page, 'Ellipse').isChecked()).toBe(true)
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () => (window as unknown as Record<string, unknown>).__picked,
+        ),
+      )
+      .toBe(true)
   })
 
   test('[CV-31] the extra tools hold the frame, the laser pointer and Mermaid to Excalidraw', async () => {

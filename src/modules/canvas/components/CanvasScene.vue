@@ -15,6 +15,7 @@ import {
   type ParsedCanvas,
 } from '../types/canvas/format'
 import { cameraKey } from '../utils/camera'
+import { loadImages } from '../utils/canvasImages'
 import { readCanvas, type CanvasText } from '../utils/readCanvas'
 import { createCanvasSurface } from '../utils/canvasSurface'
 import CanvasError from './CanvasError.vue'
@@ -105,9 +106,16 @@ useArtifactSurfaceProvider(() => surface.value)
 const message = (error: unknown) =>
   error instanceof Error ? error.message : String(error)
 
+// One function for the editor's whole life, so a new colour mode doesn't
+// look like a new way to load pictures.
+const pictures: CanvasEditorProps['loadImages'] = (wanted) =>
+  loadImages(base, props.prototype.id, wanted)
+
 let island: ReturnType<typeof import('../island/mount').mountCanvas> | undefined
 const editorProps = (): CanvasEditorProps => ({
   elements: scene.value!.elements,
+  files: scene.value!.files,
+  loadImages: pictures,
   background: scene.value!.background,
   gridSize: scene.value!.gridSize,
   // A file from a newer format is never saved over.

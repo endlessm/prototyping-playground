@@ -6,9 +6,6 @@
 // Excalidraw's own labels for the shortcuts the canvas doesn't offer, and why.
 export const UNSUPPORTED_SHORTCUTS = new Set([
   'Toggle grid', // remapped by the studio; the canvas menu shows its shortcut
-  'Insert image', // images are off: they'd be stored inside the canvas file
-  'Crop image',
-  'Finish image cropping',
   'Reset the canvas', // wiping a canvas isn't offered
   'Toggle light/dark theme', // the canvas follows the studio's colour mode
   'View mode', // set by the studio (a canvas you can't edit is read-only)

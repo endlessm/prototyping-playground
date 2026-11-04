@@ -110,14 +110,15 @@ describe('saving a canvas', () => {
     expect(file.files).toEqual({})
   })
 
-  test('[CV-106] carries studioVersion 1', () => {
+  test('[CV-106] carries studioVersion 1 while it holds no images', () => {
     expect(
       JSON.parse(stringifyScene([], {}, undefined, ID)).studioVersion,
     ).toBe(1)
     expect(() => parseCanvas('{"elements":[],"studioVersion":0}')).toThrow(
       'Unknown canvas version: 0',
     )
-    expect(parseCanvas('{"elements":[],"studioVersion":2}').tooNew).toBe(true)
+    expect(parseCanvas('{"elements":[],"studioVersion":2}').tooNew).toBe(false)
+    expect(parseCanvas('{"elements":[],"studioVersion":3}').tooNew).toBe(true)
   })
 })
 

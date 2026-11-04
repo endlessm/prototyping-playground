@@ -23,10 +23,20 @@ import {
   useRef,
   useState,
 } from 'react'
-import { itemAddress, type ParsedCanvas } from '../types/canvas/format'
+import {
+  itemAddress,
+  type ParsedCanvas,
+  type StoredImage,
+} from '../types/canvas/format'
+import type { CanvasPicture } from '../utils/canvasImages'
 import { initialCamera } from '../utils/camera'
 import { openingEmbedIds } from '../utils/embeds'
-import { ItemBox, restored, type CanvasItemHost } from './Editor'
+import {
+  addMissingImages,
+  ItemBox,
+  restored,
+  type CanvasItemHost,
+} from './Editor'
 
 /** What the Vue page can ask of a preview. */
 export interface CanvasPreviewHandle {
@@ -42,11 +52,13 @@ export interface CanvasPreviewProps {
   width: number
   height: number
   items: CanvasItemHost
+  /** Fetches stored pictures; a missing one is left out. */
+  loadImages: (wanted: StoredImage[]) => Promise<CanvasPicture[]>
   onReady: (handle: CanvasPreviewHandle) => void
 }
 
 export function CanvasPreview(props: CanvasPreviewProps) {
-  const { file, dark, base, width, height, items, onReady } = props
+  const { file, dark, base, width, height, items, onReady, loadImages } = props
   const [api, setApi] = useState<ExcalidrawImperativeAPI | null>(null)
   const elements = useMemo(
     () =>
@@ -102,6 +114,11 @@ export function CanvasPreview(props: CanvasPreviewProps) {
       captureUpdate: CaptureUpdateAction.NEVER,
     })
   }, [api, elements, camera, file.background])
+
+  // The pictures its images show, as it opens and as its file changes.
+  useEffect(() => {
+    if (api) addMissingImages(api, file.files, loadImages)
+  }, [api, elements, file.files, loadImages])
 
   const validateEmbeddable = useCallback(
     (link: string) => itemAddress(link, window.location.origin, base) !== null,

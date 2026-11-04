@@ -3,13 +3,20 @@ import { requestJson } from '../../../../app/utils/studioRequest'
 import { studioToast } from '../../../../app/utils/toasts'
 import CanvasLeaveModal from '../components/CanvasLeaveModal.vue'
 import type { CanvasHandle } from '../island/mount'
-import { storedLink, stringifyScene } from '../types/canvas/format'
+import {
+  parseCanvas,
+  storedImageType,
+  storedLink,
+  stringifyScene,
+  type StoredImage,
+} from '../types/canvas/format'
 import {
   createCanvasFile,
   type CanvasFile,
   type CanvasSnapshot,
   type SaveState,
 } from '../utils/canvasFile'
+import { missingImages, pruneImages, storeImage } from '../utils/canvasImages'
 import type { CanvasText } from '../utils/readCanvas'
 
 /**
@@ -41,19 +48,92 @@ export function useCanvasFile(address: {
   // Excalidraw reports changes from its first paint, before the editor's
   // handle arrives: the last one is kept for when saving starts.
   let early: [CanvasSnapshot, number] | undefined
+  // Pictures: every one a version of the file named (stored beside it), the
+  // ones the file on disk names now, and the pictures the editor holds, for
+  // storing new ones before the file names them, so a saved canvas never
+  // shows a picture that isn't stored.
+  const stored = new Map<string, StoredImage>()
+  let named = new Set<string>()
+  let pictures: CanvasSnapshot['files'] = {}
+  const namedIn = (content: string) => {
+    try {
+      return parseCanvas(content).files
+    } catch {
+      // Not a canvas yet: the next read brings it.
+      return null
+    }
+  }
+  const remember = (content: string) => {
+    const files = namedIn(content)
+    if (!files) return
+    for (const image of Object.values(files)) stored.set(image.id, image)
+    named = new Set(Object.keys(files))
+  }
 
-  const read = () =>
-    requestJson<{ content: string; version: string }>(
+  // The stored pictures, and those the editor holds for its images.
+  function filesOf(snapshot: CanvasSnapshot) {
+    const files = Object.fromEntries(stored)
+    for (const element of snapshot.elements) {
+      const id = element.fileId
+      if (element.type !== 'image' || typeof id !== 'string') continue
+      const picture = snapshot.files?.[id]
+      if (picture && !files[id])
+        files[id] = { id, mimeType: storedImageType(picture.mimeType) }
+    }
+    return files
+  }
+
+  // Stores the pictures a canvas's text names that aren't stored, asking
+  // the dev server each time: a picture this page stored before may have
+  // been pruned since (taken off the canvas, then brought back by Undo).
+  async function storePictures(content: string) {
+    const images = Object.values(parseCanvas(content).files)
+    const missing = await missingImages(
+      address.base,
+      address.prototype(),
+      images,
+    )
+    for (const id of missing) {
+      const picture = pictures?.[id]
+      if (!picture)
+        throw new Error('A picture on this canvas hasn’t loaded yet.')
+      await storeImage(address.base, address.prototype(), {
+        id,
+        mimeType: picture.mimeType,
+        dataURL: picture.dataURL,
+        created: Date.now(),
+      })
+    }
+  }
+
+  // After a save that stopped showing a picture, the prototype's pictures
+  // no canvas shows are removed. A failure leaves them for the next one.
+  function written(content: string) {
+    const before = named
+    remember(content)
+    if ([...before].some((id) => !named.has(id)))
+      pruneImages(address.base, address.prototype()).catch(() => {})
+  }
+
+  const read = async () => {
+    const text = await requestJson<{ content: string; version: string }>(
       `${url}?${new URLSearchParams({
         prototype: address.prototype(),
         artifact: address.artifact(),
       })}`,
     )
+    remember(text.content)
+    return text
+  }
 
   /** Starts saving once the editor is open, for a file you may change. */
   function start(handle: CanvasHandle, loaded: CanvasText) {
     if (!import.meta.dev || !loaded.editable || file) return
     path = loaded.path
+    remember(loaded.text)
+    // Pictures left by a canvas that was deleted, or by an edit made
+    // elsewhere, go when a canvas of the prototype opens for editing.
+    pruneImages(address.base, address.prototype()).catch(() => {})
     file = createCanvasFile({
       initial: {
         content: loaded.text,
@@ -67,10 +147,12 @@ export function useCanvasFile(address: {
           snapshot.appState,
           (link) => storedLink(link, window.location.origin, address.base),
           studioId,
+          filesOf(snapshot),
         ),
       read,
-      write: (content, base) =>
-        requestJson<{ version: string }>(url, {
+      write: async (content, base) => {
+        await storePictures(content)
+        const saved = await requestJson<{ version: string }>(url, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -79,7 +161,10 @@ export function useCanvasFile(address: {
             content,
             base,
           }),
-        }),
+        })
+        written(content)
+        return saved
+      },
       take: handle.take,
       onState: (next) => (state.value = next),
       // The notice sits over the status at the bottom right, so it offers
@@ -110,6 +195,7 @@ export function useCanvasFile(address: {
   }
 
   function changed(snapshot: CanvasSnapshot, sceneVersion: number) {
+    if (snapshot.files) pictures = snapshot.files
     if (file) file.changed(snapshot, sceneVersion)
     else early = [snapshot, sceneVersion]
   }

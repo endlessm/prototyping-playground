@@ -49,7 +49,7 @@ describe('the build’s file checks', () => {
     const canvasModule = enabled.filter(({ spec }) => spec.id === 'canvas')
     const types = await identityFileTypes(canvasModule)
     const pasted = expect.stringMatching(
-      /^src\/prototypes\/ada\/demo\/flows\/Pasted\.excalidraw: a canvas can’t hold images/,
+      /^src\/prototypes\/ada\/demo\/flows\/Pasted\.excalidraw: it has images whose picture isn’t listed in "files"/,
     )
     // What stops the build, and what development reports.
     expect(auditIdentities(root, types).checks).toEqual([pasted])

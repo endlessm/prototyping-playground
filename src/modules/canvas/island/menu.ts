@@ -21,11 +21,8 @@ export const UI_OPTIONS: ExcalidrawProps['UIOptions'] = {
     // Also turns off its shortcut; the `theme` prop follows the studio.
     toggleTheme: false,
   },
-  // No images on a canvas: Excalidraw stores an image's bytes inside the
-  // canvas file. This one flag also turns off the toolbar button, the 9
-  // shortcut, and pasting and dropping images. The other guards: the stored
-  // form drops them, and the build's check refuses them.
-  tools: { image: false },
+  // Images are on: the toolbar button, the 9 shortcut, pasting and dropping.
+  // Their pictures are stored beside the canvas, never inside it.
 }
 
 /** The menu's words, from the studio's locale. */

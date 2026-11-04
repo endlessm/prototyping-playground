@@ -7,11 +7,13 @@
 // and what is on screen.
 import {
   cpSync,
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
   statSync,
+  utimesSync,
   writeFileSync,
 } from 'node:fs'
 import path from 'node:path'
@@ -89,6 +91,7 @@ const CANVASES: Record<number, unknown[]> = {
   9: [shape('one', 0, 0)],
   10: [shape('one', 0, 0)],
   11: [shape('one', 0, 0)],
+  12: [],
 }
 const fileOf = (n: number) => `Canvas ${n}.excalidraw`
 
@@ -116,7 +119,7 @@ for (const [n, elements] of Object.entries(CANVASES))
   )
 writeFileSync(
   path.join(prototypeDir, 'Newer.excalidraw'),
-  scene(NEWER, [shape('one', 0, 0)], { studioVersion: 2 }),
+  scene(NEWER, [shape('one', 0, 0)], { studioVersion: 3 }),
 )
 mkdirSync(path.join(dir, 'bernardo', 'plain'), { recursive: true })
 writeFileSync(
@@ -299,6 +302,84 @@ describe('saving a canvas in the studio running locally', () => {
       ),
     ).toBe(true)
     expect(page.requests).toHaveLength(1)
+  })
+
+  test('[CV-59] a pasted picture is stored beside the canvas as WebP, named in "files", shows again on opening, and goes when taken off', async () => {
+    const page = await canvasPage()
+    await open(page, studio, canvasId(12))
+    await says(page, 'Saved')
+    const box = (await canvas(page).boundingBox())!
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+    await page.evaluate(async () => {
+      const picture = document.createElement('canvas')
+      picture.width = 640
+      picture.height = 400
+      const context = picture.getContext('2d')!
+      context.fillStyle = '#ff6900'
+      context.fillRect(0, 0, 640, 400)
+      const blob = await new Promise<Blob>((resolve) =>
+        picture.toBlob((made) => resolve(made!), 'image/png'),
+      )
+      const data = new DataTransfer()
+      data.items.add(new File([blob], 'shot.png', { type: 'image/png' }))
+      document.dispatchEvent(
+        new ClipboardEvent('paste', { clipboardData: data, bubbles: true }),
+      )
+    })
+    await expect
+      .poll(() => JSON.parse(disk(12)).elements.length, { timeout: 15_000 })
+      .toBe(1)
+    await says(page, 'Saved')
+    const file = JSON.parse(disk(12))
+    const [image] = file.elements
+    expect(image).toMatchObject({ type: 'image', fileId: expect.any(String) })
+    expect(image).not.toHaveProperty('status')
+    expect(file.studioVersion).toBe(2)
+    expect(file.files).toEqual({
+      [image.fileId]: { id: image.fileId, mimeType: 'image/webp' },
+    })
+    const picture = path.join(
+      prototypeDir,
+      '_canvas-images',
+      `${image.fileId}.webp`,
+    )
+    expect(readFileSync(picture).subarray(8, 12).toString()).toBe('WEBP')
+    // The picture was stored before the canvas named it.
+    expect(
+      statSync(path.join(prototypeDir, fileOf(12))).mtimeMs,
+    ).toBeGreaterThanOrEqual(statSync(picture).mtimeMs)
+
+    // Opening it again fetches the picture, and writes nothing.
+    const again = await canvasPage()
+    const read = again.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname.endsWith(
+          '/_studio/modules/canvas/images',
+        ) && response.request().postDataJSON()?.action === 'read',
+    )
+    await open(again, studio, canvasId(12))
+    expect(Object.keys((await (await read).json()).images)).toEqual([
+      image.fileId,
+    ])
+    await settle(2000)
+    expect(again.requests).toEqual([])
+
+    // Taking the image off the canvas removes its picture, once the picture
+    // is past the moment a canvas being written may still need it.
+    const then = new Date(Date.now() - 10 * 60 * 1000)
+    utimesSync(picture, then, then)
+    const area = (await canvas(again).boundingBox())!
+    await again.mouse.click(area.x + area.width / 2, area.y + area.height / 2)
+    await again.keyboard.press('Control+a')
+    await again.keyboard.press('Delete')
+    await expect
+      .poll(() => JSON.parse(disk(12)).elements.length, { timeout: 15_000 })
+      .toBe(0)
+    expect(JSON.parse(disk(12))).toMatchObject({ studioVersion: 1, files: {} })
+    await expect
+      .poll(() => existsSync(picture), { timeout: 15_000 })
+      .toBe(false)
+    expect(existsSync(path.join(prototypeDir, '_canvas-images'))).toBe(false)
   })
 
   test('[CV-88] opening, selecting, panning and zooming never write the file', async () => {

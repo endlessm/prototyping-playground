@@ -7,6 +7,7 @@ import {
 import { identity as canvas } from '../../src/modules/canvas/types/canvas/identity'
 
 const ID = 'canv000000000001'
+const PICTURE = '0123456789abcdef0123456789abcdef01234567'
 
 describe('a canvas’s identity', () => {
   test('[CV-06] is a top-level "studioId" next to the format version', () => {
@@ -95,16 +96,54 @@ describe('the canvas check', () => {
     ])
   })
 
-  test('[CV-09] [CV-59] refuses images and stored files', () => {
+  test('[CV-09] [CV-59] accepts images whose pictures it lists by id and type', () => {
     expect(
       problems(
-        scene({ elements: [{ type: 'image', id: 'i' }], files: { f: {} } }),
+        scene({
+          elements: [{ type: 'image', id: 'i', fileId: PICTURE }],
+          files: { [PICTURE]: { id: PICTURE, mimeType: 'image/webp' } },
+          studioVersion: 2,
+        }),
+      ),
+    ).toEqual([])
+  })
+
+  test('[CV-09] [CV-59] refuses a picture’s bytes inside the canvas', () => {
+    expect(
+      problems(
+        scene({
+          elements: [{ type: 'image', id: 'i', fileId: PICTURE }],
+          files: {
+            [PICTURE]: {
+              id: PICTURE,
+              mimeType: 'image/png',
+              dataURL: 'data:image/png;base64,AAAA',
+            },
+          },
+        }),
       ),
     ).toEqual([
       expect.stringMatching(
-        /^a canvas can’t hold images.*put the view itself on the canvas/,
+        /^it holds the bytes of an image \(0123.*pictures are stored in _canvas-images\//,
       ),
-      '"files" must be empty. Images aren’t stored in a canvas.',
+    ])
+  })
+
+  test('[CV-09] [CV-59] refuses images whose picture it doesn’t list, and entries that aren’t pictures', () => {
+    expect(
+      problems(
+        scene({
+          elements: [{ type: 'image', id: 'i', fileId: 'unlisted0001' }],
+          files: { f: {} },
+        }),
+      ),
+    ).toEqual([
+      expect.stringMatching(
+        /^"files" has entries that aren’t pictures it can show \(f\)/,
+      ),
+      expect.stringMatching(
+        /^it has images whose picture isn’t listed in "files" \(unlisted0001\)/,
+      ),
     ])
   })
 
@@ -139,8 +178,8 @@ describe('the canvas check', () => {
   })
 
   test('[CV-09] refuses an unknown format version', () => {
-    expect(problems(scene({ studioVersion: 2 }))).toEqual([
-      '"studioVersion" must be a whole number from 1 to 1. A newer file needs a newer copy of the studio.',
+    expect(problems(scene({ studioVersion: 3 }))).toEqual([
+      '"studioVersion" must be a whole number from 1 to 2. A newer file needs a newer copy of the studio.',
     ])
   })
 })
@@ -156,12 +195,13 @@ describe('reading and storing a canvas', () => {
   })
 
   test('[CV-29] a canvas from a newer format opens, marked too new to save over', () => {
-    expect(parseCanvas(scene({ studioVersion: 2 })).tooNew).toBe(true)
+    expect(parseCanvas(scene({ studioVersion: 3 })).tooNew).toBe(true)
+    expect(parseCanvas(scene({ studioVersion: 2 })).tooNew).toBe(false)
     expect(parseCanvas(scene({})).tooNew).toBe(false)
     expect(parseCanvas(scene({})).background).toBe('#ffffff')
   })
 
-  test('[CV-26] [CV-59] stores no camera, no images and no deleted elements', () => {
+  test('[CV-26] [CV-59] stores no camera, no deleted elements and no image whose picture isn’t stored', () => {
     const text = stringifyScene(
       [
         { id: 'a', type: 'rectangle', x: 1.234, angle: 0, isDeleted: false },
@@ -185,6 +225,32 @@ describe('reading and storing a canvas', () => {
       elements: [{ id: 'a', type: 'rectangle', x: 1.23 }],
       appState: { viewBackgroundColor: '#fff9db' },
       files: {},
+    })
+  })
+
+  test('[CV-59] stores an image with its picture’s id and type, never its bytes or loading state', () => {
+    const files = {
+      [PICTURE]: { id: PICTURE, mimeType: 'image/webp' as const },
+      unused000001: { id: 'unused000001', mimeType: 'image/svg+xml' as const },
+    }
+    const text = stringifyScene(
+      [{ id: 'p', type: 'image', fileId: PICTURE, status: 'pending' }],
+      {},
+      undefined,
+      ID,
+      files,
+    )
+    expect(JSON.parse(text)).toEqual({
+      type: 'excalidraw',
+      version: 2,
+      studioVersion: 2,
+      studioId: ID,
+      elements: [{ id: 'p', type: 'image', fileId: PICTURE }],
+      appState: { viewBackgroundColor: '#ffffff' },
+      files: { [PICTURE]: { id: PICTURE, mimeType: 'image/webp' } },
+    })
+    expect(parseCanvas(text).files).toEqual({
+      [PICTURE]: { id: PICTURE, mimeType: 'image/webp' },
     })
   })
 })

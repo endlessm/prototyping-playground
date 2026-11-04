@@ -17,6 +17,7 @@ import type {
 } from '@excalidraw/excalidraw/element/types'
 import type {
   AppState,
+  BinaryFiles,
   ExcalidrawImperativeAPI,
   ExcalidrawInitialDataState,
   LibraryItems,
@@ -35,7 +36,9 @@ import {
   itemAddress,
   type ParsedCanvas,
   type Stored,
+  type StoredImage,
 } from '../types/canvas/format'
+import type { CanvasPicture } from '../utils/canvasImages'
 import type { CanvasFileOptions, CanvasSnapshot } from '../utils/canvasFile'
 import { normalizedItem, openingEmbedIds, renderFlags } from '../utils/embeds'
 import {
@@ -101,6 +104,10 @@ export interface CanvasItemHost {
 export interface CanvasEditorProps {
   /** The stored elements, as the file holds them. */
   elements: Stored[]
+  /** The pictures the file names, by file id. */
+  files: Record<string, StoredImage>
+  /** Fetches stored pictures; a missing one is left out. */
+  loadImages: (wanted: StoredImage[]) => Promise<CanvasPicture[]>
   background: string
   gridSize: number | null
   editable: boolean
@@ -132,13 +139,45 @@ function withOrigin(elements: Stored[], base: string): Stored[] {
 const snapshotOf = (
   elements: readonly ExcalidrawElement[],
   state: AppState,
+  files: BinaryFiles,
 ): CanvasSnapshot => ({
   elements: elements as unknown as Stored[],
   appState: {
     viewBackgroundColor: state.viewBackgroundColor,
     gridSize: state.gridSize,
   },
+  files,
 })
+
+/**
+ * Gives Excalidraw the stored pictures its images show and it doesn't hold
+ * yet. An image whose picture is missing stays a placeholder; nothing about
+ * it changes, so opening a canvas never saves it.
+ */
+export function addMissingImages(
+  api: ExcalidrawImperativeAPI,
+  files: Readonly<Record<string, StoredImage>>,
+  load: (wanted: StoredImage[]) => Promise<CanvasPicture[]>,
+) {
+  // A file lists only the pictures its images show. Read from the file, not
+  // the scene: right after the editor is ready Excalidraw may not have its
+  // first elements yet.
+  const held = api.getFiles()
+  const wanted = Object.values(files).filter((image) => !held[image.id])
+  if (!wanted.length) return
+  load(wanted).then(
+    (pictures) => {
+      try {
+        if (pictures.length) api.addFiles(pictures as never)
+      } catch {
+        // The canvas closed meanwhile.
+      }
+    },
+    () => {
+      // Unreachable or not stored: the images stay placeholders.
+    },
+  )
+}
 
 // A file's elements as Excalidraw holds them. Items get their look as
 // items (an agent may have written them plainly) without a new version:
@@ -167,6 +206,7 @@ function takeFile(
   base: string,
   items: CanvasItemHost,
   fromFile: Set<string>,
+  loadImages: CanvasEditorProps['loadImages'],
 ) {
   const remote = restored(file.elements, base, items)
   for (const element of remote) fromFile.add(element.id)
@@ -196,11 +236,12 @@ function takeFile(
     },
     captureUpdate: CaptureUpdateAction.NEVER,
   })
+  addMissingImages(api, file.files, loadImages)
   const now = api.getSceneElementsIncludingDeleted()
   return {
     needsWriteBack,
     sceneVersion: getSceneVersion(now),
-    snapshot: snapshotOf(now, api.getAppState()),
+    snapshot: snapshotOf(now, api.getAppState(), api.getFiles()),
   }
 }
 
@@ -487,12 +528,13 @@ export function CanvasEditor(props: CanvasEditorProps) {
     // The editor opens once; a new file starts a new editor.
   }, [])
 
-  const { onReady, onEmptyChange, onSceneChange } = props
+  const { onReady, onEmptyChange, onSceneChange, loadImages } = props
   // Until the editor is ready, scene changes are Excalidraw's own loading.
   const ready = useRef(false)
   useEffect(() => {
     if (!api) return
     ready.current = true
+    addMissingImages(api, props.files, loadImages)
     onReady({
       openingEmbeds: () =>
         openingEmbedIds(
@@ -504,21 +546,33 @@ export function CanvasEditor(props: CanvasEditorProps) {
       api,
       take: (file, lastIds) => {
         try {
-          return takeFile(api, file, lastIds, base, items, fromFile.current)
+          return takeFile(
+            api,
+            file,
+            lastIds,
+            base,
+            items,
+            fromFile.current,
+            loadImages,
+          )
         } catch {
           // The canvas closed meanwhile.
           return null
         }
       },
     })
-  }, [api, onReady, base])
+  }, [api, onReady, base, loadImages])
 
   const lastVersion = useRef(0)
   const onChange = useCallback(
-    (elements: readonly ExcalidrawElement[], state: AppState) => {
+    (
+      elements: readonly ExcalidrawElement[],
+      state: AppState,
+      files: BinaryFiles,
+    ) => {
       if (!api) return
       const version = getSceneVersion(elements)
-      onSceneChange(snapshotOf(elements, state), version)
+      onSceneChange(snapshotOf(elements, state, files), version)
       // A new or restyled item becomes an item again. Before the editor is
       // ready, changes are Excalidraw's own loading.
       if (editable && ready.current && version !== lastVersion.current) {
