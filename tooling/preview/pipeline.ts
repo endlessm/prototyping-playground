@@ -16,7 +16,7 @@ import { loadRegistry } from '../modules/registry.ts'
 import { standInNames } from './stand-ins.ts'
 
 import {
-  colorModeScript,
+  LIGHT_ONLY_SCRIPT,
   COMPILE_ROUTE,
   NO_SYSTEM,
   PREVIEW_ROUTE,
@@ -162,7 +162,7 @@ function writeEntry(document: PreviewDocument, options: PreviewOptions) {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Preview</title>
     <script>
-${colorModeScript(document.system ? document.system.spec.colorModes : null)}
+${LIGHT_ONLY_SCRIPT}
     </script>
   </head>
   ${body}

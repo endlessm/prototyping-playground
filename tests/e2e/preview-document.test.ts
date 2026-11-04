@@ -233,16 +233,11 @@ function scenarios(
     ).toBe('')
   })
 
-  test('[SY-134] [SY-135] the studio’s dark mode stays out of Endless Studios, which has only a light mode', async () => {
+  test('[SY-134] [SY-135] Endless Studios renders light on a computer set to dark', async () => {
     const page = await newPage()
-    await page.addInitScript(() =>
-      localStorage.setItem('design-studio:color-mode', 'dark'),
-    )
+    await page.emulateMedia({ colorScheme: 'dark' })
     await page.goto(`${studio.url}prototypes/${TRACER}/artifacts/${HOME}`)
     const view = await preview(page, 'Home')
-    expect((await page.locator('html').evaluate(studioTraces)).colorMode).toBe(
-      true,
-    )
     expect((await view.locator('html').evaluate(studioTraces)).colorMode).toBe(
       false,
     )
@@ -323,11 +318,13 @@ function scenarios(
       .toBe(true)
   })
 
-  test('[PR-80] [CL-113] [SH-54] an open view follows the studio’s color mode without losing its state, and starts in it', async () => {
+  test('[PR-80] a view stays light even when the computer is dark, from its first frame', async () => {
     const page = await newPage()
-    await page.emulateMedia({ colorScheme: 'light' })
-    // What each document's root holds at its first frame.
+    await page.emulateMedia({ colorScheme: 'dark' })
     await page.addInitScript(() => {
+      // A preference the studio no longer reads.
+      localStorage.setItem('design-studio:color-mode', 'dark')
+      // What each document's root holds at its first frame.
       requestAnimationFrame(() => {
         ;(window as unknown as { firstFrame: string }).firstFrame =
           document.documentElement.className
@@ -335,36 +332,13 @@ function scenarios(
     })
     await page.goto(`${studio.url}prototypes/${PLAIN}/artifacts/${PLAIN_VIEW}`)
     const view = await preview(page, 'Plain')
-    const note = view.getByRole('textbox', { name: 'Note' })
-    await note.fill('Kept across modes')
-    const dark = () =>
-      view.locator('html').evaluate((html) => html.classList.contains('dark'))
-    expect(await dark()).toBe(false)
-    await page.getByRole('button', { name: 'Color mode' }).click()
-    await page.getByRole('menuitemcheckbox', { name: 'Dark' }).click()
-    await expect.poll(dark).toBe(true)
     expect(
-      await view
-        .locator('html')
-        .evaluate((html) => getComputedStyle(html).colorScheme),
-    ).toBe('dark')
-    expect(await note.inputValue()).toBe('Kept across modes')
-    // System follows the computer inside the view too.
-    await page.getByRole('button', { name: 'Color mode' }).click()
-    await page.getByRole('menuitemcheckbox', { name: 'System' }).click()
-    await expect.poll(dark).toBe(false)
-    await page.emulateMedia({ colorScheme: 'dark' })
-    await expect.poll(dark).toBe(true)
-    // A reload starts the view in the mode, before it paints.
-    await page.reload()
-    const again = await preview(page, 'Plain')
-    expect(
-      await again
-        .locator('html')
-        .evaluate(
-          () => (window as unknown as { firstFrame: string }).firstFrame,
-        ),
-    ).toContain('dark')
+      await view.locator('html').evaluate((root) => ({
+        dark: root.classList.contains('dark'),
+        scheme: getComputedStyle(root).colorScheme,
+        firstFrame: (window as unknown as { firstFrame: string }).firstFrame,
+      })),
+    ).toEqual({ dark: false, scheme: 'light', firstFrame: '' })
   })
 
   test('[PR-88] a new, empty view shows the explanation, with the prompt only locally', async () => {

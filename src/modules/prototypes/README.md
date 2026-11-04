@@ -117,7 +117,7 @@ A view renders in its system's preview document, a same-origin iframe at `<base>
 
 A prototype with no system renders in a document with plain Vue, browser colours and a system font. Its views import what they use from `vue` and style themselves.
 
-A preview document starts in the studio's color mode before it paints, and follows it while open without reloading, so a view keeps its state. The root element gets the `dark` class and a matching `color-scheme`. A system whose `colorModes` has no `dark` stays light (Endless Studios is light only).
+A preview document is always light: it sets `color-scheme: light` before it paints and never gets the `dark` class, whatever its system's `colorModes` declares or the computer prefers (ADR 0005).
 
 In development each preview document has its own Vite server, started on its first request; the build emits each document under `_preview/` beside the app. Besides views, a system's document shows the examples of its component pages and its own Overview content (`overview.vue`), each under a fixed ID; an examples file imports `Example` from `#studio/examples` (`tooling/preview/runtime/example.ts`), and the document renders only the example it was asked for (the Systems README has the details).
 
