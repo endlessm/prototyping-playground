@@ -1,3 +1,4 @@
+import type { ConfirmationStyle } from '../../tooling/restart/handoff'
 import { NO_RESTART_EVENT, RESTART_EVENT } from '../../tooling/restart/names'
 import { pageHandoff } from '../utils/pageHandoff'
 import { appServer } from '../utils/studioServer'
@@ -12,6 +13,10 @@ export default defineNuxtPlugin(() => {
   if (!import.meta.dev || !handoff) return
   const toast = useToast()
   const studioToast = useStudioToast()
+  const confirmations: Record<ConfirmationStyle, (title: string) => void> = {
+    notice: (title) => toast.add({ title }),
+    success: (title) => studioToast.success(title),
+  }
   import.meta.hot?.on(RESTART_EVENT, ({ instance }: { instance: string }) =>
     handoff.start({ kind: 'restart', from: instance }),
   )
@@ -21,9 +26,7 @@ export default defineNuxtPlugin(() => {
   onNuxtReady(() =>
     handoff.connect({
       codeServer: appServer,
-      // "Settings saved" is a plain notice; a system change's, a success.
-      confirm: (title, kind) =>
-        kind === 'system' ? studioToast.success(title) : toast.add({ title }),
+      confirm: (title, style) => confirmations[style](title),
     }),
   )
 })

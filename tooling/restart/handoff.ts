@@ -65,7 +65,12 @@ export interface HandoffKindSetup {
   reload: string
   /** The screen's CSS. */
   css: string
+  /** How the application shows this kind's confirmation. */
+  confirmAs: ConfirmationStyle
 }
+
+/** `notice`: a plain toast. `success`: the studio's success toast. */
+export type ConfirmationStyle = 'notice' | 'success'
 
 export type HandoffKinds = Record<HandoffKind, HandoffKindSetup>
 
@@ -131,8 +136,8 @@ export interface HandoffEnvironment {
 export interface HandoffApplication {
   /** The dev server its code came from; '' when it can't tell. */
   codeServer: string
-  /** Shows a confirmation, as its kind of change shows one. */
-  confirm(confirmation: string, kind: HandoffKind): void
+  /** Shows a confirmation in the style its kind of change asks for. */
+  confirm(confirmation: string, style: ConfirmationStyle): void
 }
 
 export interface RestartHandoff {
@@ -364,8 +369,9 @@ export function restartHandoff(
 
   function finish(pending: PendingHandoff) {
     stop()
-    if (pending.confirmation)
-      application?.confirm(pending.confirmation, pending.kind)
+    const style = setup.kinds[pending.kind]?.confirmAs
+    if (pending.confirmation && style)
+      application?.confirm(pending.confirmation, style)
   }
 
   // The finish rule: the tab finishes only on a page whose document and
@@ -541,6 +547,8 @@ export function handoffKinds(text: HandoffText): HandoffKinds {
       fromStart: false,
       reload: text.restart.reload,
       css: RESTART_CSS,
+      // "Settings saved" has always been a plain notice.
+      confirmAs: 'notice',
     },
     system: {
       title: '',
@@ -556,6 +564,7 @@ export function handoffKinds(text: HandoffText): HandoffKinds {
       },
       reload: text.system.reload,
       css: SYSTEM_CSS,
+      confirmAs: 'success',
     },
   }
 }

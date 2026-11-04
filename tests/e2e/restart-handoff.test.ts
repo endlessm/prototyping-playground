@@ -46,8 +46,8 @@ interface World {
   next: Load[]
   loads: Load[]
   confirmations: string[]
-  /** The kind of change each confirmation confirmed. */
-  confirmedKinds: string[]
+  /** How each confirmation asked to be shown. */
+  confirmedAs: string[]
 }
 
 // Stands in for the studio's application: once the page has loaded it tells
@@ -60,12 +60,12 @@ function application(code: string | null, global: string) {
     ]!
     handoff.connect({
       codeServer: code,
-      confirm: (title: string, kind: string) =>
+      confirm: (title: string, style: string) =>
         (
           window as unknown as {
-            confirmed: (title: string, kind: string) => void
+            confirmed: (title: string, style: string) => void
           }
-        ).confirmed(title, kind),
+        ).confirmed(title, style),
     })
   })
 }
@@ -94,14 +94,14 @@ beforeEach(async () => {
     next: [],
     loads: [],
     confirmations: [],
-    confirmedKinds: [],
+    confirmedAs: [],
   }
   await page.clock.install()
   await page.exposeBinding(
     'confirmed',
-    (_source, title: string, kind: string) => {
+    (_source, title: string, style: string) => {
       world.confirmations.push(title)
-      world.confirmedKinds.push(kind)
+      world.confirmedAs.push(style)
     },
   )
   await page.route(`${ORIGIN}**`, async (route) => {
@@ -548,7 +548,7 @@ test('[SY-45] the tab that asked for a system change shows only its screen when 
 
 // The studio shows "Settings saved" as a plain notice and a system
 // change's confirmation as a success, as it did before the handoff.
-test('[SH-122] [SY-45] a confirmation reaches the application with the kind of change it confirms', async () => {
+test('[SH-122] [SY-45] a restart’s confirmation shows as a plain notice and a system change’s as a success', async () => {
   await start({ kind: 'restart', from: 'A', confirmation: 'Settings saved' })
   world.answering = 'B'
   await until(() => world.loads.length === 2)
@@ -559,7 +559,7 @@ test('[SH-122] [SY-45] a confirmation reaches the application with the kind of c
   await until(() => world.loads.length === 3)
   await until(settled)
   expect(world.confirmations).toEqual(['Settings saved', 'Renamed'])
-  expect(world.confirmedKinds).toEqual(['restart', 'system'])
+  expect(world.confirmedAs).toEqual(['notice', 'success'])
 })
 
 test('[SY-24] [SY-27] [SY-28] a creation keeps its page until it is answered, then shows “Opening <Name>” with nothing reachable behind it until its destination is ready', async () => {
