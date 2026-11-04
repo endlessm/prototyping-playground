@@ -780,3 +780,21 @@ test('[SY-45] a system change reloaded by the browser before its request is answ
   await until(settled)
   expect(world.loads.at(-1)).toEqual({ document: 'B', code: 'B' })
 })
+
+// Each screen fades as its CSS says, then goes: "Applying changes" in
+// 150 ms, a system change's screen in 160 ms, as before the handoff.
+test('[SH-120] [SY-25] a lifted screen goes as soon as its fade ends', async () => {
+  const gone = async (fade: number) => {
+    await call('notRestarting', 'A')
+    await page.clock.runFor(fade - 1)
+    expect(await page.locator('#studio-restart').count()).toBe(1)
+    await page.clock.runFor(1)
+    expect(await page.locator('#studio-restart').count()).toBe(0)
+  }
+  // Time moves only as the test says: a millisecond counts here.
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 1000)
+  await start({ kind: 'restart', from: 'A' })
+  await gone(150)
+  await start(RENAMING)
+  await gone(160)
+})
