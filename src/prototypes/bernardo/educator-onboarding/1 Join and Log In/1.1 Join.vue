@@ -38,15 +38,27 @@ import s from '../_wire/wire.module.css'
     <Button block to="1 Join and Log In/1.2 Returning">Continue</Button>
     <Divider>or continue with</Divider>
     <div :class="s.columns3">
-      <Button variant="secondary" to="1 Join and Log In/1.4 Signed In"><Icon /> Google</Button>
-      <Button variant="secondary" to="1 Join and Log In/1.4 Signed In"><Icon /> GitHub</Button>
-      <Button variant="secondary" to="1 Join and Log In/1.4 Signed In"><Icon square /> Microsoft</Button>
+      <Button variant="secondary" to="2 Sign Up/2.1 Google Confirm"><Icon /> Google</Button>
+      <Button variant="secondary" to="2 Sign Up/2.1 Google Confirm"><Icon /> GitHub</Button>
+      <Button variant="secondary" to="2 Sign Up/2.1 Google Confirm"><Icon square /> Microsoft</Button>
     </div>
     <Logic
       title="Profile check after Continue"
+      :flow="1"
+      :note="4"
       :rows="[
         { label: 'Profile found → password appears on this page', to: '1 Join and Log In/1.2 Returning' },
-        { label: 'No profile → create account on this page', to: '1 Join and Log In/1.3 New Email' },
+        { label: 'No profile → straight to the sign-up form, email filled in', to: '2 Sign Up/2.3 Email Confirm' },
+      ]"
+    />
+    <Logic
+      title="Profile check after Google, GitHub or Microsoft"
+      :flow="1"
+      :note="5"
+      :rows="[
+        { label: 'Profile found → signed in', to: '1 Join and Log In/1.4 Signed In' },
+        { label: 'No profile → one confirm page, the same for all three', to: '2 Sign Up/2.1 Google Confirm' },
+        { label: 'No verified email at GitHub → no account, verify first', to: '2 Sign Up/2.6 GitHub Unverified' },
       ]"
     />
   </AuthPage>

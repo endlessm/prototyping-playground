@@ -2,7 +2,6 @@
 <!-- @lofi -->
 <script setup lang="ts">
 import AuthPage from '../_wire/AuthPage.vue'
-import Avatar from '../_wire/Avatar.vue'
 import Button from '../_wire/Button.vue'
 import Checkbox from '../_wire/Checkbox.vue'
 import Field from '../_wire/Field.vue'
@@ -12,18 +11,16 @@ import TextLink from '../_wire/TextLink.vue'
 import Title from '../_wire/Title.vue'
 import s from '../_wire/wire.module.css'
 
-// A known email: the password appears on the same page, under the confirmed email.
+// A known email: the password appears on the same page, under the email, which stays an open field.
 </script>
 
 <template>
   <AuthPage>
     <Title :flow="1" :note="3">Welcome back, Maya</Title>
     <Lead>Enter your password to log in.</Lead>
-    <div :class="s.row" style="border: 1px solid #ccc; padding: 8px 12px">
-      <Avatar>MO</Avatar>
-      <span :class="s.grow">maya.okafor@gmail.com</span>
-      <TextLink to="1 Join and Log In/1.1 Join">Change</TextLink>
-    </div>
+    <Field label="Email">
+      <Input type="email" value="maya.okafor@gmail.com" />
+    </Field>
     <Field label="Password">
       <Input type="password" placeholder="Enter password" />
     </Field>

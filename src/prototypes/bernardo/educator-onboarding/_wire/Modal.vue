@@ -6,7 +6,7 @@ import { useEscape } from './useEscape'
 import s from './wire.module.css'
 
 // A centered pop-up for one short task, such as renaming. Escape, the close button and the backdrop all close it.
-defineProps<{ title: string; lead?: string }>()
+defineProps<{ title: string; lead?: string; width?: number }>()
 const emit = defineEmits<{ close: [] }>()
 
 const titleId = useId()
@@ -15,7 +15,7 @@ useEscape(() => emit('close'))
 
 <template>
   <div :class="s.backdrop" @click.self="emit('close')">
-    <div role="dialog" aria-modal="true" :aria-labelledby="titleId" :class="s.modal">
+    <div role="dialog" aria-modal="true" :aria-labelledby="titleId" :class="s.modal" :style="width ? { width: `${width}px` } : undefined">
       <div :class="s.dialogHeader">
         <div :class="[s.stack, s.tight]">
           <h2 :id="titleId" :class="s.subtitle">{{ title }}</h2>

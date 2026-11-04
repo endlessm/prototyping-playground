@@ -27,7 +27,7 @@ function rename(name: string) {
 </script>
 
 <template>
-  <AppPage :team="team">
+  <AppPage :team="team" :links="{ 'Team Dashboard': '3 Create Team/3.4 With Cohort', Cohorts: '5 Invite Students/5.1 Class Link' }">
     <div :class="[s.row, s.spread]" style="align-items: flex-start">
       <TeamTitle :team="team" @rename="open = 'rename'" />
       <Button variant="secondary" @click="open = 'cohort'">Create Cohort</Button>
@@ -44,7 +44,7 @@ function rename(name: string) {
       </thead>
       <tbody>
         <tr>
-          <td>Spring Game Makers</td>
+          <td><TextLink to="5 Invite Students/5.1 Class Link">Spring Game Makers</TextLink></td>
           <td>Explore: Threadbare</td>
           <td>5 invited</td>
           <td><Badge>Starts Mar 2</Badge></td>

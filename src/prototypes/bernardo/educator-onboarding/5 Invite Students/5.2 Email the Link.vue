@@ -7,6 +7,7 @@ import Chip from '../_wire/Chip.vue'
 import Crumbs from '../_wire/Crumbs.vue'
 import Lead from '../_wire/Lead.vue'
 import Panel from '../_wire/Panel.vue'
+import TextLink from '../_wire/TextLink.vue'
 import Title from '../_wire/Title.vue'
 import s from '../_wire/wire.module.css'
 
@@ -14,9 +15,12 @@ import s from '../_wire/wire.module.css'
 </script>
 
 <template>
-  <AppPage team="Okafor Homeschool Co-op" active="Cohorts">
+  <AppPage team="Okafor Homeschool Co-op" active="Cohorts" :links="{ 'Team Dashboard': '5 Invite Students/5.5 Team Dashboard', Cohorts: '5 Invite Students/5.1 Class Link' }">
     <div :class="[s.stack, s.tight]">
-      <Crumbs>Team Dashboard › Spring Game Makers</Crumbs>
+      <Crumbs>
+        <TextLink to="5 Invite Students/5.5 Team Dashboard">Team Dashboard</TextLink> ›
+        <TextLink to="5 Invite Students/5.1 Class Link">Spring Game Makers</TextLink>
+      </Crumbs>
       <Title>Send the Link by Email</Title>
       <Lead>We'll send the class link. Learners or parents still choose to join.</Lead>
     </div>

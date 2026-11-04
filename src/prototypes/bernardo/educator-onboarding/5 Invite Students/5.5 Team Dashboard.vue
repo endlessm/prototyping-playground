@@ -25,7 +25,7 @@ const learners: [string, string, 'solid' | 'outline' | undefined][] = [
 </script>
 
 <template>
-  <AppPage team="Okafor Homeschool Co-op">
+  <AppPage team="Okafor Homeschool Co-op" :links="{ 'Team Dashboard': '5 Invite Students/5.5 Team Dashboard', Cohorts: '5 Invite Students/5.1 Class Link' }">
     <div :class="[s.stack, s.tight]">
       <Title>Team Dashboard</Title>
       <Lead>Okafor Homeschool Co-op · 1 cohort</Lead>
@@ -33,7 +33,7 @@ const learners: [string, string, 'solid' | 'outline' | undefined][] = [
     <Card>
       <div :class="[s.row, s.spread]" style="align-items: flex-start">
         <div :class="[s.stack, s.tight]">
-          <Subtitle>Spring Game Makers</Subtitle>
+          <Subtitle><TextLink to="5 Invite Students/5.1 Class Link">Spring Game Makers</TextLink></Subtitle>
           <span :class="s.small" style="font-size: 12px">Explore: Threadbare · Starts Mon, Mar 2</span>
         </div>
         <div :class="s.row">

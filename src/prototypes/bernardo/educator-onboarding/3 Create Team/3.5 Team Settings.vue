@@ -17,7 +17,7 @@ import s from '../_wire/wire.module.css'
 </script>
 
 <template>
-  <AppPage team="Okafor Homeschool Co-op">
+  <AppPage team="Okafor Homeschool Co-op" :links="{ 'Team Dashboard': '3 Create Team/3.4 With Cohort', Cohorts: '5 Invite Students/5.1 Class Link' }">
     <div :class="[s.stack, s.tight]">
       <Crumbs><TextLink to="3 Create Team/3.4 With Cohort">Team Dashboard</TextLink> › Team Settings</Crumbs>
       <Title>Team Settings</Title>

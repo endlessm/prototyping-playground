@@ -4,14 +4,13 @@
 import AppPage from '../_wire/AppPage.vue'
 import Lead from '../_wire/Lead.vue'
 import Logic from '../_wire/Logic.vue'
-import Marker from '../_wire/Marker.vue'
 import Subtitle from '../_wire/Subtitle.vue'
 import s from '../_wire/wire.module.css'
 
 // No Create Team step: the team is made for the educator while the dashboard loads.
 const routes = [
   { label: "Create “Maya's Team” with Maya as owner → Team Dashboard", to: '3 Create Team/3.2 Empty Dashboard' },
-  { label: "Joined from a co-teacher invite → that team's dashboard instead" },
+  { label: "Joined from a co-teacher invite → that team's dashboard instead", to: '3 Create Team/3.6 Joined as Co-Teacher' },
 ]
 </script>
 
@@ -22,11 +21,6 @@ const routes = [
       <Subtitle>Setting up your space…</Subtitle>
       <Lead>This takes a second.</Lead>
     </div>
-    <div :class="s.row" style="align-items: flex-start">
-      <div :class="s.grow">
-        <Logic title="After sign-up, no team yet" :rows="routes" />
-      </div>
-      <Marker :flow="3" :n="1" />
-    </div>
+    <Logic title="After sign-up, no team yet" :flow="3" :note="1" :rows="routes" />
   </AppPage>
 </template>

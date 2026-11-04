@@ -22,6 +22,7 @@ import s from '../_wire/wire.module.css'
       :rows="[
         { label: 'Has a Team → Team Dashboard', to: '5 Invite Students/5.5 Team Dashboard' },
         { label: 'No Team yet → Create Team (draft 3)', to: '3 Create Team/3.1 After Sign-Up' },
+        { label: 'Learner account (13 to 17) → learner home, outside this prototype' },
       ]"
     />
   </AuthPage>

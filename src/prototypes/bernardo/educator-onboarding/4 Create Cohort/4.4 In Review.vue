@@ -9,6 +9,7 @@ import Card from '../_wire/Card.vue'
 import Crumbs from '../_wire/Crumbs.vue'
 import Lead from '../_wire/Lead.vue'
 import Marker from '../_wire/Marker.vue'
+import TextLink from '../_wire/TextLink.vue'
 import Title from '../_wire/Title.vue'
 import s from '../_wire/wire.module.css'
 
@@ -16,9 +17,9 @@ import s from '../_wire/wire.module.css'
 </script>
 
 <template>
-  <AppPage team="Okafor Homeschool Co-op" active="Cohorts">
+  <AppPage team="Okafor Homeschool Co-op" active="Cohorts" :links="{ 'Team Dashboard': '3 Create Team/3.4 With Cohort' }">
     <div :class="[s.stack, s.tight]">
-      <Crumbs>Team Dashboard › Period 3 Game Design</Crumbs>
+      <Crumbs><TextLink to="3 Create Team/3.4 With Cohort">Team Dashboard</TextLink> › Period 3 Game Design</Crumbs>
       <div :class="[s.row, s.spread]">
         <Title>Period 3 Game Design</Title>
         <Badge tone="solid">In Review</Badge>

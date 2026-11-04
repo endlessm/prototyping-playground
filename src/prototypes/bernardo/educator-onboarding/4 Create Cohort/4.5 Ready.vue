@@ -13,7 +13,7 @@ import s from '../_wire/wire.module.css'
 </script>
 
 <template>
-  <AppPage team="Okafor Homeschool Co-op" active="Cohorts">
+  <AppPage team="Okafor Homeschool Co-op" active="Cohorts" :links="{ 'Team Dashboard': '3 Create Team/3.4 With Cohort', Cohorts: '5 Invite Students/5.1 Class Link' }">
     <div :class="s.stack" style="align-items: center; text-align: center; padding: 100px 0 20px">
       <Badge>Open Class</Badge>
       <Title>Spring Game Makers is ready</Title>
