@@ -13,7 +13,7 @@ To switch views inside one page without changing the address, use tabs instead. 
 
 - **Neutral pill** is the platform's page tabs, under a page header.
 - **Neutral link** with `highlight` is the leader dashboard's tabs, with a line under the active one.
-- **Vertical link** is the sidebar. The app's own `StudioSidebar` already shows it inside the shell.
+- **Vertical link** is the sidebar's menu. For the whole sidebar, use the app's own (the Studio sidebar component).
 
 ## Studios variants
 
