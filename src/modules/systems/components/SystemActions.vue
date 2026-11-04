@@ -101,10 +101,12 @@ async function makeDefault() {
     kind: 'system',
     title: t('systems.transition.titles.default', { name: label }),
     description: t('systems.transition.descriptions.default'),
+    hold: true,
   })
   try {
     await post({ op: 'default' })
     handoff?.update({
+      hold: false,
       confirmation: t('systems.toasts.isDefault', { name: label }),
     })
   } catch (error) {

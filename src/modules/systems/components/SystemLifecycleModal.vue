@@ -77,6 +77,7 @@ async function confirm(restorePrototypes = false) {
     kind: 'system',
     title: t(`systems.transition.titles.${props.operation}`, { name }),
     description: t(`systems.transition.descriptions.${props.operation}`),
+    hold: true,
     // A deletion finishes once the collection no longer lists the system.
     destination:
       props.operation === 'delete' ? deletedSystem(props.system.id) : false,
@@ -87,7 +88,10 @@ async function confirm(restorePrototypes = false) {
     history.replaceState(history.state, '', `${base}systems`)
   try {
     await post({ op: props.operation, restorePrototypes })
-    handoff?.update({ confirmation: t(TOASTS[props.operation]) })
+    handoff?.update({
+      hold: false,
+      confirmation: t(TOASTS[props.operation]),
+    })
   } catch (error) {
     history.replaceState(history.state, '', previous)
     handoff?.cancel()

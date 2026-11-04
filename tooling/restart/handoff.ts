@@ -88,9 +88,10 @@ export interface StartHandoff {
    */
   destination?: boolean | string
   /**
-   * Keeps this page, rather than loading it again, until `update` lifts
-   * the hold: a request still in flight would be dropped, and with it what
-   * the page learns from its answer.
+   * Keeps this page, rather than loading it again or finishing, until
+   * `update` lifts the hold: a request still in flight would be dropped,
+   * and with it what the page learns from its answer, such as the
+   * confirmation.
    */
   hold?: boolean
 }
@@ -362,11 +363,12 @@ export function restartHandoff(
 
   // The finish rule: the tab finishes only on a page whose document and
   // code both come from another server than the one it waits to leave, or
-  // once that server announced that no restart is coming.
+  // once that server announced that no restart is coming; and never while
+  // the page holds for a request's answer.
   function settle() {
     const pending = read()
     // The identity tag comes after the head script: read once parsed.
-    if (!pending || !application || !parsed()) return
+    if (!pending || pending.hold || !application || !parsed()) return
     if (!staying) {
       if (leaving) return
       const served = documentServer()
@@ -390,6 +392,12 @@ export function restartHandoff(
   const stale = Boolean(expires && clock.now() - found!.started > expires)
   if (stale) storage.removeItem(setup.key)
   const resumed = stale ? null : found
+  // A hold belongs to the page whose request was in flight: a reload
+  // dropped the request, so the page that loads doesn't hold.
+  if (resumed?.hold) {
+    delete resumed.hold
+    write(resumed)
+  }
   if (resumed) {
     show(resumed)
     // Between two servers a page can get its document from the new one and
@@ -445,6 +453,7 @@ export function restartHandoff(
       const pending = { ...current, ...changes }
       write(pending)
       screen?.render(pending)
+      settle()
     },
     destination: () => read()?.destination,
     markReady() {

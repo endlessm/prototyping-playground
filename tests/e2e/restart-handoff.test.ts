@@ -743,3 +743,40 @@ test('[SY-48] a system change that ends up needing no restart lifts its screen a
   await pass(3000)
   expect(world.loads).toHaveLength(1)
 })
+
+// The trigger can announce that no restart is coming before the dialog's
+// request is answered, and only the answer brings the confirmation: the tab
+// waits for it rather than finishing without one.
+test('[SY-48] a system change that hears no restart is coming before its request is answered finishes with its confirmation once', async () => {
+  await start({
+    kind: 'system',
+    from: 'A',
+    title: 'Making Cove the default',
+    hold: true,
+  })
+  await call('notRestarting', 'A')
+  await page.clock.runFor(1000)
+  expect(await screenUp()).toBe(true)
+  expect(world.confirmations).toEqual([])
+  await call('update', {
+    hold: false,
+    confirmation: 'Cove is now the default system.',
+  })
+  await until(settled)
+  expect(world.confirmations).toEqual(['Cove is now the default system.'])
+  await pass(3000)
+  expect(world.loads).toHaveLength(1)
+  expect(world.confirmations).toEqual(['Cove is now the default system.'])
+})
+
+// A browser reload drops the request a page held for: the page that loads
+// waits for the new server like any other.
+test('[SY-45] a system change reloaded by the browser before its request is answered still recovers by itself', async () => {
+  await start({ ...RENAMING, hold: true })
+  await page.reload()
+  expect(await heading().textContent()).toBe('Renaming Cove')
+  world.answering = 'B'
+  await until(() => world.loads.length === 3)
+  await until(settled)
+  expect(world.loads.at(-1)).toEqual({ document: 'B', code: 'B' })
+})

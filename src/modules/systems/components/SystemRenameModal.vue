@@ -32,6 +32,7 @@ async function save(event: FormSubmitEvent<typeof state>) {
     kind: 'system',
     title: t('systems.transition.titles.rename', { name: props.system.label }),
     description: t('systems.transition.descriptions.rename'),
+    hold: true,
   })
   try {
     await requestJson(`${base}_studio/files/systems`, {
@@ -39,7 +40,7 @@ async function save(event: FormSubmitEvent<typeof state>) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ op: 'rename', system: props.system.id, name }),
     })
-    handoff?.update({ confirmation: t('systems.toasts.renamed') })
+    handoff?.update({ hold: false, confirmation: t('systems.toasts.renamed') })
   } catch (error) {
     handoff?.cancel()
     failure.value = (error as Error).message
