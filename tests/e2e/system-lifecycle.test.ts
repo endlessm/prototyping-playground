@@ -28,8 +28,17 @@ import {
   planLifecycle,
   type LifecycleOptions,
 } from '../../tooling/systems/lifecycle'
+import {
+  HANDOFF_GLOBAL,
+  HANDOFF_KEY,
+  IDENTITY_TAG,
+  LIGHT_CHECK,
+} from '../../tooling/restart/names'
 import { useBrowser } from './setup/browser'
 import { startDevServer, type RunningStudio } from './setup/studio'
+
+/** Where a page notes its application's code server, for `codeServer`. */
+const CODE_SERVER = 'studioTestCodeServer'
 
 mkdirSync('.e2e', { recursive: true })
 const content = mkdtempSync(path.join('.e2e', 'lifecycle-'))
@@ -145,7 +154,7 @@ const button = (scope: Page | ReturnType<Page['locator']>, name: string) =>
   scope.getByRole('button', { name, exact: true })
 const dialog = (page: Page) => page.getByRole('dialog')
 const toast = (page: Page, text: string) => page.getByText(text).first()
-const cover = (page: Page) => page.locator('#studio-system-transition')
+const cover = (page: Page) => page.locator('#studio-restart')
 
 describe('managing systems locally', { timeout: 300_000 }, () => {
   const newPage = useBrowser()
@@ -186,6 +195,39 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     await page.getByRole('menuitem', { name: item, exact: true }).click()
   }
   /**
+   * From the next page load on, notes which dev server each page's
+   * application says its code came from, as it tells the restart handoff;
+   * `codeServer` reads it, or null before the application has started.
+   */
+  async function noteCodeServer(page: Page) {
+    await page.addInitScript(
+      ([global, noted]) => {
+        const page = window as unknown as Record<string, unknown>
+        let handoff: { connect(application: { codeServer: string }): void }
+        Object.defineProperty(page, global, {
+          configurable: true,
+          get: () => handoff,
+          set(value: typeof handoff) {
+            const connect = value.connect
+            value.connect = (application) => {
+              page[noted] = application.codeServer
+              connect(application)
+            }
+            handoff = value
+          },
+        })
+      },
+      [HANDOFF_GLOBAL, CODE_SERVER] as const,
+    )
+  }
+  const codeServer = (page: Page) =>
+    page.evaluate(
+      (noted) =>
+        ((window as unknown as Record<string, unknown>)[noted] as
+          string | undefined) ?? null,
+      CODE_SERVER,
+    )
+  /**
    * Waits out the change's restart: the status screen comes and goes, and
    * its `confirmation` shows. That one is looked for meanwhile: it lasts a
    * few seconds, less than the outgoing server may take to go.
@@ -201,10 +243,11 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
             await page.reload().catch(() => undefined)
           const done = await page
             .evaluate(
-              () =>
+              (key) =>
                 document.readyState === 'complete' &&
-                !document.getElementById('studio-system-transition') &&
-                !sessionStorage.getItem('design-studio:system-transition'),
+                !document.getElementById('studio-restart') &&
+                !sessionStorage.getItem(key),
+              HANDOFF_KEY,
             )
             .catch(() => false)
           return (
@@ -219,17 +262,20 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     } catch (error) {
       // What the page shows, and what the dev server did meanwhile.
       const seen = await page
-        .evaluate(() => ({
-          address: location.href,
-          state: document.readyState,
-          pending: sessionStorage.getItem('design-studio:system-transition'),
-          toast: sessionStorage.getItem('design-studio:system-toast'),
-          application: document.documentElement.dataset.studioApp ?? null,
-          servedBy:
-            document
-              .querySelector('meta[name="studio-instance"]')
-              ?.getAttribute('content') ?? null,
-        }))
+        .evaluate(
+          ([key, tag, noted]) => ({
+            address: location.href,
+            state: document.readyState,
+            pending: sessionStorage.getItem(key),
+            application:
+              (window as unknown as Record<string, unknown>)[noted] ?? null,
+            servedBy:
+              document
+                .querySelector(`meta[name="${tag}"]`)
+                ?.getAttribute('content') ?? null,
+          }),
+          [HANDOFF_KEY, IDENTITY_TAG, CODE_SERVER] as const,
+        )
         .catch((failure: Error) => failure.message)
       throw new Error(
         `The change did not settle: ${JSON.stringify(seen)}\nThe dev server printed:\n${studio.log().slice(-8000)}`,
@@ -240,20 +286,21 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     await onlyServer(() =>
       page
         .evaluate(
-          () =>
+          (tag) =>
             document
-              .querySelector('meta[name="studio-instance"]')
+              .querySelector(`meta[name="${tag}"]`)
               ?.getAttribute('content') ?? '',
+          IDENTITY_TAG,
         )
         .catch(() => ''),
     )
   }
 
-  /** The dev server that answers, as `_studio/settings` names it. */
+  /** The dev server that answers, as the light check names it. */
   const instance = () =>
     new Promise<string>((resolve) => {
       // A connection of its own each time, so it can reach either server.
-      get(`${studio.url}_studio/settings`, { agent: false }, (response) => {
+      get(`${studio.url}${LIGHT_CHECK}`, { agent: false }, (response) => {
         let body = ''
         response.on('data', (chunk) => (body += chunk))
         response.on('end', () => {
@@ -329,16 +376,27 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     )
   }
 
+  /** A creation still waiting for its answer, as a tab left it. */
   async function pending(page: Page, started: number) {
-    await page.addInitScript((started) => {
-      if (!sessionStorage.getItem('seeded')) {
-        sessionStorage.setItem('seeded', '1')
-        sessionStorage.setItem(
-          'design-studio:system-transition',
-          JSON.stringify({ operation: 'create', name: 'Slowpoke', started }),
-        )
-      }
-    }, started)
+    await page.addInitScript(
+      ([key, started]) => {
+        if (!sessionStorage.getItem('seeded')) {
+          sessionStorage.setItem('seeded', '1')
+          sessionStorage.setItem(
+            key,
+            JSON.stringify({
+              kind: 'system',
+              from: 'an-earlier-server',
+              title: 'Creating Slowpoke',
+              hold: true,
+              destination: true,
+              started,
+            }),
+          )
+        }
+      },
+      [HANDOFF_KEY, started] as const,
+    )
     await page.goto(`${studio.url}systems`)
   }
 
@@ -360,9 +418,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     await visible(page.getByRole('heading', { name: 'Systems', exact: true }))
     expect(await cover(page).count()).toBe(0)
     expect(
-      await page.evaluate(() =>
-        sessionStorage.getItem('design-studio:system-transition'),
-      ),
+      await page.evaluate((key) => sessionStorage.getItem(key), HANDOFF_KEY),
     ).toBeNull()
   })
 
@@ -373,7 +429,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     await visible(page.getByRole('heading', { name: 'Creating Slowpoke' }))
     expect(
       await page
-        .locator('[data-transition-spinner]')
+        .locator('#studio-restart .spinner')
         .evaluate((spinner) => getComputedStyle(spinner).animationName),
     ).toBe('none')
   })
@@ -382,20 +438,20 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     const page = await newPage()
     // A change the server running now has already applied, on a page that
     // got its document but not its modules, as between two servers.
-    await page.addInitScript(() => {
+    await page.addInitScript((key) => {
       if (!sessionStorage.getItem('seeded')) {
         sessionStorage.setItem('seeded', '1')
         sessionStorage.setItem(
-          'design-studio:system-transition',
+          key,
           JSON.stringify({
-            operation: 'default',
-            name: 'Harbor',
+            kind: 'system',
+            title: 'Making Harbor the default',
             started: Date.now(),
             from: 'an-earlier-server',
           }),
         )
       }
-    })
+    }, HANDOFF_KEY)
     let loads = 0
     await page.route(`${studio.url}**`, (route) => {
       const request = route.request()
@@ -611,7 +667,7 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
     await page.context().grantPermissions(['local-network-access'])
     await page.route(`${studio.url}**`, async (route) => {
       const request = route.request()
-      if (request.url().endsWith('/_studio/settings')) {
+      if (request.url().endsWith(`/${LIGHT_CHECK}`)) {
         if (request.method() !== 'GET') return route.continue()
         const response = await route.fetch().catch(() => undefined)
         if (!response) return route.abort('connectionrefused')
@@ -645,14 +701,13 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
         body: (await response.text()).replaceAll(outgoing.next, before),
       })
     })
+    await noteCodeServer(page)
     await button(dialog(page), 'Save').click()
     await settled(page, 'System renamed. References updated.')
     // The studio settled on the new server's application. Settling on the
     // outgoing one's would show the confirmation on a page that loads again,
     // and lose it.
-    expect(
-      await page.evaluate(() => document.documentElement.dataset.studioApp),
-    ).toBe(await instance())
+    expect(await codeServer(page)).toBe(await instance())
     await page.unrouteAll({ behavior: 'ignoreErrors' })
     expect(new URL(page.url()).pathname).toBe(`/systems/${created}`)
     expect(existsSync(systemsAt('cove'))).toBe(false)
@@ -660,21 +715,23 @@ describe('managing systems locally', { timeout: 300_000 }, () => {
       `studioId: '${created}'`,
     )
     expect(config().systems).toContain('cove-works')
-    // Delivered once, past the moment it is kept for a last reload.
-    await expect
-      .poll(() =>
-        page.evaluate(() =>
-          sessionStorage.getItem('design-studio:system-toast'),
-        ),
-      )
-      .toBeNull()
+    // Delivered once: a reload, once its application has started and could
+    // show a confirmation, shows none.
     await page.reload()
     await visible(
       page.getByRole('heading', { name: 'Cove Works', exact: true }),
     )
+    await expect.poll(() => codeServer(page)).not.toBeNull()
+    await page.evaluate(
+      () =>
+        new Promise((done) =>
+          requestAnimationFrame(() => requestAnimationFrame(done)),
+        ),
+    )
     expect(
       await page.getByText('System renamed. References updated.').count(),
     ).toBe(0)
+    expect(await cover(page).count()).toBe(0)
   })
 
   test('[SY-48] [SY-50] Set as default keeps the page and confirms; the default can’t be archived', async () => {

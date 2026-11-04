@@ -1,16 +1,12 @@
 import { appHead } from '#build/nuxt.config.mjs'
-import { devServer, INSTANCE_META } from '../../tooling/settings/restart'
+import { IDENTITY_TAG } from '../../tooling/restart/names'
 
-// The dev server whose modules this application runs. Nuxt's configuration
-// module carries the instance tag, so it names the server that served the
-// application even when the page itself came from another one.
-const own: string =
+/**
+ * The dev server whose code this application runs. Nuxt's configuration
+ * module carries the identity tag, so it names the server that served the
+ * application even when the page itself came from another one.
+ */
+export const appServer: string =
   (appHead.meta as { name?: string; content?: string }[] | undefined)?.find(
-    (tag) => tag.name === INSTANCE_META,
+    (tag) => tag.name === IDENTITY_TAG,
   )?.content ?? ''
-
-// The application has started: a page waiting out a restart needn't load
-// again for want of one (`awaitApplication`).
-if (import.meta.client && own) document.documentElement.dataset.studioApp = own
-
-export const studioServer = devServer(INSTANCE_META, own)
