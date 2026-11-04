@@ -6,7 +6,7 @@ This README is the contract for the thread format, the tool's behaviour and the 
 
 ## Behavior
 
-Every artifact page whose type offers an [artifact surface](../../../app/utils/artifactSurface.ts) gets a toolbar in its bottom-right corner, 16 px from the edges. A surface may name room its page's own controls take along the bottom (`bottomInset`), and the toolbar and a thread without a pin sit that much higher: on a canvas, clear of the save status and Excalidraw's controls. Pages without a surface get no tool, so it never covers their own controls:
+Every artifact page gets a toolbar in its bottom-right corner, 16 px from the edges. A surface may name room its page's own controls take along the bottom (`bottomInset`), and the toolbar and a thread without a pin sit that much higher: on a canvas, clear of the save status and Excalidraw's controls. A page whose type offers no [artifact surface](../../../app/utils/artifactSurface.ts), or hasn't offered it yet (a canvas that failed to load, a view waiting for its system to be rebuilt), still lists its comments and takes whole-file ones; only Comment rests, since there is nothing to point at:
 
 - **Comment** turns comment mode on and off. The shortcut is ⌥⌘M on Apple computers and Ctrl+Alt+M elsewhere (`commentShortcut` in `app/utils/shortcuts.ts`). It works while a view has focus, because the preview document passes it on as the `comment` shortcut. It is ignored while a text field outside the tool has focus.
 - **Hide comments** hides every pin, and **Show comments** shows them again. Comment mode shows them while it lasts.
@@ -113,7 +113,7 @@ type Author = { contributor: string /* studio ID */; agent?: true }
 Recorded by the page when the comment is made, so the command never renders a page. Every anchor has:
 
 - `kind`: what the target is (`button`, `heading`, `paragraph`, `artifact`…);
-- `label`: the readable name shown on hover and in agent text, such as `Button "Invite students"`;
+- `label`: the readable name shown on hover and in agent text, such as `Button "Invite students"`. It is stored with the thread, in English, as part of the file format: agents and the command read it as written, so the surfaces build it from fixed English kind names rather than the interface locale;
 - `at`: where on the target the pin sits, as fractions `{ x, y }` of its box;
 - `quote`, when text was selected.
 
@@ -137,7 +137,7 @@ Operations: create, reply, resolve, reopen, edit a message, delete a message, de
 
 - anyone may read;
 - a registered contributor may create (on a target or on the whole file), reply, resolve and reopen on any prototype that isn't archived, other people's included;
-- only a message's author edits or deletes it. A person's agent's messages are theirs too, while an agent (the command) changes only agents' messages. The first message can't be deleted on its own: it goes with its thread;
+- only a message's author edits or deletes it, writing the same way it was written: a person doesn't change their agent's messages, and an agent never changes a person's. The command offers no edit or delete, so agents' messages stay as written. The first message can't be deleted on its own: it goes with its thread;
 - a thread is deleted by the author of its first message or an Admin (`admins` in `studio.config.json`, through `tooling/contributors/roles.ts`);
 - an archived prototype's comments are read-only;
 - someone whose Git identity matches no profile is told to join (`yarn studio join`).

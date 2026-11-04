@@ -1,3 +1,4 @@
+import path from 'node:path'
 import type { StudioModule } from '../../../tooling/modules/contract.ts'
 import { PROTOTYPES_FOLDER } from '../../../tooling/manifest/build.ts'
 import { COMMENTS_FOLDER } from './threads.ts'
@@ -27,9 +28,7 @@ export default {
     // Every prototype's threads in development, refreshed whenever a thread
     // file changes, whoever changed it. Nothing for the build.
     threads: {
-      watch: [
-        `${process.env.STUDIO_PROTOTYPES || PROTOTYPES_FOLDER}/**/${COMMENTS_FOLDER}/*.json`,
-      ],
+      watch: [`${watchedPrototypes()}/**/${COMMENTS_FOLDER}/*.json`],
       load: async ({ root, dev }) =>
         dev
           ? (await import('./service.ts')).allThreads({ root })
@@ -37,3 +36,14 @@ export default {
     },
   },
 } satisfies StudioModule
+
+// Watch patterns are repository-relative. A prototypes folder outside the
+// repository (tests may use the system's temporary folder) can't be watched,
+// so its pages pick up thread changes only on the next load.
+function watchedPrototypes() {
+  const folder = process.env.STUDIO_PROTOTYPES || PROTOTYPES_FOLDER
+  const relative = path.relative(process.cwd(), path.resolve(folder))
+  return !relative || relative.startsWith('..') || path.isAbsolute(relative)
+    ? PROTOTYPES_FOLDER
+    : relative.split(path.sep).join('/')
+}

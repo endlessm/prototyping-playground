@@ -53,6 +53,14 @@ const PROTOTYPES = {
     folder: path.join(content, 'ada', 'shelved'),
     text: 'An old idea',
   },
+  // Ada's prototype whose system was deleted: its view waits for a rebuild,
+  // so the page offers no surface.
+  orphan: {
+    id: 'a0rf000000000c01',
+    view: 'a0rv000000000c01',
+    folder: path.join(content, 'ada', 'orphan'),
+    text: 'Waiting for a system',
+  },
 }
 type Prototype = (typeof PROTOTYPES)[keyof typeof PROTOTYPES]
 const threadsOf = (prototype: Prototype) =>
@@ -224,6 +232,31 @@ describe('on the dev server', () => {
     await expect.poll(() => stored(PROTOTYPES.notes).length).toBe(2)
   })
 
+  test('[CM-17] a page with no surface still lists its comments and takes whole-view ones, with Comment resting', async () => {
+    seed(PROTOTYPES.orphan, [{ by: BEN, body: 'Which system next?' }], {
+      anchor: { kind: 'artifact' },
+    })
+    const page = await newPage()
+    await page.goto(address(studio, PROTOTYPES.orphan))
+    await visible(page.getByText('Rebuild needed', { exact: true }))
+    await visible(toolbar(page))
+    expect(await commentButton(page).isDisabled()).toBe(true)
+    await allComments(page).click()
+    await visible(list(page).getByText('Which system next?'))
+    await list(page)
+      .getByRole('button', { name: 'Comment on the whole view' })
+      .click()
+    await page.keyboard.type('Harbor, probably.')
+    await page.keyboard.press('Enter')
+    await expect
+      .poll(() =>
+        stored(PROTOTYPES.orphan).some(
+          (thread) => thread.messages[0]?.body === 'Harbor, probably.',
+        ),
+      )
+      .toBe(true)
+  })
+
   test('[CM-33] an agent’s message shows as “<first name>’s agent” with an Agent badge', async () => {
     seed(PROTOTYPES.notes, [
       { by: BEN, body: 'Make the button say what it shares.' },
@@ -235,6 +268,10 @@ describe('on the dev server', () => {
     const agents = message(thread(page, 1), 'Renamed it to “Share notes”.')
     await visible(agents.getByText('Ada’s agent', { exact: true }))
     await visible(agents.getByText('Agent', { exact: true }))
+    // Her agent's words are its own: Ada isn't offered Edit or Delete.
+    expect(
+      await agents.getByRole('button', { name: 'Message actions' }).count(),
+    ).toBe(0)
   })
 
   test('[CM-37] Ada edits and deletes her own messages, and is offered neither on Ben’s', async () => {

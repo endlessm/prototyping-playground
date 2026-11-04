@@ -142,7 +142,10 @@ function scenarios(
     expect(Math.abs(box.width - fill.width)).toBeLessThan(1)
     expect(Math.abs(box.height - fill.height)).toBeLessThan(1)
     expect(await area.getByRole('link').count()).toBe(0)
-    expect(await area.getByRole('button').count()).toBe(0)
+    // The Comments tool's toolbar floats over the view; it is no strip.
+    expect(
+      await area.locator('button:not([role="toolbar"] button)').count(),
+    ).toBe(0)
 
     const navigation = page.getByRole('navigation', { name: 'Tracer' })
     await navigation.getByRole('link', { name: 'Home' }).click({

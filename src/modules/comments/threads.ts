@@ -74,12 +74,13 @@ export interface CommentAccess {
 // service will let through; the service checks them on every write.
 
 /**
- * Only a message's author changes it: the same contributor, whose agent's
- * messages are theirs too, while an agent changes only an agent's.
+ * Only a message's author changes it: the same contributor, writing as
+ * themselves or as their agent just as the message was written. A person
+ * doesn't change their agent's messages, nor an agent theirs.
  */
 export const mayChangeMessage = (author: Author, message: CommentMessage) =>
   message.author.contributor === author.contributor &&
-  (!author.agent || Boolean(message.author.agent))
+  Boolean(author.agent) === Boolean(message.author.agent)
 
 /** A thread is deleted by the author of its first message, or an Admin. */
 export const mayDeleteThread = (

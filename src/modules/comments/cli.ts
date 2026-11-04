@@ -228,9 +228,13 @@ async function list(
     prototypes = [scope.prototype]
     artifact = scope.artifact
   } else {
-    const me = actor(people).key
-    const id = me ? people[me]?.studioId : undefined
-    if (id) prototypes = prototypes.filter(({ owner }) => owner === id)
+    const me = actor(people)
+    const id = me.key ? people[me.key]?.studioId : undefined
+    if (!id)
+      throw new CommentRefusal(
+        `Your Git identity (${me.email || 'no Git email set'}) doesn't match a contributor profile, so you have no prototypes of your own to list. Name a prototype folder or an address instead.`,
+      )
+    prototypes = prototypes.filter(({ owner }) => owner === id)
   }
   const files: AgentTextFile[] = []
   for (const prototype of prototypes) {

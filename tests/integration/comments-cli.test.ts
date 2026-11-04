@@ -236,6 +236,108 @@ Quote: "the deadline"
 - Ada Lovelace: About Other.`)
   })
 
+  test('[CM-47] a document names the heading and quote, a diagram the Mermaid ID, a canvas the Excalidraw ID, link and point', () => {
+    for (const module of ['document', 'diagrams', 'canvas'])
+      studio.withModule(module)
+    const BRIEF = 'd0c5000000000009'
+    const FLOW = 'd1a6000000000009'
+    const BOARD = 'rvwc000000000c01'
+    studio.write(
+      `${FOLDER}/Brief.md`,
+      `---\nstudioId: ${BRIEF}\ntitle: Brief\n---\n\n## Goals\n\nTeachers expect the class link before they invite anyone.\n`,
+    )
+    studio.write(
+      `${FOLDER}/Sign-in.mermaid`,
+      `%% @studio-id ${FLOW}\nflowchart TD\n  start[Sign in] --> age{Under 18?}\n`,
+    )
+    studio.write(
+      `${FOLDER}/Board.excalidraw`,
+      readFileSync(
+        'tests/fixtures/comments/ada/review/Board.excalidraw',
+        'utf8',
+      ),
+    )
+    const on = (artifact: string, artifactTitle: string, anchor: object) => ({
+      artifact,
+      artifactTitle,
+      anchor,
+    })
+    seed(
+      'c0mm00000000d001',
+      on(BRIEF, 'Brief', {
+        kind: 'text',
+        label: 'Text in "Goals"',
+        quote: 'the class link',
+        prefix: 'Teachers expect ',
+        suffix: ' before they',
+        block: 'paragraph',
+        heading: 'Goals',
+        headingId: 'goals',
+        index: 0,
+      }),
+    )
+    seed(
+      'c0mm00000000d002',
+      on(FLOW, 'Sign-in', {
+        kind: 'step',
+        label: 'Step "Under 18?"',
+        mermaid: 'age',
+      }),
+    )
+    seed(
+      'c0mm00000000d003',
+      on(BOARD, 'Board', {
+        kind: 'item',
+        label: 'Item "Board"',
+        at: { x: 0.5, y: 0.5 },
+        element: 'item',
+        item: '/prototypes/rvw0000000000c01/artifacts/b0ard0000000c001',
+      }),
+    )
+    seed(
+      'c0mm00000000d004',
+      on(BOARD, 'Board', {
+        kind: 'spot',
+        label: 'Empty spot',
+        at: { x: 0, y: 0 },
+        point: { x: 700, y: 150.5 },
+      }),
+    )
+    const output = ok(FOLDER)
+    expect(output).toContain(`### 1. Text in "Goals" · c0mm00000000d001
+Heading: Goals
+Quote: "the class link"
+- Ada Lovelace: About Brief.`)
+    expect(output).toContain(`### 1. Step "Under 18?" · c0mm00000000d002
+Mermaid ID: age
+- Ada Lovelace: About Sign-in.`)
+    expect(output).toContain(`### 1. Item "Board" · c0mm00000000d003
+Excalidraw ID: item
+Linked artifact: /prototypes/rvw0000000000c01/artifacts/b0ard0000000c001
+- Ada Lovelace: About Board.`)
+    expect(output).toContain(`### 2. Empty spot · c0mm00000000d004
+Canvas point: x 700, y 150.5
+- Ada Lovelace: About Board.`)
+  })
+
+  test('[CM-53] the module carries the address-comments skill and AGENTS.md routes to it', () => {
+    const skill = readFileSync(
+      'src/modules/comments/skills/address-comments/SKILL.md',
+      'utf8',
+    )
+    expect(skill).toMatch(/^---\r?\nname: address-comments\r?\ndescription: /)
+    for (const topic of [
+      'yarn comments',
+      'what you changed and where',
+      'only when the person asks',
+      'leave editing and deleting messages to their authors',
+    ])
+      expect(skill).toContain(topic)
+    expect(readFileSync('AGENTS.md', 'utf8')).toContain(
+      'When the person asks to read, answer or resolve comments on a prototype, read [Comments: address-comments](src/modules/comments/skills/address-comments/SKILL.md).',
+    )
+  })
+
   test('[CM-63] comments on a file removed since are listed with their stored title and anchor', () => {
     seed('c0mm000000000006', {
       artifact: 'g0ne000000000001',
@@ -429,8 +531,15 @@ Path: main > button
       "Only contributors can comment, and your Git identity (nobody@elsewhere.example) doesn't match a contributor profile. Join the studio with `yarn studio join`, then try again.",
     )
     expect(studio.read(`${FOLDER}/.comments/${FIRST}.json`)).toBe(before)
-    // Reading needs no registration.
+    // Reading needs no registration, but with no argument there is nothing
+    // of their own to list.
     expect(comments(FOLDER).status).toBe(0)
+    const unnamed = comments()
+    expect(unnamed.status).toBe(1)
+    expect(unnamed.stdout).toBe('')
+    expect(unnamed.stderr).toContain(
+      'so you have no prototypes of your own to list. Name a prototype folder or an address instead.',
+    )
     // The page is told the same, so it can say so in place of its fields.
     expect(
       await page(null, { action: 'access', prototype: PROTOTYPE }),
@@ -475,6 +584,19 @@ Path: main > button
     expect(ok(FOLDER)).toContain('Make this bigger.')
   })
 
+  test('[CM-64] with the module off, comments stay readable and nothing is written', () => {
+    studio.setConfig({
+      modules: { ...studio.config().modules, comments: false },
+    })
+    const result = comments('reply', SECOND, 'Still here?')
+    expect(result.stderr.trim()).toBe(
+      'The Comments module is off, so comments are read-only. An Admin can turn it on with `yarn studio enable comments`.',
+    )
+    expect(result.status).toBe(1)
+    expect(stored(SECOND).messages).toHaveLength(1)
+    expect(ok(FOLDER)).toContain('Say who is invited.')
+  })
+
   test('[CM-51] [CM-54] anyone registered may resolve someone else’s comment, but only a message’s author edits or deletes it', async () => {
     // Ada resolves and reopens Ben's comment, on Ben's prototype.
     ok('resolve', SECOND)
@@ -503,20 +625,24 @@ Path: main > button
     // Ben's agent may not change Ben's own words either.
     expect(stored(SECOND).messages[0]!.body).toBe('Say who is invited.')
 
-    // The authors may: Ben his message, Ada her agent's reply.
+    // Nor Ada her agent's reply: it is her agent's, not hers.
+    await expect(
+      page('ada', {
+        action: 'delete-message',
+        thread: SECOND,
+        message: agentReply!.id,
+      }),
+    ).rejects.toThrow('Only its author can delete a message.')
+
+    // The author may: Ben his message.
     await page('ben', {
       action: 'edit',
       thread: SECOND,
       message: first!.id,
       body: 'Say which class is invited.',
     })
-    await page('ada', {
-      action: 'delete-message',
-      thread: SECOND,
-      message: agentReply!.id,
-    })
     const edited = stored(SECOND)
-    expect(edited.messages).toHaveLength(1)
+    expect(edited.messages).toHaveLength(2)
     expect(edited.messages[0]!.body).toBe('Say which class is invited.')
     expect(edited.messages[0]!.editedAt).toEqual(expect.any(String))
     await prettierStable(SECOND)
@@ -561,6 +687,23 @@ Path: main > button
       join: false,
       author: { contributor: ADA.id },
       admin: false,
+    })
+  })
+
+  test('a comment is only on a file or state of its own prototype', async () => {
+    for (const artifact of ['e1se000000000001', PROTOTYPE])
+      await expect(
+        page('ada', { action: 'create', ...onHome, artifact, body: 'Hi.' }),
+      ).rejects.toMatchObject({
+        status: 404,
+        message: `“Flows” has no file or state ${artifact} to comment on.`,
+      })
+    // A named state is its view's, and is fine.
+    await page('ada', {
+      action: 'create',
+      ...onHome,
+      artifact: MEMBER,
+      body: 'On the state.',
     })
   })
 

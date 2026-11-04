@@ -25,7 +25,7 @@ Admins can duplicate a colleague's prototype to start from it. Everyone else can
 
 ### Who can comment?
 
-Anyone registered can comment on any prototype, a colleague's included, and reply to, resolve and reopen its comments. You can edit or delete your own messages, and your agent's. A whole comment, with its replies, is deleted by whoever started it or by an Admin. The first message is the comment itself, so it goes with the comment rather than on its own.
+Anyone registered can comment on any prototype, a colleague's included, and reply to, resolve and reopen its comments. You can edit or delete your own messages. Your agent's replies stay as it wrote them. A whole comment, with its replies, is deleted by whoever started it or by an Admin. The first message is the comment itself, so it goes with the comment rather than on its own.
 
 Comments on an archived prototype are read-only until it is restored. Someone who isn't registered yet can read comments; **Comment** shows **Read-only** with the reason and a link to [How do I join the team?](environment.md#how-do-i-join-the-team).
 

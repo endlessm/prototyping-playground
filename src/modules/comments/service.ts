@@ -12,6 +12,7 @@ import {
   readFileSync,
   renameSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from 'node:fs'
 import path from 'node:path'
@@ -271,8 +272,26 @@ function contributorsOf(context: CommentsContext): Contributors {
   return contributors
 }
 
-/** The author a write is made as: a registered contributor, or a refusal. */
+function configOf(context: CommentsContext) {
+  return readConfig(
+    path.resolve(
+      context.root,
+      context.configFile ?? (process.env.STUDIO_CONFIG || 'studio.config.json'),
+    ),
+  )
+}
+
+/**
+ * The author a write is made as: a registered contributor, while the module
+ * is on, or a refusal. Reading never asks, so the files stay readable with
+ * the module off.
+ */
 function authorOf(context: CommentsContext, actor: CommentsActor): Author {
+  if (configOf(context).modules?.comments !== true)
+    throw new CommentRefusal(
+      'The Comments module is off, so comments are read-only. An Admin can turn it on with `yarn studio enable comments`.',
+      409,
+    )
   const contributors = contributorsOf(context)
   const profile = actor.key ? contributors[actor.key] : undefined
   if (!profile)
@@ -346,6 +365,32 @@ export interface NewThread {
   body: unknown
 }
 
+const LARGEST_SOURCE = 2 * 1024 * 1024
+
+/**
+ * Whether a file of the prototype carries the permanent ID, as each file
+ * type writes its own and its states' IDs into the file. Reading the text
+ * keeps the service free of the file types; a permanent ID is long and
+ * random enough that finding it means it is there. Hidden folders (the
+ * comments themselves) and `meta.json` (the prototype's own ID) don't count.
+ */
+function holds(dir: string, id: string, top = true): boolean {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name.startsWith('.')) continue
+    const file = path.join(dir, entry.name)
+    if (entry.isDirectory()) {
+      if (holds(file, id, false)) return true
+    } else if (
+      entry.isFile() &&
+      !(top && entry.name === 'meta.json') &&
+      statSync(file).size <= LARGEST_SOURCE &&
+      readFileSync(file, 'utf8').includes(id)
+    )
+      return true
+  }
+  return false
+}
+
 export function createThread(
   context: CommentsContext,
   actor: CommentsActor,
@@ -365,6 +410,11 @@ export function createThread(
     throw new CommentRefusal(
       'A comment needs the permanent ID of what it is about.',
       400,
+    )
+  if (!holds(prototype.dir, request.artifact))
+    throw new CommentRefusal(
+      `“${prototype.title}” has no file or state ${request.artifact} to comment on.`,
+      404,
     )
   const body = bodyOf(request.body)
   const anchor = anchorOf(request.anchor)
@@ -494,12 +544,7 @@ export function deleteMessage(
 /** Whether the actor is an Admin, by `studio.config.json`. */
 function isAdmin(context: CommentsContext, actor: CommentsActor) {
   const contributors = contributorsOf(context)
-  const config = readConfig(
-    path.resolve(
-      context.root,
-      context.configFile ?? (process.env.STUDIO_CONFIG || 'studio.config.json'),
-    ),
-  )
+  const config = configOf(context)
   return (
     roleOf(teamOf(config, contributors), contributors, actor.key) === 'admin'
   )

@@ -1,0 +1,9 @@
+{
+  "formatVersion": 1,
+  "title": "Orphan",
+  "created": "2026-11-04",
+  "studioId": "a0rf000000000c01",
+  "ownerContributorId": "ada0000000000001",
+  "systemId": "g0ne0000000000s1",
+  "systemMissing": { "systemId": "g0ne0000000000s1", "label": "Gone" }
+}

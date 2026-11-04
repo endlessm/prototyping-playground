@@ -612,7 +612,6 @@ const missing = computed(
 
 <template>
   <div
-    v-if="surface"
     ref="root"
     data-comment-tool
     class="pointer-events-none absolute inset-0 z-10 overflow-hidden"
@@ -718,7 +717,7 @@ const missing = computed(
       class="pointer-events-auto absolute top-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-inverted px-3 py-1.5 text-sm text-inverted shadow-lg"
     >
       <i18n-t
-        :keypath="surface.selection ? 'comments.hintQuote' : 'comments.hint'"
+        :keypath="surface?.selection ? 'comments.hintQuote' : 'comments.hint'"
         scope="global"
       >
         <template #key><UKbd value="Esc" /></template>
