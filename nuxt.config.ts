@@ -117,17 +117,6 @@ export default defineNuxtConfig({
     },
   },
 
-  // The studio is light only (ADR 0005): Nuxt UI keeps its color-mode module,
-  // held at light whatever the computer prefers. The module writes its value
-  // back on every load, so it goes to this tab's session under a key of its
-  // own, never read as anyone's preference.
-  colorMode: {
-    preference: 'light',
-    fallback: 'light',
-    storage: 'sessionStorage',
-    storageKey: 'design-studio:light-only',
-  },
-
   css: ['~/assets/css/main.css'],
 
   // MDC loads a highlighting theme named `<name>` from `@shikijs/themes/<name>`.
@@ -156,6 +145,9 @@ export default defineNuxtConfig({
   // components (`app/markdown/`).
   ui: {
     mdc: true,
+    // The studio is light only (ADR 0005): without Nuxt UI's color-mode
+    // module nothing sets the `dark` class or remembers a mode.
+    colorMode: false,
   },
   mdc: {
     // Documents are plain Markdown: no emoji shortcodes.

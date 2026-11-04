@@ -42,9 +42,9 @@ An opening level-one heading that repeats the title shows once. Without a title 
 The shared reader (`app/markdown/`, `app/components/markdown/`) parses at run time with Nuxt's MDC (`@nuxtjs/mdc`, set up in `nuxt.config.ts` through Nuxt UI's `mdc` option) and renders Nuxt UI's prose components. MDC's own component syntax and raw HTML passthrough are off: documents are plain Markdown.
 
 - GitHub-style Markdown: tables, task lists, strikethrough, footnotes and autolinks. Every level 2–4 heading gets an anchor that links to itself.
-- Code fences are highlighted in the browser with Shiki in the studio's accent palette (`app/utils/contentPalette.ts`, Flexoki, light and dark), the same palette as the source editor and diagrams.
+- Code fences are highlighted in the browser with Shiki in the studio's accent palette (`app/utils/contentPalette.ts`, Flexoki, light only), the same palette as the source editor and diagrams.
 - Raw HTML shows as the text that was typed and never runs; an HTML comment is hidden, so it can hold a note for whoever edits the file (`remark-html-as-text.ts`).
-- A `mermaid` fence is a diagram (`remark-mermaid.ts`, `app/components/MermaidDiagram.vue`), drawn in the studio's colours for the current colour mode, one render at a time. Invalid Mermaid shows "Unable to render Mermaid diagram." with Mermaid's message.
+- A `mermaid` fence is a diagram (`remark-mermaid.ts`, `app/components/MermaidDiagram.vue`), drawn in the studio's light colours, one render at a time. Invalid Mermaid shows "Unable to render Mermaid diagram." with Mermaid's message.
 - "On this page" (`MarkdownToc.vue`) lists level 2–3 headings and highlights the one scrolled to. Choosing one puts it in the address and scrolls there, without animation when the person prefers reduced motion.
 - Opening an address with `#heading` scrolls to that heading, and keeps it there while diagrams and embeds above it render, until the person scrolls. Another document opens at the top. An edit to the open document keeps the scroll position.
 

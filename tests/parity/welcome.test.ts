@@ -7,7 +7,8 @@ import { scenario } from './setup/scenario'
 // Bernardo's flag is set back to false for the scenario, then the profile
 // is put back exactly as it was. The steps differ by design (the Endless
 // welcome is shorter); the pairs compare the dialog's frame, controls,
-// illustrations and the second step's tabs, also in dark mode.
+// illustrations and the second step's tabs. Color mode is out of parity:
+// this studio is light only (ADR 0005).
 scenario(
   '[SH-130] [SH-131] [SH-132] The welcome on a first visit',
   async ({ page, url, root, step: save }) => {
@@ -58,9 +59,6 @@ scenario(
           .toBe('true')
         await step(`The second step, ${tab}`)
       }
-      await page.emulateMedia({ colorScheme: 'dark' })
-      await step('The second step in dark mode')
-      await page.emulateMedia({ colorScheme: 'light' })
       const next = page.getByRole('button', { name: 'Next', exact: true })
       while (await next.count()) await next.click()
       await expect

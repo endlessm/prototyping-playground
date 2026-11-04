@@ -83,7 +83,7 @@ Links use permanent IDs kept in each file, so a link to a prototype, view, state
 
 **Documents** read in the studio's own style, with a title, "On this page" and highlighted code. Link to a view, state, diagram or canvas on its own line to embed it; a canvas shows as a picture of the whole canvas, with its views live, and its title bar opens it. Mermaid blocks in a document draw diagrams even without the Diagrams module.
 
-**Diagrams** are standalone Mermaid files, drawn in the studio's light or dark colours. A diagram with a syntax error shows the error instead.
+**Diagrams** are standalone Mermaid files, drawn in the studio's light colours. A diagram with a syntax error shows the error instead.
 
 **Canvases** use Excalidraw's own tools: shapes, arrows, frames and **T** for text, the default for notes. The Library holds optional sticky notes, and **Mermaid to Excalidraw** under the extra tools turns a Mermaid diagram into separate shapes, not a diagram that stays in sync. Drag an artifact from the file tree onto the canvas, or paste its link, to place it next to your text, shapes and arrows. Views, states and diagrams show as live pictures that follow their source; documents and other canvases show as cards. Click an item's title bar to open it. A canvas shows only artifacts from its own prototype: a link to a deleted file, or to another prototype, shows a card that says so. A canvas holds no images; put the view itself on it. Other people's canvases and canvases on the deployed site are read-only.
 
