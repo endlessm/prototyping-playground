@@ -2,7 +2,7 @@
 
 Notes a contributor pins to an artifact, or to a place in it, for colleagues and agents. A comment is a thread with replies, open or resolved. Optional and on by default. Commenting happens only in the studio running locally; the deployed site has no tool and no thread. [ADR 0004](../../../docs/adr/0004-comments-live-in-the-prototype.md) records why comments live in the prototype.
 
-This README is the contract for the thread format and the tool's behaviour. Views are the first surface; agent text and the other surfaces follow.
+This README is the contract for the thread format, the tool's behaviour and the agent text. Views are the first surface; the other surfaces follow.
 
 ## Behavior
 
@@ -11,7 +11,7 @@ Every artifact page whose type offers an [artifact surface](../../../app/utils/a
 - **Comment** turns comment mode on and off. The shortcut is ⌥⌘M on Apple computers and Ctrl+Alt+M elsewhere (`commentShortcut` in `app/utils/shortcuts.ts`). It works while a view has focus, because the preview document passes it on as the `comment` shortcut. It is ignored while a text field outside the tool has focus.
 - **Hide comments** hides every pin, and **Show comments** shows them again. Comment mode shows them while it lasts.
 - **All comments** opens the list, and shows how many threads are open (its name says so too: "All comments, 2 open").
-- **Copy for agent** is a placeholder, disabled until the agent text arrives.
+- **Copy for agent** copies the open comments of the open file (a view's with all its named states') as [agent text](#agent-text), with "Target not found" for each target the page can't find right now, and says so: "Copied 3 open comments for your agent". It rests while nothing is open.
 
 In comment mode a hint at the top says how to comment and how to stop. Hovering outlines what a click would comment on, labelled the way an agent reads it (`Button "Invite students"`). A click opens a composer beside that spot, focused, with "Enter to post" (Shift+Enter for a new line). No click reaches the page. Selecting text in a page whose surface offers `selection()` (views) opens the composer with the text quoted: the anchor is the element that holds the whole selection, with the selected text as its `quote` and the pin at the selection's end. The quote shows in the composer, the thread and the list.
 
@@ -53,12 +53,22 @@ A thread's number is its place among the artifact's threads in creation order, r
 
 Open pages update at once when a thread file changes, whoever changed it: the page, `yarn comments` or a Git pull.
 
+## Agent text
+
+What Copy for agent copies and `yarn comments` prints, from one formatter (`agentText.ts`), so the two never differ. For each file it gives a heading with the count, the file's kind and title, then `File:` and `Address:` (the view's, for its states too); then each thread, in number order:
+
+- `### <number>. <target label> · <thread ID>`, "The whole view" (document…) for a whole-file comment;
+- the locator lines the anchor has: `State:` (the named state it is on), `Path:`, `Quote:`. `Target not found: it was removed or changed since.` replaces the path when the page couldn't find the target; the command can't render a page, so it always prints the stored anchor;
+- each message, `- <name>: <text>`, an agent's as "<first name>'s agent", and "Resolved by <name>." for a resolved thread.
+
+It ends with the commands to reply and resolve (or reopen, for resolved threads). Comments on a file removed since are listed under their stored `artifactTitle` with `File removed` in place of the file and address. The command heads each prototype with `# Prototype "<title>"` and its folder. It is a format for agents, so its words are in the formatter, in English, not in the locale.
+
 ## The command
 
-`yarn comments` is the agents' side, run from the studio's root:
+`yarn comments` is the agents' side, run from the studio's root. The `address-comments` skill tells agents how to use it.
 
-- `yarn comments [prototype folder]` lists the open comments of a prototype, or of the prototypes you own, as plain text: number, target label, artifact title, IDs, path and text, and each message.
-- `yarn comments show <id>` prints one thread.
+- `yarn comments [prototype folder | address] [--resolved] [--json]` lists the open comments as agent text: of a prototype, of one file (an address `/prototypes/<id>/artifacts/<id>`, or a whole URL; a named state's address names its view), of a whole prototype (`/prototypes/<id>`), or, with no argument, of the prototypes you own. `--resolved` lists the resolved ones instead; `--json` gives the stored threads, each with its `number`, `file` (null when removed) and `address` (its own state's).
+- `yarn comments show <id>` prints one thread, resolved or not.
 - `yarn comments reply <id> "<text>"` replies.
 - `yarn comments resolve <id> [--reply "<text>"]` resolves, with an optional last reply.
 - `yarn comments reopen <id>` opens a resolved comment again.
@@ -139,7 +149,7 @@ Each refusal is a sentence saying what to do, and the page (as an error toast, o
 ## Ownership
 
 - `module.ts` declares the module: its tool, its handler and its build data (every prototype's threads in development, nothing for the build).
-- `threads.ts` is the format, shared by the browser and Node; `service.ts` the rules and writes; `server/threads.ts` the page's writes; `cli.ts` the command (`yarn comments`).
+- `threads.ts` is the format, shared by the browser and Node; `service.ts` the rules and writes; `server/threads.ts` the page's writes; `agentText.ts` the agent text, for the page and the command; `cli.ts` the command (`yarn comments`); `skills/address-comments/` the agents' skill, routed from `AGENTS.md` by `yarn studio sync`.
 - `components/CommentTool.vue` is the tool over the page (`CommentToolbar`, `CommentPin`, `CommentComposer`, `CommentThreadPopover`, `CommentList`, `CommentReadOnly`, `CommentDeleteModal`); `composables/` read threads, authors and what the person may do, and give focus back. Its text is under `comments` in `i18n/locales/en.json`.
 - The view surface is the prototypes module's (`src/modules/prototypes/types/view/viewSurface.ts`). The look and copy follow the Comments prototype (`src/prototypes/bernardo/comments`).
 

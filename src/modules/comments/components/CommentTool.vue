@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import type {
-  ManifestArtifact,
-  ManifestPrototype,
+import {
+  useManifest,
+  type ManifestArtifact,
+  type ManifestPrototype,
 } from '../../../../app/composables/useManifest'
 import { useStudioToast } from '../../../../app/composables/useStudioToast'
 import type {
@@ -15,6 +16,8 @@ import {
   isTyping,
   onApple,
 } from '../../../../app/utils/shortcuts'
+import { artifactTitle } from '../../../../tooling/manifest/titles'
+import { agentText } from '../agentText'
 import { useCommentAccess } from '../composables/useCommentAccess'
 import { useCommentAuthors } from '../composables/useCommentAuthors'
 import { useCommentThreads } from '../composables/useCommentThreads'
@@ -51,6 +54,7 @@ const router = useRouter()
 const overlay = useOverlay()
 const toast = useStudioToast()
 const authorOf = await useCommentAuthors()
+const manifest = await useManifest()
 const {
   threads,
   create,
@@ -424,6 +428,43 @@ async function copyLink() {
   }
 }
 
+/**
+ * The open comments of the open file, as the agent text `yarn comments`
+ * prints, with what the page can't find as of now. Threads on another named
+ * state can't be measured from here, so they are never "not found".
+ */
+async function copyForAgent() {
+  measure()
+  const open = familyThreads.value.filter(({ status }) => status === 'open')
+  const view = props.artifact.state?.view ?? props.artifact.id
+  const text = agentText(
+    [
+      {
+        type: props.artifact.type,
+        title: artifactTitle(props.artifact.path.split('/').pop()!),
+        file: props.artifact.file,
+        address: addressOf(view),
+        threads: open,
+        numbers: numbers.value,
+        states: Object.fromEntries(
+          (props.artifact.states ?? []).map(({ id, title }) => [id, title]),
+        ),
+        missing: missingIds.value,
+      },
+    ],
+    {
+      name: (contributor) =>
+        manifest.value.contributors.find(({ id }) => id === contributor)?.name,
+    },
+  )
+  try {
+    await navigator.clipboard.writeText(text)
+    toast.success(t('comments.copied', { count: open.length }, open.length))
+  } catch (error) {
+    toast.error(t('comments.copyAgentFailed'), (error as Error).message)
+  }
+}
+
 // Where focus goes when a popover's opener is gone, such as the row of a
 // thread just resolved.
 const fallbackFocus = () =>
@@ -652,6 +693,7 @@ const missing = computed(
       @comment="toggle"
       @pins="pinsShown = !pinsShown"
       @list="listOpen = !listOpen"
+      @copy="copyForAgent"
     />
   </div>
 </template>

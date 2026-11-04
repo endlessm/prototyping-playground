@@ -12,6 +12,12 @@ export default {
   label: 'Comments',
   description:
     'Pin comments to views and reply to or resolve them, here or with `yarn comments`.',
+  skills: [
+    {
+      path: 'skills/address-comments/',
+      when: 'asks to read, answer or resolve comments on a prototype',
+    },
+  ],
   artifactTool: 'components/CommentTool.vue',
   server: { threads: 'server/threads.ts' },
   data: {

@@ -145,30 +145,229 @@ async function prettierStable(id: string) {
   expect(await format(text, { ...options, parser: 'json' })).toBe(text)
 }
 
+const OTHER = 'h0me000000000002'
+const OTHER_VIEW = `<!-- @studio-id ${OTHER} -->
+<template>
+  <p>Remember the deadline</p>
+</template>
+`
+/** A thread file written as the page would have left it. */
+function seed(
+  id: string,
+  fields: { artifact: string; artifactTitle: string; anchor: object },
+  folder = FOLDER,
+) {
+  studio.write(
+    `${folder}/.comments/${id}.json`,
+    `${JSON.stringify(
+      {
+        formatVersion: 1,
+        id,
+        ...fields,
+        status: 'open',
+        messages: [
+          {
+            id: `m${id.slice(1)}`,
+            author: { contributor: ADA.id },
+            body: `About ${fields.artifactTitle}.`,
+            createdAt: '2026-11-03T10:00:00.000Z',
+          },
+        ],
+      },
+      null,
+      2,
+    )}\n`,
+  )
+}
+
 describe('yarn comments', () => {
-  test('[CM-46] lists a prototype’s open comments with what they are pinned to, numbered across a view and its states', () => {
-    const output = ok(FOLDER)
-    expect(output).toContain(`Flows — ${FOLDER}`)
-    expect(output).toContain('2 open comments')
-    expect(output).toContain('#2 Button "Invite students" on Home · Member')
-    expect(output).toContain('#3 Button "Invite students" on Home\n')
-    expect(output).toContain(`ID: ${FIRST}  Artifact: ${MEMBER}`)
-    expect(output).toContain('Path: main > button  Text: "Invite students"')
-    expect(output).toContain('Ben Okafor: Make this bigger.')
-    expect(output).toContain('yarn comments reply <id> "<text>"')
-    // Resolved comments stay out of the list, but keep their number.
-    expect(output).not.toContain('Old news.')
+  test('[CM-46] [CM-47] [CM-48] lists a prototype’s open comments as agent text: each file, its address, and every target, numbered across a view and its states', () => {
+    expect(ok(FOLDER)).toBe(`# Prototype "Flows"
+
+Folder: ${FOLDER}
+
+## 2 open comments on View "Home"
+
+File: ${FOLDER}/Home.vue
+Address: /prototypes/${PROTOTYPE}/artifacts/${HOME}
+
+### 2. Button "Invite students" · ${FIRST}
+State: Member
+Path: main > button
+- Ben Okafor: Make this bigger.
+
+### 3. Button "Invite students" · ${SECOND}
+Path: main > button
+- Ben Okafor: Say who is invited.
+
+Reply or resolve with \`yarn comments reply <id> "…"\` and \`yarn comments resolve <id>\`.
+`)
   })
 
-  test('[CM-46] with no folder, lists the prototypes you own', () => {
+  test('[CM-47] a quoted comment names its quote, and a whole-file comment its file', () => {
+    studio.write(`${FOLDER}/Other.vue`, OTHER_VIEW)
+    seed('c0mm000000000004', {
+      artifact: OTHER,
+      artifactTitle: 'Other',
+      anchor: {
+        kind: 'paragraph',
+        label: 'Paragraph "Remember the deadline"',
+        path: 'main > p',
+        quote: 'the deadline',
+      },
+    })
+    seed('c0mm000000000005', {
+      artifact: OTHER,
+      artifactTitle: 'Other',
+      anchor: { kind: 'artifact' },
+    })
+    const output = ok(FOLDER)
+    expect(output).toContain(`## 2 open comments on View "Other"
+
+File: ${FOLDER}/Other.vue
+Address: /prototypes/${PROTOTYPE}/artifacts/${OTHER}
+
+### 1. Paragraph "Remember the deadline" · c0mm000000000004
+Path: main > p
+Quote: "the deadline"
+- Ada Lovelace: About Other.
+
+### 2. The whole view · c0mm000000000005
+- Ada Lovelace: About Other.`)
+  })
+
+  test('[CM-63] comments on a file removed since are listed with their stored title and anchor', () => {
+    seed('c0mm000000000006', {
+      artifact: 'g0ne000000000001',
+      artifactTitle: 'Old board',
+      anchor: {
+        kind: 'button',
+        label: 'Button "Share"',
+        path: 'main > .toolbar > button',
+      },
+    })
+    expect(ok(FOLDER)).toContain(`## 1 open comment on "Old board"
+
+File removed
+
+### 1. Button "Share" · c0mm000000000006
+Path: main > .toolbar > button
+- Ada Lovelace: About Old board.`)
+  })
+
+  test('[CM-46] an address names one file, a view with its states, or the whole prototype', () => {
+    studio.write(`${FOLDER}/Other.vue`, OTHER_VIEW)
+    seed('c0mm000000000004', {
+      artifact: OTHER,
+      artifactTitle: 'Other',
+      anchor: { kind: 'artifact' },
+    })
+    const home = ok(`/prototypes/${PROTOTYPE}/artifacts/${HOME}`)
+    expect(home).toContain('## 2 open comments on View "Home"')
+    expect(home).not.toContain('About Other.')
+    // A named state's address, as copied from the browser, is its view's.
+    expect(
+      ok(
+        `http://localhost:3000/prototypes/${PROTOTYPE}/artifacts/${MEMBER}?x=1`,
+      ),
+    ).toBe(home)
+    const other = ok(`/prototypes/${PROTOTYPE}/artifacts/${OTHER}`)
+    expect(other).toContain('## 1 open comment on View "Other"')
+    expect(other).not.toContain('Make this bigger.')
+    const whole = ok(`/prototypes/${PROTOTYPE}`)
+    expect(whole).toContain('About Other.')
+    expect(whole).toContain('Make this bigger.')
+
+    const unknown = comments(
+      `/prototypes/${PROTOTYPE}/artifacts/n0pe000000000001`,
+    )
+    expect(unknown.status).toBe(1)
+    expect(unknown.stderr).toContain(
+      `“Flows” has no file n0pe000000000001, and no comments on one.`,
+    )
+  })
+
+  test('[CM-46] --resolved lists the resolved comments instead', () => {
+    const output = ok(FOLDER, '--resolved')
+    expect(output).toContain(`## 1 resolved comment on View "Home"`)
+    expect(output).toContain(`### 1. Button "Invite students" · ${DONE}`)
+    expect(output).toContain('- Ben Okafor: Old news.')
+    expect(output).not.toContain('Make this bigger.')
+    expect(output).toContain('`yarn comments reopen <id>`')
+  })
+
+  test('[CM-48] --json gives the stored threads with their file, address and number', () => {
+    seed('c0mm000000000006', {
+      artifact: 'g0ne000000000001',
+      artifactTitle: 'Old board',
+      anchor: { kind: 'artifact' },
+    })
+    const threads = JSON.parse(ok(FOLDER, '--json')) as Record<
+      string,
+      unknown
+    >[]
+    expect(threads.map(({ id }) => id)).toEqual([
+      FIRST,
+      SECOND,
+      'c0mm000000000006',
+    ])
+    expect(threads[0]).toMatchObject({
+      id: FIRST,
+      number: 2,
+      file: `${FOLDER}/Home.vue`,
+      address: `/prototypes/${PROTOTYPE}/artifacts/${MEMBER}`,
+      artifact: MEMBER,
+      status: 'open',
+      anchor: { label: 'Button "Invite students"' },
+      messages: [expect.objectContaining({ body: 'Make this bigger.' })],
+    })
+    expect(threads[2]).toMatchObject({ number: 1, file: null })
+    expect(
+      (JSON.parse(ok(FOLDER, '--json', '--resolved')) as { id: string }[]).map(
+        ({ id }) => id,
+      ),
+    ).toEqual([DONE])
+  })
+
+  test('[CM-46] with no argument, lists only the prototypes you own', () => {
+    const MINE = 'src/prototypes/ada/sketch'
+    studio.write(
+      `${MINE}/meta.json`,
+      `${JSON.stringify({
+        formatVersion: 1,
+        title: 'Sketch',
+        studioId: 'sk3t000000000001',
+        ownerContributorId: ADA.id,
+        systemId: null,
+      })}\n`,
+    )
     studio.identify(BEN)
     expect(ok()).toContain('Say who is invited.')
     studio.identify(ADA)
     expect(ok()).toBe('No open comments on your prototypes.\n')
+    seed(
+      'c0mm000000000007',
+      {
+        artifact: 'g0ne000000000002',
+        artifactTitle: 'Gone',
+        anchor: { kind: 'artifact' },
+      },
+      MINE,
+    )
+    const mine = ok()
+    expect(mine).toContain('# Prototype "Sketch"')
+    expect(mine).not.toContain('Flows')
   })
 
   test('[CM-49] shows a thread, and replies as the agent of whoever Git resolves to', async () => {
-    expect(ok('show', SECOND)).toContain('Ben Okafor: Say who is invited.')
+    expect(ok('show', SECOND)).toContain(`## Comment 3 on View "Home"
+
+File: ${FOLDER}/Home.vue
+Address: /prototypes/${PROTOTYPE}/artifacts/${HOME}
+
+### 3. Button "Invite students" · ${SECOND}
+Path: main > button
+- Ben Okafor: Say who is invited.`)
     expect(ok('reply', SECOND, 'Added the class name under the button.')).toBe(
       `Replied to comment ${SECOND}.\n`,
     )
@@ -177,7 +376,7 @@ describe('yarn comments', () => {
       body: 'Added the class name under the button.',
     })
     expect(ok('show', SECOND)).toContain(
-      "Ada's agent (Agent): Added the class name under the button.",
+      "- Ada's agent: Added the class name under the button.",
     )
     await prettierStable(SECOND)
   })
@@ -188,7 +387,7 @@ describe('yarn comments', () => {
     expect(thread.status).toBe('resolved')
     expect(thread.resolvedBy).toEqual({ contributor: ADA.id, agent: true })
     expect(thread.messages.at(-1)?.body).toBe('Made it the large size.')
-    expect(ok(FOLDER)).toContain('1 open comment\n')
+    expect(ok(FOLDER)).toContain('## 1 open comment on View "Home"')
     await prettierStable(FIRST)
   })
 

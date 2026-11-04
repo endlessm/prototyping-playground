@@ -3,8 +3,9 @@ import { shortcutLabel } from '../../../../app/utils/shortcuts'
 import CommentReadOnly from './CommentReadOnly.vue'
 
 // The tool's controls in the page's bottom-right corner, left of the list
-// while it is open. Copy for agent waits for the agent text. Where the
-// person can't write, Comment gives way to "Read-only", which says why.
+// while it is open. Copy for agent copies the open comments as agent text,
+// so it rests while there are none. Where the person can't write, Comment
+// gives way to "Read-only", which says why.
 defineProps<{
   commenting: boolean
   pinsShown: boolean
@@ -16,7 +17,7 @@ defineProps<{
   /** The service's reason the person can't comment here, or null. */
   readOnly: { reason: string; join: boolean } | null
 }>()
-const emit = defineEmits<{ comment: []; pins: []; list: [] }>()
+const emit = defineEmits<{ comment: []; pins: []; list: []; copy: [] }>()
 
 const { t } = useI18n()
 const shortcut = shortcutLabel('comment')
@@ -100,14 +101,17 @@ const shortcut = shortcutLabel('comment')
         </template>
       </UButton>
     </UTooltip>
-    <UButton
-      icon="i-lucide-copy"
-      :aria-label="t('comments.toolbar.copy')"
-      color="neutral"
-      variant="ghost"
-      size="sm"
-      class="rounded-full"
-      disabled
-    />
+    <UTooltip :text="t('comments.toolbar.copy')">
+      <UButton
+        icon="i-lucide-copy"
+        :aria-label="t('comments.toolbar.copy')"
+        color="neutral"
+        variant="ghost"
+        size="sm"
+        class="rounded-full"
+        :disabled="!openCount"
+        @click="emit('copy')"
+      />
+    </UTooltip>
   </div>
 </template>

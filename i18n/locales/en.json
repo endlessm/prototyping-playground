@@ -1017,6 +1017,8 @@
     "deleted": "Comment deleted",
     "messageDeleted": "Message deleted",
     "linkCopied": "Link copied",
-    "copyFailed": "The link wasn’t copied"
+    "copyFailed": "The link wasn’t copied",
+    "copied": "Copied {count} open comment for your agent | Copied {count} open comments for your agent",
+    "copyAgentFailed": "The comments weren’t copied"
   }
 }

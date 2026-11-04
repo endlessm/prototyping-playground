@@ -693,6 +693,55 @@ describe('on the dev server', () => {
       .toBe(true)
   })
 
+  test('[CM-45] Copy for agent puts the view’s open comments on the clipboard as agent text, with what the page can’t find', async () => {
+    const invite = seed({
+      anchor: ANCHORS.invite,
+      messages: ['Make this the main action.', 'And say who is invited.'],
+    })
+    const removed = seed({
+      anchor: ANCHORS.removed,
+      messages: ['This note goes.'],
+    })
+    seed({ anchor: ANCHORS.deadline, messages: ['Done.'], status: 'resolved' })
+    const page = await newPage()
+    await page
+      .context()
+      .grantPermissions(['clipboard-read', 'clipboard-write'], {
+        origin: studio.url,
+      })
+    await open(page, studio)
+    await toolbar(page).getByRole('button', { name: 'Copy for agent' }).click()
+    await expect
+      .poll(() =>
+        page
+          .getByText('Copied 2 open comments for your agent', { exact: true })
+          .filter({ visible: true })
+          .isVisible(),
+      )
+      .toBe(true)
+    // Windows' clipboard hands text back with CRLF line endings.
+    const copied = await page.evaluate(() => navigator.clipboard.readText())
+    expect(copied.replace(/\r\n/g, '\n'))
+      .toBe(`## 2 open comments on View "Board"
+
+File: ${content.split(path.sep).join('/')}/ada/review/Board.vue
+Address: /prototypes/${REVIEW}/artifacts/b0ard0000000c001
+
+### 1. Button "Invite students" · ${invite}
+State: Full
+Path: main > button
+- Ada Lovelace: Make this the main action.
+- Ada Lovelace: And say who is invited.
+
+### 2. Paragraph "A removed note" · ${removed}
+State: Full
+Target not found: it was removed or changed since.
+- Ada Lovelace: This note goes.
+
+Reply or resolve with \`yarn comments reply <id> "…"\` and \`yarn comments resolve <id>\`.
+`)
+  })
+
   test('[CM-66] a pin is a button named with its number, author and first words', async () => {
     seed({
       anchor: ANCHORS.invite,

@@ -66,6 +66,7 @@ Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/ag
 <!-- studio:modules -->
 
 When the person asks for a canvas (a page of views, documents, and notes arranged together), read [Canvases: use-canvas](src/modules/canvas/skills/use-canvas/SKILL.md).
+When the person asks to read, answer or resolve comments on a prototype, read [Comments: address-comments](src/modules/comments/skills/address-comments/SKILL.md).
 When the person asks to join the studio, change their profile, or assign or review Admin and system-maintainer roles, read [Contributors & Permissions: use-contributors](src/modules/contributors/skills/use-contributors/SKILL.md).
 When the person asks for a standalone diagram inside a prototype, read [Diagrams: create-diagram](src/modules/diagrams/skills/create-diagram/SKILL.md).
 When the person asks for a document inside a prototype, read [Documents: write-document](src/modules/document/skills/write-document/SKILL.md).
