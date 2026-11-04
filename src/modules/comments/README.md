@@ -2,18 +2,20 @@
 
 Notes a contributor pins to an artifact, or to a place in it, for colleagues and agents. A comment is a thread with replies, open or resolved. Optional and on by default. Commenting happens only in the studio running locally; the deployed site has no tool and no thread. [ADR 0004](../../../docs/adr/0004-comments-live-in-the-prototype.md) records why comments live in the prototype.
 
-This README is the contract for the thread format, the tool's behaviour and the agent text. Views are the first surface; the other surfaces follow.
+This README is the contract for the thread format, the tool's behaviour and the agent text. Views, documents and diagrams have surfaces; canvases follow.
 
 ## Behavior
 
-Every artifact page whose type offers an [artifact surface](../../../app/utils/artifactSurface.ts) gets a toolbar in its bottom-right corner, 16 px from the edges. Pages without one (documents, diagrams and canvases, for now) get no tool, so it never covers their own controls:
+Every artifact page whose type offers an [artifact surface](../../../app/utils/artifactSurface.ts) gets a toolbar in its bottom-right corner, 16 px from the edges. Pages without one (canvases, for now) get no tool, so it never covers their own controls:
 
 - **Comment** turns comment mode on and off. The shortcut is ⌥⌘M on Apple computers and Ctrl+Alt+M elsewhere (`commentShortcut` in `app/utils/shortcuts.ts`). It works while a view has focus, because the preview document passes it on as the `comment` shortcut. It is ignored while a text field outside the tool has focus.
 - **Hide comments** hides every pin, and **Show comments** shows them again. Comment mode shows them while it lasts.
 - **All comments** opens the list, and shows how many threads are open (its name says so too: "All comments, 2 open").
 - **Copy for agent** copies the open comments of the open file (a view's with all its named states') as [agent text](#agent-text), with "Target not found" for each target the page can't find right now, and says so: "Copied 3 open comments for your agent". It rests while nothing is open.
 
-In comment mode a hint at the top says how to comment and how to stop. Hovering outlines what a click would comment on, labelled the way an agent reads it (`Button "Invite students"`). A click opens a composer beside that spot, focused, with "Enter to post" (Shift+Enter for a new line). No click reaches the page. Selecting text in a page whose surface offers `selection()` (views) opens the composer with the text quoted: the anchor is the element that holds the whole selection, with the selected text as its `quote` and the pin at the selection's end. The quote shows in the composer, the thread and the list.
+In comment mode a hint at the top says how to comment and how to stop. Hovering outlines what a click would comment on, labelled the way an agent reads it (`Button "Invite students"`). A click opens a composer beside that spot, focused, with "Enter to post" (Shift+Enter for a new line). No click reaches the page. Selecting text in a page whose surface offers `selection()` (views and documents) opens the composer with the text quoted, with the pin at the selection's end: in a view the anchor is the element that holds the whole selection, with the selected text as its `quote`; in a document it is a text-quote selector. The quote shows in the composer, the thread and the list.
+
+While reading, with comment mode off, text selected in a document offers a **Comment** button just above the selection's end ("Comment on the selected text" to screen readers), once the selection is made with the pointer or the keys. It opens the composer with the quote, as in comment mode, and goes when the selection does. The button is the tool's own, driven by the surface's `selection()`; a view's selection lives in its preview document, which the tool never listens to outside comment mode, so views don't offer it.
 
 A posted comment becomes a numbered pin in Nuxt UI's `info` colour on its target, at the spot that was clicked. Each pin is a button named with its number, author and first eight words ("Comment 1 by Ada Lovelace: Make this the main action."). Hovering a pin previews its author and first message; clicking it opens the thread, with its messages, a Reply field and Resolve. A resolved thread's pin is grey with a check, and shows only on the list's Resolved tab or while its thread is open.
 
@@ -58,7 +60,7 @@ Open pages update at once when a thread file changes, whoever changed it: the pa
 What Copy for agent copies and `yarn comments` prints, from one formatter (`agentText.ts`), so the two never differ. For each file it gives a heading with the count, the file's kind and title, then `File:` and `Address:` (the view's, for its states too); then each thread, in number order:
 
 - `### <number>. <target label> · <thread ID>`, "The whole view" (document…) for a whole-file comment;
-- the locator lines the anchor has: `State:` (the named state it is on), `Path:`, `Quote:`. `Target not found: it was removed or changed since.` replaces the path when the page couldn't find the target; the command can't render a page, so it always prints the stored anchor;
+- the locator lines the anchor has (`LOCATORS` in `agentText.ts`): `State:` (the named state it is on), `Path:` (a view element), `Heading:` (a document block's or quote's nearest heading), `Embed:` (an embed's file), `Mermaid ID:` (a diagram step, arrow or group), `Quote:`. `Target not found: it was removed or changed since.` replaces all but the quote when the page couldn't find the target; the command can't render a page, so it always prints the stored anchor;
 - each message, `- <name>: <text>`, an agent's as "<first name>'s agent", and "Resolved by <name>." for a resolved thread.
 
 It ends with the commands to reply and resolve (or reopen, for resolved threads). Comments on a file removed since are listed under their stored `artifactTitle` with `File removed` in place of the file and address. The command heads each prototype with `# Prototype "<title>"` and its folder. It is a format for agents, so its words are in the formatter, in English, not in the locale.
@@ -123,6 +125,8 @@ A **view element** adds:
 - `text`: the element's own text, trimmed (or what names it: `aria-label`, `alt`, `placeholder`, `title`);
 - `box`: its box in the document when commented (`left`, `top`, `width`, `height`), with the preview's viewport width (`viewport`).
 
+A **document** block or quote adds `block`, `text`, `heading`, `headingId`, `index` and, for an embed, `embed`; a quote also `prefix` and `suffix` (its `kind` is `text`). A **diagram** step, arrow or group adds `mermaid`, its ID in the source; an empty spot is `{ kind: 'spot' }` with `at` as fractions of the drawing. The documents and diagrams READMEs ("The surface") describe them and how each is found again: a quote by its words and context, then its block; a diagram element by its Mermaid ID, then its label.
+
 A view re-finds a target on every render: by the selector, then by the same tag with the same text. A path selector is only a position, so an element found there with other text is not the target (the next button after the commented one was removed, say). An identifying attribute or an id is trusted whatever the text. "Target not found" is worked out each time and never stored, so a target that comes back gets its pin back. The open thread says "Target not found. It was removed or changed." while its target is gone.
 
 ## Rules
@@ -153,7 +157,7 @@ Each refusal is a sentence saying what to do, and the page (as an error toast, o
 - `module.ts` declares the module: its tool, its handler and its build data (every prototype's threads in development, nothing for the build).
 - `threads.ts` is the format, shared by the browser and Node; `service.ts` the rules and writes; `server/threads.ts` the page's writes; `agentText.ts` the agent text, for the page and the command; `cli.ts` the command (`yarn comments`); `skills/address-comments/` the agents' skill, routed from `AGENTS.md` by `yarn studio sync`.
 - `components/CommentTool.vue` is the tool over the page (`CommentToolbar`, `CommentPin`, `CommentComposer`, `CommentThreadPopover`, `CommentList`, `CommentReadOnly`, `CommentDeleteModal`); `composables/` read threads, authors and what the person may do, and give focus back. Its text is under `comments` in `i18n/locales/en.json`.
-- The view surface is the prototypes module's (`src/modules/prototypes/types/view/viewSurface.ts`). The look and copy follow the Comments prototype (`src/prototypes/bernardo/comments`).
+- The surfaces are their file types' own: views in the prototypes module (`src/modules/prototypes/types/view/viewSurface.ts`), documents and diagrams in theirs (`documentSurface.ts`, `diagramSurface.ts`), sharing `app/utils/domSurface.ts` for pages in the studio's own DOM. Nothing outside this folder imports the comments module. The look and copy follow the Comments prototype (`src/prototypes/bernardo/comments`).
 
 The deployed site gets no tool, no handler and no thread: the build data is empty and the tool list is empty in the build. The tool's interface strings sit in the shared locale file with every module's, so they ship; threads never do.
 

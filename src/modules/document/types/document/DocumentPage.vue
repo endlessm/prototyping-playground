@@ -9,6 +9,8 @@ import {
   parseDocument,
   type ParsedDocument,
 } from '../../../../../app/markdown/parse'
+import { useArtifactSurfaceProvider } from '../../../../../app/composables/useArtifactSurface'
+import { createDocumentSurface } from './documentSurface'
 
 // A document's page: the `.md` file read in the studio's own style, not its
 // prototype's system. Saving the file updates the open page in place,
@@ -81,10 +83,18 @@ const current = computed(() =>
 )
 const catchingUp = computed(() => updating.value || parsing.value)
 const slow = refDebounced(catchingUp, SLOW_MS)
+
+// Tools over the page, such as comments, read the reader through this.
+const root = useTemplateRef<HTMLElement>('root')
+const surface = computed(() =>
+  root.value ? createDocumentSurface(root.value) : null,
+)
+useArtifactSurfaceProvider(() => surface.value)
 </script>
 
 <template>
   <div
+    ref="root"
     class="relative h-full min-h-0 p-4 sm:p-6"
     :data-document-state="error ? 'error' : current ? 'ready' : 'loading'"
     :data-document-freshness="catchingUp ? 'stale' : 'current'"

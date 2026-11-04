@@ -5,6 +5,8 @@ import type {
   ManifestArtifact,
   ManifestPrototype,
 } from '../../../../app/composables/useManifest'
+import { useArtifactSurfaceProvider } from '../../../../app/composables/useArtifactSurface'
+import { createDiagramSurface } from '../types/diagram/diagramSurface'
 
 // A diagram's page: the `.mermaid` or `.mmd` file drawn filling the page.
 // Saving the file draws it again in place, the previous drawing staying
@@ -19,10 +21,17 @@ const { text, error, updating } = useArtifactText(
   () => props.prototype,
   () => props.artifact,
 )
+
+// Tools over the page, such as comments, read the drawing through this.
+const root = useTemplateRef<HTMLElement>('root')
+const surface = computed(() =>
+  root.value ? createDiagramSurface(root.value) : null,
+)
+useArtifactSurfaceProvider(() => surface.value)
 </script>
 
 <template>
-  <div class="flex h-full min-h-0 flex-col p-4 sm:p-6">
+  <div ref="root" class="flex h-full min-h-0 flex-col p-4 sm:p-6">
     <div v-if="error && text === undefined" class="p-8">
       <AppFileError :error="error" />
     </div>

@@ -6,6 +6,7 @@ A `.mermaid` or `.mmd` file in a prototype is a diagram: one plain Mermaid diagr
 - `types/diagram/identity.ts` reads and writes the permanent identity, a leading `%% @studio-id <id>` comment (only the blank lines and `%%` comments before the diagram count). A new file gets it as its first line, keeping a byte order mark and the file's line endings; an existing one is never replaced.
 - `types/diagram/template.ts` is a new diagram ("New Diagram" in the file tree): a small flowchart whose `accTitle` is its name, with an `accDescr`.
 - `components/DiagramPage.vue` is the page; `components/DiagramEmbed.vue` the compact preview embedded in documents (`![Sign-in flow](./sign-in-flow.mermaid)` on its own line) and on canvases. Both read the file with `useArtifactText` (the dev server's file service locally, the shipped text on the deployed site) and draw it with the shared `app/components/MermaidDiagram.vue`.
+- `types/diagram/diagramSurface.ts` is the page's [artifact surface](../../../app/utils/artifactSurface.ts), and `types/diagram/anchors.ts` the rules it names and finds targets by (see [The surface](#the-surface)).
 - `skills/create-diagram/` tells agents how to write diagrams, and when a fence in a document fits better.
 
 ## How a diagram draws
@@ -25,3 +26,12 @@ Saving the file draws the new diagram in place, without reloading the page, and 
 In a document, a preview sits in the shared embed frame: as wide as the text, between 220 and 440 px tall, the whole diagram scaled to fit, with a header naming it that opens its page ("Open <name>"). On a canvas the same preview fills the item below its header (the Canvases README, "Items").
 
 A diagram names no other files, so it has no reference adapter. A document that embeds or links it is updated when the diagram is renamed or moved (the Documents module's `references.ts`; the prototypes README, "References follow renames and moves").
+
+## The surface
+
+The page offers tools drawn over it (such as comments) an [artifact surface](../../../app/utils/artifactSurface.ts) through `useArtifactSurfaceProvider`. It knows nothing about comments and works on the SVG Mermaid drew in the studio's own DOM (`diagramSurface.ts`).
+
+- **Targets.** A point is over a step (`g.node`), an arrow (its line, within 4 px, or its label) or a group (a subgraph, `g.cluster`). Its anchor records `kind` (`step`, `arrow`, `group`), `label` (`Step "Under 18?"`, `Arrow "Sign in" → "Home"`, `Group "Team area"`) and `mermaid`, the ID in the source: the step's or subgraph's ID, or `<from> --> <to>` for an arrow (with ` (2)` and on for a second arrow between the same steps). Mermaid numbers drawn elements in drawing order, so the ID is read out of the element's own ID without that number (`anchors.ts`). Anywhere else on the drawing is an empty spot, `{ kind: 'spot', label: 'Empty spot' }`, its `at` a point as fractions of the drawing's own area (its view box), so it keeps its place in the drawing whatever the page's size.
+- **Finding a target again** after every redraw (`anchors.ts`, unit-tested): by its Mermaid ID among elements of its kind, then by its label, so reordered or restyled steps keep their comments, and a renamed ID with the same label does too. A spot is there while the diagram draws.
+- **Where things are.** Positions are in the window's coordinates, sampled each animation frame while a tool listens (`sampledChanges` in `app/utils/domSurface.ts`), so pins follow resizes and redraws. The drawing fits its page, so revealing a target does nothing.
+- **Taking the pointer** (`interceptElement`): capture listeners on the page's element and a crosshair cursor, removed when the tool lets go. A diagram has no text to select.

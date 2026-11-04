@@ -7,6 +7,7 @@ A `.md` file in a prototype is a document: a written page read in the studio's o
 - `types/document/check.ts` reports frontmatter that is never closed and a `toc` that isn't `true` or `false`; the audit and the build stop on them.
 - `types/document/template.ts` is a new document: its `title` and the line "This document is empty. Ask your agent to write it: describe what it’s for and who will read it." The studio adds `studioId` when it writes the file.
 - `types/document/DocumentPage.vue` is the page. It reads the file's text (`useArtifactText`: the dev server's file service locally, the file the build ships on the deployed site), parses it and shows it with the shared reader.
+- `types/document/documentSurface.ts` is the page's [artifact surface](../../../app/utils/artifactSurface.ts), and `types/document/anchors.ts` the rules it finds targets again by (see [The surface](#the-surface)).
 - `skills/write-document/` tells agents how to write documents.
 
 ## Writing a document
@@ -72,6 +73,16 @@ A preview that crashes says "This preview could not render. Open the file to ins
 ## Live updates and errors
 
 Saving a document updates every open reader in place, without reloading the page: the file service tells open pages which files changed (`studio:source`), and the page reads the file again. While the newer text is on its way for more than 200 ms, a notice says "This document is out of date. Updating document…". A document that can't be read (frontmatter that isn't valid YAML, a part that crashes) shows "This page couldn’t load. Copy the error and give it to your agent." with the error and "Copy error", and reads again once the file is fixed. The page carries `data-document-state` (`loading`, `ready`, `error`) and `data-document-freshness` (`current`, `stale`) for agents and browser tools.
+
+## The surface
+
+The page offers tools drawn over it (such as comments) an [artifact surface](../../../app/utils/artifactSurface.ts) through `useArtifactSurfaceProvider`. It knows nothing about comments. The reader is in the studio's own DOM, so the surface reads it directly (`documentSurface.ts`); its anchors are JSON the tool stores and hands back.
+
+- **Blocks.** A point is over a block: a heading, a paragraph, a list item, a table row, a code block, a Mermaid fence (`diagram`) or an embed, the most specific first (a paragraph in a list item is the list item; anything in an embed is the embed, commented on as a whole). Its anchor records `block` (the kind), `text` (squashed and clipped; a table row's cells joined with " · "; an embed's caption), `heading` and `headingId` (the nearest heading at or before it, and its anchor), `index` (its place among blocks of its kind under that heading) and, for an embed, `embed` (the reference as written, `./Home.vue`). Labels read `Heading "Goals"`, `Table row "Sign in · Ada"`, `Embed "Home screen"`.
+- **Quotes.** `selection()` turns selected text in the article into a text-quote selector: `quote` (the exact words), `prefix` and `suffix` (up to 32 characters either side), over the article's text flattened with whitespace squashed and a space between blocks. It also records the block the selection starts in, labelled `Text in "<heading>"`, with the pin at the selection's end.
+- **Finding a target again** (`anchors.ts`, unit-tested) after every render: a quote by its words, the occurrence whose surroundings match `prefix` and `suffix` best, so text added or changed before it doesn't lose it; then by its block. A block by its kind and text (an embed by its `embed` reference, whatever its caption), the same heading first, then the nearest place under it. A block whose text changed is not found ("Target not found" in the tool).
+- **Where things are.** Positions are in the window's coordinates; a target outside the reader's scrolling area is off screen. Changes are sampled each animation frame while a tool listens (`sampledChanges` in `app/utils/domSurface.ts`), so pins follow scrolling, resizing and re-renders with no listener on the reader. Revealing a target scrolls it to the middle (without animation under reduced motion).
+- **Taking the pointer** (`interceptElement`): capture listeners on the page's element stop presses, clicks and links, and finishing a text selection is a press for the tool. Text can still be selected; links and controls keep their focus. Embedded frames stop taking the pointer meanwhile, and one style sets the crosshair cursor. All of it goes when the tool lets go.
 
 ## On the deployed site
 

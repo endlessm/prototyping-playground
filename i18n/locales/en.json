@@ -947,6 +947,10 @@
     },
     "hint": "Click anything to comment. Press {key} to stop.",
     "hintQuote": "Click anything to comment. Select text to quote it. Press {key} to stop.",
+    "selection": {
+      "label": "Comment",
+      "aria": "Comment on the selected text"
+    },
     "kinds": {
       "view": "view",
       "document": "document",

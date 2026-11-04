@@ -252,6 +252,106 @@ Reopen with \`yarn comments reopen <id>\`, or reply with \`yarn comments reply <
     ).toMatch(/^## Comment 2 on View "1 View"\n\nFile: /)
   })
 
+  test('[CM-47] a document names the heading, the quote and the embed; a diagram the Mermaid ID', () => {
+    const quoted = thread(
+      'd0c0000000000001',
+      {
+        kind: 'text',
+        label: 'Text in "Goals"',
+        quote: 'the class link',
+        prefix: 'Teachers expect ',
+        suffix: ' before they',
+        block: 'paragraph',
+        heading: 'Goals',
+        headingId: 'goals',
+        index: 0,
+        text: 'Teachers expect the class link before they invite anyone.',
+      },
+      [[{ contributor: ADA }, 'Three of five, or all five?']],
+    )
+    const embed = thread(
+      'd0c0000000000002',
+      {
+        kind: 'embed',
+        label: 'Embed "Home screen"',
+        block: 'embed',
+        heading: 'Screens',
+        headingId: 'screens',
+        index: 0,
+        text: 'Home screen',
+        embed: './Home.vue',
+      },
+      [[{ contributor: ADA }, 'This screen misses the menu.']],
+    )
+    const document = agentText(
+      [
+        {
+          type: 'document',
+          title: 'Brief',
+          file: 'src/prototypes/ada/notes/Brief.md',
+          address: '/prototypes/d0c5000000000001/artifacts/d0c5000000000002',
+          threads: [quoted, embed],
+          numbers: new Map([
+            [quoted.id, 1],
+            [embed.id, 2],
+          ]),
+          missing: new Set([embed.id]),
+        },
+      ],
+      { name },
+    )
+    expect(document).toContain(`### 1. Text in "Goals" · d0c0000000000001
+Heading: Goals
+Quote: "the class link"
+- Ada Lovelace: Three of five, or all five?`)
+    // Gone: its stored place would mislead.
+    expect(document).toContain(`### 2. Embed "Home screen" · d0c0000000000002
+Target not found: it was removed or changed since.
+- Ada Lovelace: This screen misses the menu.`)
+
+    const step = thread(
+      'd1a0000000000001',
+      {
+        kind: 'step',
+        label: 'Step "Under 18?"',
+        mermaid: 'age',
+      },
+      [[{ contributor: ADA }, 'Where does the consent email go?']],
+    )
+    const arrow = thread(
+      'd1a0000000000002',
+      {
+        kind: 'arrow',
+        label: 'Arrow "Sign in" → "Under 18?"',
+        mermaid: 'start --> age',
+      },
+      [[{ contributor: ADA }, 'Dashed, maybe?']],
+    )
+    const diagram = agentText(
+      [
+        {
+          type: 'diagram',
+          title: 'Sign-in',
+          file: 'src/prototypes/ada/flows/Sign-in.mermaid',
+          address: '/prototypes/d1a6000000000001/artifacts/d1a6000000000002',
+          threads: [step, arrow],
+          numbers: new Map([
+            [step.id, 1],
+            [arrow.id, 2],
+          ]),
+        },
+      ],
+      { name },
+    )
+    expect(diagram).toContain(`### 1. Step "Under 18?" · d1a0000000000001
+Mermaid ID: age
+- Ada Lovelace: Where does the consent email go?`)
+    expect(diagram)
+      .toContain(`### 2. Arrow "Sign in" → "Under 18?" · d1a0000000000002
+Mermaid ID: start --> age
+`)
+  })
+
   test('nothing to list is no text', () => {
     expect(agentText([{ ...view, threads: [] }], { name })).toBe('')
   })

@@ -10,6 +10,7 @@ import type {
   SurfaceAnchor,
   SurfaceLocation,
   SurfacePoint,
+  SurfaceTarget,
 } from '../../../../app/utils/artifactSurface'
 import {
   commentShortcut,
@@ -95,6 +96,8 @@ const openId = computed<string | null>({
 })
 const draft = shallowRef<{ anchor: Anchor; label: string } | null>(null)
 const draftText = ref('')
+// Text selected while reading, offered for a comment.
+const offer = shallowRef<SurfaceTarget | null>(null)
 const replyText = ref('')
 const busy = ref(false)
 // The thread whose target is brought into view once the page shows it:
@@ -177,6 +180,7 @@ const elsewhere = (thread: CommentThread) =>
 
 // --- Where things are, in the overlay's own coordinates.
 const DRAFT = '\0draft'
+const OFFER = '\0offer'
 const places = shallowRef<Record<string, SurfaceLocation>>({})
 const hover = shallowRef<{
   left: number
@@ -199,6 +203,7 @@ function measure() {
     next[thread.id] = surface.locate(thread.anchor as SurfaceAnchor)
   if (draft.value && draft.value.anchor.kind !== 'artifact')
     next[DRAFT] = surface.locate(draft.value.anchor as SurfaceAnchor)
+  if (offer.value) next[OFFER] = surface.locate(offer.value.anchor)
   const wanted = revealing.value ? next[revealing.value] : undefined
   if (wanted && wanted.state !== 'missing') {
     const thread = pinned.value.find(({ id }) => id === revealing.value)
@@ -249,6 +254,7 @@ watchEffect((onCleanup) => {
     !(
       commenting.value ||
       draft.value ||
+      offer.value ||
       placed.value.length ||
       listOpen.value ||
       revealing.value
@@ -293,11 +299,35 @@ watchEffect((onCleanup) => {
 // Selected text is quoted; otherwise a press is about what is under it.
 function begin(point: SurfacePoint) {
   const target = props.surface?.selection?.() ?? props.surface?.targetAt(point)
-  if (!target) return
+  if (target) start(target)
+}
+
+function start(target: SurfaceTarget) {
+  offer.value = null
   openId.value = null
   draftText.value = ''
   draft.value = { anchor: target.anchor, label: target.label }
 }
+
+// Reading, with comment mode off: text selected in the page offers
+// "Comment" beside it, once the selection is made (pointer or keys up).
+function offerSelection() {
+  const surface = props.surface
+  offer.value =
+    (surface?.selection &&
+      !commenting.value &&
+      !draft.value &&
+      !readOnly.value &&
+      surface.selection()) ||
+    null
+}
+const offerLater = () => setTimeout(offerSelection)
+useEventListener(document, 'mouseup', offerLater)
+useEventListener(document, 'keyup', offerLater)
+useEventListener(document, 'selectionchange', () => {
+  if (offer.value && window.getSelection()?.isCollapsed) offer.value = null
+})
+watch(commenting, () => (offer.value = null))
 
 /** A comment on the whole file: listed, with no pin. */
 function whole() {
@@ -503,10 +533,16 @@ useEventListener(window, 'keydown', (event: KeyboardEvent) => {
   }
   // Esc is the tool's only from the tool, the page or nowhere in particular,
   // and never while another dialog or menu of the studio is open.
+  // The page's own content is in the studio's document for some types, so
+  // focus may rest on the page or an element around it.
+  const page = props.surface?.element
   const fromPage =
     event.target === document.body ||
     (event.target instanceof Node &&
-      Boolean(props.surface?.element.contains(event.target)))
+      Boolean(
+        page &&
+        (page.contains(event.target) || (event.target as Node).contains(page)),
+      ))
   const otherOverlay = document.querySelector(
     '[role="dialog"]:not([data-comment-ui]),[role="alertdialog"],[role="menu"]',
   )
@@ -557,6 +593,9 @@ const missingIds = computed(
     ),
 )
 const draftPlace = computed(() => inOverlay(places.value[DRAFT]))
+const offerPlace = computed(() =>
+  offer.value ? inOverlay(places.value[OFFER]) : null,
+)
 const currentPlace = computed(() =>
   current.value ? inOverlay(places.value[current.value.id]) : null,
 )
@@ -610,6 +649,26 @@ const missing = computed(
       :style="{ left: `${draftPlace.x}px`, top: `${draftPlace.y}px` }"
       >{{ familyThreads.length + 1 }}</span
     >
+
+    <!-- Selected text while reading: comment on it. -->
+    <UButton
+      v-if="offer && offerPlace?.shown"
+      data-comment-ui
+      data-comment-selection
+      icon="i-lucide-message-square-plus"
+      :label="t('comments.selection.label')"
+      :aria-label="t('comments.selection.aria')"
+      color="neutral"
+      variant="solid"
+      size="sm"
+      class="pointer-events-auto absolute -translate-x-1/2 rounded-full shadow-lg"
+      :style="{
+        left: `${offerPlace.x}px`,
+        top: `${Math.max(8, offerPlace.y - 44)}px`,
+      }"
+      @mousedown.prevent
+      @click="start(offer)"
+    />
 
     <CommentComposer
       v-if="draft"

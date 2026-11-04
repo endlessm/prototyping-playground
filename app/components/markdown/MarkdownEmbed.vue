@@ -19,7 +19,13 @@ const resolution = computed(() => resolve(props.source ?? '', 'required'))
 </script>
 
 <template>
-  <figure ref="figure" class="my-6 min-w-0">
+  <!-- `data-embed` names what it embeds, for tools over the page. -->
+  <figure
+    ref="figure"
+    class="my-6 min-w-0"
+    :data-embed="source"
+    :data-embed-label="label"
+  >
     <ArtifactEmbed
       v-if="origin && resolution && width > 0"
       :prototype="origin.prototype"

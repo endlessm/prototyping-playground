@@ -50,7 +50,13 @@ const KINDS: Record<string, string> = {
  * left out.
  */
 const LOCATORS: [field: string, name: string, quoted?: true][] = [
+  // A view element's.
   ['path', 'Path'],
+  // A document block's (or a quote's) nearest heading, and an embed's file.
+  ['heading', 'Heading'],
+  ['embed', 'Embed'],
+  // A diagram step's, arrow's or group's ID in the Mermaid source.
+  ['mermaid', 'Mermaid ID'],
   ['quote', 'Quote', true],
 ]
 
