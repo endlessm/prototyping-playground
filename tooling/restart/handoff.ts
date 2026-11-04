@@ -11,7 +11,6 @@
 // (`./kinds.ts`), carried beside it as JSON.
 import {
   handoffKinds,
-  type ConfirmationStyle,
   type HandoffKind,
   type HandoffKinds,
   type HandoffText,
@@ -89,8 +88,8 @@ export interface HandoffEnvironment {
 export interface HandoffApplication {
   /** The dev server its code came from; '' when it can't tell. */
   codeServer: string
-  /** Shows a confirmation in the style its kind of change asks for. */
-  confirm(confirmation: string, style: ConfirmationStyle): void
+  /** Shows a confirmation. */
+  confirm(confirmation: string): void
 }
 
 export interface RestartHandoff {
@@ -324,9 +323,7 @@ export function restartHandoff(
 
   function finish(pending: PendingHandoff) {
     stop()
-    const style = setup.kinds[pending.kind]?.confirmAs
-    if (pending.confirmation && style)
-      application?.confirm(pending.confirmation, style)
+    if (pending.confirmation) application?.confirm(pending.confirmation)
   }
 
   // The finish rule: the tab finishes only on a page whose document and

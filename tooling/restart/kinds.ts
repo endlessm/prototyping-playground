@@ -54,12 +54,7 @@ export interface HandoffKindSetup {
   css: string
   /** How long the screen fades when it lifts, as its CSS says, in ms. */
   fade: number
-  /** How the application shows this kind's confirmation. */
-  confirmAs: ConfirmationStyle
 }
-
-/** `notice`: a plain toast. `success`: the studio's success toast. */
-export type ConfirmationStyle = 'notice' | 'success'
 
 export type HandoffKinds = Record<HandoffKind, HandoffKindSetup>
 
@@ -85,8 +80,6 @@ export function handoffKinds(text: HandoffText): HandoffKinds {
       reload: text.restart.reload,
       css: RESTART_CSS,
       fade: 150,
-      // "Settings saved" has always been a plain notice.
-      confirmAs: 'notice',
     },
     system: {
       title: '',
@@ -103,7 +96,6 @@ export function handoffKinds(text: HandoffText): HandoffKinds {
       reload: text.system.reload,
       css: SYSTEM_CSS,
       fade: 160,
-      confirmAs: 'success',
     },
   }
 }
