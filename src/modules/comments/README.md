@@ -161,4 +161,4 @@ Each refusal is a sentence saying what to do, and the page (as an error toast, o
 
 The deployed site gets no tool, no handler and no thread: the build data is empty and the tool list is empty in the build. The tool's interface strings sit in the shared locale file with every module's, so they ship; threads never do.
 
-Turning the module off removes the tool and the command's place in the studio; thread files stay on disk.
+Turning the module off removes the tool, its handler, its build data and the skill's route in `AGENTS.md`. Thread files stay on disk, and the platform still carries, skips and counts them with the prototype. `yarn comments` is a package script and doesn't check whether the module is on, so it still reads and writes them.

@@ -17,11 +17,11 @@ flowchart TB
   site --> viewers[Reviewers and teammates]
 ```
 
-| Local studio                     | Deployed studio                                |
-| -------------------------------- | ---------------------------------------------- |
-| Create, edit and organize files. | Explore prototypes and interact with views.    |
-| See changes as they are saved.   | See changes after the next build.              |
-| Work with your agent.            | Read only: no editing, no source, no settings. |
+| Local studio                     | Deployed studio                                             |
+| -------------------------------- | ----------------------------------------------------------- |
+| Create, edit and organize files. | Explore prototypes and interact with views.                 |
+| See changes as they are saved.   | See changes after the next build.                           |
+| Work with your agent.            | Read only: no editing, no source, no settings, no comments. |
 
 Saving doesn't publish, and neither does merging. Sharing files through Git is a [separate step](team.md#how-do-changes-reach-the-team).
 
@@ -38,6 +38,8 @@ After publishing, open a direct link to a prototype and reload the page. Copy li
 ## What becomes visible?
 
 The deployed studio has active prototypes, active systems with their pages, context and skills, the Manual while it's on, and Context & Skills. Archived prototypes and systems are left out; links to them show a placeholder. Turning a module off leaves its files out of view. Contributors' emails and preferences are never included.
+
+Comments stay in your local studio. The deployed studio has no comment tool and shows no comments, open or resolved, although they are files in the prototypes it is built from.
 
 Review sample data, documents and shared guidance before publishing. The studio has no sign-in: anyone with the address can see the site, unless the host restricts it.
 
@@ -57,7 +59,7 @@ Admins change the studio's name and tagline in **Settings**; they show on the de
 
 ## How do I share with reviewers and engineers?
 
-Share a deployed studio link when people want to explore the experience and give feedback. Links to prototypes, views, states, documents and canvases use permanent IDs, so they keep working after renames and moves. Deleting, archiving or turning off a module can make a link's target unavailable.
+Share a deployed studio link when people want to explore the experience. They can't comment there, so they give feedback some other way; teammates who run the studio can comment on the prototype itself (see [Working as a team](team.md#who-can-comment)). Links to prototypes, views, states, documents and canvases use permanent IDs, so they keep working after renames and moves. Deleting, archiving or turning off a module can make a link's target unavailable.
 
 Engineers who want the code can pull the repository and open the prototype in its contributor's folder. Views are Vue files that use Endless Studios' own components, so the code reads like the app's. Documents, diagrams and canvases are plain text beside them.
 

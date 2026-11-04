@@ -27,11 +27,25 @@ You don't need a formal brief. Start with what you know and let the agent ask ab
 
 ## How do I show the agent what I mean?
 
-Open the studio in your agent's browser or preview. Point at the part you want changed with its annotation or element-selection tools, then describe the result you want:
+Comment on it. While the Comments module is on, every view, document, diagram and canvas page in your local studio has a small toolbar in its bottom-right corner. Choose **Comment**, or press **Ctrl+Alt+M** (**⌥⌘M** on a Mac), then click the part you mean and write what should change:
 
-> Make this panel match the spacing of the panel above it. Keep its fields and behavior.
+> Match the spacing of the panel above. Keep its fields and behavior.
 
-The pointer says where; your words say what. Name the view and the state when the problem depends on them. A screenshot works when your agent has no browser tools.
+The comment says where; your words say what. Then ask your agent to address the comments on the prototype. It lists them with `yarn comments`, which names each comment's file, its target as the agent finds it in code (an element, a quoted sentence, a diagram step, a canvas note) and the view's state, so you don't need to describe where things are. It replies in the thread with what it changed, and leaves the comment open for you to check.
+
+### How does commenting work?
+
+- **Comment mode.** Hovering outlines what a click would comment on, with its name. Clicks don't press buttons, follow links or move anything on a canvas. In a view or a document, select text to quote it. While reading a document, selecting text also offers a **Comment** button beside it. **Esc** cancels a draft, then closes a comment, then leaves comment mode.
+- **Pins.** Each comment becomes a numbered pin that stays on its target as you scroll, pan or zoom, and as the file changes. **Hide comments** hides the pins. A comment made on one of a view's named states is pinned only on that state; the list shows every state's.
+- **All comments** lists the file's comments under **Open** and **Resolved**, with a count of open ones. Choose one to bring its target into view and open it. **Comment on the whole view** (or document, diagram, canvas) leaves a comment without pointing at anything, and the list works from the keyboard alone.
+- **A comment** holds the conversation: **Reply**, **Resolve** and **Reopen**. Its **…** menu has **Copy link**, which opens that comment for whoever follows it. Your agent's replies show as "<your first name>'s agent", with an **Agent** badge.
+- **Target not found** means the part a comment was on was removed or changed. The comment stays listed, and its pin comes back if the part does.
+
+Open pages show your agent's replies and resolutions as they happen, without a reload.
+
+Your agent resolves a comment only when you ask; otherwise resolve it yourself once the change holds. When your agent works somewhere that can't run `yarn comments`, choose **Copy for agent**: it copies the open comments of the file in front of you as the same text, ready to paste.
+
+Your agent's browser or preview tools are another way to point, and a screenshot works too, but neither is kept beside the work the way comments are. Name the view and the state when the problem depends on them.
 
 You can also draw on a canvas: arrange views and sketch over them, then ask the agent to read the canvas. Canvas notes never change a view by themselves. The agent can lay out a canvas for you too, such as every state of a view side by side; when it works in the canvas you have open, you see each change as it happens and can undo it like your own.
 
@@ -48,7 +62,7 @@ What you can change depends on your permissions and the modules that are on. See
 
 ## How do I review and refine work?
 
-Try the views and their states, then say what should change and what should stay. Point at a view or a state by its link: links survive renames and moves.
+Try the views and their states, then say what should change and what should stay: in comments, or by pointing at a view or a state by its link. Links survive renames and moves, and so do comments.
 
 Ask the agent to keep the current version when you want to try an alternative. A duplicate is useful for comparing side by side; a commit records a version you can return to.
 

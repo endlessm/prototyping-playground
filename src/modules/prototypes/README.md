@@ -184,7 +184,7 @@ A path may keep its extension, `?query` and `#anchor`. An unknown or ambiguous p
 - A link to a studio address opens it in the studio (the preview document sends `navigate`), so history, Back and Forward and the highlighted row stay right. Opened alone in a tab, the document shows its own views in place, with its own history.
 - `#anchors` scroll inside the view, without a history entry.
 - Other `http(s)` addresses open in a new tab. Modified clicks (⌘ or Ctrl, Shift, Alt), downloads, links with a `target` and links a view handles itself are the browser's.
-- The studio's shortcuts (⌘K, ⌘;, ⌘' and ⌘⇧') pressed in a view reach the studio, except while typing in a field there; ⌘' and ⌘⇧' are left alone while a dialog or menu is open in the view, and a view may handle ⌘K first.
+- The studio's shortcuts (⌘K, ⌘;, ⌘', ⌘⇧' and the comment shortcut, ⌥⌘M or Ctrl+Alt+M) pressed in a view reach the studio, except while typing in a field there; ⌘' and ⌘⇧' are left alone while a dialog or menu is open in the view, and a view may handle ⌘K first.
 
 ## Lo-fi
 
@@ -257,6 +257,17 @@ A document embeds a view, or a view's named state, of its own prototype by linki
 
 A file type gives documents and canvases a preview by declaring `embed` (a Vue component taking `prototype`, `artifact`, `width` and `height`) and an `icon` for its cards; without `embed` it shows as a card. `embedIn` names the surfaces the preview shows on (`document`, `canvas`; both when left out), so a type can preview in documents and show as a card on canvases. Views and diagrams name both; canvases name only `document`, so a canvas on another canvas stays a card. `embedPending` names a small component, bundled with the studio, that shows while the preview loads, so the loading looks like the preview's own opening; it and the preview get `startedAt`, when loading began (canvases use it; without one, "Loading preview…" shows). A preview that settles marks it (`data-preview-state` or `data-diagram-state` `ready`/`error`, or `role="alert"`), which a canvas's opening waits for.
 
+## The surface
+
+A view's page offers tools drawn over it (such as comments) an [artifact surface](../../../app/utils/artifactSurface.ts) through `useArtifactSurfaceProvider`, from `ViewPreview.vue` once its frame exists. It knows nothing about comments. The preview document is same-origin, so the surface (`types/view/viewSurface.ts`) reads its DOM from the studio side, and tools draw in the studio's own overlay, never in the document.
+
+- **Targets.** A point is over the element under it in the document, or what a press there is really about: the button, link or other control around it, or a whole SVG drawing. Its anchor records `selector`, `tag`, `path`, `text` and `box`, labelled by kind and text (`Button "Invite students"`). `selection()` turns text selected in the view into the element holding all of it, with the words as `quote`.
+- **Finding a target again** on every render: by the selector, then by the same tag with the same text, so a hot update keeps it.
+- **Where things are.** Positions are sampled each animation frame while a tool listens, with no listener in the document, so tools follow the view's own scrolling, resizes and hot updates. Revealing a target scrolls it into view (without animation under reduced motion).
+- **Taking the pointer.** Only then does the document get anything: capture listeners on its window that stop presses, clicks and submits, and one style for the crosshair cursor, all removed after.
+
+The comments module's README ("The anchor", "Hard parts") has the anchor's fields and why each choice was made.
+
 ## The preview channel
 
 The studio and a preview document talk over a versioned, validated message channel (`tooling/preview/protocol.ts`, channel `studio-preview`, version 1). The frame's address carries the first artifact and a `session` the studio chose for the frame; later views travel by message, so the frame stays while the person moves between views of the prototype.
@@ -267,7 +278,7 @@ The studio and a preview document talk over a versioned, validated message chann
 | `configure` | studio   | Show this artifact. The document keeps the outgoing view on screen, inert, until the next is ready, and updates its own address.                                                        |
 | `status`    | document | `loading`, `ready`, `error` (with the detail) or `empty`, numbered by render attempt.                                                                                                   |
 | `navigate`  | document | Open this studio address (a path on the studio's origin with its base path), optionally replacing the history entry. Sent for links and `usePrototypeNavigate` in the view.             |
-| `shortcut`  | document | One of the studio's shortcuts was pressed in the view: `palette`, `navigation`, `source` or `grid`. The studio handles it as if pressed in its own window.                              |
+| `shortcut`  | document | One of the studio's shortcuts was pressed in the view: `palette`, `navigation`, `source`, `grid` or `comment`. The studio handles it as if pressed in its own window.                   |
 | `lifecycle` | document | Development only: whether the shown output matches the saved source: `current`, `updating`, `error` (the latest change failed to compile or render, with the detail) or `disconnected`. |
 
 The studio accepts only messages from its own frame, session and current runtime about the open artifact; the document accepts `configure` only from its parent with its session and runtime.

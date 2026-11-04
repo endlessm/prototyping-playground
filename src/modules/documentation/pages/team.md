@@ -21,7 +21,13 @@ There is no live co-editing: the studio doesn't sync between people while they w
 
 Maintaining is assigned per system. Open **Contributors** to see who is registered and what each person can do; Admins grant and remove roles there.
 
-Admins can duplicate a colleague's prototype to start from it. Everyone else can read other people's work but not change it. Archived systems must be restored before anyone edits them.
+Admins can duplicate a colleague's prototype to start from it. Everyone else can read other people's work but not change it, apart from commenting on it. Archived systems must be restored before anyone edits them.
+
+### Who can comment?
+
+Anyone registered can comment on any prototype, a colleague's included, and reply to, resolve and reopen its comments. You can edit or delete your own messages, and your agent's. A whole comment, with its replies, is deleted by whoever started it or by an Admin. The first message is the comment itself, so it goes with the comment rather than on its own.
+
+Comments on an archived prototype are read-only until it is restored. Someone who isn't registered yet can read comments; **Comment** shows **Read-only** with the reason and a link to [How do I join the team?](environment.md#how-do-i-join-the-team).
 
 These permissions guide the studio and its checks. They don't sign anyone in, grant GitHub access or control who can see a deployed studio.
 
@@ -35,7 +41,9 @@ If someone's Git email changes, they add the new one to their profile with `yarn
 
 Each contributor has a folder of their own for prototypes. The agent finds out who you are and keeps your prototype work inside your folder. Prototypes are separate explorations: changing one never changes another's files.
 
-The studio checks ownership when you save. Checks also refuse a prototype that imports another contributor's code, or code it isn't allowed to reach. Shared systems, modules and the studio itself need a broader review, because everyone's work depends on them.
+The studio checks ownership when you save. Checks also refuse a prototype that imports another contributor's code, or code it isn't allowed to reach.
+
+Comments are files kept inside their prototype, in a hidden `.comments` folder, so they travel with it: renaming, moving, archiving and restoring the prototype keep them, and a duplicate starts without them. Because that folder is open to everyone registered, committing your comments on a colleague's prototype passes the ownership checks without an Admin, while the rest of their prototype stays theirs. Shared systems, modules and the studio itself need a broader review, because everyone's work depends on them.
 
 ## How do changes reach the team?
 
@@ -68,4 +76,6 @@ No. Merge small changes to your own prototypes often; merging records progress, 
 
 ## How do I involve reviewers and engineers?
 
-Share a link for review: see [Publishing & Home](share.md#how-do-i-share-with-reviewers-and-engineers). Engineers can also pull the repository and read a prototype's source and documents directly.
+Teammates who run the studio can review a prototype where the work is, with comments; see [Working with your agent](agent.md#how-does-commenting-work). Their comments reach you like any other change: once they are merged into main and you pull.
+
+For people who only look, share a link: see [Publishing & Home](share.md#how-do-i-share-with-reviewers-and-engineers). Engineers can also pull the repository and read a prototype's source and documents directly.

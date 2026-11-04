@@ -24,6 +24,6 @@ People review prototypes in the studio but have nowhere there to say what should
 ## Consequences
 
 - Comments show up in prototype diffs and pull requests, as small JSON files.
-- The scope check, renames, duplicating, archiving and deleting must honour the comments folder (later tickets).
-- Each file type that wants pins implements the artifact surface. A page without one still gets comments on the whole artifact.
+- The scope check, renames, moves, duplicating, archiving and deleting honour the comments folder without naming it: the module declares it as its `prototypeFolder`, and the platform handles every module's the same way.
+- Each file type that wants pins implements the artifact surface. Views, documents, diagrams and canvases do; a page without one gets no comment tool, so the tool never covers controls it doesn't know about.
 - Nothing is commented on the deployed site.

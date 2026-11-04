@@ -27,7 +27,7 @@ Keep each point to a sentence or two, and only what helps now:
 - The studio is the Endless team's prototyping sandbox: they describe an idea, you build it as a working prototype, and the team tries it in the studio.
 - Prototypes start from Endless Studios' own screens and components, so they look and behave like the product, with sample data instead of real accounts.
 - A canvas puts views, documents and notes side by side; they can draw over a view to show you what to change.
-- To ask you for something, say what to explore, for whom and from which screen. They can point at a part of the page in their agent's browser, or share a screenshot.
+- To ask you for something, say what to explore, for whom and from which screen. To show you which part they mean, they comment on it in the studio (**Comment** on the page, while Comments is on) and ask you to address the comments; pointing in their agent's browser or a screenshot works too.
 - The Manual (while it's on) explains the rest: point to [Working with your agent](../../../documentation/pages/agent.md) and [Prototypes & systems](../../../documentation/pages/prototypes.md).
 
 ## The welcome
