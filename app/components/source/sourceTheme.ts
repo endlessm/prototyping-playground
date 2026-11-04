@@ -6,15 +6,14 @@
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language'
 import { EditorView } from '@codemirror/view'
 import { tags as t } from '@lezer/highlight'
-import { contentPalette, type ContentMode } from '../../utils/contentPalette'
+import { contentPalette } from '../../utils/contentPalette'
 
-const palette = (mode: ContentMode) =>
-  Object.fromEntries(
-    Object.entries(contentPalette[mode]).map(([name, color]) => [
-      `--fx-${name}`,
-      color,
-    ]),
-  )
+const palette = Object.fromEntries(
+  Object.entries(contentPalette).map(([name, color]) => [
+    `--fx-${name}`,
+    color,
+  ]),
+)
 
 // The search and go-to-line panels share their styles.
 const panels = (rest: string) =>
@@ -36,14 +35,12 @@ const control = {
 
 const layout = EditorView.theme({
   '&': {
-    ...palette('light'),
+    ...palette,
     height: '100%',
     backgroundColor: 'var(--ui-bg)',
     color: 'var(--ui-text)',
     fontSize: '13px',
   },
-  // Native controls (the search panel's checkboxes) follow dark mode.
-  '.dark &': { ...palette('dark'), colorScheme: 'dark' },
   '&.cm-focused': { outline: 'none' },
   '.cm-scroller': {
     fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',

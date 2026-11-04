@@ -1,6 +1,6 @@
 // Diagrams: a designer writes Mermaid in a `.mermaid` or `.mmd` file of a
-// prototype and sees it drawn filling the page, in the studio's colours for
-// the colour mode, updating as the file is saved, with Mermaid's message
+// prototype and sees it drawn filling the page, in the studio's light
+// colours whatever the computer's colour scheme, updating as the file is saved, with Mermaid's message
 // when the text is wrong. Documents embed it as a compact preview. The
 // deployed site draws the same diagrams, read-only. The studio runs as Ada,
 // who owns the fixture prototype, on a disposable copy inside the checkout.
@@ -117,7 +117,7 @@ describe('in the studio running locally', { timeout: 150_000 }, () => {
     return page
   }
 
-  test('[PR-117] [PR-118] a .mermaid file opens as a diagram filling the page, in the studio’s font, and draws again in dark mode', async () => {
+  test('[PR-117] [PR-118] a .mermaid file opens as a diagram filling the page, in the studio’s font, and stays light when the computer turns dark', async () => {
     reset()
     const page = await open(SIGN_IN)
     await ready(page)
@@ -147,10 +147,10 @@ describe('in the studio running locally', { timeout: 150_000 }, () => {
 
     const light = await svg.innerHTML()
     await page.emulateMedia({ colorScheme: 'dark' })
-    await expect
-      .poll(() => diagram(page).locator('svg').innerHTML(), { timeout: 30_000 })
-      .not.toBe(light)
+    // Nothing would announce a redraw, so give one time to start.
+    await page.waitForTimeout(1000)
     await ready(page)
+    expect(await diagram(page).locator('svg').innerHTML()).toBe(light)
   })
 
   test('[PR-117] a .mmd file opens as a diagram too', async () => {

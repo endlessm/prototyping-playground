@@ -130,9 +130,6 @@ export default defineNuxtConfig({
     '@shikijs/themes/studio-light': fileURLToPath(
       new URL('./app/markdown/code-theme-light.ts', import.meta.url),
     ),
-    '@shikijs/themes/studio-dark': fileURLToPath(
-      new URL('./app/markdown/code-theme-dark.ts', import.meta.url),
-    ),
   },
 
   modules: [
@@ -165,12 +162,8 @@ export default defineNuxtConfig({
     highlight: {
       // Highlighted in the browser: the deployed site has no server.
       noApiRoute: true,
-      // The studio's palette (`app/utils/contentPalette.ts`), by these names.
-      theme: {
-        default: 'studio-light',
-        light: 'studio-light',
-        dark: 'studio-dark',
-      },
+      // The studio's palette (`app/utils/contentPalette.ts`), light only.
+      theme: 'studio-light',
       langs: [
         'bash',
         'css',
