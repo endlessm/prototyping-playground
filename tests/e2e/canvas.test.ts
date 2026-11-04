@@ -635,8 +635,9 @@ describe('a canvas in the studio running locally', () => {
       .toBeGreaterThan(before)
   })
 
-  test('[CV-48] [CV-49] the editor follows the studio’s colour mode from the first paint, and live', async () => {
+  test('[CV-48] [CV-49] the editor stays light, even when the computer prefers dark', async () => {
     const page = await canvasPage()
+    await page.emulateMedia({ colorScheme: 'dark' })
     await page.addInitScript(() => {
       localStorage.setItem('design-studio:color-mode', 'dark')
       const seen: string[] = []
@@ -656,12 +657,7 @@ describe('a canvas in the studio running locally', () => {
       await page.evaluate(
         () => (window as unknown as { themes: string[] }).themes,
       ),
-    ).toEqual(['dark'])
-    await page.getByRole('button', { name: 'Color mode' }).click()
-    await page.getByRole('menuitemcheckbox', { name: 'Light' }).click()
-    await expect
-      .poll(() => page.locator('.excalidraw.theme--dark').count())
-      .toBe(0)
+    ).toEqual(['light'])
   })
 
   test('[CV-51] N adds a sticky note on your own canvas, as one undo step', async () => {

@@ -29,7 +29,6 @@ const props = defineProps<{
 
 const { t } = useI18n()
 const base = useRuntimeConfig().app.baseURL
-const colorMode = useColorMode()
 const artifacts = await usePrototypeArtifacts(() => props.prototype.id)
 
 const {
@@ -86,7 +85,6 @@ const editorProps = (): CanvasEditorProps => ({
   gridSize: scene.value!.gridSize,
   // A file from a newer format is never saved over.
   editable: editable.value && !scene.value!.tooNew,
-  dark: colorMode.value === 'dark',
   base,
   cameraKey: cameraKey(props.artifact.id),
   items: itemHost,
@@ -128,12 +126,6 @@ onMounted(async () => {
   if (!mountPoint.value) return
   island = module.mountCanvas(mountPoint.value, editorProps())
 })
-
-// The editor follows the studio's colour mode, live.
-watch(
-  () => colorMode.value,
-  () => island?.update(editorProps()),
-)
 
 onBeforeUnmount(() => {
   island?.unmount()

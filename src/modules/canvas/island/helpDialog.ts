@@ -10,7 +10,7 @@ export const UNSUPPORTED_SHORTCUTS = new Set([
   'Crop image',
   'Finish image cropping',
   'Reset the canvas', // wiping a canvas isn't offered
-  'Toggle light/dark theme', // the canvas follows the studio's colour mode
+  'Toggle light/dark theme', // the studio is light only
   'View mode', // set by the studio (a canvas you can't edit is read-only)
   'Command palette', // Excalidraw's isn't mounted; ⌘K is the studio's own
 ])

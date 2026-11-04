@@ -38,13 +38,11 @@
 /*
  * The app's theme for Excalidraw's UI: its accent, typography, and every control as a card-colored
  * island with the app's border and a light shadow, all 40px tall. Tokens come from Nuxt UI's
- * theme (--ui-primary, --ui-bg, --ui-border, --ui-radius), so both colour modes follow the studio.
+ * theme (--ui-primary, --ui-bg, --ui-border, --ui-radius). Excalidraw stays on its light theme.
  */
 .canvas .excalidraw,
-.canvas .excalidraw.theme--dark,
 /* Dialogs (Help, …) portal to <body>, outside the canvas wrapper. */
-.excalidraw.excalidraw-modal-container,
-.excalidraw.excalidraw-modal-container.theme--dark {
+.excalidraw.excalidraw-modal-container {
   --ui-font: var(--font-sans);
   --color-on-surface: var(--ui-text);
   --color-surface-lowest: var(--ui-bg);
@@ -114,12 +112,8 @@
   --color-slider-thumb: var(--ui-primary);
 }
 
-/* The search field's background is hard-coded (lavender in dark mode); use the app's muted color. */
-.canvas .excalidraw .layer-ui__search-header .ExcTextField__input,
-.canvas
-  .excalidraw.theme--dark.excalidraw
-  .layer-ui__search-header
-  .ExcTextField__input {
+/* The search field's background is hard-coded; use the app's muted color. */
+.canvas .excalidraw .layer-ui__search-header .ExcTextField__input {
   background-color: var(--ui-bg-muted);
 }
 .canvas

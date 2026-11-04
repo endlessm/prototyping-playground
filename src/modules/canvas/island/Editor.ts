@@ -104,7 +104,6 @@ export interface CanvasEditorProps {
   background: string
   gridSize: number | null
   editable: boolean
-  dark: boolean
   /** The app's address, for turning stored links into whole URLs. */
   base: string
   /** Where this browser remembers the camera. */
@@ -432,7 +431,7 @@ function useWheelOverTitleBars(
 }
 
 export function CanvasEditor(props: CanvasEditorProps) {
-  const { editable, dark, labels } = props
+  const { editable, labels } = props
   const container = useRef<HTMLDivElement>(null)
   const [api, setApi] = useState<ExcalidrawImperativeAPI | null>(null)
   const [itemsOnly, setItemsOnly] = useState(false)
@@ -475,7 +474,6 @@ export function CanvasEditor(props: CanvasEditorProps) {
     setInitialData({
       elements,
       appState: {
-        theme: dark ? 'dark' : 'light',
         viewBackgroundColor: props.background,
         gridSize: props.gridSize ?? undefined,
         currentItemFontFamily: FONT_FAMILY.Nunito,
@@ -601,7 +599,7 @@ export function CanvasEditor(props: CanvasEditorProps) {
           renderEmbeddable,
           UIOptions: UI_OPTIONS,
           viewModeEnabled: !editable,
-          theme: dark ? 'dark' : 'light',
+          theme: 'light',
         },
         h(CanvasMenu, {
           api,

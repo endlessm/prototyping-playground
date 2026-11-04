@@ -26,7 +26,6 @@ const props = defineProps<{
 
 const { t } = useI18n()
 const base = useRuntimeConfig().app.baseURL
-const colorMode = useColorMode()
 const artifacts = await usePrototypeArtifacts(() => props.prototype.id)
 const { items, host, resolve } = useCanvasItems({
   prototype: () => props.prototype,
@@ -51,7 +50,6 @@ let island:
   ReturnType<typeof import('../island/mount').mountPreview> | undefined
 const previewProps = (): CanvasPreviewProps => ({
   file: file.value!,
-  dark: colorMode.value === 'dark',
   base,
   width: props.width,
   height: props.height,
@@ -82,9 +80,9 @@ onMounted(async () => {
   island = module.mountPreview(mountPoint.value, previewProps())
 })
 
-// It follows the colour mode, its size and its file, live.
+// It follows its size and its file, live.
 watch(
-  () => [colorMode.value, props.width, props.height],
+  () => [props.width, props.height],
   () => island?.update(previewProps()),
 )
 if (import.meta.hot) {
