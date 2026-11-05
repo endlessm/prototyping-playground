@@ -1,0 +1,45 @@
+{
+  "formatVersion": 1,
+  "id": "nrwn4jzm6dyxa544",
+  "artifact": "hbwsxd9acgx0bq81",
+  "artifactTitle": "4.1 From a Link",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Cover\"",
+    "at": {
+      "x": 0.2818,
+      "y": 0.6354
+    },
+    "selector": "div:nth-of-type(3) > div:nth-of-type(2) > span",
+    "tag": "span",
+    "path": "._wizardBody_1hve7_689 > ._wizardMain_1hve7_696 > div > ._card_1hve7_526 > ._placeholder_1hve7_542",
+    "text": "Cover",
+    "box": {
+      "left": 261,
+      "top": 332,
+      "width": 770,
+      "height": 96,
+      "viewport": 1376
+    }
+  },
+  "status": "open",
+  "messages": [
+    {
+      "id": "re5cmmrttbyer2z2",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "imagem para ilustrar a cover",
+      "createdAt": "2026-11-05T14:53:22.011Z"
+    },
+    {
+      "id": "hm8ab227rgj4whnp",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Feito em Hi-Fi/_ui/ProgramDetails.vue: o 'Cover' virou uma imagem de capa de 160px com cantos de 16px. Threadbare usa a arte de jogos do app (games/game-built.png); Godot e Git usam a imagem padrão de jogo do app (games/endstar-default.jpg) até terem capa própria. Vale para todas as telas do wizard (4.1 a 4.3).",
+      "createdAt": "2026-11-05T14:54:17.455Z"
+    }
+  ]
+}

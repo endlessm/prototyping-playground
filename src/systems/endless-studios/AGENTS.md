@@ -4,6 +4,10 @@ This system renders the Endless Studios frontend's own Vue code: Nuxt UI 4 with 
 
 When a screen, flow or copy is for a specific kind of user, read [User types](context/user-types.md): the type's section in Part 1 and the overlap matrix in Part 3. If a learner under 18 can see the work, also read Safeguarding in Part 2. The tags show how strong the evidence is; Team or Desk alone is a hypothesis, so label designs that rest on one as assumptions.
 
+When a screen, flow or copy needs a concrete person to design or write for (setting, devices, language, messaging, channels), or a feature must be prioritized, read [Personas](context/personas.md): the persona's card and its decision test. Weigh each test by the persona's confidence, and never quote a placeholder as something a user said.
+
+When deciding between design options, or reviewing a screen, flow or copy, read [Design principles](context/design-principles.md) and answer the review questions of the principles it touches. Safe before anything wins every conflict.
+
 - A prototype view is a `.vue` file in the prototype, with its permanent identity as an HTML comment at the top: `<!-- @studio-id <id> -->`. It renders in this system's preview document, a page of its own that holds only the app.
 - In `.vue` files, use Nuxt UI components (`UButton`, `UCard`, `UModal`...) without importing them, as in the app. Vue's `ref`, `computed` and similar are auto-imported too, and so is every stand-in `studios/nuxt-shims.ts` exports for the app's Nuxt composables (`useNuxtApp`, `useI18n`, `useGraphQLQuery`, `useStore`, `useState`, `useNotificationsCount`, `useRouter`, `useRoute`, `navigateTo`). `$auth`, `$store`, `$graphqlRequest` and `$dayjs` come from `useNuxtApp()` or the template, as in the app. Icons are Lucide names such as `i-lucide-user-plus`.
 - Use the app's own strings with `$t('key')`; the keys are in `i18n/locales/en.json`.

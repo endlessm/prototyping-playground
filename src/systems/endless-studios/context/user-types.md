@@ -1,5 +1,5 @@
 ---
-title: Endless Access user types
+title: User Types
 description: The eight user types of Endless Access (three learners, four teachers or facilitators, one partner), with why they show up, needs, pain points, motivations, jobs to be done, the thirteen jobs they share, and the evidence behind each point.
 toc: true
 ---
