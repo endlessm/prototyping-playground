@@ -1,0 +1,15 @@
+# The studio deploys as a static site: `yarn build` runs `nuxt generate`,
+# which writes the client-rendered app to `.output/public`. Without these
+# settings Netlify publishes the repository root, and every page is a 404.
+[build]
+  command = "yarn build"
+  publish = ".output/public"
+
+[build.environment]
+  # The tooling scripts need Node 22.18+ (type stripping); see `engines` and
+  # `mise.toml`.
+  NODE_VERSION = "22"
+  # On Netlify, Nuxt picks the `netlify-static` preset, which writes to
+  # `dist/`. The plain static preset keeps `.output/public`, the folder
+  # `yarn preview` and `yarn build:inspect` read.
+  NITRO_PRESET = "static"
