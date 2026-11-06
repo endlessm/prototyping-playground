@@ -176,9 +176,18 @@ describe('the declaration', () => {
 })
 
 describe('context, skills and agent guidance', () => {
-  test('[SY-162] the User types context: eight types with their fields, the shared jobs, the overlap matrix, evidence and safeguarding', () => {
+  test('[SY-162] the Context documents, and the User types context: eight types with their fields, the shared jobs, the overlap matrix, evidence and safeguarding', () => {
     expect(catalog.context.map(({ path, title }) => ({ path, title }))).toEqual(
-      [{ path: 'user-types.md', title: 'Endless Access user types' }],
+      [
+        { path: 'app-conventions.md', title: 'App Conventions' },
+        { path: 'design-principles.md', title: 'Design Principles' },
+        { path: 'personas.md', title: 'Personas' },
+        { path: 'platform-model.md', title: 'Platform Model' },
+        { path: 'programs.md', title: 'Programs' },
+        { path: 'skills-and-recognition.md', title: 'Skills and Recognition' },
+        { path: 'user-types.md', title: 'User Types' },
+        { path: 'voice-and-tone.md', title: 'Voice and Tone' },
+      ],
     )
     const text = read('context/user-types.md')
     expect(text).toMatch(/^toc: true$/m)
@@ -218,8 +227,25 @@ describe('context, skills and agent guidance', () => {
     expect(agents).toMatch(/Team or Desk alone[^.]*assumptions/)
   })
 
-  test('[SY-164] the Skills section is empty', () => {
-    expect(catalog.skills).toEqual([])
+  test('[SY-164] the Skills section lists Write sample data with its references, and agents reach it from AGENTS.md', () => {
+    expect(
+      catalog.skills.map(({ name, file, files }) => ({ name, file, files })),
+    ).toEqual([
+      {
+        name: 'write-sample-data',
+        file: 'src/systems/endless-studios/skills/write-sample-data/SKILL.md',
+        files: [
+          'SKILL.md',
+          'references/data-shapes.md',
+          'references/demo-cast.md',
+          'references/state-enums.md',
+          'references/users-by-role.md',
+        ],
+      },
+    ])
+    expect(read('AGENTS.md')).toContain(
+      '[Write sample data](skills/write-sample-data/SKILL.md)',
+    )
   })
 
   test('[SY-187] the guidance and context describe Vue views, never React ones', () => {

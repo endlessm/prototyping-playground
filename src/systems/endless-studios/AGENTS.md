@@ -8,6 +8,18 @@ When a screen, flow or copy needs a concrete person to design or write for (sett
 
 When deciding between design options, or reviewing a screen, flow or copy, read [Design principles](context/design-principles.md) and answer the review questions of the principles it touches. Safe before anything wins every conflict.
 
+When a view shows actions, controls or names that depend on a person's role, account type or age, read [Platform model](context/platform-model.md): "Choosing the person a view is for", the action's row in "Who can do what" and, for a restricted partner or digital youth account, "Gated actions".
+
+When building or reviewing a view's frame, layout, components or styling, read [App conventions](context/app-conventions.md): "Decide first", then the sections for what the view uses. Rules marked Draft aren't in the app yet. The workspace's artifact theme doesn't apply to views.
+
+When a screen, flow or copy shows a program, its sessions or tasks, or how someone joins one, read [Programs](context/programs.md): the program's section in "The catalog", and "Enrolling today" or "Proposed enrollment" for the join control.
+
+When a screen shows skills, XP, levels, badges, certificates or credentials, read [Skills and recognition](context/skills-and-recognition.md): "Choosing labels", the taxonomy tables, and the Today and Proposed parts of the section the screen shows.
+
+When a view needs a string the app's locale files lack, or its copy is reviewed, read [Voice and tone](context/voice-and-tone.md): "Before writing a string", then Voice, Casing and Words, and Spanish when the view has an `es` state.
+
+When a view or named state needs a particular signed-in user, store state or GraphQL responses, or the console reports an `[Endless Studios]` gap, follow [Write sample data](skills/write-sample-data/SKILL.md).
+
 - A prototype view is a `.vue` file in the prototype, with its permanent identity as an HTML comment at the top: `<!-- @studio-id <id> -->`. It renders in this system's preview document, a page of its own that holds only the app.
 - In `.vue` files, use Nuxt UI components (`UButton`, `UCard`, `UModal`...) without importing them, as in the app. Vue's `ref`, `computed` and similar are auto-imported too, and so is every stand-in `studios/nuxt-shims.ts` exports for the app's Nuxt composables (`useNuxtApp`, `useI18n`, `useGraphQLQuery`, `useStore`, `useState`, `useNotificationsCount`, `useRouter`, `useRoute`, `navigateTo`). `$auth`, `$store`, `$graphqlRequest` and `$dayjs` come from `useNuxtApp()` or the template, as in the app. Icons are Lucide names such as `i-lucide-user-plus`.
 - Use the app's own strings with `$t('key')`; the keys are in `i18n/locales/en.json`.
