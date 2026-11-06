@@ -2,6 +2,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, test } from 'vitest'
 import { parse } from 'yaml'
+import config from '../../vitest.config'
 
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
 const yarnrc = parse(readFileSync('.yarnrc.yml', 'utf8'))
@@ -185,12 +186,33 @@ describe('CI workflow', () => {
     expect(workflow.concurrency.group).toMatch(/pull_request\.number/)
   })
 
-  test('[CL-148] the test job installs browsers and runs the full suite, without selecting tests', () => {
+  test('[CL-148] the test jobs install browsers and together run the full suite, without selecting tests', () => {
     expect(steps('tests')).toEqual([
       'corepack enable',
       'yarn install --immutable',
+      'yarn test',
+    ])
+    expect(steps('e2e')).toEqual([
+      'corepack enable',
+      'yarn install --immutable',
       'yarn playwright install --with-deps chromium',
-      'yarn test:full',
+      'yarn test:e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}',
+    ])
+    // Shards 1 to N, each finishing even when another fails.
+    const { matrix, 'fail-fast': failFast } = workflow.jobs.e2e.strategy
+    expect(matrix.shard).toEqual(
+      matrix.shard.map((_: number, index: number) => index + 1),
+    )
+    expect(failFast).toBe(false)
+    // Between them, `yarn test` and `yarn test:e2e` name every project.
+    expect(pkg.scripts['test:e2e']).toBe('vitest run --project e2e')
+    const projects = (config.test?.projects ?? []) as {
+      test: { name: string }
+    }[]
+    expect(projects.map((project) => project.test.name).sort()).toEqual([
+      'e2e',
+      'integration',
+      'unit',
     ])
   })
 
@@ -210,11 +232,12 @@ describe('CI workflow', () => {
 
   test('[CL-150] the required "build" check passes only when the bundle and test jobs succeeded', () => {
     const build = workflow.jobs.build
-    expect(build.needs).toEqual(['bundle', 'tests', 'scope'])
+    expect(build.needs).toEqual(['bundle', 'tests', 'e2e', 'scope'])
     expect(build.if).toBe('always()')
     const check = build.steps.at(-1).run
     expect(check).toContain('needs.bundle.result }}" = success')
     expect(check).toContain('needs.tests.result }}" = success')
+    expect(check).toContain('needs.e2e.result }}" = success')
   })
 
   test('[CL-151] [CL-152] [CL-153] no upstream-only steps, upgrade rehearsal or publishing', () => {
@@ -225,6 +248,7 @@ describe('CI workflow', () => {
     expect(Object.keys(workflow.jobs).sort()).toEqual([
       'build',
       'bundle',
+      'e2e',
       'scope',
       'tests',
     ])
