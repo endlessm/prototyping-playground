@@ -85,8 +85,10 @@ jobs:
     strategy:
       # Every shard finishes, so one run reports all the failing scenarios.
       fail-fast: false
+      # Vitest splits by file count, not duration. With six shards the slowest
+      # one stays near ten minutes; fewer put the longest files together.
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: actions/checkout@v5
       - run: corepack enable
