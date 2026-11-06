@@ -1,0 +1,36 @@
+{
+  "formatVersion": 1,
+  "id": "bb9k901v4e1fe9kh",
+  "artifact": "dv3bmm3hpf5vfves",
+  "artifactTitle": "0.1 Verify Age",
+  "anchor": {
+    "kind": "heading",
+    "label": "Heading \"Before we begin…\"",
+    "at": {
+      "x": 0.3235,
+      "y": 0.7361
+    },
+    "selector": "h1",
+    "tag": "h1",
+    "path": "._auth_y7ozy_48 > ._authColumn_y7ozy_78 > ._stack_y7ozy_305 > ._heading_y7ozy_298 > ._title_y7ozy_252",
+    "text": "Before we begin…",
+    "box": {
+      "left": 1519,
+      "top": 466,
+      "width": 238,
+      "height": 36,
+      "viewport": 2292
+    }
+  },
+  "status": "open",
+  "messages": [
+    {
+      "id": "pm9tym7e2jxfcfmy",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "remove the ellipsis",
+      "createdAt": "2026-11-05T18:00:39.181Z"
+    }
+  ]
+}

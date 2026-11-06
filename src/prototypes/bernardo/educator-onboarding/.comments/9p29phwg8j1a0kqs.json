@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "9p29phwg8j1a0kqs",
+  "artifact": "d9wdsd7c936bzap6",
+  "artifactTitle": "3.3 Rename",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Team Name Keep it under 40 characters. …\"",
+    "at": {
+      "x": 0.0153,
+      "y": 0.4302
+    },
+    "selector": "div:nth-of-type(3) > div > div:nth-of-type(2)",
+    "tag": "div",
+    "path": "._page_1hve7_5 > ._app_1hve7_114 > ._backdrop_1hve7_597 > ._modal_1hve7_607 > ._dialogBody_1hve7_736",
+    "text": "Team Name Keep it under 40 characters. Use “Okafor Homeschool Co-op”4 Rename opens a modal, from the banner or from the…",
+    "box": {
+      "left": 459,
+      "top": 161,
+      "width": 458,
+      "height": 179,
+      "viewport": 1376
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-05T14:54:09.212Z",
+  "messages": [
+    {
+      "id": "spjtz56jztr9fbd0",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "tem uma barra de rolagem aqui.",
+      "createdAt": "2026-11-05T14:52:27.117Z"
+    },
+    {
+      "id": "7yqwf1dsshtdzabr",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Corrigido em Hi-Fi/_ui/ui.module.css. A barra vinha da dica da nota 4: escondida, ela ainda ocupava espaço e fazia o corpo do modal rolar. Agora as dicas fechadas não ocupam espaço, e o modal não corta a dica quando ela abre. Isso vale para todas as telas Hi-Fi que têm notas numeradas.",
+      "createdAt": "2026-11-05T14:55:05.273Z"
+    }
+  ]
+}
