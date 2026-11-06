@@ -64,7 +64,7 @@ jobs:
       - run: yarn build:inspect
 
   tests:
-    name: Tests
+    name: Unit and integration tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -74,17 +74,42 @@ jobs:
           node-version-file: package.json
           cache: yarn
       - run: yarn install --immutable
-      - run: yarn playwright install --with-deps chromium
-      - run: yarn test:full
+      - run: yarn test
 
-  # The required check. A failed, cancelled or skipped job fails it.
+  # The browser scenarios run one file at a time and take most of the suite's
+  # time, so their files are split across runners. Together with the job above,
+  # the shards run every test `yarn test:full` runs.
+  e2e:
+    name: Browser tests (${{ matrix.shard }}/${{ strategy.job-total }})
+    runs-on: ubuntu-latest
+    strategy:
+      # Every shard finishes, so one run reports all the failing scenarios.
+      fail-fast: false
+      # Vitest splits by file count, not duration. With six shards the slowest
+      # one stays near ten minutes; fewer put the longest files together.
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6]
+    steps:
+      - uses: actions/checkout@v5
+      - run: corepack enable
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: package.json
+          cache: yarn
+      - run: yarn install --immutable
+      - run: yarn playwright install --with-deps chromium
+      - run: yarn test:e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+
+  # The required check. A failed, cancelled or skipped job fails it; the
+  # browser tests succeed only when every shard did.
   build:
     name: build
     runs-on: ubuntu-latest
-    needs: [bundle, tests, scope]
+    needs: [bundle, tests, e2e, scope]
     if: always()
     steps:
       - run: |
           test "${{ needs.bundle.result }}" = success
           test "${{ needs.tests.result }}" = success
+          test "${{ needs.e2e.result }}" = success
           test "${{ needs.scope.result }}" = success
