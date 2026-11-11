@@ -1,6 +1,6 @@
 ---
 title: Platform Model
-description: Who can do what on Endless Studios, for choosing a view's actions, gates and labels. Covers the containers (institution, program, cohort, game), account types and age, role names and IDs, a role-by-action table, the actions that wait for parental consent, the sign-up order, the proposed Teams, and each thing's UI and code name.
+description: Who can do what on Endless Studios, for choosing a view's actions, gates and labels. Covers the containers (institution, program, cohort, game), account types and age, role names and IDs, a role-by-action table, the actions that wait for parental consent, the sign-up order, a pointer to the proposed educator roles, and each thing's UI and code name.
 ---
 
 Sources: the app, `Endless-Game-Making-Studio/studio` `dev` at `eaa7d5f` (5 November 2026): its permission rules for institutions, programs, cohorts, enrollment codes, games, tasks, quizzes, certificates and parental consent, its GraphQL schema, the account service's sign-up and sign-in flow, and its English locale. This system's copy (`11517cbee`, 25 September 2026) for the `$auth` stand-in, the sidebar and every string cited. The Institutions and Teams roles study and its glossary (14 October 2026), checked against `dev`. The playground's `docs/brain` at `ffe336d` (9 September 2026): Company & Platform Overview and Community Needs.
@@ -174,18 +174,11 @@ Sign-in takes an email address or username with a password, or one of the three 
 
 The account service serves these screens outside the Vue app, so the copy has no components for them. Build a view of them from Nuxt UI components, following [App conventions](app-conventions.md).
 
-## Proposed: Teams
+## Proposed: educator roles
 
-From the 14 October 2026 study. Nothing here is built.
+The proposed model of Organizations, Teams and Cohorts, each with its own Owner and Manager roles, is in [Educator roles](educator-roles.md). It replaces the Teams proposal of the 14 October 2026 study. Nothing in it is built.
 
-- A Team is a workspace inside an institution, where Program Managers share cohorts with their Facilitators, Learners and enrollment codes. Each cohort belongs to exactly one Team. A person may belong to several Teams and switches between them with a picker at the top; everything happens in the active Team. Teams share nothing.
-- **Team Owner**: the Program Manager who founded the Team. A Program Manager who joins without an invitation gets a Team of their own; anyone may create more. On top of a Member's powers, the Owner invites Program Managers, removes Members, renames the Team, transfers ownership to a Member, and deletes the Team once its cohorts move to another. The Owner is told when removing a Member leaves a cohort without a Facilitator. An Owner sees no other Team, even in the same institution.
-- **Team Member**: a Program Manager an Owner invited. Sees everything in the Team, creates cohorts in it and has a Facilitator's powers in its cohorts. Can't invite, remove, rename, transfer or delete. A removed Member loses the Team and every Facilitator role in its cohorts; the cohorts stay.
-- An Institution Admin is Owner of every Team in their institution.
-- Facilitator stays a role per cohort. Out of scope: a Facilitator role for a whole Team, and a cohort shared by two Teams.
-- Moving over: each current Program Manager gets a Team holding the cohorts they created.
-
-The Educator Onboarding prototype's "co-teacher" is a Team Member and maps to nothing today. The nearest is a second Facilitator in the same cohort, who sees and manages that cohort's learners only. A Manager creates cohorts but sees no one else's.
+The Educator Onboarding prototype's "co-teacher" is a Team Manager in that model and maps to nothing today. The nearest is a second Facilitator in the same cohort, who sees and manages that cohort's learners only. A Manager creates cohorts but sees no one else's.
 
 ## Words
 
@@ -206,5 +199,5 @@ Use the UI name in copy; use the code name in samples and when pointing at code.
 | Restricted Partner | `is_restricted_partner_account`; the institution's `restricted_partner` | An account type, not a role. |
 | Digital Youth | `age_category: 'digital_youth'` | An age category, not a role. |
 | Cohort | `cohort` | Admin screens. For learner copy, see Words in [Voice and tone](voice-and-tone.md). |
-| Team | `group_type: 'team'`; a game's members | Already two meanings: learners taking a program together ("team programs"), and a game's members ("Team", "Invite other users to join your team"). The proposed Team would be a third; its name is open. |
+| Team | `group_type: 'team'`; a game's members | Already two meanings: learners taking a program together ("team programs"), and a game's members ("Team", "Invite other users to join your team"). The proposed Team in [Educator roles](educator-roles.md) is a third: a group of educators that holds cohorts. |
 | Content provider | | The overview doc calls it a "studio", which collides with Endless Studios and the Endless Prototyping Playground. |
