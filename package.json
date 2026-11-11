@@ -1,6 +1,6 @@
 {
-  "name": "design-studio",
-  "description": "Endless Design Studio, a prototyping sandbox for the Endless team",
+  "name": "prototyping-playground",
+  "description": "Endless Prototyping Playground, a sandbox for the Endless team's prototypes",
   "private": true,
   "license": "MIT",
   "type": "module",

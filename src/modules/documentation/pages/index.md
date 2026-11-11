@@ -5,9 +5,9 @@ order: 1
 toc: true
 ---
 
-## What is the Endless Design Studio?
+## What is the Endless Prototyping Playground?
 
-The Endless Design Studio is the Endless team's prototyping sandbox. You and your coding agent turn ideas into working prototypes built from Endless Studios' own screens and components, then share them with the team for review.
+The Endless Prototyping Playground is the Endless team's prototyping sandbox. You and your coding agent turn ideas into working prototypes built from Endless Studios' own screens and components, then share them with the team for review.
 
 You direct the work. Your agent builds and refines it. The studio is where you try the result, arrange it beside your thinking, and show it to others.
 
@@ -32,7 +32,7 @@ Each prototype belongs to one contributor and uses one system. Documents, diagra
 
 ## What is it made of?
 
-Everything is a plain file in the studio's repository, `endlessm/design-studio`. Views are Vue files that use the system's real components. Documents are Markdown, diagrams are Mermaid and canvases are Excalidraw drawings.
+Everything is a plain file in the studio's repository, `endlessm/prototyping-playground`. Views are Vue files that use the system's real components. Documents are Markdown, diagrams are Mermaid and canvases are Excalidraw drawings.
 
 The studio itself is a Nuxt app built with Vue, Nuxt UI and Tailwind, the same stack as Endless Studios. Views render inside their system's own preview, so a prototype looks and behaves like the product, not like the studio around it.
 

@@ -1,6 +1,6 @@
 ---
 name: use-contributors
-description: Register someone, link a Git email, change a profile, or assign and review Admin and system-maintainer roles in Endless Design Studio.
+description: Register someone, link a Git email, change a profile, or assign and review Admin and system-maintainer roles in Endless Prototyping Playground.
 ---
 
 Read this module's [README](../../README.md) first.

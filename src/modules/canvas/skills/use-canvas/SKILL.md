@@ -1,6 +1,6 @@
 ---
 name: use-canvas
-description: Create or edit an Endless Design Studio canvas, an .excalidraw page of views, documents, notes and arrows. Use only when the Canvases module is enabled.
+description: Create or edit an Endless Prototyping Playground canvas, an .excalidraw page of views, documents, notes and arrows. Use only when the Canvases module is enabled.
 ---
 
 Read this module's [README](../../README.md) first; it describes the file, the tools and how a canvas shows.

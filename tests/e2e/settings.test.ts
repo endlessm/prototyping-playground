@@ -234,7 +234,7 @@ test('[SH-104] [SH-107] [SH-108] [SH-109] [SH-111] [SH-112] [SH-113] [SH-115] [S
   await expect.poll(() => page.getByRole('dialog').isVisible()).toBe(true)
   await page.getByRole('button', { name: 'Keep editing' }).click()
   await page.getByRole('button', { name: 'Discard', exact: true }).click()
-  expect(await name.inputValue()).toBe('Endless Design Studio')
+  expect(await name.inputValue()).toBe('Endless Prototyping Playground')
 })
 
 test('[SH-105] [SH-117] conflict disables saving until reload; failures can reload', async () => {
@@ -261,7 +261,9 @@ test('[SH-105] [SH-117] conflict disables saving until reload; failures can relo
   ).toBe(true)
   page.once('dialog', (dialog) => void dialog.accept())
   await page.getByRole('button', { name: 'Reload settings' }).click()
-  await expect.poll(() => name.inputValue()).toBe('Endless Design Studio')
+  await expect
+    .poll(() => name.inputValue())
+    .toBe('Endless Prototyping Playground')
 })
 
 test('[SH-109] [SH-115] [SH-116] an omitted optional tagline opens without unsaved changes', async () => {

@@ -177,7 +177,7 @@ describe('in the studio running locally', { timeout: 150_000 }, () => {
     await visible(title(page, 'Overview'))
     await expect
       .poll(() => page.title())
-      .toBe('Overview — Manual — Endless Design Studio')
+      .toBe('Overview — Manual — Endless Prototyping Playground')
     await visible(page.getByText('What the studio is and how it is organized.'))
     await visible(page.getByRole('navigation', { name: 'On this page' }))
     const nav = chapters(page)
@@ -198,7 +198,7 @@ describe('in the studio running locally', { timeout: 150_000 }, () => {
     expect(new URL(page.url()).pathname).toBe('/documentation/manual/team')
     await expect
       .poll(() => page.title())
-      .toBe('Personal & team use — Manual — Endless Design Studio')
+      .toBe('Personal & team use — Manual — Endless Prototyping Playground')
     // A reference, not a sequence: no previous or next chapter.
     expect(
       await page.getByRole('link', { name: /previous|next/i }).count(),
@@ -348,7 +348,7 @@ describe('in the studio running locally', { timeout: 150_000 }, () => {
     await visible(title(page, 'Platform guidance'))
     await expect
       .poll(() => page.title())
-      .toBe('Platform — Context & Skills — Endless Design Studio')
+      .toBe('Platform — Context & Skills — Endless Prototyping Playground')
     const platformSection = docNav(page).getByRole('region', {
       name: 'Platform',
     })
@@ -467,7 +467,7 @@ describe('in the studio running locally', { timeout: 150_000 }, () => {
     await expect
       .poll(() => page.title())
       .toBe(
-        'View contract — Prototypes — Context & Skills — Endless Design Studio',
+        'View contract — Prototypes — Context & Skills — Endless Prototyping Playground',
       )
     await page.getByText('About this context').click()
     await visible(page.getByText(`${posix(modules)}/prototypes/VIEWS.md`))

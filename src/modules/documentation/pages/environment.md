@@ -7,9 +7,9 @@ toc: true
 
 ## How do I get started?
 
-If you are reading this in your local studio, it is already running. Otherwise, ask a teammate for access to `endlessm/design-studio` on GitHub, then open your agent in an empty folder and ask:
+If you are reading this in your local studio, it is already running. Otherwise, ask a teammate for access to `endlessm/prototyping-playground` on GitHub, then open your agent in an empty folder and ask:
 
-> Clone endlessm/design-studio, read AGENTS.md, install it with yarn and start the studio. Then register me as a contributor and show me the running studio.
+> Clone endlessm/prototyping-playground, read AGENTS.md, install it with yarn and start the studio. Then register me as a contributor and show me the running studio.
 
 Your agent clones the repository, runs `yarn install` and `yarn dev`, and registers you with `yarn studio join`. The studio needs Node 22 and yarn 4; the agent checks both. The first time you open it, a short welcome explains where to start.
 
@@ -34,7 +34,7 @@ Agents start, restart and stop the dev server with `yarn studio dev`, so they ne
 
 Open the same studio folder in your agent and ask:
 
-> Open my Endless Design Studio and show me the running studio.
+> Open my Endless Prototyping Playground and show me the running studio.
 
 If the agent can't find it, ask it to look for your existing copy before making another. Your files stay in that folder between sessions. Before you start new work, ask the agent to bring your copy up to date with the team's latest changes.
 

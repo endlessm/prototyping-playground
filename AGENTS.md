@@ -1,4 +1,4 @@
-# Endless Design Studio
+# Endless Prototyping Playground
 
 A prototyping sandbox for the Endless team, built in Nuxt and Vue. [ADR 0003](docs/adr/0003-rewrite-in-vue-as-an-independent-studio.md) records the independent studio's architecture.
 

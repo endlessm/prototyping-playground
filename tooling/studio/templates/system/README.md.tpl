@@ -1,6 +1,6 @@
 # __LABEL__
 
-A design system for Endless Design Studio's prototypes. It starts empty; its Overview in the studio has a setup panel with a prompt for your agent (bring another Vue app in, or start from Nuxt UI).
+A design system for Endless Prototyping Playground's prototypes. It starts empty; its Overview in the studio has a setup panel with a prompt for your agent (bring another Vue app in, or start from Nuxt UI).
 
 - `system.ts` declares it: its name, status, colour modes, libraries, permanent ID and its Vue app.
 - `app.ts` creates every Vue app the preview document mounts a view in; add the system's plugins there.

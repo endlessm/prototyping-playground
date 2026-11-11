@@ -199,7 +199,7 @@ Use the UI name in copy; use the code name in samples and when pointing at code.
 | Learner | Cohort Member (21) | A role in one cohort. |
 | Student | institution member (`students`, role 2) | Membership of an institution, not a cohort role. |
 | Admin, Manager (program Users tab) | Program Admin (14), Program manager (23) | Roles in one program. Write "Program Admin" where "Admin" alone could mean the sitewide Admin. |
-| Admin | Admin (1) | Sitewide. The design studio's own [glossary](../../../../GLOSSARY.md) uses "Admin" for a studio contributor role, unrelated to this one. |
+| Admin | Admin (1) | Sitewide. The Prototyping Playground's own [glossary](../../../../GLOSSARY.md) uses "Admin" for a studio contributor role, unrelated to this one. |
 | Institution Admin | Institution admin (20) | |
 | Leader, Mentor, Member | Project leader (3), Project mentor (5), Project member (2) | Game roles. |
 | Content Editor | Content Editor (19) | Sitewide. |
@@ -207,4 +207,4 @@ Use the UI name in copy; use the code name in samples and when pointing at code.
 | Digital Youth | `age_category: 'digital_youth'` | An age category, not a role. |
 | Cohort | `cohort` | Admin screens. For learner copy, see Words in [Voice and tone](voice-and-tone.md). |
 | Team | `group_type: 'team'`; a game's members | Already two meanings: learners taking a program together ("team programs"), and a game's members ("Team", "Invite other users to join your team"). The proposed Team would be a third; its name is open. |
-| Content provider | | The overview doc calls it a "studio", which collides with Endless Studios and the Endless Design Studio. |
+| Content provider | | The overview doc calls it a "studio", which collides with Endless Studios and the Endless Prototyping Playground. |

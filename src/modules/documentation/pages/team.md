@@ -7,7 +7,7 @@ toc: true
 
 ## How does the team share one studio?
 
-The Endless Design Studio is one studio for the whole team. Each person works in their own copy of its repository and shares changes through GitHub. Contributor permissions decide who can change what.
+The Endless Prototyping Playground is one studio for the whole team. Each person works in their own copy of its repository and shares changes through GitHub. Contributor permissions decide who can change what.
 
 There is no live co-editing: the studio doesn't sync between people while they work.
 
@@ -33,7 +33,7 @@ These permissions guide the studio and its checks. They don't sign anyone in, gr
 
 ## How does a teammate join?
 
-Give them access to `endlessm/design-studio` on GitHub. Their agent clones it and registers them with `yarn studio join`, with their name, the email their Git commits use and their GitHub account. The studio recognises them whenever their Git email matches. See [Working environment](environment.md#how-do-i-join-the-team).
+Give them access to `endlessm/prototyping-playground` on GitHub. Their agent clones it and registers them with `yarn studio join`, with their name, the email their Git commits use and their GitHub account. The studio recognises them whenever their Git email matches. See [Working environment](environment.md#how-do-i-join-the-team).
 
 If someone's Git email changes, they add the new one to their profile with `yarn studio profile`, or edit it on their **Contributors** page.
 

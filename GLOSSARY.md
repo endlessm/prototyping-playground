@@ -1,10 +1,10 @@
-# Endless Design Studio
+# Endless Prototyping Playground
 
 The Endless team's language for building and reviewing product prototypes.
 
 ## Language
 
-**Endless Design Studio**:
+**Endless Prototyping Playground**:
 The team's shared environment for exploring and reviewing product experiences with agents.
 _Avoid_: Endless Studios (the product being prototyped).
 

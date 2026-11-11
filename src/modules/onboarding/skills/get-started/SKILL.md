@@ -1,6 +1,6 @@
 ---
 name: get-started
-description: Help someone new to the Endless Design Studio find their way and make a first prototype on Endless Studios screens. Use when they are new, ask for a tour, or want help starting; registration and configuration have their own skills.
+description: Help someone new to the Endless Prototyping Playground find their way and make a first prototype on Endless Studios screens. Use when they are new, ask for a tour, or want help starting; registration and configuration have their own skills.
 ---
 
 # Get started in the studio
