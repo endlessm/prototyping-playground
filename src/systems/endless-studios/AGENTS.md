@@ -10,6 +10,8 @@ When deciding between design options, or reviewing a screen, flow or copy, read 
 
 When a view shows actions, controls or names that depend on a person's role, account type or age, read [Platform model](context/platform-model.md): "Choosing the person a view is for", the action's row in "Who can do what" and, for a restricted partner or digital youth account, "Gated actions".
 
+When a view designs the proposed Organization, Team or Cohort roles (owners, managers, Org Educator, Org Reviewer, Independent Educator), who may award or strip them, or which Programs an Organization or Independent Team can run, read [Educator roles](context/educator-roles.md): "Rules for every role", the entity's table in "Roles" and "Mapping to today". Label such a view Proposed.
+
 When building or reviewing a view's frame, layout, components or styling, read [App conventions](context/app-conventions.md): "Decide first", then the sections for what the view uses. Rules marked Draft aren't in the app yet. The workspace's artifact theme doesn't apply to views.
 
 When a screen, flow or copy shows a program, its sessions or tasks, or how someone joins one, read [Programs](context/programs.md): the program's section in "The catalog", and "Enrolling today" or "Proposed enrollment" for the join control.
