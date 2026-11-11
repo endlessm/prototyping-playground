@@ -33,7 +33,7 @@ describe('status', () => {
   test('[CL-10] shows the studio, you, the default system, modules and systems', () => {
     const result = studio.studio('status')
     expect(result.status).toBe(0)
-    expect(result.stdout).toContain('Endless Design Studio')
+    expect(result.stdout).toContain('Endless Prototyping Playground')
     expect(result.stdout).toContain('Contributor: ada (Admin)')
     expect(result.stdout).toContain('Default system: endless-studios')
     expect(result.stdout).toContain('Enabled modules: sample')
@@ -49,7 +49,7 @@ describe('status', () => {
     studio.identify({ name: 'Nobody', email: 'nobody@endless.example' })
     const report = JSON.parse(studio.studio('status', '--json').stdout)
     expect(report).toMatchObject({
-      studio: { name: 'Endless Design Studio' },
+      studio: { name: 'Endless Prototyping Playground' },
       contributor: { key: null, role: null },
       defaultSystem: { key: 'endless-studios', studioId: SYSTEM },
       modules: { enabled: ['sample'], disabled: ['extra'] },

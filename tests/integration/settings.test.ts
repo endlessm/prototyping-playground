@@ -27,7 +27,7 @@ test('[CL-17] [CL-20] [SH-145] configure previews, applies and preserves pinned 
   expect(applied.status).toBe(0)
   expect(studio.config().name).toBe('Changed')
   expect(studio.read('studio.config.json')).toBe(
-    before.replace('Endless Design Studio', 'Changed'),
+    before.replace('Endless Prototyping Playground', 'Changed'),
   )
   const meta = '{"systemId":"8x5spen6xtvp96a9","title":"Pinned"}'
   studio.write('src/prototypes/ada/pinned/meta.json', meta)

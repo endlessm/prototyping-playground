@@ -39,7 +39,7 @@ const questions = (slug: string) =>
 describe('what each chapter answers', () => {
   test('[PR-147] Overview: what the studio is, how it’s organized (with a diagram), what it’s made of and where to look next', () => {
     expect(questions('index')).toEqual([
-      'What is the Endless Design Studio?',
+      'What is the Endless Prototyping Playground?',
       'How is the studio organized?',
       'What is it made of?',
       'What can it simulate?',
@@ -165,7 +165,7 @@ describe('what the chapters say', () => {
 
   test('[PR-147] [PR-149] [PR-153] the chapters describe the Vue studio for the Endless team, with yarn', () => {
     const text = everything()
-    expect(read('index')).toMatch(/Endless Design Studio/)
+    expect(read('index')).toMatch(/Endless Prototyping Playground/)
     expect(read('index')).toMatch(/Views are Vue files/)
     expect(text).toMatch(/yarn studio join/)
     expect(text).not.toMatch(

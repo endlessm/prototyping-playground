@@ -79,7 +79,9 @@ describe('the welcome', () => {
     await expect
       .poll(() =>
         page
-          .getByRole('dialog', { name: 'Welcome to Endless Design Studio' })
+          .getByRole('dialog', {
+            name: 'Welcome to Endless Prototyping Playground',
+          })
           .isVisible(),
       )
       .toBe(true)
@@ -107,7 +109,7 @@ describe('the welcome', () => {
     await openHome(page)
     await expect.poll(() => dialog(page).isVisible()).toBe(true)
     expect(await progress(page).getAttribute('aria-valuetext')).toBe(
-      'Welcome to Endless Design Studio',
+      'Welcome to Endless Prototyping Playground',
     )
     expect(await button(page, 'Back').count()).toBe(0)
     await button(page, 'Show me around').click()
@@ -225,7 +227,10 @@ describe('the welcome', () => {
       await expect
         .poll(() =>
           page
-            .getByRole('heading', { level: 1, name: 'Endless Design Studio' })
+            .getByRole('heading', {
+              level: 1,
+              name: 'Endless Prototyping Playground',
+            })
             .isVisible(),
         )
         .toBe(true)

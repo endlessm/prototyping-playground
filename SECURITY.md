@@ -4,7 +4,7 @@ Security fixes target the current version on `main`; there are no release branch
 
 ## Reporting a vulnerability
 
-Use [GitHub's private vulnerability reporting](https://github.com/endlessm/design-studio/security/advisories/new) to contact the maintainers privately. Include the affected commit, reproduction steps, the expected and actual behavior, and the likely impact. Remove credentials and private data from examples.
+Use [GitHub's private vulnerability reporting](https://github.com/endlessm/prototyping-playground/security/advisories/new) to contact the maintainers privately. Include the affected commit, reproduction steps, the expected and actual behavior, and the likely impact. Remove credentials and private data from examples.
 
 Please keep exploit details out of public issues while the report is being assessed. Ordinary bugs and feature requests belong in GitHub issues.
 

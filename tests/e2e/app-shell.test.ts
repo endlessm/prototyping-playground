@@ -654,7 +654,7 @@ describe('the studio frame on the deployed site', () => {
       .toBe(true)
   })
 
-  test('[SH-03] [CL-110] the page names Endless Design Studio, with its icons and a link preview for the Endless team', async () => {
+  test('[SH-03] [CL-110] the page names Endless Prototyping Playground, with its icons and a link preview for the Endless team', async () => {
     const page = await newPage()
     await open(page, studio.url)
     const head = await page.evaluate(() => {

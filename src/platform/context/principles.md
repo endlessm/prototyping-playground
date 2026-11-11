@@ -1,6 +1,6 @@
 ---
-title: Endless Design Studio principles
-description: Endless Design Studio principles guidance for the Endless team.
+title: Endless Prototyping Playground principles
+description: Endless Prototyping Playground principles guidance for the Endless team.
 ---
 
 ## Give people ownership

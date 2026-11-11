@@ -1,4 +1,4 @@
-# Endless Design Studio
+# Endless Prototyping Playground
 
 A prototyping sandbox for the Endless team: interactive prototypes built from Endless Studios' own screens, with documents, diagrams and canvases alongside, made with coding agents.
 

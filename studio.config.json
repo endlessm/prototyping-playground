@@ -1,7 +1,7 @@
 {
   "$schema": "./tooling/settings/studio.config.schema.json",
   "formatVersion": 1,
-  "name": "Endless Design Studio",
+  "name": "Endless Prototyping Playground",
   "tagline": "Prototyping Sandbox",
   "modules": {
     "canvas": true,

@@ -1,6 +1,6 @@
 ---
 name: write-manual
-description: Create or revise chapters of the Endless Design Studio's Manual for people. Only while the Manual (the documentation module) is on; agent guidance stays with its owners.
+description: Create or revise chapters of the Endless Prototyping Playground's Manual for people. Only while the Manual (the documentation module) is on; agent guidance stays with its owners.
 ---
 
 # Write the Manual

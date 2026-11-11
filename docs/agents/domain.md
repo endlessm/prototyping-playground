@@ -40,7 +40,7 @@ Multi-context repo (presence of `GLOSSARY-MAP.md` at the root):
 
 ## Not the Studio's own context
 
-`GLOSSARY.md` and `docs/adr/` hold this studio's domain language and decisions. The Design Studio platform documents itself elsewhere: `src/platform/context/`, owner READMEs and each system's `AGENTS.md`, routed from `AGENTS.md`. Read those as the working instructions; don't copy them into `GLOSSARY.md`.
+`GLOSSARY.md` and `docs/adr/` hold this studio's domain language and decisions. The studio platform documents itself elsewhere: `src/platform/context/`, owner READMEs and each system's `AGENTS.md`, routed from `AGENTS.md`. Read those as the working instructions; don't copy them into `GLOSSARY.md`.
 
 ## Use the glossary's vocabulary
 

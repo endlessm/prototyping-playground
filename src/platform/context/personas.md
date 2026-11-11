@@ -1,6 +1,6 @@
 ---
-title: Endless Design Studio audiences
-description: Endless Design Studio audiences guidance for the Endless team.
+title: Endless Prototyping Playground audiences
+description: Endless Prototyping Playground audiences guidance for the Endless team.
 ---
 
 These are working audience profiles approved for this studio, not validated research.

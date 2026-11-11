@@ -1,6 +1,6 @@
 ---
 name: address-comments
-description: Read, answer or resolve the comments people pinned to a prototype's views and files in Endless Design Studio, with `yarn comments`. Use before working on feedback about a prototype. Only while the Comments module is on.
+description: Read, answer or resolve the comments people pinned to a prototype's views and files in Endless Prototyping Playground, with `yarn comments`. Use before working on feedback about a prototype. Only while the Comments module is on.
 ---
 
 # Address comments
