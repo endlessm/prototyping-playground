@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { shelfId } from './layout'
 import MapArea from './MapArea.vue'
+import MapArrows from './MapArrows.vue'
 import MapLegend from './MapLegend.vue'
 import MapPrograms from './MapPrograms.vue'
 import MapTile from './MapTile.vue'
@@ -65,6 +66,7 @@ const shelves = computed(() =>
   <div ref="frame" class="canvas" role="region" aria-label="Roles map">
     <div class="stage" :style="stageStyle">
       <MapArea v-for="id in areas" :id="id" :key="id" />
+      <MapArrows />
       <MapPrograms v-for="id in shelves" :key="id" :place="id" />
       <MapTile v-for="id in tiles" :id="id" :key="id" />
       <MapLegend />
