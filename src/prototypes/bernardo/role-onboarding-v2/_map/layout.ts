@@ -2,7 +2,8 @@
 // grid; areas wrap whatever they contain plus padding, so adding a tile to an area grows it and every area around
 // it. Arrows read anchors from this layout instead of measuring the page.
 
-import type { GridPoint, NodeId, PlaceId, Story } from './story'
+import { shelfPrograms } from './programs'
+import { placeCreator, placeStep, type GridPoint, type NodeId, type PlaceId, type Story } from './story'
 
 /** One grid cell, the spacing of the canvas's dots. */
 export const GRID = 20
@@ -21,10 +22,10 @@ export interface Rect {
   height: number
 }
 
-/** Something else an area must wrap, such as the Programs shelf, with its own size. */
+/** Something else on the canvas with its own size: inside an area it grows (the Programs shelf), or loose (`null`). */
 export interface MapBox {
   id: string
-  place: PlaceId
+  place: PlaceId | null
   rect: Rect
 }
 
@@ -106,4 +107,99 @@ export function anchor(rect: Rect, side: Side, offset = 0.5): { x: number; y: nu
   if (side === 'right') return { x: rect.x + rect.width, y: rect.y + rect.height * offset }
   if (side === 'top') return { x: rect.x + rect.width * offset, y: rect.y }
   return { x: rect.x + rect.width * offset, y: rect.y + rect.height }
+}
+
+const NARROW = new Set([..."iljtfr.,:;·' |I"])
+const WIDE = new Set([...'mwMW@'])
+
+/**
+ * About how wide a line of text is in the map's sans-serif at `size` pixels, a little on the generous side, so labels
+ * and tabs can be placed from data alone. Calibrated against the rendered pills and tabs.
+ */
+export function textWidth(text: string, size: number, weight: 'regular' | 'semibold' | 'bold' = 'regular'): number {
+  let em = 0
+  for (const char of text) {
+    if (NARROW.has(char)) em += 0.3
+    else if (WIDE.has(char)) em += 0.85
+    else if (char >= 'A' && char <= 'Z') em += 0.66
+    else em += 0.56
+  }
+  return em * size * (weight === 'bold' ? 1.06 : weight === 'semibold' ? 1.03 : 1)
+}
+
+/** An area's tab, which straddles its top edge (see `MapArea.vue`). Its width is estimated from its text. */
+export const TAB = { left: 20, height: 44, chrome: 64 }
+
+/** Where an area's tab sits, for arrows to reach it and to stay clear of it. */
+export function tabRect(story: Story, layout: MapLayout, id: PlaceId): Rect | null {
+  const area = layout.areas[id]
+  const place = story.places[id]
+  if (!area || !place) return null
+  const step = placeStep(story, id)
+  const creator = placeCreator(story, id)?.person?.name.split(' ')[0]
+  const detail = place.note ?? (step ? `step ${step}${creator ? ` · created by ${creator}` : ''}` : '')
+  const meta = detail ? `${place.kind} · ${detail}` : place.kind
+  const width = TAB.chrome + Math.max(textWidth(place.name, 14.5, 'bold'), textWidth(meta, 11, 'semibold'))
+  return { x: area.x + TAB.left, y: area.y - TAB.height / 2, width, height: TAB.height }
+}
+
+/** The Programs shelf: a header, then one row per Program. Rows have a fixed height so arrows can reach one. */
+export const SHELF = { width: 272, top: 14, header: 40, row: 40, rowGap: 4, bottom: 12, gap: 2 * GRID }
+
+export const shelfId = (place: PlaceId) => `programs:${place}`
+
+export function shelfHeight(count: number): number {
+  return SHELF.top + SHELF.header + count * (SHELF.row + SHELF.rowGap) + SHELF.bottom
+}
+
+/** The `index`th Program's row on a shelf. */
+export function shelfRow(shelf: Rect, index: number): Rect {
+  return {
+    x: shelf.x + 12,
+    y: shelf.y + SHELF.top + SHELF.header + SHELF.rowGap + index * (SHELF.row + SHELF.rowGap),
+    width: shelf.width - 24,
+    height: SHELF.row,
+  }
+}
+
+/** The How to read legend, loose on the canvas at the bottom left. */
+export const LEGEND = { id: 'legend', width: 196, height: 236 }
+
+const overlaps = (a: Rect, b: Rect) =>
+  a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height
+
+/**
+ * The map's layout with its extras: a Programs shelf at the top right of each Organization, which grows around it,
+ * and the legend in the bottom-left corner, or under everything when something already sits there.
+ */
+export function computeMapLayout(story: Story): MapLayout {
+  const bare = computeLayout(story)
+  const shelves: MapBox[] = Object.values(story.places)
+    .filter((place) => place.kind === 'Organization' && bare.areas[place.id])
+    .map((place) => {
+      const inside = [
+        ...Object.values(story.nodes)
+          .filter((node) => node.place === place.id && bare.nodes[node.id])
+          .map((node) => bare.nodes[node.id]),
+        ...Object.values(story.places)
+          .filter((child) => child.parent === place.id && bare.areas[child.id])
+          .map((child) => bare.areas[child.id]),
+      ]
+      const area = bare.areas[place.id]
+      const right = inside.length ? Math.max(...inside.map((r) => r.x + r.width)) : area.x + AREA_PADDING.side
+      const top = inside.length ? Math.min(...inside.map((r) => r.y)) : area.y + AREA_PADDING.top
+      const height = shelfHeight(shelfPrograms(story).length)
+      return { id: shelfId(place.id), place: place.id, rect: { x: right + SHELF.gap, y: top, width: SHELF.width, height } }
+    })
+
+  const shelved = computeLayout(story, shelves)
+  const corner = {
+    x: CANVAS_MARGIN,
+    y: shelved.height - CANVAS_MARGIN - LEGEND.height,
+    width: LEGEND.width,
+    height: LEGEND.height,
+  }
+  const taken = [...Object.values(shelved.areas), ...Object.values(shelved.nodes)]
+  const rect = taken.some((r) => overlaps(r, corner)) ? { ...corner, y: shelved.height } : corner
+  return computeLayout(story, [...shelves, { id: LEGEND.id, place: null, rect }])
 }
