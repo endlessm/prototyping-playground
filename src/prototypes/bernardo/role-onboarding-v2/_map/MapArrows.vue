@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { computeArrows, type ArrowLook, type MapArrow as Arrow } from './arrows'
 import MapArrow from './MapArrow.vue'
+import { usePathView } from './path'
 import { usePlayback } from './playback'
 import { useMapState } from './state'
 
@@ -9,6 +10,8 @@ import { useMapState } from './state'
 // as it plays. Lines and labels share one SVG under the tiles; routing keeps both clear of tiles and tabs.
 const { story, layout, shown, layers, mode, step } = useMapState()
 const { upcoming } = usePlayback()
+
+const path = usePathView()
 
 const arrows = computed(() => computeArrows(story.value, layout.value))
 
@@ -21,6 +24,10 @@ function visible(arrow: Arrow): boolean {
 /** How each arrow is drawn: in Story mode, the current step's arrow is `now`. */
 const look = (arrow: Arrow): ArrowLook =>
   mode.value === 'story' && arrow.id === `step-${step.value}` ? 'now' : arrow.kind
+
+/** While a path plays, every arrow but its invitations fades. */
+const dim = (arrow: Arrow): boolean =>
+  path.active.value && !(arrow.kind === 'invite' && path.steps.value.has(arrow.step))
 
 const drawn = computed(() => arrows.value.filter(visible))
 /** The next step's arrow, faded, reaching the ghost of what comes next. */
@@ -40,7 +47,7 @@ const ghost = computed(() => {
     :viewBox="`0 0 ${layout.width} ${layout.height}`"
     aria-hidden="true"
   >
-    <MapArrow v-for="arrow in drawn" :key="arrow.id" :arrow="arrow" :look="look(arrow)" />
+    <MapArrow v-for="arrow in drawn" :key="arrow.id" :arrow="arrow" :look="look(arrow)" :dim="dim(arrow)" />
     <MapArrow v-if="ghost" :key="`next:${ghost.id}`" :arrow="ghost" look="next" />
   </svg>
 </template>

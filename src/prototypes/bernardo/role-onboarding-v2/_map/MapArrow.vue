@@ -4,7 +4,7 @@ import { arrowHead, arrowPath, type ArrowLook, type MapArrow } from './arrows'
 
 // One arrow: its curve, its arrowhead and its label pill at the curve's midpoint. The look defaults to the arrow's
 // kind; the timeline draws the current step's arrow as `now` and the next step's as `next`.
-const props = defineProps<{ arrow: MapArrow; look?: ArrowLook }>()
+const props = defineProps<{ arrow: MapArrow; look?: ArrowLook; dim?: boolean }>()
 
 const look = computed(() => props.look ?? props.arrow.kind)
 const head = computed(() => (look.value === 'now' ? 9 : 8))
@@ -14,7 +14,7 @@ const rect = computed(() => props.arrow.label.rect)
 </script>
 
 <template>
-  <g class="arrow" :class="look" :data-arrow="arrow.id" :data-step="arrow.step">
+  <g class="arrow" :class="[look, { dim }]" :data-arrow="arrow.id" :data-step="arrow.step">
     <path class="line" :d="line" />
     <path class="head" :d="tip" />
     <foreignObject
@@ -39,6 +39,15 @@ const rect = computed(() => props.arrow.label.rect)
 .arrow {
   --arrow: var(--color-slate-400);
   animation: arrow-in 360ms ease-out both;
+}
+
+/* On the children, so the fade can transition beside the group's own fade-in. */
+.arrow > * {
+  transition: opacity 240ms ease-out;
+}
+
+.dim > * {
+  opacity: 0.22;
 }
 
 @keyframes arrow-in {
@@ -147,6 +156,10 @@ const rect = computed(() => props.arrow.label.rect)
 @media (prefers-reduced-motion: reduce) {
   .arrow {
     animation: none;
+  }
+
+  .arrow > * {
+    transition: none;
   }
 }
 </style>

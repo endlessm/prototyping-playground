@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { programIllustration } from './illustrations'
 import { shelfId, SHELF } from './layout'
 import { accessLabel, cohortCount, cohortsRunning, shelfPrograms } from './programs'
+import { usePathView } from './path'
 import { useMapState } from './state'
 import type { PlaceId } from './story'
 
@@ -13,6 +14,8 @@ const props = defineProps<{ place: PlaceId }>()
 const { story, layout, shown } = useMapState()
 
 const rect = computed(() => layout.value.boxes[shelfId(props.place)])
+/** Programs are never on someone's path of invitations, so the shelf fades while one plays. */
+const { active: dim } = usePathView()
 const name = computed(() => story.value.places[props.place]?.name ?? '')
 const programs = computed(() =>
   shelfPrograms(story.value).map((program) => ({
@@ -33,6 +36,7 @@ const sizes = {
   <section
     v-if="rect"
     class="shelf"
+    :class="{ dim }"
     :style="{
       ...sizes,
       left: `${rect.x}px`,
@@ -79,6 +83,11 @@ const sizes = {
   box-shadow:
     0 25px 50px -12px rgb(0 0 0 / 0.08),
     0 1px 2px rgb(15 23 43 / 0.04);
+  transition: filter 240ms ease-out;
+}
+
+.shelf.dim {
+  filter: grayscale(0.7) opacity(0.32);
 }
 
 .head {
@@ -173,5 +182,11 @@ const sizes = {
   font-weight: 700;
   background: var(--ui-bg);
   border: 1px solid var(--color-cornflower-50);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shelf {
+    transition: none;
+  }
 }
 </style>

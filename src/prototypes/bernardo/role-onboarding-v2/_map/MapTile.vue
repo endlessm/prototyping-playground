@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { roleIllustrations } from './illustrations'
+import { usePathView } from './path'
 import { useMapState } from './state'
 import { joinStep, mapRoles, nodeTitle, type NodeId, type PlaceKind } from './story'
 
@@ -15,6 +16,9 @@ const rect = computed(() => layout.value.nodes[props.id])
 const step = computed(() => joinStep(story.value, props.id))
 const title = computed(() => nodeTitle(node.value))
 const selected = computed(() => selectedId.value === props.id)
+const path = usePathView()
+/** Whether a path is playing that this tile isn't on. */
+const dim = computed(() => path.active.value && !path.nodes.value.has(props.id))
 /** Whether this tile is what the story's current step adds. */
 const now = computed(
   () => mode.value === 'story' && current.value?.kind === 'award' && current.value.node === props.id,
@@ -33,7 +37,7 @@ const color = computed(() => (node.value.role === 'learner' ? 'neutral' : chipCo
   <button
     type="button"
     class="tile"
-    :class="{ selected, now }"
+    :class="{ selected, now, dim }"
     :style="{ left: `${rect.x}px`, top: `${rect.y}px`, width: `${rect.width}px`, height: `${rect.height}px` }"
     :aria-pressed="selected"
     :aria-label="`${title}, ${role.label}, step ${step}${now ? ', new in this step' : ''}`"
@@ -63,7 +67,8 @@ const color = computed(() => (node.value.role === 'learner' ? 'neutral' : chipCo
     0 1px 2px rgb(15 23 43 / 0.04);
   transition:
     box-shadow 150ms ease-out,
-    border-color 150ms ease-out;
+    border-color 150ms ease-out,
+    filter 240ms ease-out;
   animation: tile-in 360ms ease-out both;
 }
 
@@ -91,6 +96,10 @@ const color = computed(() => (node.value.role === 'learner' ? 'neutral' : chipCo
   box-shadow:
     0 0 0 5px color-mix(in oklab, var(--color-sky-500) 14%, transparent),
     0 25px 50px -12px rgb(0 0 0 / 0.08);
+}
+
+.tile.dim {
+  filter: grayscale(0.7) opacity(0.32);
 }
 
 .step {
