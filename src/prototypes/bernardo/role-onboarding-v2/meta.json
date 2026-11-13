@@ -1,0 +1,12 @@
+{
+  "formatVersion": 1,
+  "title": "Role Onboarding v2",
+  "created": "2026-11-13",
+  "studioId": "9bzhzzsjggnv6ecw",
+  "ownerContributorId": "ma1xykkc2j3d2x24",
+  "systemId": "8x5spen6xtvp96a9",
+  "order": [
+    "Overview.vue",
+    "Flows.excalidraw"
+  ]
+}
