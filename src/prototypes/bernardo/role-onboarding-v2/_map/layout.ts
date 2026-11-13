@@ -3,7 +3,7 @@
 // it. Arrows read anchors from this layout instead of measuring the page.
 
 import { shelfPrograms } from './programs'
-import { placeCreator, placeStep, type GridPoint, type NodeId, type PlaceId, type PlaceKind, type Story } from './story'
+import { placeDetail, type GridPoint, type NodeId, type PlaceId, type PlaceKind, type Story } from './story'
 
 /** One grid cell, the spacing of the canvas's dots. */
 export const GRID = 20
@@ -80,7 +80,8 @@ export function computeLayout(story: Story, boxes: MapBox[] = []): MapLayout {
     const rect = {
       x: inner.x - AREA_PADDING.side,
       y: inner.y - AREA_PADDING.top,
-      width: Math.max(inner.width + 2 * AREA_PADDING.side, AREA_MIN_WIDTH),
+      // An area holding a single tile still fits its tab, which may run up to the far edge (the estimate is generous).
+      width: Math.max(inner.width + 2 * AREA_PADDING.side, AREA_MIN_WIDTH, tabWidth(story, place) + TAB.inset),
       height: inner.height + AREA_PADDING.top + AREA_PADDING.bottom,
     }
     areas[place] = rect
@@ -136,16 +137,21 @@ export const TAB = { inset: 20, height: 44, chrome: 64 }
  */
 export const tabSide = (kind: PlaceKind): 'left' | 'right' => (kind === 'Cohort' ? 'right' : 'left')
 
+/** How wide an area's tab is, estimated from its name and its kind line. */
+export function tabWidth(story: Story, id: PlaceId): number {
+  const place = story.places[id]
+  if (!place) return 0
+  const detail = placeDetail(story, id)
+  const meta = detail ? `${place.kind} · ${detail}` : place.kind
+  return TAB.chrome + Math.max(textWidth(place.name, 14.5, 'bold'), textWidth(meta, 11, 'semibold'))
+}
+
 /** Where an area's tab sits, for arrows to reach it and to stay clear of it. */
 export function tabRect(story: Story, layout: MapLayout, id: PlaceId): Rect | null {
   const area = layout.areas[id]
   const place = story.places[id]
   if (!area || !place) return null
-  const step = placeStep(story, id)
-  const creator = placeCreator(story, id)?.person?.name.split(' ')[0]
-  const detail = place.note ?? (step ? `step ${step}${creator ? ` · created by ${creator}` : ''}` : '')
-  const meta = detail ? `${place.kind} · ${detail}` : place.kind
-  const width = TAB.chrome + Math.max(textWidth(place.name, 14.5, 'bold'), textWidth(meta, 11, 'semibold'))
+  const width = tabWidth(story, id)
   const x = tabSide(place.kind) === 'right' ? area.x + area.width - TAB.inset - width : area.x + TAB.inset
   return { x, y: area.y - TAB.height / 2, width, height: TAB.height }
 }
@@ -169,8 +175,11 @@ export function shelfRow(shelf: Rect, index: number): Rect {
   }
 }
 
-/** The How to read legend, loose on the canvas at the bottom left. */
-export const LEGEND = { id: 'legend', width: 196, height: 236 }
+/** The How to read legend, loose on the canvas at the bottom left; `entry` is the height of one of its lines. */
+export const LEGEND = { id: 'legend', width: 196, height: 236, entry: 23 }
+
+/** A story without a timeline drops the legend's two lines about steps: what happens now and what comes next. */
+export const legendHeight = (story: Story): number => (story.timed ? LEGEND.height : LEGEND.height - 2 * LEGEND.entry)
 
 const overlaps = (a: Rect, b: Rect) =>
   a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height
@@ -202,9 +211,9 @@ export function computeMapLayout(story: Story): MapLayout {
   const shelved = computeLayout(story, shelves)
   const corner = {
     x: CANVAS_MARGIN,
-    y: shelved.height - CANVAS_MARGIN - LEGEND.height,
+    y: shelved.height - CANVAS_MARGIN - legendHeight(story),
     width: LEGEND.width,
-    height: LEGEND.height,
+    height: legendHeight(story),
   }
   const taken = [...Object.values(shelved.areas), ...Object.values(shelved.nodes)]
   const rect = taken.some((r) => overlaps(r, corner)) ? { ...corner, y: shelved.height } : corner

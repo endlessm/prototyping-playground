@@ -96,6 +96,11 @@ export interface Story {
   nodes: Record<NodeId, MapNode>
   steps: StoryEvent[]
   positions: Record<NodeId, GridPoint>
+  /**
+   * Whether the steps are a timeline to play. Explore's aren't: it shows everything at once, so its steps only say
+   * who awarded or created what, and the map shows no step numbers.
+   */
+  timed: boolean
 }
 
 const first = (person: Person) => person.name.split(' ')[0]
@@ -135,6 +140,7 @@ const brightwaterNodes: Record<NodeId, MapNode> = Object.fromEntries(
 export const brightwater: Story = {
   id: 'brightwater',
   title: ORG_SHORT,
+  timed: true,
   places: brightwaterPlaces,
   nodes: brightwaterNodes,
   steps: [
@@ -259,6 +265,19 @@ export function existsAt(story: Story, step: number): { nodes: Set<NodeId>; plac
     }),
   )
   return { nodes, places }
+}
+
+/** What an area's tab says after its kind: what the place is, or (the step that made it and) who created it. */
+export function placeDetail(story: Story, id: PlaceId): string {
+  const place = story.places[id]
+  if (!place) return ''
+  if (place.note) return place.note
+  const step = placeStep(story, id)
+  const creator = placeCreator(story, id)?.person?.name.split(' ')[0]
+  const by = creator ? `created by ${creator}` : ''
+  if (!story.timed) return by
+  if (!step) return ''
+  return by ? `step ${step} · ${by}` : `step ${step}`
 }
 
 /** A tile's title: the person's name, or how many learners joined. */

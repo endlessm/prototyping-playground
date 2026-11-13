@@ -4,7 +4,7 @@ import { placeIllustrations } from './illustrations'
 import { tabSide } from './layout'
 import { usePathView } from './path'
 import { useMapState } from './state'
-import { placeCreator, placeStep, type PlaceId } from './story'
+import { placeDetail, type PlaceId } from './story'
 
 // An area on the map: a soft box in its level's colour, named by a tab on its top edge with its kind and story.
 const props = defineProps<{ id: PlaceId }>()
@@ -24,13 +24,7 @@ const path = usePathView()
 const dim = computed(() => path.active.value && !path.places.value.has(props.id))
 
 /** After the kind: what the place is, or the step that made it and who did. */
-const detail = computed(() => {
-  if (place.value.note) return place.value.note
-  const step = placeStep(story.value, props.id)
-  const creator = placeCreator(story.value, props.id)?.person
-  if (!step) return ''
-  return creator ? `step ${step} · created by ${creator.name.split(' ')[0]}` : `step ${step}`
-})
+const detail = computed(() => placeDetail(story.value, props.id))
 </script>
 
 <template>

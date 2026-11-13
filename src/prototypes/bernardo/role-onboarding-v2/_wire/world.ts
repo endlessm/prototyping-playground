@@ -26,6 +26,10 @@ export const COHORT = 'Spring Game Makers'
 /** An Independent Team, the default name when someone creates one from the place switcher. */
 export const INDIE_TEAM = 'Game Club'
 export const PROGRAM = 'Explore: Godot'
+/** The district's second Team, another school's (flow 3 reports on it). */
+export const NORTHGATE = 'Northgate High CS'
+/** The other Cohort in Brightwater High Game Design, which Daniel created (flow 5 shows it). */
+export const WINTER_COHORT = 'Winter Godot Club'
 
 const person = (name: string, email: string): Person => ({
   name,
@@ -230,14 +234,22 @@ export const places: Record<RoleKey, { name: string; role: string; level: Level;
 // Teams in the district, once it is under way (flow 3). Northgate is another school's team.
 export const teams = [
   { name: TEAM, owners: ['Aisha Rahman'], cohorts: 2, learners: 41 },
-  { name: 'Northgate High CS', owners: ['Priya Nair'], cohorts: 2, learners: 46 },
+  { name: NORTHGATE, owners: ['Priya Nair'], cohorts: 2, learners: 46 },
 ]
+
+// Who brought in the people the flows only mention, as the flows imply: Aisha invited Daniel with Ben (flow 4's
+// People list); Marcus created Northgate High CS and made Priya its Team Owner, as an Org Manager does for Aisha's
+// Team in flow 2; Daniel created Winter Godot Club and, as its Cohort Owner, added its learners.
+export const district = {
+  secondTeamManager: { person: people.daniel, by: people.aisha },
+  secondTeam: { name: NORTHGATE, createdBy: people.marcus, owner: people.priya, ownerBy: people.marcus },
+}
 
 // Cohorts in Brightwater High Game Design. Daniel, a Team Manager, created Winter Godot Club; Spring Game Makers is
 // the one flows 5 to 7 follow.
 export const cohorts = [
   {
-    name: 'Winter Godot Club',
+    name: WINTER_COHORT,
     program: PROGRAM,
     owners: ['Daniel Reyes'],
     status: 'Session 6 of 10',
