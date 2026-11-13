@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { placeIllustrations } from './illustrations'
 import { tabSide } from './layout'
+import { usePathView } from './path'
 import { useMapState } from './state'
 import { placeCreator, placeStep, type PlaceId } from './story'
 
@@ -18,6 +19,10 @@ const now = computed(
   () => mode.value === 'story' && current.value?.kind === 'create' && current.value.place === props.id,
 )
 
+const path = usePathView()
+/** Whether a path is playing that runs through none of this place. */
+const dim = computed(() => path.active.value && !path.places.value.has(props.id))
+
 /** After the kind: what the place is, or the step that made it and who did. */
 const detail = computed(() => {
   if (place.value.note) return place.value.note
@@ -31,7 +36,7 @@ const detail = computed(() => {
 <template>
   <div
     class="area"
-    :class="kindClass"
+    :class="[kindClass, { dim }]"
     :style="{ left: `${rect.x}px`, top: `${rect.y}px`, width: `${rect.width}px`, height: `${rect.height}px` }"
   >
     <div class="tab" :class="[tabSide(place.kind), { now }]">
@@ -53,7 +58,12 @@ const detail = computed(() => {
   position: absolute;
   border: 1.5px dashed;
   border-radius: 32px;
+  transition: filter 240ms ease-out;
   animation: area-in 360ms ease-out both;
+}
+
+.area.dim {
+  filter: grayscale(0.7) opacity(0.32);
 }
 
 @keyframes area-in {
@@ -173,6 +183,7 @@ const detail = computed(() => {
 
 @media (prefers-reduced-motion: reduce) {
   .area {
+    transition: none;
     animation: none;
   }
 }
