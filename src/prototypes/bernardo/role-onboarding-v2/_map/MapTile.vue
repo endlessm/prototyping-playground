@@ -7,7 +7,7 @@ import { joinStep, mapRoles, nodeTitle, type NodeId, type PlaceKind } from './st
 // One person on the map, or a Cohort's learners as one tile: their illustration, name, role and the step they joined.
 const props = defineProps<{ id: NodeId }>()
 
-const { story, layout, selectedId, select } = useMapState()
+const { story, layout, selectedId, select, mode, current } = useMapState()
 
 const node = computed(() => story.value.nodes[props.id])
 const role = computed(() => mapRoles[node.value.role])
@@ -15,6 +15,10 @@ const rect = computed(() => layout.value.nodes[props.id])
 const step = computed(() => joinStep(story.value, props.id))
 const title = computed(() => nodeTitle(node.value))
 const selected = computed(() => selectedId.value === props.id)
+/** Whether this tile is what the story's current step adds. */
+const now = computed(
+  () => mode.value === 'story' && current.value?.kind === 'award' && current.value.node === props.id,
+)
 
 const chipColor: Record<PlaceKind, 'neutral' | 'secondary' | 'primary' | 'info'> = {
   Platform: 'neutral',
@@ -29,13 +33,14 @@ const color = computed(() => (node.value.role === 'learner' ? 'neutral' : chipCo
   <button
     type="button"
     class="tile"
-    :class="{ selected }"
+    :class="{ selected, now }"
     :style="{ left: `${rect.x}px`, top: `${rect.y}px`, width: `${rect.width}px`, height: `${rect.height}px` }"
     :aria-pressed="selected"
-    :aria-label="`${title}, ${role.label}, step ${step}`"
+    :aria-label="`${title}, ${role.label}, step ${step}${now ? ', new in this step' : ''}`"
     @click="select(selected ? null : id)"
   >
     <span class="step" aria-hidden="true">{{ step }}</span>
+    <span v-if="now" class="new" aria-hidden="true">New</span>
     <img :src="roleIllustrations[node.role]" alt="" class="art" />
     <span class="name">{{ title }}</span>
     <UBadge :color="color" variant="soft" size="md" class="chip">{{ role.label }}</UBadge>
@@ -59,11 +64,26 @@ const color = computed(() => (node.value.role === 'learner' ? 'neutral' : chipCo
   transition:
     box-shadow 150ms ease-out,
     border-color 150ms ease-out;
+  animation: tile-in 360ms ease-out both;
+}
+
+@keyframes tile-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
 }
 
 .tile:focus-visible {
   outline: 2px solid var(--ui-info);
   outline-offset: 2px;
+}
+
+.tile.now {
+  border: 2px solid var(--color-orange-500);
+  box-shadow:
+    0 0 0 6px color-mix(in oklab, var(--color-orange-500) 16%, transparent),
+    0 25px 50px -12px rgb(0 0 0 / 0.08);
 }
 
 .tile.selected {
@@ -89,6 +109,25 @@ const color = computed(() => (node.value.role === 'learner' ? 'neutral' : chipCo
   line-height: 1;
 }
 
+.now .step {
+  color: white;
+  background: var(--color-orange-600);
+}
+
+.new {
+  position: absolute;
+  top: -10px;
+  right: -8px;
+  padding: 1px 8px;
+  color: var(--color-orange-900);
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 16px;
+  background: var(--color-orange-100);
+  border: 1px solid var(--color-orange-200);
+  border-radius: 100px;
+}
+
 .art {
   width: 56px;
   height: 56px;
@@ -112,6 +151,7 @@ const color = computed(() => (node.value.role === 'learner' ? 'neutral' : chipCo
 @media (prefers-reduced-motion: reduce) {
   .tile {
     transition: none;
+    animation: none;
   }
 }
 </style>

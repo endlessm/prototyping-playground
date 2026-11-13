@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { shelfId } from './layout'
 import MapArea from './MapArea.vue'
 import MapArrows from './MapArrows.vue'
+import MapGhost from './MapGhost.vue'
 import MapLegend from './MapLegend.vue'
 import MapPrograms from './MapPrograms.vue'
 import MapTile from './MapTile.vue'
@@ -69,6 +70,7 @@ const shelves = computed(() =>
       <MapArrows />
       <MapPrograms v-for="id in shelves" :key="id" :place="id" />
       <MapTile v-for="id in tiles" :id="id" :key="id" />
+      <MapGhost />
       <MapLegend />
     </div>
   </div>

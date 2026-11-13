@@ -2,11 +2,13 @@
 import { computed } from 'vue'
 import { computeArrows, type ArrowLook, type MapArrow as Arrow } from './arrows'
 import MapArrow from './MapArrow.vue'
+import { usePlayback } from './playback'
 import { useMapState } from './state'
 
 // Every arrow that exists at the current step and whose layer is on, routed once for the whole story so nothing moves
 // as it plays. Lines and labels share one SVG under the tiles; routing keeps both clear of tiles and tabs.
-const { story, layout, shown, layers } = useMapState()
+const { story, layout, shown, layers, mode, step } = useMapState()
+const { upcoming } = usePlayback()
 
 const arrows = computed(() => computeArrows(story.value, layout.value))
 
@@ -16,10 +18,18 @@ function visible(arrow: Arrow): boolean {
   return layers.programs && shown.value.places.has(arrow.from)
 }
 
-/** How each arrow is drawn; the timeline makes the current step's arrow `now`. */
-const look = (arrow: Arrow): ArrowLook => arrow.kind
+/** How each arrow is drawn: in Story mode, the current step's arrow is `now`. */
+const look = (arrow: Arrow): ArrowLook =>
+  mode.value === 'story' && arrow.id === `step-${step.value}` ? 'now' : arrow.kind
 
 const drawn = computed(() => arrows.value.filter(visible))
+/** The next step's arrow, faded, reaching the ghost of what comes next. */
+const ghost = computed(() => {
+  if (mode.value !== 'story' || !layers.next || upcoming.value === null) return null
+  const arrow = arrows.value.find((candidate) => candidate.id === `step-${upcoming.value}`)
+  if (!arrow || !shown.value.nodes.has(arrow.from)) return null
+  return arrow
+})
 </script>
 
 <template>
@@ -31,6 +41,7 @@ const drawn = computed(() => arrows.value.filter(visible))
     aria-hidden="true"
   >
     <MapArrow v-for="arrow in drawn" :key="arrow.id" :arrow="arrow" :look="look(arrow)" />
+    <MapArrow v-if="ghost" :key="`next:${ghost.id}`" :arrow="ghost" look="next" />
   </svg>
 </template>
 

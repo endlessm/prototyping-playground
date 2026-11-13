@@ -38,6 +38,13 @@ const rect = computed(() => props.arrow.label.rect)
 <style scoped>
 .arrow {
   --arrow: var(--color-slate-400);
+  animation: arrow-in 360ms ease-out both;
+}
+
+@keyframes arrow-in {
+  from {
+    opacity: 0;
+  }
 }
 
 .line {
@@ -135,5 +142,11 @@ const rect = computed(() => props.arrow.label.rect)
 .now .verb,
 .now .object {
   color: var(--color-orange-900);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrow {
+    animation: none;
+  }
 }
 </style>
