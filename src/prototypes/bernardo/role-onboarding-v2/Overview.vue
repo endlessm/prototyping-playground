@@ -7,6 +7,7 @@ import Lead from './_wire/Lead.vue'
 import Marker from './_wire/Marker.vue'
 import Small from './_wire/Small.vue'
 import Subtitle from './_wire/Subtitle.vue'
+import TextLink from './_wire/TextLink.vue'
 import Title from './_wire/Title.vue'
 import { roleList, view, type Level } from './_wire/world'
 import s from './_wire/wire.module.css'
@@ -27,6 +28,7 @@ const levels: Level[] = ['Organization', 'Team', 'Cohort']
         <Lead>Invite → Accept → Welcome → First task, for each educator role.</Lead>
         <Marker :flow="0" :n="2" />
       </div>
+      <TextLink to="Roles Map">See how every role connects on the Roles Map</TextLink>
       <div :class="s.columns3" style="align-items: start; gap: 16px">
         <section v-for="level in levels" :key="level" :class="[s.stack, s.tight]">
           <Subtitle>{{ level }}</Subtitle>
