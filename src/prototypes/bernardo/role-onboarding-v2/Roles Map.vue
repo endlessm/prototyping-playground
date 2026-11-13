@@ -6,6 +6,7 @@ import MapCanvas from './_map/MapCanvas.vue'
 import MapHeader from './_map/MapHeader.vue'
 import MapPanel from './_map/MapPanel.vue'
 import MapTimeline from './_map/MapTimeline.vue'
+import MapWhosWho from './_map/MapWhosWho.vue'
 import { providePlayback } from './_map/playback'
 import { provideMapState, type MapMode } from './_map/state'
 
@@ -30,6 +31,7 @@ export const states = [
     <MapHeader />
     <div class="flex min-h-0 flex-1">
       <!-- Left column: Who's who and the layer switches. -->
+      <MapWhosWho />
       <main class="flex min-w-0 flex-1 flex-col">
         <MapCanvas class="min-h-0 flex-1" />
         <MapTimeline v-if="mode === 'story'" />
