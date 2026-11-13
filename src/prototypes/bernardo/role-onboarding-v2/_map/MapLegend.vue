@@ -3,8 +3,9 @@ import { computed } from 'vue'
 import { LEGEND } from './layout'
 import { useMapState } from './state'
 
-// How to read the map: each kind of arrow, the current step and what comes next, in the arrows' own strokes.
-const { layout } = useMapState()
+// How to read the map: each kind of arrow, the current step and what comes next, in the arrows' own strokes. A story
+// without a timeline (Explore) has no current or next step, so it leaves those two lines out.
+const { layout, story } = useMapState()
 
 const rect = computed(() => layout.value.boxes[LEGEND.id])
 
@@ -14,6 +15,7 @@ const lines = [
   { look: 'runs', text: 'runs a Program' },
   { look: 'now', text: 'happens in this step' },
 ] as const
+const shown = computed(() => (story.value.timed ? lines : lines.filter((line) => line.look !== 'now')))
 </script>
 
 <template>
@@ -25,14 +27,14 @@ const lines = [
   >
     <h3 class="title">How to read</h3>
     <ul>
-      <li v-for="line in lines" :key="line.look" class="entry" :class="line.look">
+      <li v-for="line in shown" :key="line.look" class="entry" :class="line.look">
         <svg viewBox="0 0 34 10" class="sample" aria-hidden="true">
           <line x1="1" y1="5" x2="27" y2="5" />
           <path d="M26 1.5 32 5l-6 3.5z" />
         </svg>
         {{ line.text }}
       </li>
-      <li class="entry">
+      <li v-if="story.timed" class="entry">
         <span class="ghost" aria-hidden="true" />
         comes next
       </li>

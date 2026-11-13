@@ -85,7 +85,10 @@ function choose(row: WhoRow) {
     <div class="flex items-start justify-between gap-2">
       <div>
         <h2 class="font-heading text-base font-bold tracking-tight text-highlighted">Who's who</h2>
-        <p class="mt-0.5 text-xs text-dimmed">Everyone in this story, grouped by where their role lives.</p>
+        <p class="mt-0.5 text-xs text-dimmed">
+          {{ mode === 'story' ? 'Everyone in this story' : 'Everyone in the district' }}, grouped by where their role
+          lives.
+        </p>
       </div>
       <UTooltip text="Hide Who's who" :content="{ side: 'right' }">
         <UButton

@@ -11,6 +11,7 @@ import {
   chainTo,
   flowStart,
   heldRoles,
+  isFlowPerson,
   LEARNER_NOTE,
   roleColor,
 } from './panel'
@@ -29,6 +30,10 @@ const isLearner = computed(() => node.value.role === 'learner')
 const title = computed(() => nodeTitle(node.value))
 const name = computed(() => (node.value.person ? firstName(node.value) : 'learners'))
 const possessive = computed(() => (isLearner.value ? 'learners' : `${name.value}’s`))
+/** The link names the flow after its person, or after the role when the flow follows someone else. */
+const flowName = computed(() =>
+  isFlowPerson(main.value.role, node.value) ? possessive.value : `the ${mapRoles[main.value.role].label}`,
+)
 const held = computed(() => heldRoles(story.value, props.id))
 const main = computed(() => held.value[0])
 const came = computed(() => arrival(story.value, props.id))
@@ -82,7 +87,7 @@ useEscape(close)
           <p class="text-[13px] font-semibold leading-4 text-highlighted">{{ nodeTitle(came.by) }}</p>
           <p class="text-[11.5px] leading-4 text-dimmed">{{ mapRoles[came.by.role].label }}</p>
         </div>
-        <span class="step">Step {{ came.step }}</span>
+        <span v-if="story.timed" class="step">Step {{ came.step }}</span>
       </div>
       <p v-else class="text-[12.5px] leading-[17px] text-muted">
         Nobody. Endless Admins are Endless Access staff, there from the start.
@@ -93,7 +98,7 @@ useEscape(close)
           <p class="text-[13px] font-semibold leading-4 text-highlighted">Created {{ role.place.name }}</p>
           <p class="text-[11.5px] leading-4 text-dimmed">and became its {{ mapRoles[role.role].label }}</p>
         </div>
-        <span class="step">Step {{ role.step }}</span>
+        <span v-if="story.timed" class="step">Step {{ role.step }}</span>
       </div>
     </section>
 
@@ -149,7 +154,7 @@ useEscape(close)
         {{ onPath ? 'Stop' : 'Play' }} {{ pathName }}
       </UButton>
       <PrototypeLink v-if="flow" :to="flow" class="flow">
-        Open {{ possessive }} onboarding flow
+        Open {{ flowName }} onboarding flow
         <UIcon name="i-lucide-arrow-up-right" class="size-4" />
       </PrototypeLink>
     </div>

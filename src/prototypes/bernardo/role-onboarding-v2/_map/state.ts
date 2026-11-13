@@ -3,6 +3,7 @@
 
 import { computed, inject, provide, reactive, ref, watch, type ComputedRef, type InjectionKey, type Ref } from 'vue'
 import { computeMapLayout, type MapLayout } from './layout'
+import { explore } from './explore'
 import { brightwater, existsAt, type NodeId, type PlaceId, type Story, type StoryEvent } from './story'
 
 export type MapMode = 'story' | 'explore'
@@ -23,7 +24,7 @@ export interface MapState {
   layers: MapLayers
   /** The person whose path is playing, if any. */
   path: Ref<NodeId | null>
-  /** What the map draws: the story in Story mode. */
+  /** What the map draws: the story in Story mode, the whole district in Explore. */
   story: ComputedRef<Story>
   layout: ComputedRef<MapLayout>
   /** The event of the current step, and of the step after it, when there is one. */
@@ -49,7 +50,7 @@ export function provideMapState(options: () => MapStateOptions = () => ({})): Ma
   const path = ref<NodeId | null>(null)
   const layers = reactive<MapLayers>({ invitations: true, creations: true, programs: true, next: true })
 
-  const story = computed(() => brightwater)
+  const story = computed(() => (mode.value === 'explore' ? explore : brightwater))
   const layout = computed(() => computeMapLayout(story.value))
   const current = computed(() => story.value.steps[step.value - 1] ?? null)
   const next = computed(() => story.value.steps[step.value] ?? null)
@@ -63,6 +64,11 @@ export function provideMapState(options: () => MapStateOptions = () => ({})): Ma
     },
     { immediate: true },
   )
+
+  // Someone only Explore has (Linda, Daniel, Priya) can't stay selected in the story.
+  watch(story, (value) => {
+    if (selectedId.value && !value.nodes[selectedId.value]) selectedId.value = null
+  })
 
   const state: MapState = {
     mode,

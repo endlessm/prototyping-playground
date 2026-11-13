@@ -103,6 +103,12 @@ export function flowStart(role: MapRoleKey): string | undefined {
   return key ? view(key, 1) : undefined
 }
 
+/** Whether a role's onboarding flow follows this very tile; Explore's Daniel and Priya hold roles flows follow others in. */
+export function isFlowPerson(role: MapRoleKey, node: MapNode): boolean {
+  const key = worldRole(role)
+  return Boolean(key && node.person && roles[key].person === node.person)
+}
+
 /** What a role can see, as a bold lead and the reason after it. */
 export interface Visibility {
   lead: string

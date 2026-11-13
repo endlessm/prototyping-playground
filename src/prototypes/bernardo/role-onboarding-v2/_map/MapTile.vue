@@ -5,7 +5,8 @@ import { usePathView } from './path'
 import { useMapState } from './state'
 import { joinStep, mapRoles, nodeTitle, type NodeId, type PlaceKind } from './story'
 
-// One person on the map, or a Cohort's learners as one tile: their illustration, name, role and the step they joined.
+// One person on the map, or a Cohort's learners as one tile: their illustration, name, role and the step they joined
+// (a story without a timeline, Explore, shows no steps).
 const props = defineProps<{ id: NodeId }>()
 
 const { story, layout, selectedId, select, mode, current } = useMapState()
@@ -40,10 +41,10 @@ const color = computed(() => (node.value.role === 'learner' ? 'neutral' : chipCo
     :class="{ selected, now, dim }"
     :style="{ left: `${rect.x}px`, top: `${rect.y}px`, width: `${rect.width}px`, height: `${rect.height}px` }"
     :aria-pressed="selected"
-    :aria-label="`${title}, ${role.label}, step ${step}${now ? ', new in this step' : ''}`"
+    :aria-label="`${title}, ${role.label}${story.timed ? `, step ${step}` : ''}${now ? ', new in this step' : ''}`"
     @click="select(selected ? null : id)"
   >
-    <span class="step" aria-hidden="true">{{ step }}</span>
+    <span v-if="story.timed" class="step" aria-hidden="true">{{ step }}</span>
     <span v-if="now" class="new" aria-hidden="true">New</span>
     <img :src="roleIllustrations[node.role]" alt="" class="art" />
     <span class="name">{{ title }}</span>
