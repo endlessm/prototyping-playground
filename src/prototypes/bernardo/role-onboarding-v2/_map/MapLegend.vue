@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { LEGEND } from './layout'
+import { arrowStroke, strokeStyle } from './look'
 import { useMapState } from './state'
 
 // How to read the map: each kind of arrow, the current step and what comes next, in the arrows' own strokes. A story
@@ -29,8 +30,8 @@ const shown = computed(() => (story.value.timed ? lines : lines.filter((line) =>
     <ul>
       <li v-for="line in shown" :key="line.look" class="entry" :class="line.look">
         <svg viewBox="0 0 34 10" class="sample" aria-hidden="true">
-          <line x1="1" y1="5" x2="27" y2="5" />
-          <path d="M26 1.5 32 5l-6 3.5z" />
+          <line x1="1" y1="5" x2="27" y2="5" stroke-linecap="round" :style="strokeStyle(line.look)" />
+          <path d="M26 1.5 32 5l-6 3.5z" :style="{ fill: arrowStroke[line.look].color }" />
         </svg>
         {{ line.text }}
       </li>
@@ -70,7 +71,6 @@ const shown = computed(() => (story.value.timed ? lines : lines.filter((line) =>
 }
 
 .entry {
-  --arrow: var(--color-slate-400);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -84,37 +84,6 @@ const shown = computed(() => (story.value.timed ? lines : lines.filter((line) =>
   flex: none;
   width: 34px;
   height: 10px;
-}
-
-.sample line {
-  stroke: var(--arrow);
-  stroke-width: 1.6;
-}
-
-.sample path {
-  fill: var(--arrow);
-}
-
-.create .sample line {
-  stroke-dasharray: 5 4;
-}
-
-.runs {
-  --arrow: var(--color-cornflower-500);
-}
-
-.runs .sample line {
-  stroke-width: 1.8;
-  stroke-dasharray: 1.5 4;
-  stroke-linecap: round;
-}
-
-.now {
-  --arrow: var(--color-orange-600);
-}
-
-.now .sample line {
-  stroke-width: 2.4;
 }
 
 .ghost {

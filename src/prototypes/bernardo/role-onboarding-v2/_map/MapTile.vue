@@ -3,7 +3,8 @@ import { computed } from 'vue'
 import { roleIllustrations } from './illustrations'
 import { usePathView } from './path'
 import { useMapState } from './state'
-import { joinStep, mapRoles, nodeTitle, type NodeId, type PlaceKind } from './story'
+import { roleColor } from './look'
+import { joinStep, mapRoles, nodeTitle, type NodeId } from './story'
 
 // One person on the map, or a Cohort's learners as one tile: their illustration, name, role and the step they joined
 // (a story without a timeline, Explore, shows no steps).
@@ -26,14 +27,6 @@ const dim = computed(() => path.active.value && !path.nodes.value.has(props.id))
 const now = computed(
   () => mode.value === 'story' && current.value?.kind === 'award' && current.value.node === props.id,
 )
-
-const chipColor: Record<PlaceKind, 'neutral' | 'secondary' | 'primary' | 'info'> = {
-  Platform: 'neutral',
-  Organization: 'secondary',
-  Team: 'primary',
-  Cohort: 'info',
-}
-const color = computed(() => (node.value.role === 'learner' ? 'neutral' : chipColor[role.value.kind]))
 </script>
 
 <template>
@@ -50,7 +43,7 @@ const color = computed(() => (node.value.role === 'learner' ? 'neutral' : chipCo
     <span v-if="now" class="new" aria-hidden="true">New</span>
     <img :src="roleIllustrations[node.role]" alt="" class="art" />
     <span class="name">{{ title }}</span>
-    <UBadge :color="color" variant="soft" size="md" class="chip">{{ role.label }}</UBadge>
+    <UBadge :color="roleColor(node.role)" variant="soft" size="md" class="chip">{{ role.label }}</UBadge>
   </button>
 </template>
 

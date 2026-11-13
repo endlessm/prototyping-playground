@@ -16,7 +16,7 @@ import {
   type Ref,
 } from 'vue'
 import type { MapState } from './state'
-import { mapRoles, type Story } from './story'
+import { firstName, mapRoles, type Story } from './story'
 
 /** The speeds on offer, as multiples of the normal pace. */
 export const SPEEDS = [0.5, 1, 1.5, 2] as const
@@ -195,7 +195,8 @@ export function usePlayback(): Playback {
 export function stepLabel(story: Story, step: number): { title: string; by: string } {
   const event = story.steps[step - 1]
   if (!event) return { title: '', by: '' }
-  const actor = story.nodes[event.actor]?.person?.name.split(' ')[0] ?? ''
+  const person = story.nodes[event.actor]?.person
+  const actor = person ? firstName(person) : ''
   const by = actor ? `by ${actor}` : ''
   if (event.kind === 'create') return { title: `${story.places[event.place]?.kind ?? 'Place'} created`, by }
   return { title: event.role === 'learner' ? 'Learners' : mapRoles[event.role].label, by }

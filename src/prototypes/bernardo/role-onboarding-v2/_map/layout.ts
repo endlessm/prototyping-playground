@@ -3,7 +3,7 @@
 // it. Arrows read anchors from this layout instead of measuring the page.
 
 import { shelfPrograms } from './programs'
-import { placeDetail, type GridPoint, type NodeId, type PlaceId, type PlaceKind, type Story } from './story'
+import { ancestors, placeDetail, type GridPoint, type NodeId, type PlaceId, type PlaceKind, type Story } from './story'
 
 /** One grid cell, the spacing of the canvas's dots. */
 export const GRID = 20
@@ -50,10 +50,7 @@ function bounds(rects: Rect[]): Rect | null {
   return { x: left, y: top, width: right - left, height: bottom - top }
 }
 
-function depth(story: Story, id: PlaceId): number {
-  const parent = story.places[id]?.parent
-  return parent ? depth(story, parent) + 1 : 0
-}
+const depth = (story: Story, id: PlaceId): number => ancestors(story, id).length - 1
 
 /** Lays out every tile and area of a story, whatever step is showing, so nothing moves as the story plays. */
 export function computeLayout(story: Story, boxes: MapBox[] = []): MapLayout {

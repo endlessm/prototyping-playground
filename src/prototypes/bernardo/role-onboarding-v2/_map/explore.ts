@@ -4,9 +4,8 @@
 // what, so the panel, the arrows and Who's who read Explore exactly as they read the story.
 
 import { cohorts, district, people, PROGRAM, roles, WINTER_COHORT, type Person } from '../_wire/world'
-import { brightwater, type MapNode, type Story } from './story'
+import { brightwater, firstName, type MapNode, type Story } from './story'
 
-const first = (name: string) => name.split(' ')[0]
 /** A person's tile id: their key in the world's `people`. */
 const idOf = (person: Person) =>
   (Object.keys(people) as (keyof typeof people)[]).find((key) => people[key] === person) ?? person.name
@@ -42,7 +41,7 @@ export const explore: Story = {
       role: 'orgReviewer',
       place: 'org',
       verb: 'invites as',
-      caption: `${first(roles.orgReviewer.by.name)} invites ${first(roles.orgReviewer.person.name)} as Org Reviewer`,
+      caption: `${firstName(roles.orgReviewer.by)} invites ${firstName(roles.orgReviewer.person)} as Org Reviewer`,
     },
     {
       kind: 'award',
@@ -51,7 +50,7 @@ export const explore: Story = {
       role: 'teamManager',
       place: 'team',
       verb: 'invites as',
-      caption: `${first(daniel.by.name)} invites ${first(daniel.person.name)} as a second Team Manager`,
+      caption: `${firstName(daniel.by)} invites ${firstName(daniel.person)} as a second Team Manager`,
     },
     {
       kind: 'create',
@@ -59,7 +58,7 @@ export const explore: Story = {
       place: 'winter',
       object: 'a Cohort',
       actorRole: 'cohortOwner',
-      caption: `${first(daniel.person.name)} creates ${WINTER_COHORT} and becomes its Cohort Owner`,
+      caption: `${firstName(daniel.person)} creates ${WINTER_COHORT} and becomes its Cohort Owner`,
     },
     {
       kind: 'award',
@@ -69,14 +68,14 @@ export const explore: Story = {
       place: 'winter',
       verb: 'adds',
       byRole: 'cohortOwner',
-      caption: `${first(daniel.person.name)} adds ${winterLearners} learners to ${WINTER_COHORT}`,
+      caption: `${firstName(daniel.person)} adds ${winterLearners} learners to ${WINTER_COHORT}`,
     },
     {
       kind: 'create',
       actor: idOf(northgate.createdBy),
       place: 'northgate',
       object: 'a Team',
-      caption: `${first(northgate.createdBy.name)} creates the Team ${northgate.name}`,
+      caption: `${firstName(northgate.createdBy)} creates the Team ${northgate.name}`,
     },
     {
       kind: 'award',
@@ -85,7 +84,7 @@ export const explore: Story = {
       role: 'teamOwner',
       place: 'northgate',
       verb: 'invites as',
-      caption: `${first(northgate.ownerBy.name)} invites ${first(northgate.owner.name)} as Team Owner`,
+      caption: `${firstName(northgate.ownerBy)} invites ${firstName(northgate.owner)} as Team Owner`,
     },
   ],
   // The story's places, moved down to make room for Northgate High CS beside the Organization's top row; Winter Godot

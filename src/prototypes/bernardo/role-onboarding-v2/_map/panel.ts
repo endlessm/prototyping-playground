@@ -1,67 +1,18 @@
-// What the person panel says about a tile, derived from the story: the roles they hold and where, who gave each one
-// and at which step, the chain of awards from Endless Access down to them, and what each role can do and see. "Can do"
-// comes from the sample world, the words of each role's invite; "can see" is the map's own text, following the scope
-// rules in the Endless Studios context (educator-roles.md): a role in one place grants nothing in another.
+// The person panel's own text: how it heads the person who brought a tile in, what each role can do and see, and
+// which onboarding flow it links to. "Can do" comes from the sample world, the words of each role's invite; "can see"
+// is the map's own text, following the scope rules in the Endless Studios context (educator-roles.md): a role in one
+// place grants nothing in another. Who holds what and the chain of awards are story derivations, in `story.ts`.
 
 import { endlessAdmin, roles, view, type RoleKey } from '../_wire/world'
-import { mapRoles, type MapNode, type MapPlace, type MapRoleKey, type NodeId, type PlaceKind, type Story } from './story'
-
-/** The colour of a role's chip, by the kind of place it lives in; the same as the tiles'. */
-export const chipColor: Record<PlaceKind, 'neutral' | 'secondary' | 'primary' | 'info'> = {
-  Platform: 'neutral',
-  Organization: 'secondary',
-  Team: 'primary',
-  Cohort: 'info',
-}
-
-export function roleColor(role: MapRoleKey): 'neutral' | 'secondary' | 'primary' | 'info' {
-  return role === 'learner' ? 'neutral' : chipColor[mapRoles[role].kind]
-}
-
-/** One role a person holds, where, and how they got it. */
-export interface HeldRole {
-  role: MapRoleKey
-  place: MapPlace
-  /** The step that gave it; 0 for the Endless Admin, who is there from the start. */
-  step: number
-  /** Who gave it; absent when the person took it by creating the place, or holds it from the start. */
-  by?: MapNode
-  /** The role the giver awarded it as, such as Ben adding Sofia as a Cohort Owner. */
-  byRole?: MapRoleKey
-  /** The verb of the award, such as "invites as" or "makes". */
-  verb?: string
-  /** True when the person took the role by creating the place. */
-  created?: boolean
-}
-
-/** Every role a tile holds, in the order the story gives them. */
-export function heldRoles(story: Story, id: NodeId): HeldRole[] {
-  const node = story.nodes[id]
-  if (!node) return []
-  const held: HeldRole[] = []
-  story.steps.forEach((event, index) => {
-    if (event.kind === 'award' && event.node === id) {
-      held.push({
-        role: event.role,
-        place: story.places[event.place],
-        step: index + 1,
-        by: story.nodes[event.actor],
-        byRole: event.byRole ?? story.nodes[event.actor]?.role,
-        verb: event.verb,
-      })
-    }
-    if (event.kind === 'create' && event.actor === id && event.actorRole) {
-      held.push({ role: event.actorRole, place: story.places[event.place], step: index + 1, created: true })
-    }
-  })
-  if (held.length === 0) held.push({ role: node.role, place: story.places[node.place], step: 0 })
-  return held
-}
-
-/** The award that brought a tile onto the map, if any. */
-export function arrival(story: Story, id: NodeId): HeldRole | undefined {
-  return heldRoles(story, id).find((held) => held.by)
-}
+import {
+  mapRoles,
+  organizationOf,
+  type HeldRole,
+  type MapNode,
+  type MapPlace,
+  type MapRoleKey,
+  type Story,
+} from './story'
 
 /** The section heading over the person who brought a tile in, in the award's own words. */
 export function arrivalHeading(held: HeldRole | undefined): string {
@@ -69,29 +20,6 @@ export function arrivalHeading(held: HeldRole | undefined): string {
   if (held.verb.startsWith('makes')) return `Made ${mapRoles[held.role].label} by`
   if (held.verb.startsWith('adds')) return 'Added by'
   return 'Invited by'
-}
-
-/** One tile on a chain, with the role it acts in there: the role it awarded the next one as, or its own. */
-export interface ChainLink {
-  node: MapNode
-  role: MapRoleKey
-}
-
-/** The tiles from the top of the story down to `id`, following each award back to whoever gave it. */
-export function chainTo(story: Story, id: NodeId): ChainLink[] {
-  const chain: ChainLink[] = []
-  const seen = new Set<NodeId>()
-  let current: NodeId | undefined = id
-  let role: MapRoleKey | undefined
-  while (current && !seen.has(current) && story.nodes[current]) {
-    seen.add(current)
-    const node: MapNode = story.nodes[current]
-    chain.unshift({ node, role: role ?? node.role })
-    const came = arrival(story, current)
-    current = came?.by?.id
-    role = came?.byRole
-  }
-  return chain
 }
 
 const worldRole = (role: MapRoleKey): RoleKey | undefined => (role in roles ? (role as RoleKey) : undefined)
@@ -122,16 +50,9 @@ export interface Visibility {
   rest: string
 }
 
-/** The Organization a place sits in, if any. */
-function organizationOf(story: Story, place: MapPlace): MapPlace | undefined {
-  let current: MapPlace | undefined = place
-  while (current && current.kind !== 'Organization') current = current.parent ? story.places[current.parent] : undefined
-  return current
-}
-
 /** What a role can see from the place it is held in. */
 export function canSee(role: MapRoleKey, place: MapPlace, story: Story): Visibility {
-  const org = organizationOf(story, place)
+  const org = organizationOf(story, place.id)
   const district = org ? `the ${org.note ?? 'Organization'}` : 'the Organization'
   switch (role) {
     case 'endlessAdmin':

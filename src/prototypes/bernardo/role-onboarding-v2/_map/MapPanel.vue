@@ -3,21 +3,11 @@ import { PrototypeLink } from '#studio/prototype'
 import { computed } from 'vue'
 import { useEscape } from '../_wire/useEscape'
 import { roleIllustrations } from './illustrations'
-import {
-  arrival,
-  arrivalHeading,
-  canDo,
-  canSee,
-  chainTo,
-  flowStart,
-  heldRoles,
-  isFlowPerson,
-  LEARNER_NOTE,
-  roleColor,
-} from './panel'
+import { roleColor } from './look'
+import { arrivalHeading, canDo, canSee, flowStart, isFlowPerson, LEARNER_NOTE } from './panel'
 import { usePathPlayer } from './path'
 import { useMapState } from './state'
-import { mapRoles, nodeTitle, type MapNode } from './story'
+import { arrival, chainTo, heldRoles, mapRoles, nodeTitle, shortName } from './story'
 
 // The selected person: who they are, who brought them in, what they can do and see, the chain of awards that led to
 // them, and their onboarding flow. Shown only while a tile is selected; closing it clears the selection.
@@ -28,7 +18,7 @@ const { story, select, mode } = useMapState()
 const node = computed(() => story.value.nodes[props.id])
 const isLearner = computed(() => node.value.role === 'learner')
 const title = computed(() => nodeTitle(node.value))
-const name = computed(() => (node.value.person ? firstName(node.value) : 'learners'))
+const name = computed(() => (node.value.person ? shortName(node.value) : 'learners'))
 const possessive = computed(() => (isLearner.value ? 'learners' : `${name.value}’s`))
 /** The link names the flow after its person, or after the role when the flow follows someone else. */
 const flowName = computed(() =>
@@ -45,10 +35,6 @@ const flow = computed(() => flowStart(main.value.role))
 const kind = computed(() => mapRoles[node.value.role].kind)
 const pathName = computed(() => (isLearner.value ? 'the learners’ path' : `${name.value}’s path`))
 const { on: onPath, toggle: togglePath } = usePathPlayer(() => props.id)
-
-function firstName(member: MapNode): string {
-  return member.person ? (member.person.name.split(' ')[0] ?? member.person.name) : nodeTitle(member)
-}
 
 const close = () => select(null)
 useEscape(close)
@@ -132,7 +118,7 @@ useEscape(close)
             @click="select(link.node.id)"
           >
             <img :src="roleIllustrations[link.role]" alt="" />
-            <b>{{ firstName(link.node) }}</b>
+            <b>{{ shortName(link.node) }}</b>
             <span>{{ mapRoles[link.role].label }}</span>
           </button>
         </li>

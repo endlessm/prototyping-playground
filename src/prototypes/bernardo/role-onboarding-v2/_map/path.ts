@@ -3,10 +3,9 @@
 // The path lives in the map state's `path` and in a partial playback sequence; losing either ends it.
 
 import { computed, onScopeDispose, watch, type ComputedRef } from 'vue'
-import { arrival, chainTo } from './panel'
 import { STEP_DURATION, usePlayback } from './playback'
 import { useMapState } from './state'
-import type { NodeId, PlaceId, Story } from './story'
+import { ancestors, arrival, chainTo, type NodeId, type PlaceId, type Story } from './story'
 
 export interface StoryPath {
   /** The tiles on the path, from the top of the story down to the person. */
@@ -33,11 +32,8 @@ export function replaySteps(path: StoryPath): number[] {
 export function pathPlaces(story: Story, nodes: NodeId[]): Set<PlaceId> {
   const places = new Set<PlaceId>()
   for (const id of nodes) {
-    let place: PlaceId | null | undefined = story.nodes[id]?.place
-    while (place && !places.has(place)) {
-      places.add(place)
-      place = story.places[place]?.parent
-    }
+    const node = story.nodes[id]
+    if (node) for (const place of ancestors(story, node.place)) places.add(place.id)
   }
   return places
 }

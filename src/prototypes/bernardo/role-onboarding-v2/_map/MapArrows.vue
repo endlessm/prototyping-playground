@@ -15,10 +15,16 @@ const path = usePathView()
 
 const arrows = computed(() => computeArrows(story.value, layout.value))
 
+/** Whether an arrow's own kind is switched on, whatever step it belongs to. */
+const layerOn = (arrow: Arrow): boolean =>
+  arrow.kind === 'invite' ? layers.invitations : arrow.kind === 'create' ? layers.creations : layers.programs
+
+/** Whether an arrow's layer is on and what it reaches (for a Program, the Cohort that runs it) is on the map. */
 function visible(arrow: Arrow): boolean {
-  if (arrow.kind === 'invite') return layers.invitations && shown.value.nodes.has(arrow.to)
-  if (arrow.kind === 'create') return layers.creations && shown.value.places.has(arrow.to)
-  return layers.programs && shown.value.places.has(arrow.from)
+  if (!layerOn(arrow)) return false
+  if (arrow.kind === 'invite') return shown.value.nodes.has(arrow.to)
+  if (arrow.kind === 'create') return shown.value.places.has(arrow.to)
+  return shown.value.places.has(arrow.from)
 }
 
 /** How each arrow is drawn: in Story mode, the current step's arrow is `now`. */
@@ -30,9 +36,6 @@ const dim = (arrow: Arrow): boolean =>
   path.active.value && !(arrow.kind === 'invite' && path.steps.value.has(arrow.step))
 
 const drawn = computed(() => arrows.value.filter(visible))
-/** Whether an arrow's own kind is switched on, whatever step it belongs to. */
-const layerOn = (arrow: Arrow): boolean =>
-  arrow.kind === 'invite' ? layers.invitations : arrow.kind === 'create' ? layers.creations : layers.programs
 
 /** The next step's arrow, faded, reaching the ghost of what comes next; its kind's layer hides it too. */
 const ghost = computed(() => {

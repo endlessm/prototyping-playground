@@ -298,3 +298,92 @@ export function nodeTitle(node: MapNode): string {
   if (node.person) return node.person.name
   return `${node.count ?? 0} ${node.count === 1 ? 'learner' : 'learners'}`
 }
+
+/** What the map calls a tile in passing: the person's first name, or the learners' title. */
+export function shortName(node: MapNode): string {
+  return node.person ? firstName(node.person) : nodeTitle(node)
+}
+
+/** A place and every place around it, from the place itself out to the outermost. */
+export function ancestors(story: Story, id: PlaceId): MapPlace[] {
+  const chain: MapPlace[] = []
+  let place = story.places[id]
+  while (place && !chain.includes(place)) {
+    chain.push(place)
+    place = place.parent ? story.places[place.parent] : undefined
+  }
+  return chain
+}
+
+/** The Organization a place sits in, itself included. */
+export function organizationOf(story: Story, id: PlaceId): MapPlace | undefined {
+  return ancestors(story, id).find((place) => place.kind === 'Organization')
+}
+
+/** One role a person holds, where, and how they got it. */
+export interface HeldRole {
+  role: MapRoleKey
+  place: MapPlace
+  /** The step that gave it; 0 for the Endless Admin, who is there from the start. */
+  step: number
+  /** Who gave it; absent when the person took it by creating the place, or holds it from the start. */
+  by?: MapNode
+  /** The role the giver awarded it as, such as Ben adding Sofia as a Cohort Owner. */
+  byRole?: MapRoleKey
+  /** The verb of the award, such as "invites as" or "makes". */
+  verb?: string
+  /** True when the person took the role by creating the place. */
+  created?: boolean
+}
+
+/** Every role a tile holds, in the order the story gives them. */
+export function heldRoles(story: Story, id: NodeId): HeldRole[] {
+  const node = story.nodes[id]
+  if (!node) return []
+  const held: HeldRole[] = []
+  story.steps.forEach((event, index) => {
+    if (event.kind === 'award' && event.node === id) {
+      held.push({
+        role: event.role,
+        place: story.places[event.place],
+        step: index + 1,
+        by: story.nodes[event.actor],
+        byRole: event.byRole ?? story.nodes[event.actor]?.role,
+        verb: event.verb,
+      })
+    }
+    if (event.kind === 'create' && event.actor === id && event.actorRole) {
+      held.push({ role: event.actorRole, place: story.places[event.place], step: index + 1, created: true })
+    }
+  })
+  if (held.length === 0) held.push({ role: node.role, place: story.places[node.place], step: 0 })
+  return held
+}
+
+/** The award that brought a tile onto the map, if any. */
+export function arrival(story: Story, id: NodeId): HeldRole | undefined {
+  return heldRoles(story, id).find((held) => held.by)
+}
+
+/** One tile on a chain, with the role it acts in there: the role it awarded the next one as, or its own. */
+export interface ChainLink {
+  node: MapNode
+  role: MapRoleKey
+}
+
+/** The tiles from the top of the story down to `id`, following each award back to whoever gave it. */
+export function chainTo(story: Story, id: NodeId): ChainLink[] {
+  const chain: ChainLink[] = []
+  const seen = new Set<NodeId>()
+  let current: NodeId | undefined = id
+  let role: MapRoleKey | undefined
+  while (current && !seen.has(current) && story.nodes[current]) {
+    seen.add(current)
+    const node: MapNode = story.nodes[current]
+    chain.unshift({ node, role: role ?? node.role })
+    const came = arrival(story, current)
+    current = came?.by?.id
+    role = came?.byRole
+  }
+  return chain
+}

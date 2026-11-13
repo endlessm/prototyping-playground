@@ -4,7 +4,7 @@ import { placeIllustrations, roleIllustrations } from './illustrations'
 import { tabRect } from './layout'
 import { usePlayback } from './playback'
 import { useMapState } from './state'
-import { mapRoles, nodeTitle, type PlaceId } from './story'
+import { ancestors, mapRoles, nodeTitle } from './story'
 
 // What comes next, faded where it will appear: the next person's tile, or the tab of the next Team or Cohort. The
 // timeline's next step decides it; nothing shows on the last step, outside Story mode or with the layer off.
@@ -38,14 +38,11 @@ const missing = computed(() => {
   if (ghost.value?.kind !== 'as-tile' || preview.value === null) return []
   const event = story.value.steps[preview.value - 1]
   if (event?.kind !== 'award') return []
-  const places: PlaceId[] = []
-  let place: PlaceId | null | undefined = event.place
-  while (place && !shown.value.places.has(place)) {
-    places.unshift(place)
-    place = story.value.places[place]?.parent
-  }
-  return places
-    .map((id) => ({ id, kind: story.value.places[id]?.kind.toLowerCase() ?? '', rect: layout.value.areas[id] }))
+  const around = ancestors(story.value, event.place)
+  const shownAt = around.findIndex((place) => shown.value.places.has(place.id))
+  return (shownAt < 0 ? around : around.slice(0, shownAt))
+    .reverse()
+    .map((place) => ({ id: place.id, kind: place.kind.toLowerCase(), rect: layout.value.areas[place.id] }))
     .filter((area) => area.rect)
 })
 

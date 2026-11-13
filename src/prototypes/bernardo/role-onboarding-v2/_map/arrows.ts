@@ -6,7 +6,7 @@
 
 import { anchor, LEGEND, shelfId, shelfRow, tabRect, textWidth, type MapLayout, type Rect, type Side } from './layout'
 import { shelfPrograms } from './programs'
-import { mapRoles, nodeTitle, placeStep, type NodeId, type PlaceId, type Story } from './story'
+import { mapRoles, nodeTitle, organizationOf, placeStep, type NodeId, type PlaceId, type Story } from './story'
 
 /** What an arrow says: someone invites to a role, creates a place, or a Cohort runs a Program. */
 export type ArrowKind = 'invite' | 'create' | 'runs'
@@ -278,7 +278,7 @@ export function computeArrows(story: Story, layout: MapLayout): MapArrow[] {
   for (const place of Object.values(story.places)) {
     if (!place.program) continue
     const area = layout.areas[place.id]
-    const org = organizationOf(story, place.id)
+    const org = organizationOf(story, place.id)?.id
     if (!org) continue
     const shelf = layout.boxes[shelfId(org)]
     const index = programs.findIndex((program) => program.name === place.program)
@@ -316,16 +316,6 @@ export function computeArrows(story: Story, layout: MapLayout): MapArrow[] {
     const { id, kind, step, from, to, curve, label } = routes.get(request.id)!
     return { id, kind, step, from, to, curve, label }
   })
-}
-
-/** The Organization a place sits in, itself included. */
-export function organizationOf(story: Story, id: PlaceId): PlaceId | null {
-  let place = story.places[id]
-  while (place) {
-    if (place.kind === 'Organization') return place.id
-    place = place.parent ? story.places[place.parent] : undefined
-  }
-  return null
 }
 
 /** The SVG path of an arrow's line, stopped short of the tip so the arrowhead covers its end. */

@@ -30,6 +30,8 @@ export interface MapState {
   /** The event of the current step, and of the step after it, when there is one. */
   current: ComputedRef<StoryEvent | null>
   next: ComputedRef<StoryEvent | null>
+  /** The step the map shows: the current one in Story mode, the end of the story in Explore, which shows it all. */
+  at: ComputedRef<number>
   /** The tiles and areas that exist at the current step. */
   shown: ComputedRef<{ nodes: Set<NodeId>; places: Set<PlaceId> }>
   select: (id: NodeId | null) => void
@@ -54,7 +56,8 @@ export function provideMapState(options: () => MapStateOptions = () => ({})): Ma
   const layout = computed(() => computeMapLayout(story.value))
   const current = computed(() => story.value.steps[step.value - 1] ?? null)
   const next = computed(() => story.value.steps[step.value] ?? null)
-  const shown = computed(() => existsAt(story.value, mode.value === 'story' ? step.value : story.value.steps.length))
+  const at = computed(() => (mode.value === 'story' ? step.value : story.value.steps.length))
+  const shown = computed(() => existsAt(story.value, at.value))
 
   watch(
     options,
@@ -81,6 +84,7 @@ export function provideMapState(options: () => MapStateOptions = () => ({})): Ma
     layout,
     current,
     next,
+    at,
     shown,
     select: (id) => {
       selectedId.value = id

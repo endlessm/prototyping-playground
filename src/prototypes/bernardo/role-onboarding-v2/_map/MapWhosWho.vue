@@ -9,10 +9,9 @@ import { rowTarget, whosWho, type WhoRow } from './whoswho'
 // person on the map (the panel opens); repeated clicks walk through a role several people hold. On a preview too
 // narrow for the column, the canvas and the panel together, it folds into a rail of illustrations while the panel is
 // open, so the map keeps a readable size; its button folds or unfolds it at any width.
-const { story, step, mode, layers, selectedId, select } = useMapState()
+const { story, at, mode, layers, selectedId, select } = useMapState()
 
 const query = ref('')
-const at = computed(() => (mode.value === 'story' ? step.value : story.value.steps.length))
 const groups = computed(() => whosWho(story.value, at.value, query.value))
 const railGroups = computed(() => whosWho(story.value, at.value))
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { arrowHead, arrowPath, type ArrowLook, type MapArrow } from './arrows'
+import { arrowStroke, strokeStyle } from './look'
 
 // One arrow: its curve, its arrowhead and its label pill at the curve's midpoint. The look defaults to the arrow's
 // kind; the timeline draws the current step's arrow as `now` and the next step's as `next`.
@@ -15,8 +16,8 @@ const rect = computed(() => props.arrow.label.rect)
 
 <template>
   <g class="arrow" :class="[look, { dim }]" :data-arrow="arrow.id" :data-step="arrow.step">
-    <path class="line" :d="line" />
-    <path class="head" :d="tip" />
+    <path class="line" :d="line" :style="strokeStyle(look)" />
+    <path :d="tip" :style="{ fill: arrowStroke[look].color }" />
     <foreignObject
       v-if="look !== 'next'"
       :x="rect.x"
@@ -37,7 +38,6 @@ const rect = computed(() => props.arrow.label.rect)
 
 <style scoped>
 .arrow {
-  --arrow: var(--color-slate-400);
   animation: arrow-in 360ms ease-out both;
 }
 
@@ -58,42 +58,7 @@ const rect = computed(() => props.arrow.label.rect)
 
 .line {
   fill: none;
-  stroke: var(--arrow);
-  stroke-width: 1.6;
   stroke-linecap: round;
-}
-
-.head {
-  fill: var(--arrow);
-}
-
-.create .line {
-  stroke-dasharray: 5 4;
-}
-
-.runs {
-  --arrow: var(--color-cornflower-500);
-}
-
-.runs .line {
-  stroke-width: 1.8;
-  stroke-dasharray: 1.5 4.5;
-}
-
-.now {
-  --arrow: var(--color-orange-600);
-}
-
-.now .line {
-  stroke-width: 2.4;
-}
-
-.next {
-  --arrow: var(--color-slate-300);
-}
-
-.next .line {
-  stroke-dasharray: 4 4;
 }
 
 .label-box {

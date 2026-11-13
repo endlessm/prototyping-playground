@@ -2,8 +2,7 @@
 // step has happened. Built from `heldRoles`, so Ben counts as both Team Manager and Cohort Owner, and the learners
 // tile counts as its number of learners. A role nobody holds (yet) still gets its row, with a count of 0.
 
-import { heldRoles } from './panel'
-import { mapRoles, nodeTitle, type MapRoleKey, type NodeId, type PlaceKind, type Story } from './story'
+import { heldRoles, mapRoles, nodeTitle, type MapRoleKey, type NodeId, type PlaceKind, type Story } from './story'
 
 /** One person (or the learners' tile) holding a role, and the step that gave it. */
 export interface Holder {
