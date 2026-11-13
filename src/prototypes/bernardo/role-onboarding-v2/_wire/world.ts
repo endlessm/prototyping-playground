@@ -19,6 +19,8 @@ export interface Person {
 
 export const ORG = 'Brightwater Unified School District'
 export const ORG_SHORT = 'Brightwater USD'
+/** What kind of Organization it is, in the words its people use. */
+export const ORG_KIND = 'school district'
 export const TEAM = 'Brightwater High Game Design'
 export const COHORT = 'Spring Game Makers'
 /** An Independent Team, the default name when someone creates one from the place switcher. */
