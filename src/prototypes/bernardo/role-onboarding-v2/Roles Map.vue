@@ -2,13 +2,14 @@
 <script setup lang="ts">
 import MapCanvas from './_map/MapCanvas.vue'
 import MapHeader from './_map/MapHeader.vue'
+import MapPanel from './_map/MapPanel.vue'
 import { provideMapState, type MapMode } from './_map/state'
 
 // The whole role model on one map: where each role lives, who gave it and what came of it, told as the Brightwater
 // story the seven flows follow. Proposed, like the flows. Opens at the end of the story.
 const props = defineProps<{ mode?: MapMode; step?: number }>()
 
-provideMapState(() => ({ mode: props.mode, step: props.step }))
+const { selectedId, story } = provideMapState(() => ({ mode: props.mode, step: props.step }))
 </script>
 
 <template>
@@ -21,6 +22,7 @@ provideMapState(() => ({ mode: props.mode, step: props.step }))
         <!-- Bottom: the story timeline. -->
       </main>
       <!-- Right: the selected person's panel. -->
+      <MapPanel v-if="selectedId && story.nodes[selectedId]" :id="selectedId" :key="selectedId" />
     </div>
   </div>
 </template>
