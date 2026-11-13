@@ -9,7 +9,7 @@ import { provideMapState, type MapMode } from './_map/state'
 // story the seven flows follow. Proposed, like the flows. Opens at the end of the story.
 const props = defineProps<{ mode?: MapMode; step?: number }>()
 
-const { selectedId } = provideMapState(() => ({ mode: props.mode, step: props.step }))
+const { selectedId, story } = provideMapState(() => ({ mode: props.mode, step: props.step }))
 </script>
 
 <template>
@@ -22,7 +22,7 @@ const { selectedId } = provideMapState(() => ({ mode: props.mode, step: props.st
         <!-- Bottom: the story timeline. -->
       </main>
       <!-- Right: the selected person's panel. -->
-      <MapPanel v-if="selectedId" :id="selectedId" :key="selectedId" />
+      <MapPanel v-if="selectedId && story.nodes[selectedId]" :id="selectedId" :key="selectedId" />
     </div>
   </div>
 </template>
