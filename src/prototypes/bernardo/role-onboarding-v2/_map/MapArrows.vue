@@ -30,11 +30,15 @@ const dim = (arrow: Arrow): boolean =>
   path.active.value && !(arrow.kind === 'invite' && path.steps.value.has(arrow.step))
 
 const drawn = computed(() => arrows.value.filter(visible))
-/** The next step's arrow, faded, reaching the ghost of what comes next. */
+/** Whether an arrow's own kind is switched on, whatever step it belongs to. */
+const layerOn = (arrow: Arrow): boolean =>
+  arrow.kind === 'invite' ? layers.invitations : arrow.kind === 'create' ? layers.creations : layers.programs
+
+/** The next step's arrow, faded, reaching the ghost of what comes next; its kind's layer hides it too. */
 const ghost = computed(() => {
   if (mode.value !== 'story' || !layers.next || upcoming.value === null) return null
   const arrow = arrows.value.find((candidate) => candidate.id === `step-${upcoming.value}`)
-  if (!arrow || !shown.value.nodes.has(arrow.from)) return null
+  if (!arrow || !layerOn(arrow) || !shown.value.nodes.has(arrow.from)) return null
   return arrow
 })
 </script>
