@@ -3,7 +3,7 @@
 // it. Arrows read anchors from this layout instead of measuring the page.
 
 import { shelfPrograms } from './programs'
-import { placeCreator, placeStep, type GridPoint, type NodeId, type PlaceId, type Story } from './story'
+import { placeCreator, placeStep, type GridPoint, type NodeId, type PlaceId, type PlaceKind, type Story } from './story'
 
 /** One grid cell, the spacing of the canvas's dots. */
 export const GRID = 20
@@ -128,7 +128,13 @@ export function textWidth(text: string, size: number, weight: 'regular' | 'semib
 }
 
 /** An area's tab, which straddles its top edge (see `MapArea.vue`). Its width is estimated from its text. */
-export const TAB = { left: 20, height: 44, chrome: 64 }
+export const TAB = { inset: 20, height: 44, chrome: 64 }
+
+/**
+ * Which end of its top edge an area's tab sits at. A Cohort's goes on the right, as in the concept, so it stays clear
+ * of the arrow that comes down into the Cohort from the Team Manager above it.
+ */
+export const tabSide = (kind: PlaceKind): 'left' | 'right' => (kind === 'Cohort' ? 'right' : 'left')
 
 /** Where an area's tab sits, for arrows to reach it and to stay clear of it. */
 export function tabRect(story: Story, layout: MapLayout, id: PlaceId): Rect | null {
@@ -140,7 +146,8 @@ export function tabRect(story: Story, layout: MapLayout, id: PlaceId): Rect | nu
   const detail = place.note ?? (step ? `step ${step}${creator ? ` · created by ${creator}` : ''}` : '')
   const meta = detail ? `${place.kind} · ${detail}` : place.kind
   const width = TAB.chrome + Math.max(textWidth(place.name, 14.5, 'bold'), textWidth(meta, 11, 'semibold'))
-  return { x: area.x + TAB.left, y: area.y - TAB.height / 2, width, height: TAB.height }
+  const x = tabSide(place.kind) === 'right' ? area.x + area.width - TAB.inset - width : area.x + TAB.inset
+  return { x, y: area.y - TAB.height / 2, width, height: TAB.height }
 }
 
 /** The Programs shelf: a header, then one row per Program. Rows have a fixed height so arrows can reach one. */

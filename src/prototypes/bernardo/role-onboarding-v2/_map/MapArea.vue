@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { placeIllustrations } from './illustrations'
+import { tabSide } from './layout'
 import { useMapState } from './state'
 import { placeCreator, placeStep, type PlaceId } from './story'
 
@@ -29,7 +30,7 @@ const detail = computed(() => {
     :class="kindClass"
     :style="{ left: `${rect.x}px`, top: `${rect.y}px`, width: `${rect.width}px`, height: `${rect.height}px` }"
   >
-    <div class="tab">
+    <div class="tab" :class="tabSide(place.kind)">
       <img :src="placeIllustrations[place.kind]" alt="" :class="place.kind === 'Platform' ? 'logo' : 'art'" />
       <div>
         <p class="name">{{ place.name }}</p>
@@ -74,7 +75,6 @@ const detail = computed(() => {
 .tab {
   position: absolute;
   top: 0;
-  left: 20px;
   z-index: 3;
   display: flex;
   align-items: center;
@@ -85,6 +85,14 @@ const detail = computed(() => {
   border-radius: 14px;
   box-shadow: 0 4px 16px rgb(15 23 43 / 0.12);
   transform: translateY(-50%);
+}
+
+.tab.left {
+  left: 20px;
+}
+
+.tab.right {
+  right: 20px;
 }
 
 .art {

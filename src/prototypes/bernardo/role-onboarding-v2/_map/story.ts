@@ -224,8 +224,8 @@ export const brightwater: Story = {
     ben: { col: 15, row: 17 },
     aisha: { col: 28, row: 17 },
     sofia: { col: 15, row: 30 },
-    sam: { col: 25, row: 30 },
-    learners: { col: 35, row: 30 },
+    sam: { col: 28, row: 30 },
+    learners: { col: 41, row: 30 },
   },
 }
 
