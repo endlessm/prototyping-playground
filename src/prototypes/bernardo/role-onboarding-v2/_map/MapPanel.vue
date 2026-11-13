@@ -14,6 +14,7 @@ import {
   LEARNER_NOTE,
   roleColor,
 } from './panel'
+import { usePathPlayer } from './path'
 import { useMapState } from './state'
 import { mapRoles, nodeTitle, type MapNode } from './story'
 
@@ -21,7 +22,7 @@ import { mapRoles, nodeTitle, type MapNode } from './story'
 // them, and their onboarding flow. Shown only while a tile is selected; closing it clears the selection.
 const props = defineProps<{ id: string }>()
 
-const { story, select } = useMapState()
+const { story, select, mode } = useMapState()
 
 const node = computed(() => story.value.nodes[props.id])
 const isLearner = computed(() => node.value.role === 'learner')
@@ -37,6 +38,8 @@ const sees = computed(() => canSee(main.value.role, main.value.place, story.valu
 const chain = computed(() => chainTo(story.value, props.id))
 const flow = computed(() => flowStart(main.value.role))
 const kind = computed(() => mapRoles[node.value.role].kind)
+const pathName = computed(() => (isLearner.value ? 'the learners’ path' : `${name.value}’s path`))
+const { on: onPath, toggle: togglePath } = usePathPlayer(() => props.id)
 
 function firstName(member: MapNode): string {
   return member.person ? (member.person.name.split(' ')[0] ?? member.person.name) : nodeTitle(member)
@@ -133,8 +136,18 @@ useEscape(close)
 
     <p v-if="isLearner" class="text-[12.5px] leading-[17px] text-dimmed">{{ LEARNER_NOTE }}</p>
 
-    <!-- Actions. Ticket 06 adds "Play <name>'s path" here, above the flow link. -->
     <div class="mt-auto flex flex-col gap-2">
+      <UButton
+        v-if="mode === 'story'"
+        :icon="onPath ? 'i-lucide-square' : 'i-lucide-play'"
+        color="primary"
+        variant="soft"
+        block
+        class="play"
+        @click="togglePath"
+      >
+        {{ onPath ? 'Stop' : 'Play' }} {{ pathName }}
+      </UButton>
       <PrototypeLink v-if="flow" :to="flow" class="flow">
         Open {{ possessive }} onboarding flow
         <UIcon name="i-lucide-arrow-up-right" class="size-4" />
@@ -277,6 +290,19 @@ useEscape(close)
 
 .link.me b {
   color: var(--color-sky-700);
+}
+
+.play {
+  padding: 9px 14px;
+  border: 1px solid var(--color-orange-200);
+  background: var(--color-orange-50);
+  color: var(--color-orange-900);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.play:hover {
+  background: var(--color-orange-100);
 }
 
 .flow {
