@@ -16,6 +16,8 @@ const role = computed(() => mapRoles[node.value.role])
 const rect = computed(() => layout.value.nodes[props.id])
 const step = computed(() => joinStep(story.value, props.id))
 const title = computed(() => nodeTitle(node.value))
+/** Tiles show the step that brought them in; the Endless Admin is there from the start frame, before step 1. */
+const numbered = computed(() => story.value.timed && step.value > 0)
 const selected = computed(() => selectedId.value === props.id)
 const path = usePathView()
 /** Whether a path is playing that this tile isn't on. */
@@ -41,10 +43,10 @@ const color = computed(() => (node.value.role === 'learner' ? 'neutral' : chipCo
     :class="{ selected, now, dim }"
     :style="{ left: `${rect.x}px`, top: `${rect.y}px`, width: `${rect.width}px`, height: `${rect.height}px` }"
     :aria-pressed="selected"
-    :aria-label="`${title}, ${role.label}${story.timed ? `, step ${step}` : ''}${now ? ', new in this step' : ''}`"
+    :aria-label="`${title}, ${role.label}${numbered ? `, step ${step}` : ''}${now ? ', new in this step' : ''}`"
     @click="select(selected ? null : id)"
   >
-    <span v-if="story.timed" class="step" aria-hidden="true">{{ step }}</span>
+    <span v-if="numbered" class="step" aria-hidden="true">{{ step }}</span>
     <span v-if="now" class="new" aria-hidden="true">New</span>
     <img :src="roleIllustrations[node.role]" alt="" class="art" />
     <span class="name">{{ title }}</span>

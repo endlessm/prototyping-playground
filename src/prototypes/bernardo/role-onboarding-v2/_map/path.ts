@@ -17,7 +17,7 @@ export interface StoryPath {
 
 /** The path to a tile: its chain of awards, without the creations along the way. */
 export function pathTo(story: Story, id: NodeId): StoryPath {
-  const nodes = chainTo(story, id).map((node) => node.id)
+  const nodes = chainTo(story, id).map((link) => link.node.id)
   const steps = nodes
     .map((node) => arrival(story, node)?.step)
     .filter((step): step is number => step !== undefined && step > 0)

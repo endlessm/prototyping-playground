@@ -23,7 +23,13 @@ const stops = computed(() =>
   }),
 )
 /** How far along the track the orange line reaches, as a share of the line between the first and last stops. */
-const progress = computed(() => (total.value > 1 ? (step.value - 1) / (total.value - 1) : 1))
+const progress = computed(() => (total.value > 1 ? Math.max(step.value - 1, 0) / (total.value - 1) : 1))
+/** The start frame has no number: it is the story before step 1. */
+const caption = computed(() =>
+  step.value === 0
+    ? { of: 'Start', text: story.value.start }
+    : { of: `Step ${step.value} of ${total.value}`, text: current.value?.caption },
+)
 const speeds = SPEEDS.map((value) => ({ label: `${value}×`, value }))
 </script>
 
@@ -56,8 +62,8 @@ const speeds = SPEEDS.map((value) => ({ label: `${value}×`, value }))
         />
       </div>
       <p class="caption min-w-0 flex-1 truncate" aria-live="polite">
-        <span class="of">Step {{ step }} of {{ total }}</span>
-        <span class="text">{{ current?.caption }}</span>
+        <span class="of">{{ caption.of }}</span>
+        <span class="text">{{ caption.text }}</span>
       </p>
       <div class="flex flex-none items-center gap-2 text-xs text-dimmed">
         <span aria-hidden="true">Speed</span>

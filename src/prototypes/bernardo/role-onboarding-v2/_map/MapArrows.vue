@@ -9,7 +9,7 @@ import { useMapState } from './state'
 // Every arrow that exists at the current step and whose layer is on, routed once for the whole story so nothing moves
 // as it plays. Lines and labels share one SVG under the tiles; routing keeps both clear of tiles and tabs.
 const { story, layout, shown, layers, mode, step } = useMapState()
-const { upcoming } = usePlayback()
+const { preview } = usePlayback()
 
 const path = usePathView()
 
@@ -36,8 +36,8 @@ const layerOn = (arrow: Arrow): boolean =>
 
 /** The next step's arrow, faded, reaching the ghost of what comes next; its kind's layer hides it too. */
 const ghost = computed(() => {
-  if (mode.value !== 'story' || !layers.next || upcoming.value === null) return null
-  const arrow = arrows.value.find((candidate) => candidate.id === `step-${upcoming.value}`)
+  if (mode.value !== 'story' || !layers.next || preview.value === null) return null
+  const arrow = arrows.value.find((candidate) => candidate.id === `step-${preview.value}`)
   if (!arrow || !layerOn(arrow) || !shown.value.nodes.has(arrow.from)) return null
   return arrow
 })

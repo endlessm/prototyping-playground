@@ -35,13 +35,15 @@ export interface Playback {
   partial: ComputedRef<boolean>
   /** Where the current step sits in the sequence (0-based), or -1 when it isn't part of it. */
   position: ComputedRef<number>
-  /** The step the sequence plays after the current one, shown as a ghost; `null` on the last. */
+  /** The step the sequence plays after the current one; `null` on the last. */
   upcoming: ComputedRef<number | null>
+  /** The step the map shows as a ghost: the upcoming one, except on the start frame, which shows only Endless Access. */
+  preview: ComputedRef<number | null>
   atStart: ComputedRef<boolean>
   atEnd: ComputedRef<boolean>
   /** Whether the viewer asked for reduced motion: steps then change at once, and playback still advances. */
   reducedMotion: Readonly<Ref<boolean>>
-  /** Plays from the current step; from the start when the sequence has finished. */
+  /** Plays from the current step; from step 1 on the start frame, or when the sequence has finished. */
   play: () => void
   pause: () => void
   toggle: () => void
@@ -66,11 +68,18 @@ export function providePlayback(state: MapState): Playback {
   const only = ref<number[] | null>(null)
   const reducedMotion = ref(false)
 
-  const whole = computed(() => story.value.steps.map((_, index) => index + 1))
+  /** Every step of the story, after the start frame (0) when it has one. */
+  const whole = computed(() => [
+    ...(story.value.start ? [0] : []),
+    ...story.value.steps.map((_, index) => index + 1),
+  ])
   const sequence = computed(() => only.value ?? whole.value)
   const partial = computed(() => only.value !== null)
   const position = computed(() => sequence.value.indexOf(step.value))
   const upcoming = computed(() => (position.value < 0 ? null : (sequence.value[position.value + 1] ?? null)))
+  const preview = computed(() => (step.value === 0 ? null : upcoming.value))
+  /** Where playing starts: the first numbered step, so Play on the start frame shows step 1 at once. */
+  const first = computed(() => sequence.value.find((target) => target > 0) ?? sequence.value[0])
   const atStart = computed(() => position.value <= 0)
   const atEnd = computed(() => position.value === sequence.value.length - 1)
 
@@ -99,7 +108,7 @@ export function providePlayback(state: MapState): Playback {
 
   const play = () => {
     if (!sequence.value.length) return
-    if (position.value < 0 || atEnd.value) step.value = sequence.value[0]
+    if (position.value < 0 || atEnd.value || step.value === 0) step.value = first.value
     playing.value = true
     schedule()
   }
@@ -123,6 +132,7 @@ export function providePlayback(state: MapState): Playback {
     partial,
     position,
     upcoming,
+    preview,
     atStart,
     atEnd,
     reducedMotion: readonly(reducedMotion),

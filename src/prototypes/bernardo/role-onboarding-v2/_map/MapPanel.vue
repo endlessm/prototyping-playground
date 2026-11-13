@@ -82,10 +82,10 @@ useEscape(close)
     <section>
       <h3 class="label mb-2">{{ arrivalHeading(came) }}</h3>
       <div v-if="came?.by" class="card">
-        <img :src="roleIllustrations[came.by.role]" alt="" class="size-8 shrink-0" />
+        <img :src="roleIllustrations[came.byRole ?? came.by.role]" alt="" class="size-8 shrink-0" />
         <div class="min-w-0">
           <p class="text-[13px] font-semibold leading-4 text-highlighted">{{ nodeTitle(came.by) }}</p>
-          <p class="text-[11.5px] leading-4 text-dimmed">{{ mapRoles[came.by.role].label }}</p>
+          <p class="text-[11.5px] leading-4 text-dimmed">{{ mapRoles[came.byRole ?? came.by.role].label }}</p>
         </div>
         <span v-if="story.timed" class="step">Step {{ came.step }}</span>
       </div>
@@ -123,17 +123,17 @@ useEscape(close)
     <section>
       <h3 class="label mb-2">How {{ name }} got here</h3>
       <ol class="chain">
-        <li v-for="member in chain" :key="member.id">
+        <li v-for="link in chain" :key="link.node.id">
           <button
             type="button"
             class="link"
-            :class="{ me: member.id === id }"
-            :aria-current="member.id === id ? 'true' : undefined"
-            @click="select(member.id)"
+            :class="{ me: link.node.id === id }"
+            :aria-current="link.node.id === id ? 'true' : undefined"
+            @click="select(link.node.id)"
           >
-            <img :src="roleIllustrations[member.role]" alt="" />
-            <b>{{ firstName(member) }}</b>
-            <span>{{ mapRoles[member.role].label }}</span>
+            <img :src="roleIllustrations[link.role]" alt="" />
+            <b>{{ firstName(link.node) }}</b>
+            <span>{{ mapRoles[link.role].label }}</span>
           </button>
         </li>
       </ol>

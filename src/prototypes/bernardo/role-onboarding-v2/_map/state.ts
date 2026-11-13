@@ -18,7 +18,7 @@ export interface MapLayers {
 
 export interface MapState {
   mode: Ref<MapMode>
-  /** The story's current step, from 1 to the number of steps. */
+  /** The story's current step, from 1 to the number of steps; 0 is the start frame, before step 1. */
   step: Ref<number>
   selectedId: Ref<NodeId | null>
   layers: MapLayers
@@ -60,7 +60,8 @@ export function provideMapState(options: () => MapStateOptions = () => ({})): Ma
     options,
     (value) => {
       mode.value = value.mode ?? 'story'
-      step.value = Math.min(Math.max(value.step ?? brightwater.steps.length, 1), brightwater.steps.length)
+      const first = brightwater.start ? 0 : 1
+      step.value = Math.min(Math.max(value.step ?? brightwater.steps.length, first), brightwater.steps.length)
     },
     { immediate: true },
   )

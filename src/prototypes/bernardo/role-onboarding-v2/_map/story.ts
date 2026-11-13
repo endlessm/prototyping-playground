@@ -5,6 +5,7 @@
 
 import {
   COHORT,
+  endlessAdmin,
   learners,
   ORG_KIND,
   ORG_SHORT,
@@ -33,7 +34,7 @@ export interface MapRole {
 }
 
 export const mapRoles: Record<MapRoleKey, MapRole> = {
-  endlessAdmin: { key: 'endlessAdmin', label: roles.orgOwner.awardedBy, kind: 'Platform' },
+  endlessAdmin: { key: 'endlessAdmin', label: endlessAdmin.label, kind: 'Platform' },
   ...(Object.fromEntries(
     Object.values(roles).map((role) => [role.key, { key: role.key, label: role.label, kind: role.level }]),
   ) as Record<RoleKey, MapRole>),
@@ -70,6 +71,8 @@ export type StoryEvent =
       place: PlaceId
       /** The arrow's verb before the role: "invites as" Team Owner. */
       verb: string
+      /** The role the actor awards it as, when it isn't their tile's role: Ben adds Sofia as a Cohort Owner. */
+      byRole?: MapRoleKey
       caption: string
     }
   | {
@@ -96,6 +99,8 @@ export interface Story {
   nodes: Record<NodeId, MapNode>
   steps: StoryEvent[]
   positions: Record<NodeId, GridPoint>
+  /** The caption of the unnumbered frame before step 1, when the story has one: only Endless Access is there. */
+  start?: string
   /**
    * Whether the steps are a timeline to play. Explore's aren't: it shows everything at once, so its steps only say
    * who awarded or created what, and the map shows no step numbers.
@@ -103,9 +108,15 @@ export interface Story {
   timed: boolean
 }
 
-const first = (person: Person) => person.name.split(' ')[0]
+/** A person's first name, as the map's captions and labels use it. */
+export const firstName = (person: Person): string => person.name.split(' ')[0] ?? person.name
 /** The first name of whoever holds a role in the flows. */
-const who = (key: RoleKey) => first(roles[key].person)
+const who = (key: RoleKey) => firstName(roles[key].person)
+
+/** The map's key for a role named as the world names it, such as a role's `byRole`. */
+function roleNamed(label: string): MapRoleKey | undefined {
+  return (Object.values(mapRoles) as MapRole[]).find((role) => role.label === label)?.key
+}
 
 const brightwaterPlaces: Record<PlaceId, MapPlace> = {
   endless: { id: 'endless', name: 'Endless Access', kind: 'Platform', parent: null },
@@ -141,6 +152,7 @@ export const brightwater: Story = {
   id: 'brightwater',
   title: ORG_SHORT,
   timed: true,
+  start: `Endless Access sets up ${ORG_SHORT} and asks ${firstName(people.alex)} to hand it over`,
   places: brightwaterPlaces,
   nodes: brightwaterNodes,
   steps: [
@@ -151,7 +163,7 @@ export const brightwater: Story = {
       role: 'orgOwner',
       place: 'org',
       verb: 'makes',
-      caption: `${first(people.alex)} makes ${who('orgOwner')} the Org Owner of ${ORG_SHORT}`,
+      caption: `${firstName(people.alex)} makes ${who('orgOwner')} the Org Owner of ${ORG_SHORT}`,
     },
     {
       kind: 'award',
@@ -202,6 +214,7 @@ export const brightwater: Story = {
       role: 'cohortOwner',
       place: 'cohort',
       verb: 'adds as',
+      byRole: roleNamed(roles.cohortOwner.byRole),
       caption: `${who('teamManager')} adds ${who('cohortOwner')} as a second Cohort Owner`,
     },
     {
@@ -235,10 +248,9 @@ export const brightwater: Story = {
   },
 }
 
-/** The step (1-based) at which a tile first appears: when it is awarded its role, or first acts. */
+/** The step (1-based) at which a tile is awarded its role; 0 for one nobody awards, there from the start (Alex). */
 export function joinStep(story: Story, id: NodeId): number {
-  const index = story.steps.findIndex((event) => (event.kind === 'award' && event.node === id) || event.actor === id)
-  return index + 1
+  return story.steps.findIndex((event) => event.kind === 'award' && event.node === id) + 1
 }
 
 /** The step at which an area appears: when it is created, or its first role is awarded; 0 for one always there. */
@@ -273,7 +285,8 @@ export function placeDetail(story: Story, id: PlaceId): string {
   if (!place) return ''
   if (place.note) return place.note
   const step = placeStep(story, id)
-  const creator = placeCreator(story, id)?.person?.name.split(' ')[0]
+  const person = placeCreator(story, id)?.person
+  const creator = person ? firstName(person) : undefined
   const by = creator ? `created by ${creator}` : ''
   if (!story.timed) return by
   if (!step) return ''

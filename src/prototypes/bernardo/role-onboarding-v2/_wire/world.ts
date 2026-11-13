@@ -193,6 +193,22 @@ export const roles: Record<RoleKey, Role> = {
 
 export const roleList = Object.values(roles)
 
+/**
+ * The Endless Access staff role above every Organization. It has no onboarding flow; the Roles Map shows it at the top
+ * of the chain. What it can do follows the permissions model: only an Endless Admin awards or strips the Org Owner role
+ * and archives an Organization.
+ */
+export const endlessAdmin = {
+  label: 'Endless Admin',
+  person: people.alex,
+  can: [
+    'Set up Organizations on Endless Access',
+    'Award the Org Owner role',
+    'Strip the Org Owner role',
+    'Archive an Organization',
+  ],
+}
+
 /** A view's path inside the prototype, from its flow and step: `view('orgOwner', 3)` → `1 Org Owner/1.3 Welcome`. */
 export function view(key: RoleKey, step: number): string {
   const role = roles[key]

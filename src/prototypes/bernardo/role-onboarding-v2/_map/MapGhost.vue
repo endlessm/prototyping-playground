@@ -9,13 +9,13 @@ import { mapRoles, nodeTitle, type PlaceId } from './story'
 // What comes next, faded where it will appear: the next person's tile, or the tab of the next Team or Cohort. The
 // timeline's next step decides it; nothing shows on the last step, outside Story mode or with the layer off.
 const { story, layout, mode, layers, shown } = useMapState()
-const { upcoming } = usePlayback()
+const { preview } = usePlayback()
 
 const ghost = computed(() => {
-  if (mode.value !== 'story' || !layers.next || upcoming.value === null) return null
-  const event = story.value.steps[upcoming.value - 1]
+  if (mode.value !== 'story' || !layers.next || preview.value === null) return null
+  const event = story.value.steps[preview.value - 1]
   if (!event) return null
-  const step = upcoming.value
+  const step = preview.value
   const tag = `Next · step ${step}`
   if (event.kind === 'award') {
     const node = story.value.nodes[event.node]
@@ -35,8 +35,8 @@ const ghost = computed(() => {
  * them, so they are outlined faintly rather than leaving the ghost floating where no area is shown.
  */
 const missing = computed(() => {
-  if (ghost.value?.kind !== 'as-tile' || upcoming.value === null) return []
-  const event = story.value.steps[upcoming.value - 1]
+  if (ghost.value?.kind !== 'as-tile' || preview.value === null) return []
+  const event = story.value.steps[preview.value - 1]
   if (event?.kind !== 'award') return []
   const places: PlaceId[] = []
   let place: PlaceId | null | undefined = event.place

@@ -3,7 +3,7 @@
 // comes from the sample world, the words of each role's invite; "can see" is the map's own text, following the scope
 // rules in the Endless Studios context (educator-roles.md): a role in one place grants nothing in another.
 
-import { roles, view, type RoleKey } from '../_wire/world'
+import { endlessAdmin, roles, view, type RoleKey } from '../_wire/world'
 import { mapRoles, type MapNode, type MapPlace, type MapRoleKey, type NodeId, type PlaceKind, type Story } from './story'
 
 /** The colour of a role's chip, by the kind of place it lives in; the same as the tiles'. */
@@ -26,6 +26,8 @@ export interface HeldRole {
   step: number
   /** Who gave it; absent when the person took it by creating the place, or holds it from the start. */
   by?: MapNode
+  /** The role the giver awarded it as, such as Ben adding Sofia as a Cohort Owner. */
+  byRole?: MapRoleKey
   /** The verb of the award, such as "invites as" or "makes". */
   verb?: string
   /** True when the person took the role by creating the place. */
@@ -44,6 +46,7 @@ export function heldRoles(story: Story, id: NodeId): HeldRole[] {
         place: story.places[event.place],
         step: index + 1,
         by: story.nodes[event.actor],
+        byRole: event.byRole ?? story.nodes[event.actor]?.role,
         verb: event.verb,
       })
     }
@@ -68,15 +71,25 @@ export function arrivalHeading(held: HeldRole | undefined): string {
   return 'Invited by'
 }
 
+/** One tile on a chain, with the role it acts in there: the role it awarded the next one as, or its own. */
+export interface ChainLink {
+  node: MapNode
+  role: MapRoleKey
+}
+
 /** The tiles from the top of the story down to `id`, following each award back to whoever gave it. */
-export function chainTo(story: Story, id: NodeId): MapNode[] {
-  const chain: MapNode[] = []
+export function chainTo(story: Story, id: NodeId): ChainLink[] {
+  const chain: ChainLink[] = []
   const seen = new Set<NodeId>()
   let current: NodeId | undefined = id
+  let role: MapRoleKey | undefined
   while (current && !seen.has(current) && story.nodes[current]) {
     seen.add(current)
-    chain.unshift(story.nodes[current])
-    current = arrival(story, current)?.by?.id
+    const node: MapNode = story.nodes[current]
+    chain.unshift({ node, role: role ?? node.role })
+    const came = arrival(story, current)
+    current = came?.by?.id
+    role = came?.byRole
   }
   return chain
 }
@@ -87,13 +100,7 @@ const worldRole = (role: MapRoleKey): RoleKey | undefined => (role in roles ? (r
 export function canDo(role: MapRoleKey): string[] {
   const key = worldRole(role)
   if (key) return roles[key].can
-  if (role === 'endlessAdmin') {
-    return [
-      'Create Organizations on Endless Access',
-      'Make and remove Org Owners',
-      'Archive an Organization',
-    ]
-  }
+  if (role === 'endlessAdmin') return endlessAdmin.can
   return ['Join the Cohort with its join link', 'Follow the sessions and hand in tasks', 'Earn a certificate']
 }
 

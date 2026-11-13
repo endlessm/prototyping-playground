@@ -68,6 +68,7 @@ export const explore: Story = {
       role: 'learner',
       place: 'winter',
       verb: 'adds',
+      byRole: 'cohortOwner',
       caption: `${first(daniel.person.name)} adds ${winterLearners} learners to ${WINTER_COHORT}`,
     },
     {

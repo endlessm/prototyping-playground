@@ -28,7 +28,7 @@ const modes: { label: string; value: MapMode }[] = [
 
 <script lang="ts">
 export const states = [
-  { title: 'Story', props: { step: 1 } },
+  { title: 'Story', props: { step: 0 } },
   { title: 'Finished story', props: { step: 9 } },
   { title: 'Explore', props: { mode: 'explore' } },
 ]
