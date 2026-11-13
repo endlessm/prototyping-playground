@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { shelfId } from './layout'
 import MapArea from './MapArea.vue'
+import MapArrows from './MapArrows.vue'
+import MapLegend from './MapLegend.vue'
+import MapPrograms from './MapPrograms.vue'
 import MapTile from './MapTile.vue'
 import { useMapState } from './state'
 
 // The map drawn at its design size, then scaled to fit the space the view gives it, so the whole story shows
 // without scrolling at any preview width.
-const { layout, shown } = useMapState()
+const { story, layout, shown, layers } = useMapState()
 
 /** How much bigger than its design size the map may grow on a wide preview. */
 const MAX_SCALE = 1.25
@@ -47,13 +51,25 @@ const stageStyle = computed(() => {
 
 const areas = computed(() => layout.value.areaOrder.filter((id) => shown.value.places.has(id)))
 const tiles = computed(() => Object.keys(layout.value.nodes).filter((id) => shown.value.nodes.has(id)))
+/** The Organizations whose Programs shelf shows: those on the map, while the Programs layer is on. */
+const shelves = computed(() =>
+  layers.programs
+    ? Object.values(story.value.places)
+        .filter((place) => place.kind === 'Organization' && shown.value.places.has(place.id))
+        .filter((place) => layout.value.boxes[shelfId(place.id)])
+        .map((place) => place.id)
+    : [],
+)
 </script>
 
 <template>
   <div ref="frame" class="canvas" role="region" aria-label="Roles map">
     <div class="stage" :style="stageStyle">
       <MapArea v-for="id in areas" :id="id" :key="id" />
+      <MapArrows />
+      <MapPrograms v-for="id in shelves" :key="id" :place="id" />
       <MapTile v-for="id in tiles" :id="id" :key="id" />
+      <MapLegend />
     </div>
   </div>
 </template>

@@ -2,7 +2,7 @@
 // once; the canvas, tiles, panel, timeline and Who's who read and change it with `useMapState()`.
 
 import { computed, inject, provide, reactive, ref, watch, type ComputedRef, type InjectionKey, type Ref } from 'vue'
-import { computeLayout, type MapLayout } from './layout'
+import { computeMapLayout, type MapLayout } from './layout'
 import { brightwater, existsAt, type NodeId, type PlaceId, type Story, type StoryEvent } from './story'
 
 export type MapMode = 'story' | 'explore'
@@ -50,7 +50,7 @@ export function provideMapState(options: () => MapStateOptions = () => ({})): Ma
   const layers = reactive<MapLayers>({ invitations: true, creations: true, programs: true, next: true })
 
   const story = computed(() => brightwater)
-  const layout = computed(() => computeLayout(story.value))
+  const layout = computed(() => computeMapLayout(story.value))
   const current = computed(() => story.value.steps[step.value - 1] ?? null)
   const next = computed(() => story.value.steps[step.value] ?? null)
   const shown = computed(() => existsAt(story.value, mode.value === 'story' ? step.value : story.value.steps.length))
