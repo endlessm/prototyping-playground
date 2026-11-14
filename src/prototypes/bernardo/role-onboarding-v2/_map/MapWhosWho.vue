@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onScopeDispose, ref } from 'vue'
 import { roleIllustrations } from './illustrations'
+import { EYEBROW, levelTint } from './look'
 import { useMapState, type MapLayers } from './state'
 import { rowTarget, whosWho, type WhoRow } from './whoswho'
 
@@ -40,6 +41,11 @@ const switches: { key: keyof MapLayers; label: string }[] = [
 ]
 
 const isSelected = (row: WhoRow) => row.holders.some((holder) => holder.id === selectedId.value)
+const rowClass = (row: WhoRow) => [
+  'rounded-lg text-default focus-visible:outline-2 focus-visible:outline-info',
+  isSelected(row) ? 'bg-info-50' : 'enabled:hover:bg-elevated',
+  { 'opacity-45': row.count === 0 },
+]
 
 function choose(row: WhoRow) {
   const id = rowTarget(row, selectedId.value)
@@ -48,7 +54,11 @@ function choose(row: WhoRow) {
 </script>
 
 <template>
-  <aside v-if="collapsed" class="whoswho rail" aria-label="Who's who">
+  <aside
+    v-if="collapsed"
+    class="flex w-15 shrink-0 flex-col items-center gap-3.5 overflow-y-auto border-r border-default bg-default px-2 py-3.5"
+    aria-label="Who's who"
+  >
     <UTooltip text="Show Who's who" :content="{ side: 'right' }">
       <UButton
         icon="i-lucide-panel-left-open"
@@ -61,12 +71,12 @@ function choose(row: WhoRow) {
       />
     </UTooltip>
     <section v-for="group in railGroups" :key="group.kind" :aria-label="group.title" class="flex flex-col items-center">
-      <i class="dot mb-1" :class="group.kind.toLowerCase()" aria-hidden="true" />
+      <i class="mb-1 size-2 rounded-[3px]" :class="levelTint[group.kind].dot" aria-hidden="true" />
       <UTooltip v-for="row in group.rows" :key="row.role" :text="row.label" :content="{ side: 'right' }">
         <button
           type="button"
-          class="row"
-          :class="{ selected: isSelected(row), off: row.count === 0 }"
+          class="relative flex h-10 w-11 items-center justify-center"
+          :class="rowClass(row)"
           :disabled="row.holders.length === 0"
           :aria-current="isSelected(row) ? 'true' : undefined"
           :aria-label="`${row.label}, ${row.count}`"
@@ -74,13 +84,22 @@ function choose(row: WhoRow) {
           @click="choose(row)"
         >
           <img :src="roleIllustrations[row.role]" alt="" class="size-[26px] shrink-0" />
-          <span class="count" aria-hidden="true">{{ row.count }}</span>
+          <span
+            class="absolute right-px bottom-px min-w-[15px] rounded-full bg-default px-[3px] text-center text-xs leading-3.5 text-dimmed tabular-nums"
+            aria-hidden="true"
+          >
+            {{ row.count }}
+          </span>
         </button>
       </UTooltip>
     </section>
   </aside>
 
-  <aside v-else class="whoswho" aria-label="Who's who">
+  <aside
+    v-else
+    class="flex w-58 shrink-0 flex-col gap-3.5 overflow-y-auto border-r border-default bg-default px-3.5 py-5"
+    aria-label="Who's who"
+  >
     <div class="flex items-start justify-between gap-2">
       <div>
         <h2 class="font-heading text-base font-bold tracking-tight text-highlighted">Who's who</h2>
@@ -113,16 +132,16 @@ function choose(row: WhoRow) {
 
     <div class="flex flex-col gap-3">
       <section v-for="group in groups" :key="group.kind" :aria-labelledby="`whoswho-${group.kind}`">
-        <h3 :id="`whoswho-${group.kind}`" class="label">
-          <i class="dot" :class="group.kind.toLowerCase()" aria-hidden="true" />
+        <h3 :id="`whoswho-${group.kind}`" class="mt-0.5 mb-1 ml-1 flex items-center gap-1.5" :class="EYEBROW">
+          <i class="size-2 rounded-[3px]" :class="levelTint[group.kind].dot" aria-hidden="true" />
           {{ group.title }}
         </h3>
         <ul class="flex flex-col gap-px">
           <li v-for="row in group.rows" :key="row.role">
             <button
               type="button"
-              class="row"
-              :class="{ selected: isSelected(row), off: row.count === 0 }"
+              class="flex w-full items-center gap-2.5 px-1.5 py-1 text-left text-sm leading-[18px] font-medium"
+              :class="rowClass(row)"
               :disabled="row.holders.length === 0"
               :aria-current="isSelected(row) ? 'true' : undefined"
               :data-role="row.role"
@@ -131,22 +150,22 @@ function choose(row: WhoRow) {
               <img :src="roleIllustrations[row.role]" alt="" class="size-[26px] shrink-0" />
               <span class="min-w-0 flex-1">
                 <span class="block truncate">{{ row.label }}</span>
-                <span v-if="row.matches.length" class="block truncate text-[11.5px] leading-4 text-dimmed">
+                <span v-if="row.matches.length" class="block truncate text-xs leading-4 text-dimmed">
                   {{ row.matches.map((holder) => holder.name).join(', ') }}
                 </span>
               </span>
-              <span class="count">{{ row.count }}</span>
+              <span class="flex-none text-xs text-dimmed tabular-nums">{{ row.count }}</span>
             </button>
           </li>
         </ul>
       </section>
-      <p v-if="groups.length === 0" class="px-1 text-[12.5px] text-dimmed" role="status">
+      <p v-if="groups.length === 0" class="px-1 text-xs text-dimmed" role="status">
         Nobody matches “{{ query.trim() }}”.
       </p>
     </div>
 
     <div class="flex flex-col gap-2 border-t border-muted pt-3">
-      <label v-for="item in switches" :key="item.key" class="flex items-center justify-between gap-3 text-[13px] text-muted">
+      <label v-for="item in switches" :key="item.key" class="flex items-center justify-between gap-3 text-sm text-muted">
         {{ item.label }}
         <USwitch
           v-model="layers[item.key]"
@@ -160,111 +179,3 @@ function choose(row: WhoRow) {
   </aside>
 </template>
 
-<style scoped>
-.whoswho {
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  gap: 14px;
-  width: 232px;
-  overflow-y: auto;
-  padding: 20px 14px;
-  border-right: 1px solid var(--ui-border);
-  background: var(--ui-bg);
-}
-
-.label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 2px 0 4px 4px;
-  color: var(--ui-text-dimmed);
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 3px;
-  background: var(--color-slate-300);
-}
-
-.dot.organization {
-  background: var(--color-cornflower-500);
-}
-
-.dot.team {
-  background: var(--color-orange-500);
-}
-
-.dot.cohort {
-  background: var(--color-sky-500);
-}
-
-.row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 4px 6px;
-  border-radius: 8px;
-  color: var(--ui-text);
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 18px;
-  text-align: left;
-}
-
-.row:not(:disabled):hover {
-  background: var(--ui-bg-elevated);
-}
-
-.row:focus-visible {
-  outline: 2px solid var(--ui-info);
-}
-
-.row.selected {
-  background: var(--color-sky-50);
-}
-
-.row.off {
-  opacity: 0.45;
-}
-
-.rail {
-  align-items: center;
-  width: 60px;
-  padding: 14px 8px;
-}
-
-.rail .row {
-  position: relative;
-  justify-content: center;
-  width: 44px;
-  height: 40px;
-  padding: 0;
-}
-
-.rail .count {
-  position: absolute;
-  right: 1px;
-  bottom: 1px;
-  min-width: 15px;
-  padding: 0 3px;
-  border-radius: 100px;
-  background: var(--ui-bg);
-  font-size: 10px;
-  line-height: 14px;
-  text-align: center;
-}
-
-.count {
-  flex: none;
-  color: var(--ui-text-dimmed);
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-}
-</style>

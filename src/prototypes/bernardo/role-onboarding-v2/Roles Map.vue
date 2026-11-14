@@ -40,13 +40,11 @@ export const states = [
       <UTabs v-model="mode" :items="modes" :content="false" size="sm" aria-label="Map mode" class="w-48 shrink-0" />
     </MapHeader>
     <div class="flex min-h-0 flex-1">
-      <!-- Left column: Who's who and the layer switches. -->
       <MapWhosWho />
       <main class="flex min-w-0 flex-1 flex-col">
         <MapCanvas class="min-h-0 flex-1" />
         <MapTimeline v-if="mode === 'story'" />
       </main>
-      <!-- Right: the selected person's panel. -->
       <MapPanel v-if="selectedId && story.nodes[selectedId]" :id="selectedId" :key="selectedId" />
     </div>
   </div>

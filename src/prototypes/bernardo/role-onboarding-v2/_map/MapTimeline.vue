@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { NOW_HALO, NOW_TINT } from './look'
 import { SPEEDS, stepLabel, usePlayback } from './playback'
 import { useMapState } from './state'
 
@@ -24,6 +25,31 @@ const stops = computed(() =>
 )
 /** How far along the track the orange line reaches, as a share of the line between the first and last stops. */
 const progress = computed(() => (total.value > 1 ? Math.max(step.value - 1, 0) / (total.value - 1) : 1))
+/** The line runs between the first and last stops' centres; the orange part grows by scaling, not by resizing. */
+const line = computed(() => ({ left: `${50 / total.value}%`, right: `${50 / total.value}%` }))
+const columns = computed(() => ({ gridTemplateColumns: `repeat(${total.value}, minmax(0, 1fr))` }))
+
+interface StopState {
+  done: boolean
+  current: boolean
+  next: boolean
+}
+
+function dotClass(stop: StopState) {
+  const look = stop.current
+    ? `border-primary-600 bg-primary-600 text-inverted ${NOW_HALO}`
+    : stop.done
+      ? NOW_TINT
+      : 'border-accented bg-default text-dimmed group-hover:border-primary-400'
+  return [look, { 'border-dashed': stop.next }]
+}
+
+function titleClass(stop: StopState) {
+  if (stop.next) return 'text-dimmed'
+  if (stop.current) return 'text-primary-900'
+  return stop.done ? 'text-highlighted' : 'text-toned'
+}
+
 /** The start frame has no number: it is the story before step 1. */
 const caption = computed(() =>
   step.value === 0
@@ -34,7 +60,7 @@ const speeds = SPEEDS.map((value) => ({ label: `${value}×`, value }))
 </script>
 
 <template>
-  <section class="timeline" aria-label="Story timeline">
+  <section class="flex-none border-t border-default bg-default px-6 py-2.5" aria-label="Story timeline">
     <div class="flex items-center gap-3.5">
       <div class="flex items-center gap-1.5">
         <UButton
@@ -61,198 +87,48 @@ const speeds = SPEEDS.map((value) => ({ label: `${value}×`, value }))
           @click="next"
         />
       </div>
-      <p class="caption min-w-0 flex-1 truncate" aria-live="polite">
-        <span class="of">{{ caption.of }}</span>
-        <span class="text">{{ caption.text }}</span>
+      <p class="flex min-w-0 flex-1 items-center gap-2 truncate" aria-live="polite">
+        <UBadge color="primary" variant="soft" class="flex-none rounded-full font-semibold" :class="NOW_TINT">
+          {{ caption.of }}
+        </UBadge>
+        <span class="truncate font-heading text-base font-bold tracking-tight text-highlighted">{{ caption.text }}</span>
       </p>
       <div class="flex flex-none items-center gap-2 text-xs text-dimmed">
         <span aria-hidden="true">Speed</span>
         <USelect v-model="speed" :items="speeds" size="xs" class="w-20" aria-label="Playback speed" />
       </div>
     </div>
-    <ol class="track" :style="{ '--stops': total, '--progress': progress }">
-      <li v-for="stop in stops" :key="stop.n">
-        <button
-          type="button"
-          class="stop"
-          :class="{ done: stop.done, current: stop.current, next: stop.next, out: stop.out }"
-          :aria-current="stop.current ? 'step' : undefined"
-          :aria-label="`Step ${stop.n}: ${stop.title} ${stop.by}`"
-          @click="goTo(stop.n)"
-        >
-          <span class="dot" aria-hidden="true">{{ stop.n }}</span>
-          <span class="title">{{ stop.title }}</span>
-          <span class="by">{{ stop.by }}</span>
-        </button>
-      </li>
-    </ol>
+    <div class="relative mt-2.5">
+      <div class="absolute top-[11px] h-0.5 bg-(--ui-border-muted)" :style="line" aria-hidden="true" />
+      <div
+        class="absolute top-[11px] h-0.5 origin-left bg-primary-200 transition-transform duration-300 ease-out motion-reduce:transition-none"
+        :style="{ ...line, transform: `scaleX(${progress})` }"
+        aria-hidden="true"
+      />
+      <ol class="relative grid" :style="columns">
+        <li v-for="stop in stops" :key="stop.n">
+          <button
+            type="button"
+            class="group relative flex w-full cursor-pointer flex-col items-center rounded-[10px] px-0.5 pb-0.5 text-center transition-opacity duration-200 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary motion-reduce:transition-none"
+            :class="{ 'opacity-40': stop.out }"
+            :aria-current="stop.current ? 'step' : undefined"
+            :aria-label="`Step ${stop.n}: ${stop.title} ${stop.by}`"
+            @click="goTo(stop.n)"
+          >
+            <span
+              class="grid size-6 place-items-center rounded-full border-[1.5px] text-xs font-bold"
+              :class="dotClass(stop)"
+              aria-hidden="true"
+            >
+              {{ stop.n }}
+            </span>
+            <span class="mt-[5px] max-w-full truncate text-xs leading-3.5 font-semibold" :class="titleClass(stop)">
+              {{ stop.title }}
+            </span>
+            <span class="max-w-full truncate text-xs leading-3.5 text-dimmed">{{ stop.by }}</span>
+          </button>
+        </li>
+      </ol>
+    </div>
   </section>
 </template>
-
-<style scoped>
-.timeline {
-  flex: none;
-  padding: 10px 24px 10px;
-  background: var(--ui-bg);
-  border-top: 1px solid var(--ui-border);
-}
-
-.caption {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.of {
-  flex: none;
-  padding: 1px 8px;
-  color: var(--color-orange-900);
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 18px;
-  background: var(--color-orange-50);
-  border: 1px solid var(--color-orange-200);
-  border-radius: 100px;
-}
-
-.text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-family: var(--font-heading, Figtree, sans-serif);
-  color: var(--ui-text-highlighted);
-  font-size: 15.5px;
-  font-weight: 700;
-  letter-spacing: -0.2px;
-}
-
-.track {
-  --inset: calc(50% / var(--stops));
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(var(--stops), minmax(0, 1fr));
-  margin-top: 10px;
-}
-
-.track::before,
-.track::after {
-  content: '';
-  position: absolute;
-  top: 11px;
-  left: var(--inset);
-  height: 2px;
-}
-
-.track::before {
-  right: var(--inset);
-  background: var(--ui-border-muted);
-}
-
-.track::after {
-  width: calc((100% - 2 * var(--inset)) * var(--progress));
-  background: var(--color-orange-200);
-  transition: width 300ms ease-out;
-}
-
-.stop {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  padding: 0 2px 2px;
-  text-align: center;
-  cursor: pointer;
-  border-radius: 10px;
-  transition: opacity 200ms ease-out;
-}
-
-.stop:focus-visible {
-  outline: 2px solid var(--ui-primary);
-  outline-offset: 2px;
-}
-
-.dot {
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  color: var(--ui-text-dimmed);
-  font-size: 11px;
-  font-weight: 700;
-  background: var(--ui-bg);
-  border: 1.5px solid var(--ui-border-accented);
-  border-radius: 50%;
-  transition:
-    background-color 200ms ease-out,
-    border-color 200ms ease-out,
-    box-shadow 200ms ease-out;
-}
-
-.stop:hover .dot {
-  border-color: var(--color-orange-400);
-}
-
-.done .dot {
-  color: var(--color-orange-900);
-  background: var(--color-orange-50);
-  border-color: var(--color-orange-200);
-}
-
-.current .dot {
-  color: white;
-  background: var(--color-orange-600);
-  border-color: var(--color-orange-600);
-  box-shadow: 0 0 0 5px color-mix(in oklab, var(--color-orange-500) 16%, transparent);
-}
-
-.next .dot {
-  border-style: dashed;
-}
-
-.title {
-  margin-top: 5px;
-  overflow: hidden;
-  max-width: 100%;
-  color: var(--ui-text-toned);
-  font-size: 11.5px;
-  font-weight: 600;
-  line-height: 14px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.by {
-  overflow: hidden;
-  max-width: 100%;
-  color: var(--ui-text-dimmed);
-  font-size: 10.5px;
-  line-height: 13px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.done .title {
-  color: var(--ui-text-highlighted);
-}
-
-.current .title {
-  color: var(--color-orange-900);
-}
-
-.next .title {
-  color: var(--ui-text-dimmed);
-}
-
-.out {
-  opacity: 0.4;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .track::after,
-  .stop,
-  .dot {
-    transition: none;
-  }
-}
-</style>
