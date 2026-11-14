@@ -135,8 +135,8 @@ const shelves = computed(() =>
 <template>
   <div
     ref="frame"
-    class="canvas"
-    :class="{ pannable, dragging: drag }"
+    class="relative overflow-hidden bg-muted bg-[radial-gradient(var(--ui-border-accented)_1px,transparent_1.2px)] bg-size-[20px_20px]"
+    :class="{ 'cursor-grab touch-none': pannable, 'cursor-grabbing select-none': drag }"
     role="region"
     aria-label="Roles map"
     @wheel="onWheel"
@@ -145,7 +145,11 @@ const shelves = computed(() =>
     @pointerup="onPointerUp"
     @pointercancel="onPointerUp"
   >
-    <div class="stage" :class="{ animate }" :style="stageStyle">
+    <div
+      class="absolute top-0 left-0 origin-top-left"
+      :class="{ 'motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out': animate }"
+      :style="stageStyle"
+    >
       <MapArea v-for="id in areas" :id="id" :key="id" />
       <MapArrows />
       <MapPrograms v-for="id in shelves" :key="id" :place="id" />
@@ -157,35 +161,3 @@ const shelves = computed(() =>
   </div>
 </template>
 
-<style scoped>
-.canvas {
-  position: relative;
-  overflow: hidden;
-  background-color: var(--color-slate-50);
-  background-image: radial-gradient(var(--color-slate-300) 1px, transparent 1.2px);
-  background-size: 20px 20px;
-}
-
-.canvas.pannable {
-  cursor: grab;
-  touch-action: none;
-}
-
-.canvas.dragging {
-  cursor: grabbing;
-  user-select: none;
-}
-
-.stage {
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform-origin: 0 0;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .stage.animate {
-    transition: transform 200ms ease-out;
-  }
-}
-</style>

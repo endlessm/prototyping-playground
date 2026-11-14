@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { programIllustration } from './illustrations'
 import { shelfId, SHELF } from './layout'
+import { FADE, FADED, FLOATING, RUNS_TINT } from './look'
 import { accessLabel, cohortCount, cohortsRunning, shelfPrograms } from './programs'
 import { usePathView } from './path'
 import { useMapState } from './state'
@@ -35,8 +36,8 @@ const sizes = {
 <template>
   <section
     v-if="rect"
-    class="shelf"
-    :class="{ dim }"
+    class="absolute z-4 rounded-3xl border border-default bg-default px-3 pt-(--shelf-top) pb-(--shelf-bottom)"
+    :class="[FLOATING, FADE, { [FADED]: dim }]"
     :style="{
       ...sizes,
       left: `${rect.x}px`,
@@ -46,147 +47,50 @@ const sizes = {
     }"
     :aria-label="`Programs ${name} can run`"
   >
-    <header class="head">
-      <img :src="programIllustration" alt="" class="art" />
+    <header class="flex h-(--shelf-header) items-start gap-2.5 px-1">
+      <img :src="programIllustration" alt="" class="size-[30px]" />
       <div>
-        <h3 class="title">Programs</h3>
-        <p class="sub">{{ name }} can run these</p>
+        <h3 class="font-heading text-sm leading-[18px] font-bold text-highlighted">Programs</h3>
+        <p class="text-xs leading-3.5 text-dimmed">{{ name }} can run these</p>
       </div>
     </header>
     <ul>
       <li
         v-for="program in programs"
         :key="program.name"
-        class="row"
-        :class="{ running: program.cohorts > 0 }"
+        class="mt-(--shelf-gap) flex h-(--shelf-row) items-center gap-2.5 rounded-xl px-2"
+        :class="{ [`outline-[1.5px] outline-secondary-500/35 ${RUNS_TINT}`]: program.cohorts > 0 }"
         :data-program="program.name"
       >
-        <img :src="programIllustration" alt="" class="row-art" />
-        <div class="text">
-          <p class="name">{{ program.name }}</p>
-          <p class="access" :class="program.access">{{ accessLabel[program.access] }}</p>
+        <img :src="programIllustration" alt="" class="size-7" />
+        <div class="min-w-0 flex-1">
+          <p class="truncate text-xs leading-4 font-semibold text-highlighted">{{ program.name }}</p>
+          <p
+            class="truncate text-xs leading-3.5"
+            :class="program.access === 'partnership' ? 'font-semibold text-secondary-500' : 'text-dimmed'"
+          >
+            {{ accessLabel[program.access] }}
+          </p>
         </div>
-        <span class="count">{{ cohortCount(program.cohorts) }}</span>
+        <UBadge
+          v-if="program.cohorts > 0"
+          color="secondary"
+          variant="outline"
+          size="sm"
+          class="flex-none rounded-full bg-default font-bold whitespace-nowrap text-secondary-700 ring-secondary-100"
+        >
+          {{ cohortCount(program.cohorts) }}
+        </UBadge>
+        <UBadge
+          v-else
+          color="neutral"
+          variant="soft"
+          size="sm"
+          class="flex-none rounded-full bg-transparent whitespace-nowrap text-dimmed"
+        >
+          {{ cohortCount(program.cohorts) }}
+        </UBadge>
       </li>
     </ul>
   </section>
 </template>
-
-<style scoped>
-.shelf {
-  position: absolute;
-  z-index: 4;
-  padding: var(--shelf-top) 12px var(--shelf-bottom);
-  background: var(--ui-bg);
-  border: 1px solid var(--ui-border);
-  border-radius: 24px;
-  box-shadow:
-    0 25px 50px -12px rgb(0 0 0 / 0.08),
-    0 1px 2px rgb(15 23 43 / 0.04);
-  transition: filter 240ms ease-out;
-}
-
-.shelf.dim {
-  filter: grayscale(0.7) opacity(0.32);
-}
-
-.head {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  height: var(--shelf-header);
-  padding: 0 4px;
-}
-
-.art {
-  width: 30px;
-  height: 30px;
-}
-
-.title {
-  font-family: var(--font-heading, Figtree, sans-serif);
-  color: var(--ui-text-highlighted);
-  font-size: 14.5px;
-  font-weight: 700;
-  line-height: 18px;
-}
-
-.sub {
-  color: var(--ui-text-dimmed);
-  font-size: 11px;
-  line-height: 14px;
-}
-
-.row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  height: var(--shelf-row);
-  margin-top: var(--shelf-gap);
-  padding: 0 8px;
-  border-radius: 12px;
-}
-
-.row.running {
-  background: color-mix(in oklab, var(--color-cornflower-50) 40%, white);
-  outline: 1.5px solid color-mix(in oklab, var(--color-cornflower-500) 35%, transparent);
-}
-
-.row-art {
-  width: 28px;
-  height: 28px;
-}
-
-.text {
-  flex: 1;
-  min-width: 0;
-}
-
-.name,
-.access {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.name {
-  color: var(--ui-text-highlighted);
-  font-size: 12.5px;
-  font-weight: 600;
-  line-height: 16px;
-}
-
-.access {
-  color: var(--ui-text-dimmed);
-  font-size: 11px;
-  line-height: 14px;
-}
-
-.access.partnership {
-  color: var(--color-cornflower-500);
-  font-weight: 600;
-}
-
-.count {
-  flex: none;
-  padding: 1px 7px;
-  color: var(--ui-text-dimmed);
-  font-size: 10.5px;
-  font-weight: 600;
-  white-space: nowrap;
-  border-radius: 100px;
-}
-
-.running .count {
-  color: var(--color-cornflower-700);
-  font-weight: 700;
-  background: var(--ui-bg);
-  border: 1px solid var(--color-cornflower-50);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .shelf {
-    transition: none;
-  }
-}
-</style>

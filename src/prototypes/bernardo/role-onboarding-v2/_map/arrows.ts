@@ -43,7 +43,7 @@ const NORMAL: Record<Side, Point> = { right: { x: 1, y: 0 }, left: { x: -1, y: 0
 
 /** A label pill's size, estimated from its text: a small verb over the role, place or Program. */
 export function labelSize(verb: string, object: string): { width: number; height: number } {
-  return { width: Math.ceil(Math.max(textWidth(verb, 10), textWidth(object, 11, 'semibold')) + 20), height: 35 }
+  return { width: Math.ceil(Math.max(textWidth(verb, 12), textWidth(object, 12, 'semibold')) + 20), height: 35 }
 }
 
 const grow = (r: Rect, by: number): Rect => ({ x: r.x - by, y: r.y - by, width: r.width + 2 * by, height: r.height + 2 * by })

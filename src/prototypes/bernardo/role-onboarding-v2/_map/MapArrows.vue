@@ -48,7 +48,7 @@ const ghost = computed(() => {
 
 <template>
   <svg
-    class="arrows"
+    class="pointer-events-none absolute top-0 left-0 z-2 overflow-visible"
     :width="layout.width"
     :height="layout.height"
     :viewBox="`0 0 ${layout.width} ${layout.height}`"
@@ -59,13 +59,3 @@ const ghost = computed(() => {
   </svg>
 </template>
 
-<style scoped>
-.arrows {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 2;
-  overflow: visible;
-  pointer-events: none;
-}
-</style>

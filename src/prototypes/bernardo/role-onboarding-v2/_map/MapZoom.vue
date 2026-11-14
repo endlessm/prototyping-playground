@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { FLOATING } from './look'
 
 // The floating zoom bar on the canvas: −, the scale as a percentage, + and fit, as in the concept.
 const props = defineProps<{ scale: number; min: number; max: number }>()
@@ -13,7 +14,8 @@ const atMax = computed(() => props.scale >= props.max - 0.001)
 
 <template>
   <div
-    class="zoom absolute top-3 right-3 z-10 flex items-center gap-0.5 rounded-lg border border-default bg-default p-1"
+    class="absolute top-3 right-3 z-10 flex items-center gap-0.5 rounded-lg border border-default bg-default p-1"
+    :class="FLOATING"
     role="toolbar"
     aria-label="Zoom"
   >
@@ -49,9 +51,3 @@ const atMax = computed(() => props.scale >= props.max - 0.001)
   </div>
 </template>
 
-<style scoped>
-/* Floats over the dotted canvas like the tiles and tabs do, so it keeps their soft shadow. */
-.zoom {
-  box-shadow: 0 4px 12px -4px rgb(15 23 42 / 0.12);
-}
-</style>
