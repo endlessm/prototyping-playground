@@ -140,7 +140,7 @@ export function tabWidth(story: Story, id: PlaceId): number {
   if (!place) return 0
   const detail = placeDetail(story, id)
   const meta = detail ? `${place.kind} · ${detail}` : place.kind
-  return TAB.chrome + Math.max(textWidth(place.name, 14.5, 'bold'), textWidth(meta, 11, 'semibold'))
+  return TAB.chrome + Math.max(textWidth(place.name, 14, 'bold'), textWidth(meta, 12, 'semibold'))
 }
 
 /** Where an area's tab sits, for arrows to reach it and to stay clear of it. */

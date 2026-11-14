@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { placeIllustrations } from './illustrations'
 import { tabSide } from './layout'
+import { FADE, FADED, FLOATING, levelTint, NOW_HALO, NOW_TINT } from './look'
 import { usePathView } from './path'
 import { useMapState } from './state'
 import { placeDetail, type PlaceId } from './story'
@@ -13,7 +14,7 @@ const { story, layout, mode, current } = useMapState()
 
 const place = computed(() => story.value.places[props.id])
 const rect = computed(() => layout.value.areas[props.id])
-const kindClass = computed(() => place.value.kind.toLowerCase())
+const tint = computed(() => levelTint[place.value.kind])
 /** Whether the story's current step creates this place. */
 const now = computed(
   () => mode.value === 'story' && current.value?.kind === 'create' && current.value.place === props.id,
@@ -29,35 +30,43 @@ const detail = computed(() => placeDetail(story.value, props.id))
 
 <template>
   <div
-    class="area"
-    :class="[kindClass, { dim }]"
+    class="area absolute border-[1.5px] border-dashed"
+    :class="[tint.area, FADE, { [FADED]: dim }]"
     :style="{ left: `${rect.x}px`, top: `${rect.y}px`, width: `${rect.width}px`, height: `${rect.height}px` }"
   >
-    <div class="tab" :class="[tabSide(place.kind), { now }]">
-      <img :src="placeIllustrations[place.kind]" alt="" :class="place.kind === 'Platform' ? 'logo' : 'art'" />
+    <div
+      class="absolute top-0 z-3 flex -translate-y-1/2 items-center gap-2.5 rounded-[14px] bg-default py-1.5 pr-3.5 pl-2 whitespace-nowrap"
+      :class="[FLOATING, tabSide(place.kind) === 'left' ? 'left-5' : 'right-5', { [`outline-2 outline-primary-500 ${NOW_HALO}`]: now }]"
+    >
+      <img
+        :src="placeIllustrations[place.kind]"
+        alt=""
+        :class="place.kind === 'Platform' ? 'mx-0.5 h-auto w-[30px]' : 'size-[30px]'"
+      />
       <div>
-        <p class="name">{{ place.name }}</p>
-        <p class="meta">
-          <span class="kind">{{ place.kind }}</span>
+        <p class="font-heading text-sm leading-[18px] font-bold tracking-tight text-highlighted">{{ place.name }}</p>
+        <p class="text-xs leading-3.5 text-dimmed">
+          <span class="font-semibold" :class="tint.kind">{{ place.kind }}</span>
           <template v-if="detail"> · {{ detail }}</template>
         </p>
       </div>
-      <span v-if="now" class="new">New</span>
+      <UBadge
+        v-if="now"
+        color="primary"
+        variant="soft"
+        size="sm"
+        class="absolute -top-2.5 -right-2 rounded-full font-bold"
+        :class="NOW_TINT"
+      >
+        New
+      </UBadge>
     </div>
   </div>
 </template>
 
 <style scoped>
 .area {
-  position: absolute;
-  border: 1.5px dashed;
-  border-radius: 32px;
-  transition: filter 240ms ease-out;
-  animation: area-in 360ms ease-out both;
-}
-
-.area.dim {
-  filter: grayscale(0.7) opacity(0.32);
+  animation: area-in 360ms ease-out backwards;
 }
 
 @keyframes area-in {
@@ -66,118 +75,8 @@ const detail = computed(() => placeDetail(story.value, props.id))
   }
 }
 
-.platform {
-  background: var(--color-slate-100);
-  border-color: var(--color-slate-300);
-}
-
-.organization {
-  background: color-mix(in oklab, var(--color-cornflower-50) 32%, white);
-  border-color: color-mix(in oklab, var(--color-cornflower-500) 38%, transparent);
-}
-
-.team {
-  background: var(--color-orange-50);
-  border-color: color-mix(in oklab, var(--color-orange-500) 42%, transparent);
-  border-radius: 28px;
-}
-
-.cohort {
-  background: color-mix(in oklab, var(--color-sky-50) 45%, white);
-  border-color: color-mix(in oklab, var(--color-sky-500) 42%, transparent);
-  border-radius: 24px;
-}
-
-.tab {
-  position: absolute;
-  top: 0;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 14px 6px 8px;
-  white-space: nowrap;
-  background: var(--ui-bg);
-  border-radius: 14px;
-  box-shadow: 0 4px 16px rgb(15 23 43 / 0.12);
-  transform: translateY(-50%);
-}
-
-.tab.now {
-  outline: 2px solid var(--color-orange-500);
-  box-shadow:
-    0 0 0 6px color-mix(in oklab, var(--color-orange-500) 16%, transparent),
-    0 4px 16px rgb(15 23 43 / 0.12);
-}
-
-.new {
-  position: absolute;
-  top: -10px;
-  right: -8px;
-  padding: 1px 8px;
-  color: var(--color-orange-900);
-  font-size: 10.5px;
-  font-weight: 700;
-  line-height: 16px;
-  background: var(--color-orange-100);
-  border: 1px solid var(--color-orange-200);
-  border-radius: 100px;
-}
-
-.tab.left {
-  left: 20px;
-}
-
-.tab.right {
-  right: 20px;
-}
-
-.art {
-  width: 30px;
-  height: 30px;
-}
-
-.logo {
-  width: 30px;
-  height: auto;
-  margin: 0 2px;
-}
-
-.name {
-  font-family: var(--font-heading, Figtree, sans-serif);
-  color: var(--ui-text-highlighted);
-  font-size: 14.5px;
-  font-weight: 700;
-  line-height: 18px;
-  letter-spacing: -0.2px;
-}
-
-.meta {
-  color: var(--ui-text-dimmed);
-  font-size: 11px;
-  line-height: 14px;
-}
-
-.kind {
-  font-weight: 600;
-  color: var(--ui-text-toned);
-}
-
-.organization .kind {
-  color: var(--color-cornflower-500);
-}
-
-.team .kind {
-  color: var(--color-orange-600);
-}
-
-.cohort .kind {
-  color: var(--color-sky-600);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .area {
-    transition: none;
     animation: none;
   }
 }

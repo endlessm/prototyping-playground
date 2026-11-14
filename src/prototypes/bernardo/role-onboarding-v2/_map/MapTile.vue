@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { roleIllustrations } from './illustrations'
 import { usePathView } from './path'
 import { useMapState } from './state'
-import { roleColor } from './look'
+import { FADE, FADED, FLOATING, NOW_HALO, NOW_TINT, roleColor, SELECTED_HALO } from './look'
 import { joinStep, mapRoles, nodeTitle, type NodeId } from './story'
 
 // One person on the map, or a Cohort's learners as one tile: their illustration, name, role and the step they joined
@@ -27,45 +27,56 @@ const dim = computed(() => path.active.value && !path.nodes.value.has(props.id))
 const now = computed(
   () => mode.value === 'story' && current.value?.kind === 'award' && current.value.node === props.id,
 )
+/** The selection's sky wins over the current step's orange, so a click always shows. */
+const edge = computed(() =>
+  selected.value
+    ? `border-2 border-info-500 ${SELECTED_HALO}`
+    : now.value
+      ? `border-2 border-primary-500 ${NOW_HALO}`
+      : 'border border-default',
+)
 </script>
 
 <template>
   <button
     type="button"
-    class="tile"
-    :class="{ selected, now, dim }"
+    class="tile absolute z-4 flex flex-col items-center rounded-[20px] bg-default pt-3.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info"
+    :class="[edge, FLOATING, FADE, { [FADED]: dim }]"
     :style="{ left: `${rect.x}px`, top: `${rect.y}px`, width: `${rect.width}px`, height: `${rect.height}px` }"
     :aria-pressed="selected"
     :aria-label="`${title}, ${role.label}${numbered ? `, step ${step}` : ''}${now ? ', new in this step' : ''}`"
     @click="select(selected ? null : id)"
   >
-    <span v-if="numbered" class="step" aria-hidden="true">{{ step }}</span>
-    <span v-if="now" class="new" aria-hidden="true">New</span>
-    <img :src="roleIllustrations[node.role]" alt="" class="art" />
-    <span class="name">{{ title }}</span>
-    <UBadge :color="roleColor(node.role)" variant="soft" size="md" class="chip">{{ role.label }}</UBadge>
+    <span
+      v-if="numbered"
+      class="absolute top-2 left-2 grid size-5 place-items-center rounded-full text-xs leading-none font-bold"
+      :class="now ? 'bg-primary-600 text-inverted' : 'bg-elevated text-toned'"
+      aria-hidden="true"
+    >
+      {{ step }}
+    </span>
+    <UBadge
+      v-if="now"
+      color="primary"
+      variant="soft"
+      size="sm"
+      class="absolute -top-2.5 -right-2 rounded-full font-bold"
+      :class="NOW_TINT"
+      aria-hidden="true"
+    >
+      New
+    </UBadge>
+    <img :src="roleIllustrations[node.role]" alt="" class="size-14" />
+    <span class="mt-2 px-1.5 text-center text-xs leading-4 font-semibold text-highlighted">{{ title }}</span>
+    <UBadge :color="roleColor(node.role)" variant="soft" size="md" class="mt-1.5 whitespace-nowrap">
+      {{ role.label }}
+    </UBadge>
   </button>
 </template>
 
 <style scoped>
 .tile {
-  position: absolute;
-  z-index: 4;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 14px;
-  background: var(--ui-bg);
-  border: 1px solid var(--ui-border);
-  border-radius: 20px;
-  box-shadow:
-    0 25px 50px -12px rgb(0 0 0 / 0.08),
-    0 1px 2px rgb(15 23 43 / 0.04);
-  transition:
-    box-shadow 150ms ease-out,
-    border-color 150ms ease-out,
-    filter 240ms ease-out;
-  animation: tile-in 360ms ease-out both;
+  animation: tile-in 360ms ease-out backwards;
 }
 
 @keyframes tile-in {
@@ -75,87 +86,8 @@ const now = computed(
   }
 }
 
-.tile:focus-visible {
-  outline: 2px solid var(--ui-info);
-  outline-offset: 2px;
-}
-
-.tile.now {
-  border: 2px solid var(--color-orange-500);
-  box-shadow:
-    0 0 0 6px color-mix(in oklab, var(--color-orange-500) 16%, transparent),
-    0 25px 50px -12px rgb(0 0 0 / 0.08);
-}
-
-.tile.selected {
-  border: 2px solid var(--color-sky-500);
-  box-shadow:
-    0 0 0 5px color-mix(in oklab, var(--color-sky-500) 14%, transparent),
-    0 25px 50px -12px rgb(0 0 0 / 0.08);
-}
-
-.tile.dim {
-  filter: grayscale(0.7) opacity(0.32);
-}
-
-.step {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--ui-bg-elevated);
-  color: var(--ui-text-toned);
-  font-size: 10.5px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.now .step {
-  color: white;
-  background: var(--color-orange-600);
-}
-
-.new {
-  position: absolute;
-  top: -10px;
-  right: -8px;
-  padding: 1px 8px;
-  color: var(--color-orange-900);
-  font-size: 10.5px;
-  font-weight: 700;
-  line-height: 16px;
-  background: var(--color-orange-100);
-  border: 1px solid var(--color-orange-200);
-  border-radius: 100px;
-}
-
-.art {
-  width: 56px;
-  height: 56px;
-}
-
-.name {
-  margin-top: 8px;
-  padding: 0 6px;
-  color: var(--ui-text-highlighted);
-  font-size: 12.5px;
-  font-weight: 600;
-  line-height: 16px;
-  text-align: center;
-}
-
-.chip {
-  margin-top: 6px;
-  white-space: nowrap;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .tile {
-    transition: none;
     animation: none;
   }
 }
