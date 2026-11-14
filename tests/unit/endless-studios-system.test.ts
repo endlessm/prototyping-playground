@@ -181,6 +181,7 @@ describe('context, skills and agent guidance', () => {
       [
         { path: 'app-conventions.md', title: 'App Conventions' },
         { path: 'design-principles.md', title: 'Design Principles' },
+        { path: 'educator-roles.md', title: 'Educator Roles' },
         { path: 'personas.md', title: 'Personas' },
         { path: 'platform-model.md', title: 'Platform Model' },
         { path: 'programs.md', title: 'Programs' },
