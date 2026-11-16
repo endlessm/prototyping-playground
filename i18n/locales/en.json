@@ -1054,7 +1054,19 @@
       "soon": "Every example of {name}, side by side, will show here. Until then, see them on its page in Systems."
     },
     "playground": {
-      "soon": "{name} with controls for its props will show here."
+      "stage": "{name} in the playground",
+      "props": "Props",
+      "reset": "Reset",
+      "default": "Default",
+      "choose": "Choose a value",
+      "setInCode": "Set in code",
+      "required": "Required",
+      "noProps": "This component has no props to try.",
+      "noComponent": "Playground needs a component file. Add {file} next to the component to try its props here.",
+      "unreadable": "Playground can’t read the props of {name}.",
+      "tryAgain": "Try again",
+      "chooseFirst": "Choose a value for {prop} to start {name}.",
+      "codeOnly": "Playground can’t start {name}. Its required prop {prop} can only be set in code."
     }
   }
 }
