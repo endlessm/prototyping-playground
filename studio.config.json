@@ -10,6 +10,7 @@
     "documentation": true,
     "prototypes": true,
     "systems": true,
+    "lab": true,
     "text": true,
     "view": true,
     "onboarding": true,
