@@ -1051,7 +1051,9 @@
       "openInSystems": "Open in Systems"
     },
     "variants": {
-      "soon": "Every example of {name}, side by side, will show here. Until then, see them on its page in Systems."
+      "copy": "Copy Code",
+      "copied": "Code copied",
+      "copyFailed": "The code wasn’t copied"
     },
     "playground": {
       "stage": "{name} in the playground",

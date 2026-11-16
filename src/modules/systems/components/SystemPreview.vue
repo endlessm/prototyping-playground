@@ -12,6 +12,9 @@ const props = defineProps<{
   artifact: string
   title: string
 }>()
+// An example whose content is wider than the frame, or holds something that
+// stretches across it (a block button, a table), says it needs more room.
+const emit = defineEmits<{ wide: [] }>()
 
 const MIN_HEIGHT = 96
 // Room for an error and the start of its detail.
@@ -38,12 +41,27 @@ function measure() {
   const fit = () => {
     const bottom = app.getBoundingClientRect().bottom + view.scrollY
     height.value = Math.max(MIN_HEIGHT, Math.ceil(bottom))
+    if (needsRoom(view, app)) emit('wide')
   }
   observer = new view.ResizeObserver(fit)
   observer.observe(app)
   fit()
 }
 onBeforeUnmount(() => observer?.disconnect())
+
+function needsRoom(view: Window & typeof globalThis, app: HTMLElement) {
+  const row = app.querySelector<HTMLElement>('[data-example]')
+  if (!row) return false
+  if (view.document.documentElement.scrollWidth > view.innerWidth) return true
+  const style = view.getComputedStyle(row)
+  const inner =
+    row.clientWidth -
+    parseFloat(style.paddingLeft) -
+    parseFloat(style.paddingRight)
+  return [...row.children].some(
+    (child) => child.getBoundingClientRect().width >= inner - 1,
+  )
+}
 </script>
 
 <template>

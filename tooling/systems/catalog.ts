@@ -18,6 +18,7 @@ import {
   kebab,
   type DocsProblem,
 } from './components.ts'
+import { exampleSnippets } from './example-snippets.ts'
 import {
   SKILL_FILE,
   skillDescriptionProblem,
@@ -569,6 +570,12 @@ export interface ComponentPageData {
   page: string | null
   /** The examples file's text, for "Show code". */
   examples: string | null
+  /**
+   * Each example's own code by its name, as the Lab's Variants show it: its
+   * block of the examples file, or the whole file when the file can't be
+   * split. Empty without an examples file.
+   */
+  snippets: Record<string, string>
   /** Read from the component's code; null without a component file. */
   props: ComponentPropsDoc | null
   /** Files that couldn't be read, each with why. */
@@ -577,8 +584,8 @@ export interface ComponentPageData {
 
 /**
  * What each component page shows besides the catalog, by `<system ID>/<slug>`:
- * its page and examples text and its props. Props are read with Vue's
- * component metadata tooling, loaded only here.
+ * its page and examples text, each example's own code and its props. Props
+ * are read with Vue's component metadata tooling, loaded only here.
  */
 export async function componentPages(systems: InstalledSystem[]) {
   const pages: Record<string, ComponentPageData> = {}
@@ -597,9 +604,12 @@ export async function componentPages(systems: InstalledSystem[]) {
         }
       }
       const { doc, examples, source } = component.files
+      const page = read(doc)
+      const text = read(examples)
       const data: ComponentPageData = {
-        page: read(doc),
-        examples: read(examples),
+        page,
+        examples: text,
+        snippets: text ? exampleSnippets(text, exampleNames(text)) : {},
         props: null,
         errors,
       }
