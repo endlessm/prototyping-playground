@@ -1019,5 +1019,38 @@
     "copyFailed": "The link wasn’t copied",
     "copied": "Copied {count} open comment for your agent | Copied {count} open comments for your agent",
     "copyAgentFailed": "The comments weren’t copied"
+  },
+  "lab": {
+    "title": "Lab",
+    "openInLab": "Open in Lab",
+    "openSystem": "Open {name} in Systems",
+    "systemEmpty": "{name} has no components yet.",
+    "empty": {
+      "title": "No components yet",
+      "description": "Components documented in an active system show here.",
+      "systems": "View systems"
+    },
+    "nav": {
+      "components": "Components",
+      "system": "System",
+      "search": "Search components",
+      "empty": "No components yet.",
+      "noMatches": "No matching components."
+    },
+    "tabs": {
+      "label": "Component tabs",
+      "overview": "Overview",
+      "variants": "Variants",
+      "playground": "Playground"
+    },
+    "overview": {
+      "openInSystems": "Open in Systems"
+    },
+    "variants": {
+      "soon": "Every example of {name}, side by side, will show here. Until then, see them on its page in Systems."
+    },
+    "playground": {
+      "soon": "{name} with controls for its props will show here."
+    }
   }
 }
