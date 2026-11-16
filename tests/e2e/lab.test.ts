@@ -233,6 +233,9 @@ function scenarios(start: () => Promise<RunningStudio>) {
     await page.goto(`${studio.url}lab/nosuchsystem0000/button`)
     await visible(page.getByText('Page not found'))
     await visible(link(components(page), 'Button'))
+    await expect
+      .poll(() => page.title())
+      .toBe(`Page not found — Lab — ${STUDIO}`)
   })
 
   test('[LAB-04] Overview shows the guide, Source and Props, and links to Systems and back', async () => {

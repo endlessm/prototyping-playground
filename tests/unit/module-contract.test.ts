@@ -321,7 +321,7 @@ describe('a module’s local server handlers', () => {
 })
 
 describe('the studio’s own rail', () => {
-  test('[SH-26] the modules’ buttons sit at the top in module order: Prototypes, Systems, then the Manual', async () => {
+  test('[SH-26] the modules’ buttons sit at the top in module order: Prototypes, Systems, the Lab, then the Manual', async () => {
     const { modules } = await loadRegistry(process.cwd())
     const top = modules
       .flatMap(({ spec }) =>
@@ -333,6 +333,7 @@ describe('the studio’s own rail', () => {
     expect(top.map(({ spec }) => spec.label)).toEqual([
       'Prototypes',
       'Systems',
+      'Lab',
       'Manual',
     ])
     expect(top.every(({ spec }) => spec.rail?.icon)).toBe(true)

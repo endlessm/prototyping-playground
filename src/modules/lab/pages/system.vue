@@ -24,6 +24,16 @@ const system = computed(() =>
 )
 const listed = computed(() => system.value ?? offered.value[0])
 
+const { t } = useI18n()
+const studio = useStudioConfig()
+// The bench titles its own pages; an unknown system has no bench.
+useHead({
+  title: () =>
+    system.value
+      ? undefined
+      : [t('notFound.title'), t('lab.title'), studio.name].join(' — '),
+})
+
 const page = useTemplateRef<HTMLElement>('page')
 watch(
   () => route.path,
