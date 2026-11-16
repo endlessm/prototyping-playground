@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { stemOf } from '../../../../tooling/systems/components'
+import { vueFence } from '../utils/code'
 import type {
   CatalogComponent,
   ComponentPageData,
@@ -43,18 +44,9 @@ const labLink = computed(() =>
     : null,
 )
 const showCode = ref(false)
-// The examples file's text as a fenced Vue block, highlighted by the
-// Markdown pipeline; the fence is longer than any backtick run inside.
-const code = computed(() => {
-  const text = props.data?.examples
-  if (!text) return null
-  const longest = Math.max(
-    2,
-    ...[...text.matchAll(/`+/g)].map((run) => run[0].length),
-  )
-  const fence = '`'.repeat(longest + 1)
-  return [`${fence}vue`, text.trimEnd(), fence].join('\n')
-})
+const code = computed(() =>
+  props.data?.examples ? vueFence(props.data.examples) : null,
+)
 </script>
 
 <template>

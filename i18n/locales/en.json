@@ -1050,6 +1050,11 @@
     "overview": {
       "openInSystems": "Open in Systems"
     },
+    "variants": {
+      "copy": "Copy Code",
+      "copied": "Code copied",
+      "copyFailed": "The code wasn’t copied"
+    },
     "playground": {
       "soon": "{name} with controls for its props will show here."
     }

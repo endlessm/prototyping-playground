@@ -143,6 +143,22 @@ async function box(locator: Locator) {
 }
 const variants = (system: string, slug: string) =>
   `lab/${system}/${slug}/variants`
+const code = (page: Page, title: string) =>
+  card(page, title).locator('[data-variant-code] pre')
+async function showCode(page: Page, title: string) {
+  await card(page, title).getByRole('button', { name: 'Show code' }).click()
+  await visible(code(page, title))
+  return ((await code(page, title).textContent()) ?? '').trim()
+}
+// The first code block makes Vite optimize Shiki and reload the page.
+async function warmUpCode(page: Page) {
+  await card(page, 'Default').getByRole('button', { name: 'Show code' }).click()
+  await code(page, 'Default')
+    .waitFor({ timeout: 120_000 })
+    .catch(() => undefined)
+  await page.reload()
+  await heading(page, 'Default').waitFor({ timeout: 120_000 })
+}
 
 const BUTTON_EXAMPLES: [title: string, text: string][] = [
   ['Default', 'Invite Learners'],
@@ -165,6 +181,7 @@ function endlessStudiosScenarios(start: () => Promise<RunningStudio>) {
     const page = await newPage()
     await page.goto(`${studio.url}${variants(ENDLESS_STUDIOS, 'button')}`)
     await heading(page, 'Default').waitFor({ timeout: 300_000 })
+    await warmUpCode(page)
     await page.close()
   }, 900_000)
   afterAll(async () => {
@@ -191,6 +208,34 @@ function endlessStudiosScenarios(start: () => Promise<RunningStudio>) {
     await visible(heading(page, 'Block'))
     for (const [title] of BUTTON_EXAMPLES) await visible(heading(page, title))
   })
+
+  test('[LAB-31] each variant shows only its own block, dedented, and copies it', async () => {
+    const page = await newPage()
+    await page
+      .context()
+      .grantPermissions(['clipboard-read', 'clipboard-write'], {
+        origin: new URL(studio.url).origin,
+      })
+    await page.goto(`${studio.url}${variants(ENDLESS_STUDIOS, 'button')}`)
+    await visible(heading(page, 'States'))
+    expect(await code(page, 'States').count()).toBe(0)
+    expect(await showCode(page, 'States')).toBe(
+      [
+        '<UButton loading>Publishing</UButton>',
+        '<UButton disabled>Publish</UButton>',
+        '<UButton color="neutral" variant="outline" disabled>Cancel</UButton>',
+      ].join('\n'),
+    )
+    // Only that variant's code opened.
+    expect(await page.locator('[data-variant-code] pre').count()).toBe(1)
+    await card(page, 'Block').getByRole('button', { name: 'Copy Code' }).click()
+    await visible(
+      page.locator('[data-slot="title"]').filter({ hasText: 'Code copied' }),
+    )
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+      '<UButton block icon="i-lucide-log-in">Log In</UButton>',
+    )
+  })
 }
 
 function harborScenarios(
@@ -204,6 +249,7 @@ function harborScenarios(
     const page = await newPage()
     await page.goto(`${studio.url}${variants(HARBOR, 'button')}`)
     await heading(page, 'Default').waitFor({ timeout: 300_000 })
+    await warmUpCode(page)
     await page.close()
   }, 900_000)
   afterAll(async () => {
@@ -256,6 +302,10 @@ function harborScenarios(
     )
     expect(await frameState(page, 'Default')).toBe('ready')
     await visible(example(page, 'Tide').getByText('Check the tide'))
+    // Its code still shows, to see what broke.
+    expect(await showCode(page, 'Broken')).toBe(
+      '<HarborButton :label="missing.boom" />',
+    )
   })
 
   test('[LAB-22] a component without examples says which file to add', async () => {
@@ -266,7 +316,7 @@ function harborScenarios(
   })
 
   test.runIf(local)(
-    '[LAB-23] the grid follows the examples file as it changes on disk',
+    '[LAB-23] [LAB-31] the grid and each variant’s code follow the examples file as it changes on disk',
     async () => {
       const page = await open()
       await visible(example(page, 'Default').getByText('Moor the boat'))
@@ -280,6 +330,20 @@ function harborScenarios(
       await visible(heading(page, 'Go ashore'))
       await visible(example(page, 'Go ashore').getByText('Go ashore'))
       await visible(example(page, 'Default').getByText('Moor the dinghy'))
+      await card(page, 'Go ashore')
+        .getByRole('button', { name: 'Show code' })
+        .click()
+      await expect
+        .poll(
+          async () =>
+            (
+              (await code(page, 'Go ashore')
+                .textContent()
+                .catch(() => '')) ?? ''
+            ).trim(),
+          { timeout: 60_000 },
+        )
+        .toBe('<HarborButton label="Go ashore" />')
       setUp()
     },
   )

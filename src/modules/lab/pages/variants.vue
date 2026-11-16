@@ -4,9 +4,10 @@ import LabVariantCard from '../components/LabVariantCard.vue'
 import { useLabComponent } from '../composables/useLabComponent'
 
 // Variants: every example of the component's examples file side by side,
-// two columns when the bench is wide and one when it's narrow. A component
-// without examples says which file to add, as its Systems page does.
-const { system, component } = useLabComponent()
+// two columns when the bench is wide and one when it's narrow, each with
+// its own code. A component without examples says which file to add, as
+// its Systems page does.
+const { system, component, data } = useLabComponent()
 
 const stem = computed(() =>
   stemOf(component.value.source ?? component.value.name),
@@ -35,6 +36,8 @@ const stem = computed(() =>
         :key="example.id"
         :system-id="system.id"
         :example="example"
+        :code="data?.snippets?.[example.name]"
+        :file="component.examplesFile"
       />
     </div>
   </div>
