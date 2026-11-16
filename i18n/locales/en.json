@@ -790,12 +790,6 @@
       "createFailed": "Couldn’t create the files"
     }
   },
-  "lab": {
-    "stage": {
-      "loading": "Loading component…",
-      "error": "This component couldn’t render."
-    }
-  },
   "documentation": {
     "title": "Documentation",
     "sections": "Documentation sections",
@@ -1027,6 +1021,10 @@
     "copyAgentFailed": "The comments weren’t copied"
   },
   "lab": {
+    "stage": {
+      "loading": "Loading component…",
+      "error": "This component couldn’t render."
+    },
     "title": "Lab",
     "openInLab": "Open in Lab",
     "openSystem": "Open {name} in Systems",
