@@ -6,8 +6,9 @@
 // development the document also says whether what it shows matches the
 // saved source. A named state renders its view with the state's props; a
 // view's `system` options reach the system's app factory, and a state's
-// `system` overrides them option by option. A lo-fi view is drawn in
-// grayscale with a handwritten font. Links to studio
+// `system` overrides them option by option. A component's playground mounts
+// its component file with the props the studio sends, applied in place. A
+// lo-fi view is drawn in grayscale with a handwritten font. Links to studio
 // addresses and the studio's shortcuts go to the studio, so a view's links
 // use its history. It imports nothing of the studio's app but plain
 // functions.
@@ -24,7 +25,7 @@ import {
   type PreviewState,
 } from '../protocol.ts'
 import { COMPILE_ROUTE, PREVIEW_ROUTE } from '../constants.ts'
-import { EXAMPLE, type ExampleChoice } from './example.ts'
+import { EXAMPLE, EXAMPLE_ROW, type ExampleChoice } from './example.ts'
 import { THEME_QUERY } from '../theme.ts'
 import { PROTOTYPE_SCOPE, type PrototypeScope } from './navigation.ts'
 
@@ -49,6 +50,8 @@ interface View {
   lofi: boolean
   /** For a component page's example, its name. */
   example: string | null
+  /** A component's playground, rendered with the props the studio sends. */
+  playground: boolean
   /** None while the view is empty. */
   load: (() => Promise<ViewModule>) | null
 }
@@ -202,7 +205,12 @@ export function mountPreview({ create, views }: MountOptions) {
     state: string | null
     props: Record<string, unknown>
     options: string
+    playground: boolean
   } | null = null
+  // The props the studio last sent for a playground, kept for its next mount.
+  let sent: { artifact: string; props: Record<string, unknown> } | null = null
+  const sentProps = (id: string) =>
+    sent?.artifact === id ? structuredClone(sent.props) : {}
   // Each view file's newest `states` and `system`, from its hot updates.
   const latestExports = new Map<string, ViewModule>()
   // When the latest attempt asked for its view's code: changes made before
@@ -329,6 +337,7 @@ export function mountPreview({ create, views }: MountOptions) {
       }
       Object.assign(props, found)
     }
+    if (view.playground) Object.assign(props, sentProps(id))
     if (view.lofi) {
       try {
         await lofiLook()
@@ -342,6 +351,7 @@ export function mountPreview({ create, views }: MountOptions) {
     const box = document.createElement('div')
     box.hidden = true
     box.classList.toggle('lofi-view', view.lofi)
+    if (view.playground) box.style.cssText = EXAMPLE_ROW
     host.append(box)
     let failed = ''
     const app = create({ component, props, system })
@@ -351,7 +361,11 @@ export function mountPreview({ create, views }: MountOptions) {
     if (example) app.provide(EXAMPLE, example)
     const ownError = app.config.errorHandler
     app.config.errorHandler = (error, instance, info) => {
-      if (state === 'ready' && attempt === render)
+      // Props that break a playground are its result, not a stale render:
+      // its error takes the component's place until the next props.
+      if (state === 'ready' && attempt === render && view.playground)
+        status('error', attempt, describe(error))
+      else if (state === 'ready' && attempt === render)
         lifecycle('error', describe(error))
       else failed ||= describe(error)
       ownError?.(error, instance, info)
@@ -381,13 +395,13 @@ export function mountPreview({ create, views }: MountOptions) {
       state: view.state,
       props,
       options: optionsKey(system),
+      playground: view.playground,
     }
     box.hidden = false
-    // A component's example sits on the system's page colour token, not on
-    // whatever its stylesheet paints a screen's page with.
-    document.body.style.backgroundColor = example
-      ? 'var(--ui-bg, transparent)'
-      : ''
+    // A component's example or playground sits on the system's page colour
+    // token, not on whatever its stylesheet paints a screen's page with.
+    document.body.style.backgroundColor =
+      example || view.playground ? 'var(--ui-bg, transparent)' : ''
     if (!failed && example && !example.found)
       failed = `${view.title}.vue has no <Example name=${JSON.stringify(example.name)}>.`
     if (failed) return status('error', attempt, failed)
@@ -400,6 +414,7 @@ export function mountPreview({ create, views }: MountOptions) {
       !acceptsHost(event, window.parent, location.origin, { session, runtime })
     )
       return
+    if (event.data.kind === 'props') return applyProps(event.data)
     const next = event.data.artifact
     // Keep the address current, so a reload shows the same view.
     const url = new URL(location.href)
@@ -408,6 +423,20 @@ export function mountPreview({ create, views }: MountOptions) {
     if (next !== artifact || state === 'error') void show(next)
     else post({ kind: 'status', state, render, detail: '' })
   })
+
+  // A playground's new props replace its current ones in place, so the
+  // component updates without remounting; keys left out take its defaults.
+  // One that failed starts again with them.
+  function applyProps(message: { artifact: string; props: Options }) {
+    sent = { artifact: message.artifact, props: message.props }
+    if (!shown?.playground || shown.artifact !== message.artifact) return
+    if (state === 'error') return void show(message.artifact)
+    if (state !== 'ready') return
+    const next = sentProps(message.artifact)
+    for (const key of Object.keys(shown.props))
+      if (!(key in next)) Reflect.deleteProperty(shown.props, key)
+    Object.assign(shown.props, next)
+  }
 
   // Views added, renamed, emptied or written since the document loaded. A
   // view switched to lo-fi or back keeps its state.

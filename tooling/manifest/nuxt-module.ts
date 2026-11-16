@@ -234,17 +234,20 @@ declare module '${MANIFEST_MODULE}' {
       baseURL: base,
       prototypesDir: path.resolve(root, prototypesFolder),
       // Each view, then each of its named states; then the system's own
-      // examples and Overview content.
+      // examples, components' playgrounds and Overview content.
       views: () => {
         const { manifest, artifacts } = read()
         const own = document.system
-          ? systemPreviews(document.system).map(({ id, file, example }) => ({
-              id,
-              file,
-              prototype: '',
-              path: '',
-              ...(example === undefined ? {} : { example }),
-            }))
+          ? systemPreviews(document.system).map(
+              ({ id, file, example, playground }) => ({
+                id,
+                file,
+                prototype: '',
+                path: '',
+                ...(example === undefined ? {} : { example }),
+                ...(playground ? { playground } : {}),
+              }),
+            )
           : []
         const views = manifest.prototypes
           .filter(({ systemId }) => (systemId ?? NO_SYSTEM) === document.key)

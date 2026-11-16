@@ -7,6 +7,7 @@ import {
   type HostMessage,
   type PreviewMessage,
   type PreviewPhase,
+  type PreviewProps,
   type PreviewState,
 } from '../../../../tooling/preview/protocol'
 
@@ -19,6 +20,8 @@ const SILENT_MS = 15_000
  * the document which view to show when it is ready (and again when the view
  * changes), and hears how rendering went and whether it shows the latest
  * saved source. Used by a view's page and by views embedded in documents.
+ * A component's playground also sends the props to mount it with, after
+ * each `ready` and whenever they change, without reloading the document.
  */
 export function usePreviewFrame(options: {
   frame: Readonly<Ref<HTMLIFrameElement | null>>
@@ -29,6 +32,8 @@ export function usePreviewFrame(options: {
   artifact: () => string
   /** Messages other than status and lifecycle, such as navigation. */
   onMessage?: (message: PreviewMessage) => void
+  /** A playground's props; a key that is undefined takes its default. */
+  props?: () => PreviewProps
 }) {
   const session =
     Math.random().toString(36).slice(2, 10) + Date.now().toString(36)
@@ -72,6 +77,24 @@ export function usePreviewFrame(options: {
       kind: 'configure',
     }
     options.frame.value?.contentWindow?.postMessage(message, location.origin)
+    sendProps()
+  }
+
+  function sendProps() {
+    if (!runtime || !options.props) return
+    // Through JSON: plain values only, without Vue's proxies, which can't
+    // be posted, and without undefined keys.
+    const props = JSON.parse(JSON.stringify(options.props())) as PreviewProps
+    const message: HostMessage = {
+      channel: PREVIEW_CHANNEL,
+      version: PREVIEW_VERSION,
+      session,
+      runtime,
+      artifact: options.artifact(),
+      kind: 'props',
+      props,
+    }
+    options.frame.value?.contentWindow?.postMessage(message, location.origin)
   }
 
   function opening() {
@@ -98,6 +121,7 @@ export function usePreviewFrame(options: {
     opening()
     configure()
   })
+  if (options.props) watch(options.props, sendProps, { deep: true })
 
   useEventListener(window, 'message', (event: MessageEvent) => {
     if (

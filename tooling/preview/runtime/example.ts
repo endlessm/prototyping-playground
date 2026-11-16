@@ -16,8 +16,9 @@ export interface ExampleChoice {
 
 export const EXAMPLE: InjectionKey<ExampleChoice> = Symbol('studio-example')
 
-// Inline, since the system's Tailwind doesn't scan the studio's files.
-const ROW =
+// Inline, since the system's Tailwind doesn't scan the studio's files. A
+// component's playground is laid out the same way.
+export const EXAMPLE_ROW =
   'display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 24px;'
 
 export const Example = defineComponent({
@@ -30,7 +31,7 @@ export const Example = defineComponent({
       !choice || choice.name === props.name
         ? h(
             'div',
-            { style: ROW, 'data-example': props.name },
+            { style: EXAMPLE_ROW, 'data-example': props.name },
             slots.default?.(),
           )
         : null

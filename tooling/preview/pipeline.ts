@@ -51,6 +51,8 @@ export interface PreviewView {
   lofi?: boolean
   /** For a component page's example: its `<Example name>`. */
   example?: string
+  /** A component's playground: the component file, given the host's props. */
+  playground?: boolean
 }
 
 // A view that holds nothing but comments (a new view, before the agent
@@ -204,6 +206,7 @@ function viewsPlugin(options: PreviewOptions): Plugin {
           state: view.state ?? null,
           lofi: Boolean(view.lofi),
           example: view.example ?? null,
+          playground: Boolean(view.playground),
         })
         return `${JSON.stringify(id)}: { ...${data}, load: ${load} }`
       })

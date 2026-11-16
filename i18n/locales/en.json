@@ -790,6 +790,12 @@
       "createFailed": "Couldn’t create the files"
     }
   },
+  "lab": {
+    "stage": {
+      "loading": "Loading component…",
+      "error": "This component couldn’t render."
+    }
+  },
   "documentation": {
     "title": "Documentation",
     "sections": "Documentation sections",
