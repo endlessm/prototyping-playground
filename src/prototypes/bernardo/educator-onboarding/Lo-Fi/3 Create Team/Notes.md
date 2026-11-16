@@ -11,7 +11,7 @@ Each number matches a marker on the screens; hover a marker to read its note the
 
 **[3.1 After Sign-Up](./3.1%20After%20Sign-Up.vue)**
 
-1. No Create Team step. After sign-up the system creates "Maya's Team", named with her first name, with her as owner. This follows the vault's Project 1 question: the Team exists to scope "her cohorts", and the vault itself suggests creating that grouping automatically for an independent teacher. Sign-up (draft 2) has no Account Created screen: Create Account hands off straight to the Team Dashboard.
+1. No Create Team step. After sign-up the system creates "Maya's Team", named with her first name, with her as owner. This follows the vault's Project 1 question: the Team exists to scope "her cohorts", and the vault itself suggests creating that grouping automatically for an independent teacher. Sign-up (draft 2) has no Account Created screen: Create Account leads to Choose a Path (2.4), and Teach hands off straight to the Team Dashboard.
 
 **[3.2 Empty Dashboard](./3.2%20Empty%20Dashboard.vue)**
 

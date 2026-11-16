@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "s16anrd031sqa3rg",
+  "artifact": "hx8cj5m2mbdf111m",
+  "artifactTitle": "1.4 Signed In",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Chose Learn, Play or Contribute → that …\"",
+    "at": {
+      "x": 0.9297,
+      "y": 0.4397
+    },
+    "selector": "span",
+    "tag": "span",
+    "path": "._auth_1ec72_48 > ._authColumn_1ec72_88 > ._stack_1ec72_315 > ._logic_1ec72_927 > span",
+    "text": "Chose Learn, Play or Contribute → that area, outside this prototype",
+    "box": {
+      "left": 1534,
+      "top": 725,
+      "width": 370,
+      "height": 58,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-09T22:44:57.136Z",
+  "messages": [
+    {
+      "id": "qy6fzpnp8j6b7xne",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Make this look like a disabled field and add \"(Soon)\"",
+      "createdAt": "2026-11-09T22:41:05.669Z"
+    },
+    {
+      "id": "zk0epg0w0679f3fw",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done: the row now reads \"… outside this prototype (Soon)\" and is greyed like a disabled field (muted fill and text, not-allowed cursor, aria-disabled). Logic rows take a new disabled flag (_ui/Logic.vue, .logicDisabled in ui.module.css), so other unlinked rows keep their look.",
+      "createdAt": "2026-11-09T22:45:24.064Z"
+    }
+  ]
+}

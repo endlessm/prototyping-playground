@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "ktzd5ewxg1sycqn1",
+  "artifact": "m3ghhtmpby66j14c",
+  "artifactTitle": "3.5 Team Settings",
+  "anchor": {
+    "kind": "paragraph",
+    "label": "Paragraph \"Team Members create their own cohorts. …\"",
+    "at": {
+      "x": 0.5778,
+      "y": 0.5
+    },
+    "selector": "div:nth-of-type(5) > p",
+    "tag": "p",
+    "path": "._page_j838v_5 > ._app_j838v_124 > ._content_j838v_254 > ._stack_j838v_317 > ._small_j838v_288",
+    "text": "Team Members create their own cohorts. They see only the cohorts they create or are added to; you see them all. Learner…",
+    "box": {
+      "left": 524,
+      "top": 622,
+      "width": 1279,
+      "height": 16,
+      "viewport": 2102
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T14:11:37.741Z",
+  "messages": [
+    {
+      "id": "993tghx2dktty0z4",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "remove isso",
+      "createdAt": "2026-11-11T14:10:51.129Z"
+    },
+    {
+      "id": "vh1wgw9pad7kx8we",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Removido em TeamDashboard.vue. A regra de quem vê quais cohorts continua nas notas 5 e 6 do fluxo 3.",
+      "createdAt": "2026-11-11T14:11:45.245Z"
+    }
+  ]
+}

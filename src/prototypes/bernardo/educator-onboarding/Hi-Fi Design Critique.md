@@ -72,7 +72,7 @@ flowchart TD
 - **Consent is never a default** (principle 7). The Terms are a box the educator ticks; the class link has seats, an expiry and "Approve each learner" on by default; an NDPA class gets no open link.
 - **Teal only where it belongs.** [0.2 kID Safety](<./Hi-Fi/0 Verify Age/0.2 kID Safety.vue>) is the one teal surface, as the theme reserves it.
 - **No step where none is needed.** The team is made automatically and renamed later, from a banner that never blocks (principles 2 and 3).
-- **Momentum during review.** [4.4 In Review](<./Hi-Fi/4 Create Cohort/4.4 In Review.vue>) lets the educator add learners while Endless reviews (principles 2 and 5).
+- **Momentum during review.** 4.4 In Review (since removed) let the educator add learners while Endless reviews (principles 2 and 5).
 - **Clear ends.** "Spring Game Makers is ready" (4.5) closes a stage, and the Team Dashboard's seats bar and per-learner status show where things stand (principle 5).
 - **System craft.** Figtree and Inter, orange primary with dark text on every screen, one primary action per screen, hairline borders before shadows, a spinner that honours reduced motion, and sample quotes labelled as samples.
 
@@ -96,7 +96,7 @@ The question asks about legal jurisdiction when the decision is about visibility
 
 **Change:** ask what the class is (a school, a homeschool group, co-op or club, a partner program) with no answer chosen, and derive the rules from the answer and the country. Until rules for non-US schools exist, any school should get the closed class and the review, not the open one.
 
-![Where you teach, Yes](<./Hi-Fi/4 Create Cohort/4.3 US School.vue>)
+*Since this review, the Where you teach step and its screens (4.3 US School, 4.4 In Review) have been removed from the Hi-Fi; the school question is left for later.*
 
 ### S3 · Major · The under-13 answer invites a second try, and ends there
 
@@ -104,7 +104,9 @@ The Lo-Fi note says the date stays filled in "so a mistyped year is fixed in pla
 
 **Change:** decide with whoever owns the kID integration how the gate behaves after an under-13 answer. A neutral age screen usually does not invite a retry. Give a next step that creates nothing, such as what a parent or teacher can do.
 
-![Under 13](/prototypes/8c56fyxwd5z6q039/artifacts/merj3ees8d7ecy9m)
+**Since this review:** under 13 no longer gets an error under the date. It goes to a page of its own, 0.3 Too Young, with no date field to retry and Explore as a Guest as the next step.
+
+![Too Young](<./Hi-Fi/0 Verify Age/0.3 Too Young.vue>)
 
 ### S4 · Major · The open class doesn't say who can see or contact learners
 
@@ -211,7 +213,7 @@ On 5.1, Reset Link sits beside Show QR as a quiet button. Pressing it breaks the
 
 **Change:** confirm with the consequence ("The link in your group chat will stop working"), or offer undo.
 
-![Class Link](<./Hi-Fi/5 Invite Students/5.1 Class Link.vue>)
+![Class Link](<./Hi-Fi/5 Cohort/5.1 Class Link.vue>)
 
 ### P2 · Minor · Let the educator play Workshop 1 first
 
@@ -257,7 +259,7 @@ On the Team Dashboard, Joined, the state that needs nothing, uses the orange tin
 
 **Change:** Joined in the soft success colour (lime 50 with 700 text) or neutral, Needs parent consent in soft warning (amber 50 with 800), Bounced in soft error (red 50 with 700), as the theme's soft pattern asks.
 
-![Team Dashboard](<./Hi-Fi/5 Invite Students/5.5 Team Dashboard.vue>)
+![Team Dashboard](<./Hi-Fi/5 Cohort/5.5 Learners Joined.vue>)
 
 ### R2 · Minor · No sense of "set up and ready to teach"
 

@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "svvj13xn0shds0sg",
+  "artifact": "hx8cj5m2mbdf111m",
+  "artifactTitle": "1.4 Signed In",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"After log-in Chose Teach path → Has tea…\"",
+    "at": {
+      "x": 0.2625,
+      "y": 0.973
+    },
+    "selector": "div:nth-of-type(2) > div > div:nth-of-type(2)",
+    "tag": "div",
+    "path": "._page_zbkl8_5 > ._auth_zbkl8_48 > ._authColumn_zbkl8_88 > ._stack_zbkl8_315 > ._logic_zbkl8_927",
+    "text": "After log-in Chose Teach path → Has teamChose Teach path → No team yetChose Learn, Play or Contribute → that area, outs…",
+    "box": {
+      "left": 1519,
+      "top": 594,
+      "width": 400,
+      "height": 204,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-09T22:49:49.958Z",
+  "messages": [
+    {
+      "id": "x1y3vgwbr7rfy8gv",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Add an option for who is under 18 and create a \"choose your path\" screen just for them",
+      "createdAt": "2026-11-09T22:44:49.918Z"
+    },
+    {
+      "id": "0xg1d9a2p5tgy1qd",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done. New view 2 Sign Up/2.5 Choose a Path (Under 18): only Learn, Play and Contribute, no Teach card, with note 2.7. 1.4 Signed In has a new row, \"Under 18, no path chosen yet → Choose a Path (Under 18)\", that opens it. 2.4 Choose a Path lost its \"13 to 17\" state; its 13 to 17 row now links to 2.5, and the Hi-Fi canvas frame that showed the old state now shows 2.5.",
+      "createdAt": "2026-11-09T22:47:39.627Z"
+    }
+  ]
+}

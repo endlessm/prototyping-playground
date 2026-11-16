@@ -1,10 +1,11 @@
 <!-- @studio-id hbwsxd9acgx0bq81 -->
 <script setup lang="ts">
-import EmptyDashboard from '../_ui/EmptyDashboard.vue'
+import TeamDashboard from '../_ui/TeamDashboard.vue'
+import { TEAM } from '../_ui/team'
 
-// The wizard's first step, opened from a program link: Threadbare is already chosen, the name is suggested and No is the school default.
+// Create a class, opened from a program link: Threadbare is already chosen and the name is suggested.
 </script>
 
 <template>
-  <EmptyDashboard team="Okafor Homeschool Co-op" :banner="false" open="link" />
+  <TeamDashboard :team="TEAM" open="link" />
 </template>

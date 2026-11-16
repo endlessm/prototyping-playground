@@ -1,0 +1,55 @@
+{
+  "formatVersion": 1,
+  "id": "06403btg4xqr87jy",
+  "artifact": "fn0y0cv72hrdd8q8",
+  "artifactTitle": "1.1 Join",
+  "anchor": {
+    "kind": "paragraph",
+    "label": "Paragraph \"Profile check after Continue 4 New: no …\"",
+    "at": {
+      "x": 0.0946,
+      "y": 0.425
+    },
+    "selector": "div:nth-of-type(5) > p",
+    "tag": "p",
+    "path": "._auth_1ec72_48 > ._authColumn_1ec72_88 > ._stack_1ec72_315 > ._logic_1ec72_927 > p",
+    "text": "Profile check after Continue 4 New: no in-between page. Continue with an email that has no profile goes straight to the…",
+    "box": {
+      "left": 1534,
+      "top": 725,
+      "width": 370,
+      "height": 20,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-09T22:23:00.327Z",
+  "sentToAgent": {
+    "by": {
+      "contributor": "ma1xykkc2j3d2x24"
+    },
+    "at": "2026-11-09T22:05:37.067Z"
+  },
+  "messages": [
+    {
+      "id": "mh02tkv279b1vn1a",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "New label \"WITH EMAIL: DOES PROFILE EXIST?\"",
+      "createdAt": "2026-11-09T22:01:12.286Z"
+    },
+    {
+      "id": "s9x21672hz2xd5rq",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in 1.1 Join.vue, Hi-Fi and Lo-Fi: the email routing box now reads \"WITH EMAIL: DOES PROFILE EXIST?\".",
+      "createdAt": "2026-11-09T22:08:29.232Z"
+    }
+  ]
+}

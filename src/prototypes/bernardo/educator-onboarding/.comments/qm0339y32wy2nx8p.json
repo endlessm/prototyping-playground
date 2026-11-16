@@ -1,0 +1,55 @@
+{
+  "formatVersion": 1,
+  "id": "qm0339y32wy2nx8p",
+  "artifact": "rqdt3g5dve4dehkz",
+  "artifactTitle": "3.2 Empty Dashboard",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Team Dashboard routing No cohorts → Cre…\"",
+    "at": {
+      "x": 0.1761,
+      "y": 0.0357
+    },
+    "selector": "div:nth-of-type(4)",
+    "tag": "div",
+    "path": "div > ._page_zbkl8_5 > ._app_zbkl8_124 > ._content_zbkl8_252 > ._logic_zbkl8_927",
+    "text": "Team Dashboard routing No cohorts → Create Cohort wizard (draft 4)Has cohorts → Cohorts Dashboard",
+    "box": {
+      "left": 265,
+      "top": 608,
+      "width": 1987,
+      "height": 140,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-10T21:16:17.304Z",
+  "sentToAgent": {
+    "by": {
+      "contributor": "ma1xykkc2j3d2x24"
+    },
+    "at": "2026-11-10T21:14:08.261Z"
+  },
+  "messages": [
+    {
+      "id": "w723nhcep2q90q66",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Pode remover isso",
+      "createdAt": "2026-11-10T21:14:08.261Z"
+    },
+    {
+      "id": "ca39a6kgv8s1b3wr",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Feito em _ui/EmptyDashboard.vue: removi a caixa \"Team Dashboard routing\". Os marcadores de notas do 3.2 continuam.",
+      "createdAt": "2026-11-10T21:16:13.542Z"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "qmy27kgg9d6kvyz8",
+  "artifact": "8q0aq7h57af5g6kf",
+  "artifactTitle": "2.4 Choose a Path",
+  "anchor": {
+    "kind": "link",
+    "label": "Link \"13 to 17 → their own Choose a Path, wit…\"",
+    "at": {
+      "x": 0.1958,
+      "y": 0.6053
+    },
+    "selector": "a:nth-of-type(2)",
+    "tag": "a",
+    "path": "div > ._page_zbkl8_5 > ._choose_zbkl8_972 > ._logic_zbkl8_927 > a",
+    "text": "13 to 17 → their own Choose a Path, with no Teach card",
+    "box": {
+      "left": 63,
+      "top": 1170,
+      "width": 2166,
+      "height": 38,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-10T20:31:59.628Z",
+  "messages": [
+    {
+      "id": "95csec9x6pmy807m",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "remove this",
+      "createdAt": "2026-11-09T22:51:01.267Z"
+    },
+    {
+      "id": "zk3788ykarwqf45s",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in 2.4 Choose a Path.vue: removed the 13 to 17 row. 2.5 Choose a Path (Under 18) is still reached from 1.4 Signed In.",
+      "createdAt": "2026-11-09T22:51:16.846Z"
+    }
+  ]
+}

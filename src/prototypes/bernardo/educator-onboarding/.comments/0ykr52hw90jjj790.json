@@ -1,0 +1,50 @@
+{
+  "formatVersion": 1,
+  "id": "0ykr52hw90jjj790",
+  "artifact": "7ka739h9yt3903g2",
+  "artifactTitle": "5.7 Starting Soon",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Program chosen: Explore: Godot, 10 sess…\"",
+    "at": {
+      "x": 1,
+      "y": 0.475
+    },
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > span > span",
+    "tag": "span",
+    "path": "._stack_j838v_317 > ._list_j838v_885 > div > ._row_j838v_325 > span",
+    "text": "Program chosen: Explore: Godot, 10 sessions, unlocked as you go",
+    "box": {
+      "left": 566,
+      "top": 426,
+      "width": 436,
+      "height": 20,
+      "viewport": 2102
+    },
+    "quote": "Program chosen: Explore: Godot, 10 sessions, unlocked as you go"
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T14:56:11.369Z",
+  "messages": [
+    {
+      "id": "0ywtnyk55mghkgr5",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Label: \"Program Selected: Explore: Godot\" Program name is bold",
+      "createdAt": "2026-11-11T14:37:52.570Z"
+    },
+    {
+      "id": "69mnbk5w935bm8xk",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in CohortStartingSoon.vue: the row now reads \"Program Selected: Explore: Godot\", with the program name in bold.",
+      "createdAt": "2026-11-11T14:48:12.802Z"
+    }
+  ]
+}

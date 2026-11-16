@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "exrdr709emfdw2p1",
+  "artifact": "fn0y0cv72hrdd8q8",
+  "artifactTitle": "1.1 Join",
+  "anchor": {
+    "kind": "link",
+    "label": "Link \"No verified email at GitHub → no accoun…\"",
+    "at": {
+      "x": 0.2703,
+      "y": 0.6974
+    },
+    "selector": "a:nth-of-type(3)",
+    "tag": "a",
+    "path": "._auth_1ec72_48 > ._authColumn_1ec72_88 > ._stack_1ec72_315 > ._logic_1ec72_927 > a",
+    "text": "No verified email at GitHub → no account, verify first",
+    "box": {
+      "left": 1534,
+      "top": 1013,
+      "width": 370,
+      "height": 38,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-09T22:39:59.661Z",
+  "messages": [
+    {
+      "id": "9ep39wb52xs3kf76",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "label: \"Github Email not verified\"",
+      "createdAt": "2026-11-09T22:24:38.361Z"
+    },
+    {
+      "id": "tyt4mvh9kyq2kr35",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in 1.1 Join.vue: the row now reads \"Github Email not verified\".",
+      "createdAt": "2026-11-09T22:33:18.936Z"
+    }
+  ]
+}

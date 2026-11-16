@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "v8eegs2tr2m8x10q",
+  "artifact": "j49encebtzz2e3rt",
+  "artifactTitle": "5.4 Managers and Facilitators",
+  "anchor": {
+    "kind": "button",
+    "label": "Button \"Invite Facilitators\"",
+    "at": {
+      "x": 0.8638,
+      "y": 0.2222
+    },
+    "selector": "div:nth-of-type(3) > div:nth-of-type(3) > button.rounded-md.inline-flex",
+    "tag": "button",
+    "path": "._app_j838v_124 > ._content_j838v_254 > ._stack_j838v_317 > ._row_j838v_325 > .rounded-md",
+    "text": "Invite Facilitators",
+    "box": {
+      "left": 1664,
+      "top": 550,
+      "width": 139,
+      "height": 36,
+      "viewport": 2102
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T14:18:31.219Z",
+  "messages": [
+    {
+      "id": "v02dngz2ggxcx8yn",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Essa ação deve ocorrer dentro de um modal e esse botão tem que ficar alinhado à direita do título",
+      "createdAt": "2026-11-11T14:15:53.584Z"
+    },
+    {
+      "id": "s1ts43w24028sc3c",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Feito em CohortPage.vue e no novo InviteFacilitatorsModal.vue: o botão fica à direita do título Facilitators, e os e-mails são digitados dentro do modal, que termina em Send Invites. A view ganhou o estado Invite Facilitators, com o modal aberto.",
+      "createdAt": "2026-11-11T14:17:43.573Z"
+    }
+  ]
+}

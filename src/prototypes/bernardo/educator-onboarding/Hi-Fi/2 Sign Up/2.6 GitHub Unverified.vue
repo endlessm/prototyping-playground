@@ -20,7 +20,7 @@ const steps = [
 
 <template>
   <AuthPage>
-    <Title :flow="2" :note="5">Confirm your email on GitHub first</Title>
+    <Title :flow="2" :note="4">Confirm your email on GitHub first</Title>
     <Lead>
       Your GitHub account has this email, but you haven't confirmed it with GitHub yet. We can only create your account
       with an email GitHub has confirmed is yours.

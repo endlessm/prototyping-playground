@@ -1,0 +1,50 @@
+{
+  "formatVersion": 1,
+  "id": "wp92n0r4xjq5z2r6",
+  "artifact": "hx8cj5m2mbdf111m",
+  "artifactTitle": "1.4 Signed In",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Chose Learn, Play or Contribute → that …\"",
+    "at": {
+      "x": 0.3867,
+      "y": 0.6724
+    },
+    "selector": "span",
+    "tag": "span",
+    "path": "._auth_zbkl8_48 > ._authColumn_zbkl8_88 > ._stack_zbkl8_315 > ._logic_zbkl8_927 > ._logicDisabled_zbkl8_964",
+    "text": "Chose Learn, Play or Contribute → that area, outside this prototype (Soon)",
+    "box": {
+      "left": 1534,
+      "top": 703,
+      "width": 370,
+      "height": 58,
+      "viewport": 2292
+    },
+    "quote": "Chose Learn, Play or Contribute → that area, outside this prototype (Soon)"
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-10T20:57:32.177Z",
+  "messages": [
+    {
+      "id": "9q1jrf7cx8h1x3qk",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "remove this option",
+      "createdAt": "2026-11-10T20:53:51.293Z"
+    },
+    {
+      "id": "cjhnz7bhcc1wt2qd",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in 1.4 Signed In.vue: removed the Learn, Play or Contribute row. The box now has the two Teach rows and the Under 18 row.",
+      "createdAt": "2026-11-10T20:54:28.119Z"
+    }
+  ]
+}

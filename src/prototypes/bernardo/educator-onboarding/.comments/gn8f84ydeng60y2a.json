@@ -1,0 +1,46 @@
+{
+  "formatVersion": 1,
+  "id": "gn8f84ydeng60y2a",
+  "artifact": "dv3bmm3hpf5vfves",
+  "artifactTitle": "0.1 Verify Age",
+  "anchor": {
+    "kind": "paragraph",
+    "label": "Paragraph \"Age checked on Continue\"",
+    "at": {
+      "x": 0.1595,
+      "y": 0.475
+    },
+    "selector": "div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(2) > p",
+    "tag": "p",
+    "path": "._auth_6e0yy_48 > ._authColumn_6e0yy_78 > ._stack_6e0yy_305 > ._logic_6e0yy_917 > p",
+    "text": "Age checked on Continue",
+    "box": {
+      "left": 1534,
+      "top": 777,
+      "width": 370,
+      "height": 20,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-09T21:55:11.143Z",
+  "sentToAgent": {
+    "by": {
+      "contributor": "ma1xykkc2j3d2x24"
+    },
+    "at": "2026-11-09T21:40:19.423Z"
+  },
+  "messages": [
+    {
+      "id": "bh8n72qcbrph9eev",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "NEXT STEPS: Age check",
+      "createdAt": "2026-11-09T21:36:57.760Z"
+    }
+  ]
+}

@@ -20,7 +20,7 @@ import s from '../_wire/wire.module.css'
 
 <template>
   <AuthPage>
-    <Title :flow="1" :note="1">Join Endless Access</Title>
+    <Title :flow="1" :note="1">Join Endless Studios</Title>
     <Lead>New or returning, start with your email.</Lead>
     <Field label="Email">
       <Input type="email" value="maya.okafor@gmail.com" />
@@ -39,11 +39,11 @@ import s from '../_wire/wire.module.css'
     <Divider>or continue with</Divider>
     <div :class="s.columns3">
       <Button variant="secondary" to="Lo-Fi/2 Sign Up/2.1 Google Confirm"><Icon /> Google</Button>
-      <Button variant="secondary" to="Lo-Fi/2 Sign Up/2.1 Google Confirm"><Icon /> GitHub</Button>
       <Button variant="secondary" to="Lo-Fi/2 Sign Up/2.1 Google Confirm"><Icon square /> Microsoft</Button>
+      <Button variant="secondary" to="Lo-Fi/2 Sign Up/2.1 Google Confirm"><Icon /> GitHub</Button>
     </div>
     <Logic
-      title="Profile check after Continue"
+      title="WITH EMAIL: DOES PROFILE EXIST?"
       :flow="1"
       :note="4"
       :rows="[
@@ -52,7 +52,7 @@ import s from '../_wire/wire.module.css'
       ]"
     />
     <Logic
-      title="Profile check after Google, GitHub or Microsoft"
+      title="WITH GOOGLE, GITHUB OR MICROSOFT: DOES PROFILE EXIST?"
       :flow="1"
       :note="5"
       :rows="[

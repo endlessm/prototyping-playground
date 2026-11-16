@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "g13x3cd84vyhqmfj",
+  "artifact": "nqthyqbzkx69gpqr",
+  "artifactTitle": "2.1 Google Confirm",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Checked before the account is created T…\"",
+    "at": {
+      "x": 0.1475,
+      "y": 0.0469
+    },
+    "selector": "div:nth-of-type(4)",
+    "tag": "div",
+    "path": "._page_zbkl8_5 > ._auth_zbkl8_48 > ._authColumn_zbkl8_88 > ._stack_zbkl8_315 > ._logic_zbkl8_927",
+    "text": "Checked before the account is created Terms ticked → account created → Choose a Path",
+    "box": {
+      "left": 1519,
+      "top": 817,
+      "width": 400,
+      "height": 96,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-10T20:39:38.667Z",
+  "messages": [
+    {
+      "id": "vymtbrss0f6wz070",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Não precisa dessa sessão. Aqui só tem uma opção.",
+      "createdAt": "2026-11-10T20:34:12.849Z"
+    },
+    {
+      "id": "zhx2wv16f1efgh8r",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Feito em 2.1 Google Confirm.vue: removi a caixa \"Checked before the account is created\". Create Account continua levando para 2.4 Choose a Path.",
+      "createdAt": "2026-11-10T20:35:01.106Z"
+    }
+  ]
+}

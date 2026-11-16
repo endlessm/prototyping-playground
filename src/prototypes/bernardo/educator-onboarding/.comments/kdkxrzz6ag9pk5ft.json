@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "kdkxrzz6ag9pk5ft",
+  "artifact": "m3ghhtmpby66j14c",
+  "artifactTitle": "3.5 Team Settings",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Team Leader\"",
+    "at": {
+      "x": 0.8248,
+      "y": 0.9167
+    },
+    "selector": "span.font-medium.inline-flex",
+    "tag": "span",
+    "path": "._content_j838v_254 > ._row_j838v_325 > ._stack_j838v_317 > ._row_j838v_325 > .font-medium",
+    "text": "Team Leader",
+    "box": {
+      "left": 937,
+      "top": 102,
+      "width": 91,
+      "height": 24,
+      "viewport": 2102
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T14:11:39.652Z",
+  "messages": [
+    {
+      "id": "z02mywb254sz5nxt",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "remove isso",
+      "createdAt": "2026-11-11T14:09:59.352Z"
+    },
+    {
+      "id": "nyqnftrdtjn7qtqm",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Removido em TeamDashboard.vue: o selo Team Leader/Team Member saiu de perto do nome do time em todas as telas do dashboard. O papel de cada um continua na lista de membros.",
+      "createdAt": "2026-11-11T14:11:41.367Z"
+    }
+  ]
+}

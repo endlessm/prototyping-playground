@@ -1,0 +1,45 @@
+{
+  "formatVersion": 1,
+  "id": "j6mnwenydj6cbqpx",
+  "artifact": "nqthyqbzkx69gpqr",
+  "artifactTitle": "2.1 Google Confirm",
+  "anchor": {
+    "kind": "label",
+    "label": "Label \"Last Name\"",
+    "at": {
+      "x": 0.5876,
+      "y": 0.1953
+    },
+    "selector": "label:nth-of-type(2)",
+    "tag": "label",
+    "path": "._auth_1rs75_48 > ._authColumn_1rs75_88 > ._stack_1rs75_317 > ._columns_1rs75_340 > ._stack_1rs75_317",
+    "text": "Last Name",
+    "box": {
+      "left": 1053,
+      "top": 402,
+      "width": 194,
+      "height": 64,
+      "viewport": 1396
+    }
+  },
+  "status": "open",
+  "messages": [
+    {
+      "id": "2kv50gta1abz6kdx",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "this is optional",
+      "createdAt": "2026-11-12T14:39:44.346Z"
+    },
+    {
+      "id": "4n1w7b1893fhvns1",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Marked Last Name as optional: a muted (optional) beside the label in the shared Hi-Fi/_ui/SignUpDetails.vue, so 2.1 Google Confirm, 2.3 Email Confirm and 2.6 GitHub Unverified all show it. The flow 2 walkthrough note in _ui/notes.ts says so too.",
+      "createdAt": "2026-11-12T14:42:58.987Z"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "t3bnrm3f58v3q7ab",
+  "artifact": "dv3bmm3hpf5vfves",
+  "artifactTitle": "0.1 Verify Age",
+  "anchor": {
+    "kind": "link",
+    "label": "Link \"Under 13 → Too Young page, no account\"",
+    "at": {
+      "x": 0.6,
+      "y": 0.6974
+    },
+    "selector": "a:nth-of-type(3)",
+    "tag": "a",
+    "path": "._auth_6e0yy_48 > ._authColumn_6e0yy_78 > ._stack_6e0yy_305 > ._logic_6e0yy_917 > a",
+    "text": "Under 13 → Too Young page, no account",
+    "box": {
+      "left": 1534,
+      "top": 905,
+      "width": 370,
+      "height": 38,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-09T21:15:20.228Z",
+  "messages": [
+    {
+      "id": "kcgqsk0zrnfrh3jc",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Under 13",
+      "createdAt": "2026-11-09T21:02:13.717Z"
+    },
+    {
+      "id": "mrkek5tzdrncwvcj",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in 0.1 Verify Age.vue: the row now reads \"Under 13\" and still links to 0.3 Too Young.",
+      "createdAt": "2026-11-09T21:03:06.111Z"
+    }
+  ]
+}

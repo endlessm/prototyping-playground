@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "6k9dn5cq7g1658bg",
+  "artifact": "j49encebtzz2e3rt",
+  "artifactTitle": "5.4 Managers and Facilitators",
+  "anchor": {
+    "kind": "button",
+    "label": "Button \"Add Manager\"",
+    "at": {
+      "x": 0.8176,
+      "y": 0.2222
+    },
+    "selector": "div:nth-of-type(3) > button.rounded-md.inline-flex",
+    "tag": "button",
+    "path": "._app_j838v_124 > ._content_j838v_254 > ._stack_j838v_317 > ._row_j838v_325 > .rounded-md",
+    "text": "Add Manager",
+    "box": {
+      "left": 1688,
+      "top": 387,
+      "width": 115,
+      "height": 36,
+      "viewport": 2102
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T14:18:29.104Z",
+  "messages": [
+    {
+      "id": "2fxd9sx8y0zn62q0",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "isso fica alinhado à direita do título e abre um modal com uma lista de pessoas com avatar, nome, email para marcar",
+      "createdAt": "2026-11-11T14:15:26.516Z"
+    },
+    {
+      "id": "rvm3bmk1cc4b2m37",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Feito em CohortPage.vue e no novo AddManagersModal.vue: o botão (agora Add Managers) fica à direita do título Managers e abre um modal com os membros do time (avatar, nome e e-mail) para marcar. Para a lista ter conteúdo, entraram dois Team Members em team.ts (Luis Ortega e Priya Nair). A view ganhou o estado Add Managers, com o modal aberto.",
+      "createdAt": "2026-11-11T14:17:41.790Z"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "n682e3sjx0x9ny4j",
+  "artifact": "7ka739h9yt3903g2",
+  "artifactTitle": "5.7 Starting Soon",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"2 learners are waiting on a parent's co…\"",
+    "at": {
+      "x": 0.3336,
+      "y": 0.3265
+    },
+    "selector": "div:nth-of-type(2) > div:nth-of-type(3)",
+    "tag": "div",
+    "path": "._app_j838v_124 > ._content_j838v_254 > ._stack_j838v_317 > ._list_j838v_885 > div",
+    "text": "2 learners are waiting on a parent's consentRemind Parents",
+    "box": {
+      "left": 537,
+      "top": 571,
+      "width": 1253,
+      "height": 49,
+      "viewport": 2102
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T14:57:54.504Z",
+  "messages": [
+    {
+      "id": "vrwp7qede9h4n0vw",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "This doesn't happen. Parents don't have to consent to kids enrolling.",
+      "createdAt": "2026-11-11T14:55:08.872Z"
+    },
+    {
+      "id": "3j1gph5hqy9eshax",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Removed: the parent-consent row and its Remind Parents button are gone, and everyone in Who's in has simply joined (the Status column went with it). I removed parent consent everywhere in Hi-Fi: Priya Raman on 5.5 is now Invited, and the Upload CSV modal and notes 5 and 9 no longer mention it. Lo-Fi is unchanged.",
+      "createdAt": "2026-11-11T14:58:11.263Z"
+    }
+  ]
+}

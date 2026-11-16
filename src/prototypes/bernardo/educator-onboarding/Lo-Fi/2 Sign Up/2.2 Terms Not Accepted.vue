@@ -20,6 +20,6 @@ import Title from '../_wire/Title.vue'
     <TermsCheck error="Tick the box to agree to the Terms of Use and create your account.">
       <template #note><Marker :flow="2" :n="3" /></template>
     </TermsCheck>
-    <Button block to="Lo-Fi/3 Create Team/3.1 After Sign-Up">Create Account</Button>
+    <Button block to="Lo-Fi/2 Sign Up/2.4 Choose a Path">Create Account</Button>
   </AuthPage>
 </template>

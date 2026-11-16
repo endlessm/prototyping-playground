@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "h2h4zy0v613bxq3v",
+  "artifact": "7ka739h9yt3903g2",
+  "artifactTitle": "5.7 Starting Soon",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Join link studio.endlessstudios.com/sig…\"",
+    "at": {
+      "x": 0.0856,
+      "y": 0.0269
+    },
+    "selector": "main > div:nth-of-type(4)",
+    "tag": "div",
+    "path": "div > ._page_j838v_5 > ._app_j838v_124 > ._content_j838v_254 > ._card_j838v_538",
+    "text": "Join link studio.endlessstudios.com/signup?code=GODOT-ASCopy LinkEnrollment codeGODOT-ASShow QRReset Link7 of 12 seats …",
+    "box": {
+      "left": 517,
+      "top": 628,
+      "width": 1279,
+      "height": 223,
+      "viewport": 2102
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T14:56:12.620Z",
+  "messages": [
+    {
+      "id": "n8tdsqmry15evxaq",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "This whole session needs to be related to the \"join link shared...\" part in the first session. make it way less complex. just show the link and a copy button along with the information that is already there.",
+      "createdAt": "2026-11-11T14:46:54.962Z"
+    },
+    {
+      "id": "mww23ea919dnzdda",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done: the separate card is gone. The Join link shared row in Before Apr 6 now holds the link with Copy Link, and under it the enrollment code and the expiry date.",
+      "createdAt": "2026-11-11T14:48:21.138Z"
+    }
+  ]
+}

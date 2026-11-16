@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "ww38fyz1d8pmr2ta",
+  "artifact": "dv3bmm3hpf5vfves",
+  "artifactTitle": "0.1 Verify Age",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Under 13 → inline error under the date,…\"",
+    "at": {
+      "x": 0.1541,
+      "y": 0.5395
+    },
+    "selector": "div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(2) > span",
+    "tag": "span",
+    "path": "._auth_y7ozy_48 > ._authColumn_y7ozy_78 > ._stack_y7ozy_305 > ._logic_y7ozy_917 > span",
+    "text": "Under 13 → inline error under the date, no account",
+    "box": {
+      "left": 682,
+      "top": 655,
+      "width": 370,
+      "height": 38,
+      "viewport": 1156
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-09T16:27:36.571Z",
+  "messages": [
+    {
+      "id": "c4c2qsktynzhd05x",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "It's not an inline error. there's an actual page. please ask me to give you a screenshot later.",
+      "createdAt": "2026-11-06T18:26:49.147Z"
+    },
+    {
+      "id": "rd1j7z350n3ta46b",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Feito. Menor de 13 agora vai para uma página própria, 0.3 Too Young (Hi-Fi e Lo-Fi), com 'Explore as a Guest' como próximo passo. Removi o estado 'Under 13' (erro inline) da 0.1 e apontei a linha da lógica para a nova página. Também atualizei a nota 2, o Notes.md do fluxo 0, os dois canvases e o embed na Hi-Fi Design Critique, que mostrava o estado removido.",
+      "createdAt": "2026-11-09T16:30:16.501Z"
+    }
+  ]
+}

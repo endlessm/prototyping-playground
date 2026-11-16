@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "dbf29vjbnheaxcvf",
+  "artifact": "m3ghhtmpby66j14c",
+  "artifactTitle": "3.5 Team Settings",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Team nameOkafor Homeschool Co-opRename\"",
+    "at": {
+      "x": 0.1048,
+      "y": 0.3906
+    },
+    "selector": "main > div:nth-of-type(3)",
+    "tag": "div",
+    "path": "div > ._page_j838v_5 > ._app_j838v_124 > ._content_j838v_254 > ._stack_j838v_317",
+    "text": "Team nameOkafor Homeschool Co-opRename",
+    "box": {
+      "left": 524,
+      "top": 261,
+      "width": 1279,
+      "height": 64,
+      "viewport": 2102
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T14:11:42.318Z",
+  "messages": [
+    {
+      "id": "0gwsreesqqtrjkbt",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Título ja esta no topo da pagina",
+      "createdAt": "2026-11-11T14:10:15.945Z"
+    },
+    {
+      "id": "2tr148ab57q509np",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Removido em TeamDashboard.vue: a seção Team name saiu do Team Settings. Para renomear, usa-se o lápis ao lado do título. As notas 4 e 6 do fluxo 3 foram atualizadas.",
+      "createdAt": "2026-11-11T14:11:42.771Z"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "gwkm489qr87ttpzx",
+  "artifact": "j49encebtzz2e3rt",
+  "artifactTitle": "5.4 Managers and Facilitators",
+  "anchor": {
+    "kind": "paragraph",
+    "label": "Paragraph \"You created this cohort, so you choose …\"",
+    "at": {
+      "x": 0.1618,
+      "y": 0.6875
+    },
+    "selector": "p:nth-of-type(2)",
+    "tag": "p",
+    "path": "._page_j838v_5 > ._app_j838v_124 > ._content_j838v_254 > ._stack_j838v_317 > ._small_j838v_288",
+    "text": "You created this cohort, so you choose which Team Members manage it with you.",
+    "box": {
+      "left": 524,
+      "top": 455,
+      "width": 1279,
+      "height": 16,
+      "viewport": 2102
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T14:16:02.273Z",
+  "messages": [
+    {
+      "id": "95xa6dyd87eawc36",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "remove isso",
+      "createdAt": "2026-11-11T14:13:44.351Z"
+    },
+    {
+      "id": "g2s5v807w60spa0j",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Removido em CohortPage.vue. A regra continua nas notas 6 e 7 do fluxo 5.",
+      "createdAt": "2026-11-11T14:14:19.769Z"
+    }
+  ]
+}

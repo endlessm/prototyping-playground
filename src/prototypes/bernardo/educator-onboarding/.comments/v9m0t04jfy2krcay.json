@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "v9m0t04jfy2krcay",
+  "artifact": "j49encebtzz2e3rt",
+  "artifactTitle": "5.4 Managers and Facilitators",
+  "anchor": {
+    "kind": "paragraph",
+    "label": "Paragraph \"Facilitators run sessions and support t…\"",
+    "at": {
+      "x": 0.1118,
+      "y": 0.625
+    },
+    "selector": "div:nth-of-type(3) > p",
+    "tag": "p",
+    "path": "._page_j838v_5 > ._app_j838v_124 > ._content_j838v_254 > ._stack_j838v_317 > ._small_j838v_288",
+    "text": "Facilitators run sessions and support the learners in this cohort only. They don't join Okafor Homeschool Co-op.",
+    "box": {
+      "left": 524,
+      "top": 523,
+      "width": 1279,
+      "height": 16,
+      "viewport": 2102
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T14:16:02.564Z",
+  "messages": [
+    {
+      "id": "5dp1c9wm7nj2hqx3",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "remove isso",
+      "createdAt": "2026-11-11T14:13:49.096Z"
+    },
+    {
+      "id": "0wxtp0jk2063x82r",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Removido em CohortPage.vue. A regra continua nas notas 6 e 7 do fluxo 5.",
+      "createdAt": "2026-11-11T14:14:20.981Z"
+    }
+  ]
+}

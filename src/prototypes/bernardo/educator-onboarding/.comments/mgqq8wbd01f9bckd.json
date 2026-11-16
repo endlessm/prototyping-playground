@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "mgqq8wbd01f9bckd",
+  "artifact": "rqdt3g5dve4dehkz",
+  "artifactTitle": "3.2 Empty Dashboard",
+  "anchor": {
+    "kind": "section",
+    "label": "Section \"Name your class2 The class name is sugg…\"",
+    "at": {
+      "x": 0.1023,
+      "y": 0.6538
+    },
+    "selector": "section:nth-of-type(2)",
+    "tag": "section",
+    "path": "._app_1fdyd_124 > ._takeover_1fdyd_628 > ._wizardBody_1fdyd_648 > ._wizardMain_1fdyd_655 > ._stack_1fdyd_315",
+    "text": "Name your class2 The class name is suggested from the season, so most educators just continue. A preview shows the invi…",
+    "box": {
+      "left": 32,
+      "top": 797,
+      "width": 1925,
+      "height": 286,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-10T21:48:06.801Z",
+  "messages": [
+    {
+      "id": "dfdr2v30209naaw3",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Essa sessão inteira deve ficar acima de Choose a program e o \"How learners will see it\" pode ser removido.",
+      "createdAt": "2026-11-10T21:40:46.225Z"
+    },
+    {
+      "id": "14qvk9d7yjrpcz06",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Feito em _ui/CreateCohort.vue: \"Name your class\" agora vem antes de \"Choose a program\", e saiu o \"How learners will see it\". A dica do campo passou a dizer que os learners veem o nome no convite. A coluna de contexto também segue a nova ordem.",
+      "createdAt": "2026-11-10T21:42:33.561Z"
+    }
+  ]
+}

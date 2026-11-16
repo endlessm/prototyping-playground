@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "aak7x1axht7m3ng3",
+  "artifact": "fn0y0cv72hrdd8q8",
+  "artifactTitle": "1.1 Join",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Looks like a Google address. Continue w…\"",
+    "at": {
+      "x": 0.4396,
+      "y": 0.4125
+    },
+    "selector": "span:nth-of-type(2)",
+    "tag": "span",
+    "path": "._authColumn_1ec72_88 > ._stack_1ec72_315 > ._panel_1ec72_542 > ._row_1ec72_323 > ._grow_1ec72_334",
+    "text": "Looks like a Google address. Continue with Google and skip the password.",
+    "box": {
+      "left": 1569,
+      "top": 474,
+      "width": 298,
+      "height": 40,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-09T22:40:00.044Z",
+  "messages": [
+    {
+      "id": "wja3mkb74d3mebz1",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "remove \"Looks like a google address.\"",
+      "createdAt": "2026-11-09T22:25:00.897Z"
+    },
+    {
+      "id": "89p73jf3p6pw4f3n",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in 1.1 Join.vue: removed \"Looks like a Google address.\" The panel now reads \"Continue with Google and skip the password.\"",
+      "createdAt": "2026-11-09T22:33:20.605Z"
+    }
+  ]
+}

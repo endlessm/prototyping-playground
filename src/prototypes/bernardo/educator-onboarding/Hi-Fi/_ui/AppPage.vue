@@ -5,15 +5,16 @@ import TeamSwitcher from './TeamSwitcher.vue'
 import s from './ui.module.css'
 
 // Studio pages, laid out like the app's StudioLayout: sidebar, top bar with the team name, content, and an optional
-// modal or wizard over them (the overlay slot). Teach is the proposed new group, in the app's orange beside Play
-// (purple) and Learning (blue). `links` sends sidebar items to views of this prototype; the others stay plain text.
+// modal or full-page task over them (the overlay slot). Teach is the proposed new group, in the app's orange beside Play
+// (purple) and Learning (blue). Teach holds the Team Dashboard alone: cohorts are its first tab. `links` sends sidebar
+// items to views of this prototype; the others stay plain text.
 withDefaults(
-  defineProps<{ team: string; active?: 'Team Dashboard' | 'Cohorts'; /** Who is signed in, shown in the top bar. */ initials?: string; links?: Partial<Record<'Team Dashboard' | 'Cohorts', string>> }>(),
-  { active: 'Team Dashboard', initials: 'MO' },
+  defineProps<{ team: string; /** Who is signed in, shown in the top bar. */ initials?: string; links?: Partial<Record<'Team Dashboard', string>> }>(),
+  { initials: 'MO' },
 )
 
 const nav = [
-  { group: 'Teach', icon: 'i-lucide-presentation', items: ['Team Dashboard', 'Cohorts'] },
+  { group: 'Teach', icon: 'i-lucide-presentation', items: ['Team Dashboard'] },
   { group: 'Play', icon: 'i-lucide-gamepad-2', items: ['Explore Games', 'My Projects'] },
   { group: 'Learning', icon: 'i-lucide-brain', items: ['My Programs', 'Resources'] },
 ] as const
@@ -35,14 +36,14 @@ const nav = [
           <span :class="s.navGroup"><UIcon :name="icon" class="size-5" />{{ group }}</span>
           <template v-for="item in items" :key="item">
             <PrototypeLink
-              v-if="links?.[item as 'Team Dashboard' | 'Cohorts']"
-              :to="links[item as 'Team Dashboard' | 'Cohorts']!"
-              :class="[s.navItem, item === active && s.navActive]"
+              v-if="links?.[item as 'Team Dashboard']"
+              :to="links[item as 'Team Dashboard']!"
+              :class="[s.navItem, item === 'Team Dashboard' && s.navActive]"
               style="text-decoration: none"
             >
               {{ item }}
             </PrototypeLink>
-            <span v-else :class="[s.navItem, item === active && s.navActive]">{{ item }}</span>
+            <span v-else :class="[s.navItem, item === 'Team Dashboard' && s.navActive]">{{ item }}</span>
           </template>
         </div>
       </nav>

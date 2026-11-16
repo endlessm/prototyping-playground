@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "cwts163f3p75jvwy",
+  "artifact": "fn0y0cv72hrdd8q8",
+  "artifactTitle": "1.1 Join",
+  "anchor": {
+    "kind": "link",
+    "label": "Link \"Profile found → signed in\"",
+    "at": {
+      "x": 0.2865,
+      "y": 0.5921
+    },
+    "selector": "div:nth-of-type(6) > a:nth-of-type(1)",
+    "tag": "a",
+    "path": "._auth_1ec72_48 > ._authColumn_1ec72_88 > ._stack_1ec72_315 > ._logic_1ec72_927 > a",
+    "text": "Profile found → signed in",
+    "box": {
+      "left": 1534,
+      "top": 925,
+      "width": 370,
+      "height": 38,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-09T22:39:59.229Z",
+  "messages": [
+    {
+      "id": "byak2m1b6tfx147j",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "label: \"Profile Exists\"",
+      "createdAt": "2026-11-09T22:24:09.298Z"
+    },
+    {
+      "id": "ad4fwvthnddp7hz4",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in 1.1 Join.vue: the row now reads \"Profile Exists\".",
+      "createdAt": "2026-11-09T22:33:13.772Z"
+    }
+  ]
+}

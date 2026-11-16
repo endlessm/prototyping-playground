@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "2br0nbh5zpbe3890",
+  "artifact": "7ka739h9yt3903g2",
+  "artifactTitle": "5.7 Starting Soon",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Who's inNoah Kim JoinedIsla Brooks Join…\"",
+    "at": {
+      "x": 0.0184,
+      "y": 0.0669
+    },
+    "selector": "div:nth-of-type(5)",
+    "tag": "div",
+    "path": "div > ._page_j838v_5 > ._app_j838v_124 > ._content_j838v_254 > ._stack_j838v_317",
+    "text": "Who's inNoah Kim JoinedIsla Brooks JoinedMateo Cruz JoinedZara Ahmed JoinedEli Novak JoinedRuby Chen Needs parent conse…",
+    "box": {
+      "left": 517,
+      "top": 875,
+      "width": 1279,
+      "height": 344,
+      "viewport": 2102
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T14:56:12.341Z",
+  "messages": [
+    {
+      "id": "fkh77cnwz3fka6s7",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "This session needs to have more info about the learners. email and when joined",
+      "createdAt": "2026-11-11T14:45:56.925Z"
+    },
+    {
+      "id": "zpknfqbsq9q26vr9",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done: Who's in is now a table with Learner, Email, Joined (the day they used the link) and Status.",
+      "createdAt": "2026-11-11T14:48:19.816Z"
+    }
+  ]
+}

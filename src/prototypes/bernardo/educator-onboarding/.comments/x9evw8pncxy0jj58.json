@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "x9evw8pncxy0jj58",
+  "artifact": "dv3bmm3hpf5vfves",
+  "artifactTitle": "0.1 Verify Age",
+  "anchor": {
+    "kind": "link",
+    "label": "Link \"13 to 17 → kID Safety page, then Join a…\"",
+    "at": {
+      "x": 0.7676,
+      "y": 0.5086
+    },
+    "selector": "a:nth-of-type(2)",
+    "tag": "a",
+    "path": "._auth_6e0yy_48 > ._authColumn_6e0yy_78 > ._stack_6e0yy_305 > ._logic_6e0yy_917 > a",
+    "text": "13 to 17 → kID Safety page, then Join as a learner (never as an educator)",
+    "box": {
+      "left": 1534,
+      "top": 841,
+      "width": 370,
+      "height": 58,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-09T21:15:09.781Z",
+  "messages": [
+    {
+      "id": "5crg7ctfmhts8b7n",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "13 to 17 years old",
+      "createdAt": "2026-11-09T21:01:54.454Z"
+    },
+    {
+      "id": "9c6yw86t6t020dbf",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in 0.1 Verify Age.vue: the row now reads \"13 to 17 years old\" and still links to 0.2 kID Safety. The learner-only rule stays in the step notes.",
+      "createdAt": "2026-11-09T21:03:04.012Z"
+    }
+  ]
+}

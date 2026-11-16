@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "kyzvs9m5hdsd1bq5",
+  "artifact": "hx8cj5m2mbdf111m",
+  "artifactTitle": "1.4 Signed In",
+  "anchor": {
+    "kind": "link",
+    "label": "Link \"Chose Teach path → Has team\"",
+    "at": {
+      "x": 0.0541,
+      "y": 0.4605
+    },
+    "selector": "a:nth-of-type(1)",
+    "tag": "a",
+    "path": "._auth_zbkl8_48 > ._authColumn_zbkl8_88 > ._stack_zbkl8_315 > ._logic_zbkl8_927 > a",
+    "text": "Chose Teach path → Has team",
+    "box": {
+      "left": 1534,
+      "top": 605,
+      "width": 370,
+      "height": 38,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-10T20:54:13.411Z",
+  "messages": [
+    {
+      "id": "5wzxggs5meay9jxt",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "add \"Already\" to the start of this sentence",
+      "createdAt": "2026-11-10T20:52:11.455Z"
+    },
+    {
+      "id": "m3d3cjwdtwstrgr4",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in 1.4 Signed In.vue: now \"Already chose Teach path → Has team\".",
+      "createdAt": "2026-11-10T20:53:00.515Z"
+    }
+  ]
+}

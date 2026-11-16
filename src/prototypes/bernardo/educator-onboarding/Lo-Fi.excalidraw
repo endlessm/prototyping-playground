@@ -54,17 +54,17 @@
       "containerId": null,
       "fontFamily": 6,
       "fontSize": 20,
-      "height": 75,
+      "height": 100,
       "id": "mw2idbirw295k3",
       "index": "a2",
       "lineHeight": 1.25,
-      "originalText": "0 · Verify Age\nAge is asked once, before Join. Under 13 can't continue; 13 to 17 see the kID Safety page and can only join as learners.",
+      "originalText": "0 · Verify Age\nAge is asked once, before Join. Under 13 gets the Too Young page and no account; 13 to 17 see the kID Safety page and can only join as learners.",
       "seed": 1587473784,
-      "text": "0 · Verify Age\nAge is asked once, before Join. Under 13 can't continue; 13\nto 17 see the kID Safety page and can only join as learners.",
+      "text": "0 · Verify Age\nAge is asked once, before Join. Under 13 gets the Too Young page and no account; 13 to 17 see the kID Safety page and can only join as learners.",
       "textAlign": "left",
       "type": "text",
-      "version": 2,
-      "versionNonce": 1631164830,
+      "version": 4,
+      "versionNonce": 1773534823,
       "verticalAlign": "top",
       "width": 560,
       "x": -700,
@@ -250,13 +250,13 @@
       "id": "mw2idbisogbg1h",
       "index": "a9",
       "lineHeight": 1.25,
-      "originalText": "After 1.4 Signed In:\n· has a Team → 5.5 Team Dashboard\n· no Team yet → 3.1\n· learner account (13 to 17) → learner home, outside this prototype",
+      "originalText": "After 1.4 Signed In:\n· has a Team → 5.5 Team Dashboard\n· no path chosen yet → 2.4 Choose a Path\n· chose Learn, Play or Contribute → that area, outside\nthis prototype",
       "seed": 352983043,
-      "text": "After 1.4 Signed In:\n· has a Team → 5.5 Team Dashboard\n· no Team yet → 3.1\n· learner account (13 to 17) → learner home, outside this\nprototype",
+      "text": "After 1.4 Signed In:\n· has a Team → 5.5 Team Dashboard\n· no path chosen yet → 2.4 Choose a Path\n· chose Learn, Play or Contribute → that area, outside\nthis prototype",
       "textAlign": "left",
       "type": "text",
-      "version": 2,
-      "versionNonce": 1109804674,
+      "version": 6,
+      "versionNonce": 1407716430,
       "verticalAlign": "top",
       "width": 560,
       "x": 2100,
@@ -355,12 +355,12 @@
       "text": "3 · Team\nThe team is made for the educator; the empty dashboard\nleads to the first cohort.",
       "textAlign": "left",
       "type": "text",
-      "version": 2,
-      "versionNonce": 604245506,
+      "version": 3,
+      "versionNonce": 2101310632,
       "verticalAlign": "top",
       "width": 560,
       "x": -700,
-      "y": 1920
+      "y": 2560
     },
     {
       "boundElements": [
@@ -379,6 +379,10 @@
         {
           "id": "mw2jc50gmjvvqi",
           "type": "arrow"
+        },
+        {
+          "id": "mw9kah94wentmu",
+          "type": "arrow"
         }
       ],
       "customData": {
@@ -392,11 +396,11 @@
       "seed": 1621140165,
       "strokeColor": "transparent",
       "type": "embeddable",
-      "version": 6,
-      "versionNonce": 543797176,
+      "version": 8,
+      "versionNonce": 1290616509,
       "width": 480,
       "x": 0,
-      "y": 1920
+      "y": 2560
     },
     {
       "boundElements": [
@@ -424,11 +428,11 @@
       "seed": 2066828383,
       "strokeColor": "transparent",
       "type": "embeddable",
-      "version": 5,
-      "versionNonce": 2048327106,
+      "version": 6,
+      "versionNonce": 1068955450,
       "width": 480,
       "x": 700,
-      "y": 1920
+      "y": 2560
     },
     {
       "boundElements": [
@@ -448,11 +452,11 @@
       "seed": 1771578479,
       "strokeColor": "transparent",
       "type": "embeddable",
-      "version": 55,
-      "versionNonce": 1315449026,
+      "version": 56,
+      "versionNonce": 501040635,
       "width": 480,
       "x": 1400,
-      "y": 1920
+      "y": 2560
     },
     {
       "boundElements": [
@@ -618,8 +622,8 @@
         "gap": 8
       },
       "type": "arrow",
-      "version": 2,
-      "versionNonce": 1857289474,
+      "version": 3,
+      "versionNonce": 1621526703,
       "width": 220,
       "x": 700,
       "y": 169
@@ -634,16 +638,16 @@
       "id": "mw2idbiv42xadl",
       "index": "aM",
       "lineHeight": 1.25,
-      "originalText": "Ok! (learner only)",
+      "originalText": "OK! (learner only)",
       "seed": 2001934540,
-      "text": "Ok! (learner only)",
+      "text": "OK! (learner only)",
       "textAlign": "center",
       "type": "text",
-      "version": 2,
-      "versionNonce": 72862750,
+      "version": 3,
+      "versionNonce": 487016908,
       "verticalAlign": "middle",
-      "width": 163.07,
-      "x": 508.46,
+      "width": 165.57,
+      "x": 507.22,
       "y": 476.5
     },
     {
@@ -912,7 +916,7 @@
       "elbowed": false,
       "endArrowhead": "arrow",
       "endBinding": {
-        "elementId": "mw2idbitkbcb7w",
+        "elementId": "mw9kah93v9wkkn",
         "focus": 0,
         "gap": 8
       },
@@ -938,8 +942,8 @@
         "gap": 8
       },
       "type": "arrow",
-      "version": 2,
-      "versionNonce": 986422210,
+      "version": 5,
+      "versionNonce": 962120624,
       "width": 0,
       "x": 240,
       "y": 1618
@@ -959,11 +963,11 @@
       "text": "Create Account",
       "textAlign": "center",
       "type": "text",
-      "version": 2,
-      "versionNonce": 1579055454,
+      "version": 4,
+      "versionNonce": 1104630299,
       "verticalAlign": "middle",
       "width": 145.39,
-      "x": 167.3,
+      "x": 167.31,
       "y": 1756.5
     },
     {
@@ -976,7 +980,7 @@
       "elbowed": false,
       "endArrowhead": "arrow",
       "endBinding": {
-        "elementId": "mw2idbitkbcb7w",
+        "elementId": "mw9kah93v9wkkn",
         "focus": 0,
         "gap": 8
       },
@@ -1002,8 +1006,8 @@
         "gap": 8
       },
       "type": "arrow",
-      "version": 2,
-      "versionNonce": 1948701570,
+      "version": 5,
+      "versionNonce": 906484592,
       "width": 220,
       "x": 700,
       "y": 1449
@@ -1023,11 +1027,11 @@
       "text": "Create Account",
       "textAlign": "center",
       "type": "text",
-      "version": 2,
-      "versionNonce": 1694735774,
+      "version": 4,
+      "versionNonce": 669652412,
       "verticalAlign": "middle",
       "width": 145.39,
-      "x": 517.3,
+      "x": 517.31,
       "y": 1756.5
     },
     {
@@ -1066,11 +1070,11 @@
         "gap": 8
       },
       "type": "arrow",
-      "version": 2,
-      "versionNonce": 348459842,
+      "version": 3,
+      "versionNonce": 1876600731,
       "width": 220,
       "x": 480,
-      "y": 2089
+      "y": 2729
     },
     {
       "autoResize": true,
@@ -1087,12 +1091,12 @@
       "text": "Dashboard loads",
       "textAlign": "center",
       "type": "text",
-      "version": 2,
-      "versionNonce": 1413102046,
+      "version": 3,
+      "versionNonce": 672007348,
       "verticalAlign": "middle",
       "width": 159.95,
       "x": 510.02,
-      "y": 2076.5
+      "y": 2716.5
     },
     {
       "boundElements": [
@@ -1130,11 +1134,11 @@
         "gap": 8
       },
       "type": "arrow",
-      "version": 56,
-      "versionNonce": 1784832066,
+      "version": 57,
+      "versionNonce": 1597524017,
       "width": 204,
       "x": 1188,
-      "y": 2089
+      "y": 2729
     },
     {
       "autoResize": true,
@@ -1151,12 +1155,12 @@
       "text": "Rename",
       "textAlign": "center",
       "type": "text",
-      "version": 5,
-      "versionNonce": 171049118,
+      "version": 6,
+      "versionNonce": 1313368946,
       "verticalAlign": "middle",
       "width": 73.9,
       "x": 1253.05,
-      "y": 2076.5
+      "y": 2716.5
     },
     {
       "autoResize": false,
@@ -1173,12 +1177,12 @@
       "text": "4 · Create Cohort\nA four-step wizard over the dashboard. An open class is\nready at once; a US school class (NDPA) waits for\nEndless's review.",
       "textAlign": "left",
       "type": "text",
-      "version": 3,
-      "versionNonce": 675113149,
+      "version": 4,
+      "versionNonce": 80873515,
       "verticalAlign": "top",
       "width": 560,
       "x": -700,
-      "y": 3200
+      "y": 3840
     },
     {
       "boundElements": [
@@ -1198,11 +1202,11 @@
       "seed": 1379214091,
       "strokeColor": "transparent",
       "type": "embeddable",
-      "version": 4,
-      "versionNonce": 930338683,
+      "version": 5,
+      "versionNonce": 722853315,
       "width": 480,
       "x": 0,
-      "y": 3200
+      "y": 3840
     },
     {
       "boundElements": [
@@ -1234,11 +1238,11 @@
       "seed": 863243009,
       "strokeColor": "transparent",
       "type": "embeddable",
-      "version": 7,
-      "versionNonce": 2100959172,
+      "version": 8,
+      "versionNonce": 1442980339,
       "width": 480,
       "x": 700,
-      "y": 3200
+      "y": 3840
     },
     {
       "boundElements": [
@@ -1262,11 +1266,11 @@
       "seed": 165563240,
       "strokeColor": "transparent",
       "type": "embeddable",
-      "version": 5,
-      "versionNonce": 1446423352,
+      "version": 6,
+      "versionNonce": 2043811081,
       "width": 480,
       "x": 1400,
-      "y": 3200
+      "y": 3840
     },
     {
       "boundElements": [
@@ -1290,11 +1294,11 @@
       "seed": 1297943877,
       "strokeColor": "transparent",
       "type": "embeddable",
-      "version": 5,
-      "versionNonce": 1557049071,
+      "version": 6,
+      "versionNonce": 1595045601,
       "width": 480,
       "x": 2100,
-      "y": 3200
+      "y": 3840
     },
     {
       "autoResize": false,
@@ -1311,12 +1315,12 @@
       "text": "5 · Invite Students\nOne class link for the group chat, the same link by email, or\na class list (CSV). Learners handle age and parent consent\non their side.",
       "textAlign": "left",
       "type": "text",
-      "version": 3,
-      "versionNonce": 761967439,
+      "version": 4,
+      "versionNonce": 1544862709,
       "verticalAlign": "top",
       "width": 560,
       "x": -700,
-      "y": 3840
+      "y": 4480
     },
     {
       "boundElements": [
@@ -1340,11 +1344,11 @@
       "seed": 1551067132,
       "strokeColor": "transparent",
       "type": "embeddable",
-      "version": 5,
-      "versionNonce": 2099165465,
+      "version": 6,
+      "versionNonce": 913098090,
       "width": 480,
       "x": 700,
-      "y": 3840
+      "y": 4480
     },
     {
       "boundElements": [
@@ -1376,11 +1380,11 @@
       "seed": 2051515881,
       "strokeColor": "transparent",
       "type": "embeddable",
-      "version": 8,
-      "versionNonce": 1363224066,
+      "version": 9,
+      "versionNonce": 1941494323,
       "width": 480,
       "x": 2100,
-      "y": 3840
+      "y": 4480
     },
     {
       "boundElements": [
@@ -1408,11 +1412,11 @@
       "seed": 646917658,
       "strokeColor": "transparent",
       "type": "embeddable",
-      "version": 7,
-      "versionNonce": 1169800659,
+      "version": 8,
+      "versionNonce": 2120807799,
       "width": 480,
       "x": 2800,
-      "y": 3840
+      "y": 4480
     },
     {
       "boundElements": [
@@ -1436,11 +1440,11 @@
       "seed": 231028908,
       "strokeColor": "transparent",
       "type": "embeddable",
-      "version": 6,
-      "versionNonce": 1183553956,
+      "version": 7,
+      "versionNonce": 1327055493,
       "width": 480,
       "x": 2100,
-      "y": 4480
+      "y": 5120
     },
     {
       "boundElements": [
@@ -1468,11 +1472,11 @@
       "seed": 144335451,
       "strokeColor": "transparent",
       "type": "embeddable",
-      "version": 7,
-      "versionNonce": 1617810886,
+      "version": 8,
+      "versionNonce": 2107560601,
       "width": 480,
       "x": 2800,
-      "y": 4480
+      "y": 5120
     },
     {
       "boundElements": [
@@ -1496,11 +1500,11 @@
       "seed": 1785432978,
       "strokeColor": "transparent",
       "type": "embeddable",
-      "version": 6,
-      "versionNonce": 1127923659,
+      "version": 7,
+      "versionNonce": 1575663070,
       "width": 480,
       "x": 3500,
-      "y": 4480
+      "y": 5120
     },
     {
       "boundElements": [
@@ -1520,11 +1524,11 @@
       "seed": 1670269586,
       "strokeColor": "transparent",
       "type": "embeddable",
-      "version": 5,
-      "versionNonce": 931418409,
+      "version": 6,
+      "versionNonce": 788584990,
       "width": 480,
       "x": 4200,
-      "y": 4480
+      "y": 5120
     },
     {
       "boundElements": [
@@ -1562,11 +1566,11 @@
         "gap": 8
       },
       "type": "arrow",
-      "version": 3,
-      "versionNonce": 2091276174,
+      "version": 4,
+      "versionNonce": 573404065,
       "width": 0,
       "x": 940,
-      "y": 2258
+      "y": 2898
     },
     {
       "autoResize": true,
@@ -1583,12 +1587,12 @@
       "text": "Create Your First Cohort",
       "textAlign": "center",
       "type": "text",
-      "version": 3,
-      "versionNonce": 1495670088,
+      "version": 4,
+      "versionNonce": 892223856,
       "verticalAlign": "middle",
       "width": 228.38,
       "x": 825.81,
-      "y": 2716.5
+      "y": 3356.5
     },
     {
       "boundElements": [
@@ -1626,11 +1630,11 @@
         "gap": 8
       },
       "type": "arrow",
-      "version": 3,
-      "versionNonce": 1929752237,
+      "version": 4,
+      "versionNonce": 575409514,
       "width": 220,
       "x": 700,
-      "y": 3369
+      "y": 4009
     },
     {
       "autoResize": true,
@@ -1647,12 +1651,12 @@
       "text": "Continue, nothing chosen",
       "textAlign": "center",
       "type": "text",
-      "version": 3,
-      "versionNonce": 908903992,
+      "version": 4,
+      "versionNonce": 1175303330,
       "verticalAlign": "middle",
       "width": 238.58,
       "x": 470.71,
-      "y": 3356.5
+      "y": 3996.5
     },
     {
       "boundElements": [
@@ -1690,11 +1694,11 @@
         "gap": 8
       },
       "type": "arrow",
-      "version": 3,
-      "versionNonce": 291620776,
+      "version": 4,
+      "versionNonce": 1763124250,
       "width": 220,
       "x": 1180,
-      "y": 3369
+      "y": 4009
     },
     {
       "autoResize": true,
@@ -1711,12 +1715,12 @@
       "text": "US school: Yes",
       "textAlign": "center",
       "type": "text",
-      "version": 3,
-      "versionNonce": 892496676,
+      "version": 4,
+      "versionNonce": 1723380883,
       "verticalAlign": "middle",
       "width": 138.32,
       "x": 1220.84,
-      "y": 3356.5
+      "y": 3996.5
     },
     {
       "boundElements": [
@@ -1754,11 +1758,11 @@
         "gap": 8
       },
       "type": "arrow",
-      "version": 3,
-      "versionNonce": 82021697,
+      "version": 4,
+      "versionNonce": 990260329,
       "width": 220,
       "x": 1880,
-      "y": 3369
+      "y": 4009
     },
     {
       "autoResize": true,
@@ -1775,12 +1779,12 @@
       "text": "Send for Review",
       "textAlign": "center",
       "type": "text",
-      "version": 3,
-      "versionNonce": 1465083597,
+      "version": 4,
+      "versionNonce": 908792279,
       "verticalAlign": "middle",
       "width": 154.54,
       "x": 1912.73,
-      "y": 3356.5
+      "y": 3996.5
     },
     {
       "boundElements": [
@@ -1818,11 +1822,11 @@
         "gap": 8
       },
       "type": "arrow",
-      "version": 3,
-      "versionNonce": 1912419652,
+      "version": 4,
+      "versionNonce": 1178160278,
       "width": 0,
       "x": 940,
-      "y": 3538
+      "y": 4178
     },
     {
       "autoResize": true,
@@ -1839,12 +1843,12 @@
       "text": "US school: No → Create",
       "textAlign": "center",
       "type": "text",
-      "version": 3,
-      "versionNonce": 1773336990,
+      "version": 4,
+      "versionNonce": 95685355,
       "verticalAlign": "middle",
       "width": 217.57,
       "x": 831.22,
-      "y": 3676.5
+      "y": 4316.5
     },
     {
       "boundElements": [
@@ -1882,11 +1886,11 @@
         "gap": 8
       },
       "type": "arrow",
-      "version": 4,
-      "versionNonce": 992520262,
+      "version": 5,
+      "versionNonce": 1742942280,
       "width": 920,
       "x": 1180,
-      "y": 4009
+      "y": 4649
     },
     {
       "autoResize": true,
@@ -1903,12 +1907,12 @@
       "text": "Invite Learners",
       "textAlign": "center",
       "type": "text",
-      "version": 4,
-      "versionNonce": 96664238,
+      "version": 5,
+      "versionNonce": 868749731,
       "verticalAlign": "middle",
       "width": 138.74,
       "x": 1570.63,
-      "y": 3996.5
+      "y": 4636.5
     },
     {
       "boundElements": [
@@ -1946,11 +1950,11 @@
         "gap": 8
       },
       "type": "arrow",
-      "version": 4,
-      "versionNonce": 352919383,
+      "version": 5,
+      "versionNonce": 94640291,
       "width": 0,
       "x": 2340,
-      "y": 3538
+      "y": 4178
     },
     {
       "autoResize": true,
@@ -1967,12 +1971,12 @@
       "text": "Add Learners",
       "textAlign": "center",
       "type": "text",
-      "version": 4,
-      "versionNonce": 1847376125,
+      "version": 5,
+      "versionNonce": 2119177616,
       "verticalAlign": "middle",
       "width": 126.88,
       "x": 2276.56,
-      "y": 3676.5
+      "y": 4316.5
     },
     {
       "boundElements": [
@@ -2010,11 +2014,11 @@
         "gap": 8
       },
       "type": "arrow",
-      "version": 4,
-      "versionNonce": 1524147267,
+      "version": 5,
+      "versionNonce": 1872220968,
       "width": 220,
       "x": 2580,
-      "y": 4009
+      "y": 4649
     },
     {
       "autoResize": true,
@@ -2031,12 +2035,12 @@
       "text": "Upload CSV",
       "textAlign": "center",
       "type": "text",
-      "version": 4,
-      "versionNonce": 1273285630,
+      "version": 5,
+      "versionNonce": 943480915,
       "verticalAlign": "middle",
       "width": 115.44,
       "x": 2632.28,
-      "y": 3996.5
+      "y": 4636.5
     },
     {
       "boundElements": [
@@ -2074,11 +2078,11 @@
         "gap": 8
       },
       "type": "arrow",
-      "version": 4,
-      "versionNonce": 843407686,
+      "version": 5,
+      "versionNonce": 1780781435,
       "width": 0,
       "x": 2340,
-      "y": 4178
+      "y": 4818
     },
     {
       "autoResize": true,
@@ -2095,12 +2099,12 @@
       "text": "Send the link by email",
       "textAlign": "center",
       "type": "text",
-      "version": 4,
-      "versionNonce": 1662281781,
+      "version": 5,
+      "versionNonce": 2138194522,
       "verticalAlign": "middle",
       "width": 208,
       "x": 2236,
-      "y": 4316.5
+      "y": 4956.5
     },
     {
       "boundElements": [
@@ -2138,11 +2142,11 @@
         "gap": 8
       },
       "type": "arrow",
-      "version": 4,
-      "versionNonce": 1498432528,
+      "version": 5,
+      "versionNonce": 179554111,
       "width": 0,
       "x": 3040,
-      "y": 4178
+      "y": 4818
     },
     {
       "autoResize": true,
@@ -2159,12 +2163,12 @@
       "text": "Add 5 Learners",
       "textAlign": "center",
       "type": "text",
-      "version": 4,
-      "versionNonce": 373646936,
+      "version": 5,
+      "versionNonce": 1329095285,
       "verticalAlign": "middle",
       "width": 144.77,
       "x": 2967.62,
-      "y": 4316.5
+      "y": 4956.5
     },
     {
       "boundElements": [
@@ -2202,11 +2206,11 @@
         "gap": 8
       },
       "type": "arrow",
-      "version": 4,
-      "versionNonce": 1712573010,
+      "version": 5,
+      "versionNonce": 106164103,
       "width": 220,
       "x": 2580,
-      "y": 4649
+      "y": 5289
     },
     {
       "autoResize": true,
@@ -2223,12 +2227,12 @@
       "text": "Send 3 Emails",
       "textAlign": "center",
       "type": "text",
-      "version": 4,
-      "versionNonce": 1060240286,
+      "version": 5,
+      "versionNonce": 653971679,
       "verticalAlign": "middle",
       "width": 133.74,
       "x": 2623.13,
-      "y": 4636.5
+      "y": 5276.5
     },
     {
       "boundElements": [
@@ -2266,11 +2270,11 @@
         "gap": 8
       },
       "type": "arrow",
-      "version": 4,
-      "versionNonce": 276067986,
+      "version": 5,
+      "versionNonce": 1505134066,
       "width": 220,
       "x": 3280,
-      "y": 4649
+      "y": 5289
     },
     {
       "autoResize": true,
@@ -2287,12 +2291,12 @@
       "text": "Open Workshop 1",
       "textAlign": "center",
       "type": "text",
-      "version": 4,
-      "versionNonce": 1982814898,
+      "version": 5,
+      "versionNonce": 1899417116,
       "verticalAlign": "middle",
       "width": 173.06,
       "x": 3303.47,
-      "y": 4636.5
+      "y": 5276.5
     },
     {
       "boundElements": [
@@ -2330,11 +2334,11 @@
         "gap": 8
       },
       "type": "arrow",
-      "version": 4,
-      "versionNonce": 646757249,
+      "version": 5,
+      "versionNonce": 2114962605,
       "width": 220,
       "x": 3980,
-      "y": 4649
+      "y": 5289
     },
     {
       "autoResize": true,
@@ -2351,53 +2355,12 @@
       "text": "Add co-teachers",
       "textAlign": "center",
       "type": "text",
-      "version": 4,
-      "versionNonce": 2119630941,
+      "version": 5,
+      "versionNonce": 1316890242,
       "verticalAlign": "middle",
       "width": 155.38,
       "x": 4012.31,
-      "y": 4636.5
-    },
-    {
-      "autoResize": false,
-      "boundElements": [],
-      "containerId": null,
-      "fontFamily": 6,
-      "fontSize": 24,
-      "height": 30,
-      "id": "mw2ie2ooj2q6w8",
-      "index": "b0G",
-      "lineHeight": 1.25,
-      "originalText": "Under 13",
-      "seed": 700748299,
-      "text": "Under 13",
-      "textAlign": "left",
-      "type": "text",
-      "version": 2,
-      "versionNonce": 1660113694,
-      "verticalAlign": "top",
-      "width": 480,
-      "x": 2100,
-      "y": -54
-    },
-    {
-      "boundElements": [],
-      "customData": {
-        "frame": true,
-        "hideLinkIcon": true
-      },
-      "height": 338,
-      "id": "mw2ie2op9izkcm",
-      "index": "b0H",
-      "link": "/prototypes/8c56fyxwd5z6q039/artifacts/awtckx68dt16zw4w",
-      "seed": 1047290327,
-      "strokeColor": "transparent",
-      "type": "embeddable",
-      "version": 2,
-      "versionNonce": 1995797954,
-      "width": 480,
-      "x": 2100,
-      "y": 0
+      "y": 5276.5
     },
     {
       "autoResize": false,
@@ -2414,11 +2377,11 @@
       "text": "Not a date",
       "textAlign": "left",
       "type": "text",
-      "version": 2,
-      "versionNonce": 899104606,
+      "version": 3,
+      "versionNonce": 1132344917,
       "verticalAlign": "top",
       "width": 480,
-      "x": 2660,
+      "x": 2100,
       "y": -54
     },
     {
@@ -2434,93 +2397,11 @@
       "seed": 100356630,
       "strokeColor": "transparent",
       "type": "embeddable",
-      "version": 2,
-      "versionNonce": 33910146,
+      "version": 3,
+      "versionNonce": 671063228,
       "width": 480,
-      "x": 2660,
+      "x": 2100,
       "y": 0
-    },
-    {
-      "autoResize": false,
-      "boundElements": [],
-      "containerId": null,
-      "fontFamily": 6,
-      "fontSize": 24,
-      "height": 30,
-      "id": "mw2ie3mosio5jk",
-      "index": "b0K",
-      "lineHeight": 1.25,
-      "originalText": "2.1 Google Confirm · 13 to 17",
-      "seed": 1888880658,
-      "text": "2.1 Google Confirm · 13 to 17",
-      "textAlign": "left",
-      "type": "text",
-      "version": 4,
-      "versionNonce": 494117790,
-      "verticalAlign": "top",
-      "width": 480,
-      "x": 2800,
-      "y": 1226
-    },
-    {
-      "boundElements": [],
-      "customData": {
-        "frame": true,
-        "hideLinkIcon": true
-      },
-      "height": 338,
-      "id": "mw2ie3mp3mjdfp",
-      "index": "b0L",
-      "link": "/prototypes/8c56fyxwd5z6q039/artifacts/0dnq9hqgtpv35fbx",
-      "seed": 1950490285,
-      "strokeColor": "transparent",
-      "type": "embeddable",
-      "version": 2,
-      "versionNonce": 1606446402,
-      "width": 480,
-      "x": 2800,
-      "y": 1280
-    },
-    {
-      "autoResize": false,
-      "boundElements": [],
-      "containerId": null,
-      "fontFamily": 6,
-      "fontSize": 24,
-      "height": 30,
-      "id": "mw2ie4k3ij6vp3",
-      "index": "b0M",
-      "lineHeight": 1.25,
-      "originalText": "2.3 Email Confirm · 13 to 17",
-      "seed": 329935896,
-      "text": "2.3 Email Confirm · 13 to 17",
-      "textAlign": "left",
-      "type": "text",
-      "version": 4,
-      "versionNonce": 1287225310,
-      "verticalAlign": "top",
-      "width": 480,
-      "x": 3500,
-      "y": 1226
-    },
-    {
-      "boundElements": [],
-      "customData": {
-        "frame": true,
-        "hideLinkIcon": true
-      },
-      "height": 338,
-      "id": "mw2ie4k4ahwhcm",
-      "index": "b0N",
-      "link": "/prototypes/8c56fyxwd5z6q039/artifacts/hamegn3z0vxbvgz2",
-      "seed": 23023230,
-      "strokeColor": "transparent",
-      "type": "embeddable",
-      "version": 2,
-      "versionNonce": 361067778,
-      "width": 480,
-      "x": 3500,
-      "y": 1280
     },
     {
       "autoResize": false,
@@ -2537,12 +2418,12 @@
       "text": "File ready",
       "textAlign": "left",
       "type": "text",
-      "version": 4,
-      "versionNonce": 41302253,
+      "version": 5,
+      "versionNonce": 330739527,
       "verticalAlign": "top",
       "width": 480,
       "x": 3500,
-      "y": 3786
+      "y": 4426
     },
     {
       "boundElements": [
@@ -2562,11 +2443,11 @@
       "seed": 1702829714,
       "strokeColor": "transparent",
       "type": "embeddable",
-      "version": 6,
-      "versionNonce": 1996103046,
+      "version": 7,
+      "versionNonce": 1966712145,
       "width": 480,
       "x": 3500,
-      "y": 3840
+      "y": 4480
     },
     {
       "autoResize": false,
@@ -2583,12 +2464,12 @@
       "text": "Rows to fix",
       "textAlign": "left",
       "type": "text",
-      "version": 4,
-      "versionNonce": 1102410346,
+      "version": 5,
+      "versionNonce": 429050366,
       "verticalAlign": "top",
       "width": 480,
       "x": 4060,
-      "y": 3786
+      "y": 4426
     },
     {
       "boundElements": [],
@@ -2603,11 +2484,11 @@
       "seed": 1750818058,
       "strokeColor": "transparent",
       "type": "embeddable",
-      "version": 4,
-      "versionNonce": 981266202,
+      "version": 5,
+      "versionNonce": 1814654465,
       "width": 480,
       "x": 4060,
-      "y": 3840
+      "y": 4480
     },
     {
       "autoResize": true,
@@ -2619,15 +2500,15 @@
       "id": "mw2ie6p0zfh02q",
       "index": "b0S",
       "lineHeight": 1.25,
-      "originalText": "Other states of 0.1 Verify Age (errors stay on the page)",
+      "originalText": "Other state of 0.1 Verify Age (this error stays on the page)",
       "seed": 1852479459,
-      "text": "Other states of 0.1 Verify Age (errors stay on the page)",
+      "text": "Other state of 0.1 Verify Age (this error stays on the page)",
       "textAlign": "left",
       "type": "text",
-      "version": 2,
-      "versionNonce": 554558622,
+      "version": 4,
+      "versionNonce": 8679644,
       "verticalAlign": "top",
-      "width": 413.84,
+      "width": 437.63,
       "x": 2100,
       "y": -110
     },
@@ -2641,13 +2522,13 @@
       "id": "mw2ie6p1pp6z6t",
       "index": "b0T",
       "lineHeight": 1.25,
-      "originalText": "Other states of Sign Up: Terms not ticked, GitHub without a verified email, and 13 to 17 (Joining as: Learner only)",
+      "originalText": "Other states of Sign Up: Terms not ticked, and GitHub without a verified email",
       "seed": 1069332492,
-      "text": "Other states of Sign Up: Terms not ticked, GitHub without a verified email,\nand 13 to 17 (Joining as: Learner only)",
+      "text": "Other states of Sign Up: Terms not ticked, and GitHub without a verified email",
       "textAlign": "left",
       "type": "text",
-      "version": 2,
-      "versionNonce": 715570242,
+      "version": 4,
+      "versionNonce": 235498866,
       "verticalAlign": "top",
       "width": 560,
       "x": 1400,
@@ -2706,12 +2587,12 @@
       "text": "The class-list modal after Choose File",
       "textAlign": "left",
       "type": "text",
-      "version": 4,
-      "versionNonce": 31034868,
+      "version": 5,
+      "versionNonce": 301431496,
       "verticalAlign": "top",
       "width": 283.71,
       "x": 3500,
-      "y": 3730
+      "y": 4370
     },
     {
       "boundElements": [
@@ -2749,11 +2630,11 @@
         "gap": 8
       },
       "type": "arrow",
-      "version": 4,
-      "versionNonce": 445886852,
+      "version": 5,
+      "versionNonce": 414932682,
       "width": 220,
       "x": 3280,
-      "y": 4009
+      "y": 4649
     },
     {
       "autoResize": true,
@@ -2770,12 +2651,12 @@
       "text": "Choose File",
       "textAlign": "center",
       "type": "text",
-      "version": 4,
-      "versionNonce": 535844342,
+      "version": 5,
+      "versionNonce": 1976357113,
       "verticalAlign": "middle",
       "width": 109.41,
       "x": 3335.3,
-      "y": 3996.5
+      "y": 4636.5
     },
     {
       "boundElements": [
@@ -2795,11 +2676,11 @@
       "seed": 1106665648,
       "strokeColor": "transparent",
       "type": "embeddable",
-      "version": 3,
-      "versionNonce": 865820151,
+      "version": 4,
+      "versionNonce": 1567785824,
       "width": 480,
       "x": 0,
-      "y": 2560
+      "y": 3200
     },
     {
       "boundElements": [
@@ -2837,11 +2718,11 @@
         "gap": 8
       },
       "type": "arrow",
-      "version": 2,
-      "versionNonce": 1825235193,
+      "version": 3,
+      "versionNonce": 262031438,
       "width": 0,
       "x": 240,
-      "y": 2258
+      "y": 2898
     },
     {
       "autoResize": true,
@@ -2858,12 +2739,205 @@
       "text": "Joined from a co-teacher invite",
       "textAlign": "center",
       "type": "text",
-      "version": 2,
-      "versionNonce": 1116374807,
+      "version": 3,
+      "versionNonce": 894503375,
       "verticalAlign": "middle",
       "width": 287.04,
       "x": 96.48,
+      "y": 3036.5
+    },
+    {
+      "autoResize": false,
+      "fontFamily": 6,
+      "fontSize": 20,
+      "height": 25,
+      "id": "mw9h8918ihkjbc",
+      "lineHeight": 1.25,
+      "originalText": "Under 13",
+      "seed": 1897761075,
+      "text": "Under 13",
+      "textAlign": "left",
+      "type": "text",
+      "version": 1,
+      "versionNonce": 710556552,
+      "verticalAlign": "top",
+      "width": 480,
+      "x": 1400,
+      "y": -54
+    },
+    {
+      "customData": {
+        "frame": true,
+        "hideLinkIcon": true
+      },
+      "height": 338,
+      "id": "mw9h8919hjutoo",
+      "link": "/prototypes/8c56fyxwd5z6q039/artifacts/pcc9fy50d3nad2gt",
+      "seed": 606767913,
+      "strokeColor": "transparent",
+      "type": "embeddable",
+      "version": 1,
+      "versionNonce": 267022211,
+      "width": 480,
+      "x": 1400,
+      "y": 0
+    },
+    {
+      "boundElements": [
+        {
+          "id": "mw9kah94wentmu",
+          "type": "arrow"
+        }
+      ],
+      "customData": {
+        "frame": true,
+        "hideLinkIcon": true
+      },
+      "height": 338,
+      "id": "mw9kah93v9wkkn",
+      "link": "/prototypes/8c56fyxwd5z6q039/artifacts/jz3aznbc6awm4376",
+      "seed": 635641667,
+      "strokeColor": "transparent",
+      "type": "embeddable",
+      "version": 2,
+      "versionNonce": 1655577411,
+      "width": 480,
+      "x": 0,
+      "y": 1920
+    },
+    {
+      "autoResize": false,
+      "fontFamily": 6,
+      "fontSize": 20,
+      "height": 75,
+      "id": "mw9kah94p5y4gn",
+      "lineHeight": 1.25,
+      "originalText": "2.4 · Choose a Path\nSign-up is the same for everyone; then one page asks\nwhat they came to do. Teach starts the educator flow.",
+      "seed": 1509959066,
+      "text": "2.4 · Choose a Path\nSign-up is the same for everyone; then one page asks\nwhat they came to do. Teach starts the educator flow.",
+      "textAlign": "left",
+      "type": "text",
+      "version": 3,
+      "versionNonce": 325159965,
+      "verticalAlign": "top",
+      "width": 560,
+      "x": -700,
+      "y": 1920
+    },
+    {
+      "boundElements": [
+        {
+          "id": "mw9kah94dlqukj",
+          "type": "text"
+        }
+      ],
+      "elbowed": false,
+      "endArrowhead": "arrow",
+      "endBinding": {
+        "elementId": "mw2idbitkbcb7w",
+        "focus": 0,
+        "gap": 8
+      },
+      "height": 302,
+      "id": "mw9kah94wentmu",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          302
+        ]
+      ],
+      "seed": 699133128,
+      "startArrowhead": null,
+      "startBinding": {
+        "elementId": "mw9kah93v9wkkn",
+        "focus": 0,
+        "gap": 8
+      },
+      "type": "arrow",
+      "version": 1,
+      "versionNonce": 963938095,
+      "width": 0,
+      "x": 240,
+      "y": 2258
+    },
+    {
+      "autoResize": true,
+      "containerId": "mw9kah94wentmu",
+      "fontFamily": 6,
+      "fontSize": 20,
+      "height": 25,
+      "id": "mw9kah94dlqukj",
+      "lineHeight": 1.25,
+      "originalText": "Teach",
+      "seed": 1894553060,
+      "text": "Teach",
+      "textAlign": "center",
+      "type": "text",
+      "version": 1,
+      "versionNonce": 865545558,
+      "verticalAlign": "middle",
+      "width": 56.37,
+      "x": 211.82,
       "y": 2396.5
+    },
+    {
+      "autoResize": false,
+      "fontFamily": 6,
+      "fontSize": 24,
+      "height": 30,
+      "id": "mw9kawroc18nxv",
+      "lineHeight": 1.25,
+      "originalText": "13 to 17",
+      "seed": 13292623,
+      "text": "13 to 17",
+      "textAlign": "left",
+      "type": "text",
+      "version": 1,
+      "versionNonce": 203897608,
+      "verticalAlign": "top",
+      "width": 480,
+      "x": 1400,
+      "y": 1866
+    },
+    {
+      "customData": {
+        "frame": true,
+        "hideLinkIcon": true
+      },
+      "height": 338,
+      "id": "mw9kawros624eq",
+      "link": "/prototypes/8c56fyxwd5z6q039/artifacts/skx5q87b3dxqq7g7",
+      "seed": 949534383,
+      "strokeColor": "transparent",
+      "type": "embeddable",
+      "version": 1,
+      "versionNonce": 176939231,
+      "width": 480,
+      "x": 1400,
+      "y": 1920
+    },
+    {
+      "autoResize": true,
+      "fontFamily": 6,
+      "fontSize": 16,
+      "height": 20,
+      "id": "mw9kayjovit59r",
+      "lineHeight": 1.25,
+      "originalText": "Other state of 2.4 Choose a Path",
+      "seed": 1544216485,
+      "text": "Other state of 2.4 Choose a Path",
+      "textAlign": "left",
+      "type": "text",
+      "version": 1,
+      "versionNonce": 2134112852,
+      "verticalAlign": "top",
+      "width": 245.61,
+      "x": 1400,
+      "y": 1810
     }
   ],
   "appState": {

@@ -1,0 +1,33 @@
+{
+  "formatVersion": 1,
+  "id": "sd6crdr310vvc8cq",
+  "artifact": "c7rtjk65k911f412",
+  "artifactTitle": "3.4 Cohorts · Every Stage",
+  "anchor": {
+    "kind": "artifact"
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T14:09:46.286Z",
+  "messages": [
+    {
+      "id": "8bcfgkkawkcd162d",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Essa pagina pode ser a padrão 3.4",
+      "createdAt": "2026-11-11T13:54:25.342Z"
+    },
+    {
+      "id": "efzwdr0kdz60vwq9",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Feito em 3.4 Cohorts.vue: a versão com todos os estágios (o quadro com uma coluna por estágio) agora é o padrão da 3.4, e o estado Every Stage saiu da view e do canvas Hi-Fi. A nota 8 do fluxo 3 deixou de citar Every Stage.",
+      "createdAt": "2026-11-11T13:57:25.939Z"
+    }
+  ]
+}

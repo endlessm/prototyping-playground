@@ -21,8 +21,8 @@ import s from '../_wire/wire.module.css'
       title="After log-in"
       :rows="[
         { label: 'Has a Team → Team Dashboard', to: 'Lo-Fi/5 Invite Students/5.5 Team Dashboard' },
-        { label: 'No Team yet → Create Team (draft 3)', to: 'Lo-Fi/3 Create Team/3.1 After Sign-Up' },
-        { label: 'Learner account (13 to 17) → learner home, outside this prototype' },
+        { label: 'No path chosen yet → Choose a Path', to: 'Lo-Fi/2 Sign Up/2.4 Choose a Path' },
+        { label: 'Chose Learn, Play or Contribute → that area, outside this prototype' },
       ]"
     />
   </AuthPage>

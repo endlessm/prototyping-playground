@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "nrdbvfh2h18femcd",
+  "artifact": "j49encebtzz2e3rt",
+  "artifactTitle": "5.4 Managers and Facilitators",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Facilitators7 Facilitators run sessions…\"",
+    "at": {
+      "x": 0.0078,
+      "y": 0.0278
+    },
+    "selector": "div:nth-of-type(3) > div:nth-of-type(1)",
+    "tag": "div",
+    "path": "._page_j838v_5 > ._app_j838v_124 > ._content_j838v_254 > ._stack_j838v_317 > ._row_j838v_325",
+    "text": "Facilitators7 Facilitators run sessions and support learners in this one cohort, invited by email from a modal. They do…",
+    "box": {
+      "left": 524,
+      "top": 415,
+      "width": 1279,
+      "height": 36,
+      "viewport": 2102
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T14:22:16.904Z",
+  "messages": [
+    {
+      "id": "w5b4zrbq1hnm4rss",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "espaçamento maior entre sessões",
+      "createdAt": "2026-11-11T14:19:03.189Z"
+    },
+    {
+      "id": "ehtbgcn2rgypzyas",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Feito em CohortPage.vue: o espaço entre as seções Managers e Facilitators passou de 24 px para 40 px.",
+      "createdAt": "2026-11-11T14:21:37.358Z"
+    }
+  ]
+}

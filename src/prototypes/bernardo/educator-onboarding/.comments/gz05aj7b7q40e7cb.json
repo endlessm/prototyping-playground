@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "gz05aj7b7q40e7cb",
+  "artifact": "nqthyqbzkx69gpqr",
+  "artifactTitle": "2.1 Google Confirm",
+  "anchor": {
+    "kind": "label",
+    "label": "Label \"Email From your Google account, so it c…\"",
+    "at": {
+      "x": 0.8213,
+      "y": 0.7557
+    },
+    "selector": "#app > div > div > div > div:nth-of-type(2) > div:nth-of-type(2) > label:nth-of-type(1)",
+    "tag": "label",
+    "path": "._page_1rs75_5 > ._auth_1rs75_48 > ._authColumn_1rs75_88 > ._stack_1rs75_317 > ._stack_1rs75_317",
+    "text": "Email From your Google account, so it can't be changed here.",
+    "box": {
+      "left": 1377,
+      "top": 581,
+      "width": 400,
+      "height": 88,
+      "viewport": 2102
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T18:21:33.847Z",
+  "messages": [
+    {
+      "id": "9rkvdqp17td2gbq5",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "não precisa aparecer isso",
+      "createdAt": "2026-11-11T18:06:45.920Z"
+    },
+    {
+      "id": "t4d4x0h0msy37q0m",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Removed the line under Email. The email is still locked when it comes from Google/GitHub/Microsoft (lock icon only). Changed in Hi-Fi/_ui/SignUpDetails.vue, so 2.3 Email Confirm follows too.",
+      "createdAt": "2026-11-11T18:19:08.726Z"
+    }
+  ]
+}

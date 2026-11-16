@@ -1,0 +1,33 @@
+{
+  "formatVersion": 1,
+  "id": "7hrap2j2awymmreb",
+  "artifact": "rqdt3g5dve4dehkz",
+  "artifactTitle": "3.2 Empty Dashboard",
+  "anchor": {
+    "kind": "artifact"
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-10T21:41:44.048Z",
+  "messages": [
+    {
+      "id": "jw2yb6q0hjk7jw1w",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "ao invés de ter um wizard, vamos remover o passo 3 (vamos cuidar disso posteriormente) e juntar os 3 passos restantes em uma unica view.",
+      "createdAt": "2026-11-10T21:33:42.398Z"
+    },
+    {
+      "id": "82rr9ptgtf3bf6jk",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Feito. O wizard virou uma página só, \"Create a class\" (_ui/CreateCohort.vue, antes CreateCohortWizard.vue): Program, Class name e \"What your learners get\" no lugar da Review, com a coluna de contexto ao lado e Cancel / Create Class no rodapé. O passo Where you teach saiu, e com ele 4.3 US School e 4.4 In Review (views, quadros e setas no canvas, a linha NDPA do modal de CSV e as notas 4.3, 4.6 e 4.7). As notas do fluxo 4 agora são quatro. Removi Wizard.vue e o CSS da barra de passos.",
+      "createdAt": "2026-11-10T21:38:42.464Z"
+    }
+  ]
+}

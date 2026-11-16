@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "q4r6e1vm286bcx33",
+  "artifact": "vv1g7jwrbnx5sjr6",
+  "artifactTitle": "3.1 After Sign Up",
+  "anchor": {
+    "kind": "link",
+    "label": "Link \"Joined from a co-teacher invite → that …\"",
+    "at": {
+      "x": 0.3664,
+      "y": 0.5
+    },
+    "selector": "a:nth-of-type(2)",
+    "tag": "a",
+    "path": "._page_zbkl8_5 > ._app_zbkl8_124 > ._content_zbkl8_252 > ._logic_zbkl8_927 > a",
+    "text": "Joined from a co-teacher invite → that team's dashboard instead",
+    "box": {
+      "left": 280,
+      "top": 447,
+      "width": 1957,
+      "height": 38,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-10T20:57:38.957Z",
+  "messages": [
+    {
+      "id": "w4cfq2p5pyvbamvj",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "This needs to be in 1.4",
+      "createdAt": "2026-11-10T20:56:29.604Z"
+    },
+    {
+      "id": "yapget179kcfg272",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done: moved the row to 1.4 Signed In as \"Joined from a co-teacher invite → that team's dashboard\" (opens 3.6 Joined as Co-Teacher), between the Teach rows and the Under 18 row. 3.1 now has only the Create \"Maya's Team\" row.",
+      "createdAt": "2026-11-10T20:57:26.401Z"
+    }
+  ]
+}

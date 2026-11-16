@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "nn2a0cnag0z0ewek",
+  "artifact": "xsrc6cv5nqxykqsg",
+  "artifactTitle": "2.5 Choose a Path (Under 18)",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"After the choice 7 13 to 17: Verify Age…\"",
+    "at": {
+      "x": 0.0897,
+      "y": 0.0729
+    },
+    "selector": "div:nth-of-type(4)",
+    "tag": "div",
+    "path": "div#app > div > ._page_zbkl8_5 > ._choose_zbkl8_972 > ._logic_zbkl8_927",
+    "text": "After the choice 7 13 to 17: Verify Age already knows the age, and educators must be 18 or older, so there is no Teach …",
+    "box": {
+      "left": 48,
+      "top": 1127,
+      "width": 2196,
+      "height": 96,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-10T20:32:00.067Z",
+  "messages": [
+    {
+      "id": "2wygdw913qjaex17",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Add the ability to come back. This is only a screen to show people the \"under 17 view\"",
+      "createdAt": "2026-11-09T22:52:45.837Z"
+    },
+    {
+      "id": "bc7xwqt50qqb09yc",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in 2.5 Choose a Path (Under 18).vue: the routing box now ends with \"← Back to 1.4 Signed In\", the only screen that leads here, so it works as a side trip. I put it in the box rather than a Back button on the page, since it's for the walkthrough, not the real screen.",
+      "createdAt": "2026-11-09T22:53:10.064Z"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "phgysp4wr0v4p0vn",
+  "artifact": "fn0y0cv72hrdd8q8",
+  "artifactTitle": "1.1 Join",
+  "anchor": {
+    "kind": "link",
+    "label": "Link \"No profile → straight to the sign-up fo…\"",
+    "at": {
+      "x": 0.8432,
+      "y": 0.6974
+    },
+    "selector": "a:nth-of-type(2)",
+    "tag": "a",
+    "path": "._auth_1ec72_48 > ._authColumn_1ec72_88 > ._stack_1ec72_315 > ._logic_1ec72_927 > a",
+    "text": "No profile → straight to the sign-up form, email filled in",
+    "box": {
+      "left": 1534,
+      "top": 789,
+      "width": 370,
+      "height": 38,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-09T22:39:58.863Z",
+  "messages": [
+    {
+      "id": "njsn0ccm1pmkg04q",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "label: \"Profile doesn't exist\"",
+      "createdAt": "2026-11-09T22:23:47.321Z"
+    },
+    {
+      "id": "benc9q0phds9ychh",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in 1.1 Join.vue: the row now reads \"Profile doesn’t exist\".",
+      "createdAt": "2026-11-09T22:33:15.470Z"
+    }
+  ]
+}

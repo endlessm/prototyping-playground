@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "gyaqztvkb9aqnzyg",
+  "artifact": "nqthyqbzkx69gpqr",
+  "artifactTitle": "2.1 Google Confirm",
+  "anchor": {
+    "kind": "label",
+    "label": "Label \"Email\"",
+    "at": {
+      "x": 0.2613,
+      "y": 0.2422
+    },
+    "selector": "#app > div > div > div > div:nth-of-type(2) > div:nth-of-type(2) > label:nth-of-type(1)",
+    "tag": "label",
+    "path": "._page_1rs75_5 > ._auth_1rs75_48 > ._authColumn_1rs75_88 > ._stack_1rs75_317 > ._stack_1rs75_317",
+    "text": "Email",
+    "box": {
+      "left": 1377,
+      "top": 593,
+      "width": 400,
+      "height": 64,
+      "viewport": 2102
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T18:34:15.878Z",
+  "messages": [
+    {
+      "id": "zkb4z2fwdak78vth",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Isso não precisa de existir",
+      "createdAt": "2026-11-11T18:21:27.089Z"
+    },
+    {
+      "id": "hjq2jf7ky069hkww",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Removed the Email field from single sign-on: the provider's email can't change here, so it isn't shown. Email sign-up (2.3) keeps it, since the person types it there. Changed in Hi-Fi/_ui/SignUpDetails.vue; walkthrough note 2.1 updated.",
+      "createdAt": "2026-11-11T18:22:39.608Z"
+    }
+  ]
+}

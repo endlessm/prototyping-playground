@@ -1,0 +1,55 @@
+{
+  "formatVersion": 1,
+  "id": "8gy072whk1jhmrfm",
+  "artifact": "dv3bmm3hpf5vfves",
+  "artifactTitle": "0.1 Verify Age",
+  "anchor": {
+    "kind": "paragraph",
+    "label": "Paragraph \"NEXT STEPS: Age check\"",
+    "at": {
+      "x": 0.1919,
+      "y": 0.625
+    },
+    "selector": "div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(2) > p",
+    "tag": "p",
+    "path": "._auth_1ec72_48 > ._authColumn_1ec72_88 > ._stack_1ec72_315 > ._logic_1ec72_927 > p",
+    "text": "NEXT STEPS: Age check",
+    "box": {
+      "left": 1534,
+      "top": 777,
+      "width": 370,
+      "height": 20,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-09T22:23:01.201Z",
+  "sentToAgent": {
+    "by": {
+      "contributor": "ma1xykkc2j3d2x24"
+    },
+    "at": "2026-11-09T22:02:35.326Z"
+  },
+  "messages": [
+    {
+      "id": "9kqkhhwpk9tbssne",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "also change in lo-fi",
+      "createdAt": "2026-11-09T22:02:35.326Z"
+    },
+    {
+      "id": "spr0m65rxvnqedh1",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in Lo-Fi/0 Verify Age/0.1 Verify Age.vue: its routing box now reads \"NEXT STEPS: Age check\", as in the Hi-Fi.",
+      "createdAt": "2026-11-09T22:08:27.311Z"
+    }
+  ]
+}

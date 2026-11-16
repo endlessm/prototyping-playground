@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "63jtzcezzns6ectv",
+  "artifact": "7ka739h9yt3903g2",
+  "artifactTitle": "5.7 Starting Soon",
+  "anchor": {
+    "kind": "button",
+    "label": "Button \"Show QR\"",
+    "at": {
+      "x": 0.851,
+      "y": 0.25
+    },
+    "selector": "span:nth-of-type(2) > button.rounded-md.inline-flex:nth-of-type(1)",
+    "tag": "button",
+    "path": "._content_j838v_254 > ._card_j838v_538 > ._row_j838v_325 > ._row_j838v_325 > .rounded-md",
+    "text": "Show QR",
+    "box": {
+      "left": 1579,
+      "top": 737,
+      "width": 85,
+      "height": 36,
+      "viewport": 2102
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T14:56:11.487Z",
+  "messages": [
+    {
+      "id": "1qnbpm2a1hbey1ye",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "This doesn't exist",
+      "createdAt": "2026-11-11T14:41:57.665Z"
+    },
+    {
+      "id": "xt0qzn1kbf6n4x48",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Removed from JoinLinkCard.vue, so it's also gone from 5.1 and 5.5.",
+      "createdAt": "2026-11-11T14:48:14.067Z"
+    }
+  ]
+}

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import brush from '~/assets/images/backgrounds/F76E40.png'
 import brushKids from '~/assets/images/backgrounds/27CEA6.png'
 import logo from '~/assets/images/logo-endless-studios-orange.svg'
 import s from './ui.module.css'
+import banner from './threadbare-banner.jpg'
 
-// Account pages: the brand panel beside one 400px column. `kids` turns the panel teal, the colour reserved for
-// youth-gated surfaces.
+// Account pages: the brand panel beside one 400px column. The panel is the live sign-up's Threadbare banner
+// (account.endlessstudios.com/static/img/threadbare_banner_1.png), image only. `kids` keeps the teal panel, the
+// colour reserved for youth-gated surfaces.
 withDefaults(defineProps<{ header?: boolean; centered?: boolean; kids?: boolean }>(), {
   header: true,
   centered: false,
@@ -16,24 +17,24 @@ withDefaults(defineProps<{ header?: boolean; centered?: boolean; kids?: boolean 
 <template>
   <div :class="s.page">
     <div :class="s.auth">
+      <div v-if="!kids" :class="[s.illustration, s.banner]">
+        <img :src="banner" alt="" />
+      </div>
       <div
+        v-else
         :class="s.illustration"
         :style="{
-          backgroundImage: `url(${kids ? brushKids : brush})`,
-          backgroundColor: kids ? 'var(--es-teal-50)' : 'var(--es-orange-50)',
+          backgroundImage: `url(${brushKids})`,
+          backgroundColor: 'var(--es-teal-50)',
           backgroundPosition: 'top center',
           backgroundSize: '160% auto',
-          color: kids ? 'var(--es-teal-700)' : 'var(--es-orange-900)',
+          color: 'var(--es-teal-700)',
         }"
       >
-        <UIcon :name="kids ? 'i-lucide-shield-check' : 'i-lucide-gamepad-2'" class="size-12" />
-        <p :class="s.illustrationTitle">{{ kids ? 'A safe place to make games' : 'Make games. Learn together.' }}</p>
+        <UIcon name="i-lucide-shield-check" class="size-12" />
+        <p :class="s.illustrationTitle">A safe place to make games</p>
         <p :class="s.illustrationCaption">
-          {{
-            kids
-              ? 'Youth protection keeps some features off until a parent or trusted adult says yes.'
-              : 'Classes, clubs and co-ops build their first games on Endless.'
-          }}
+          Youth protection keeps some features off until a parent or trusted adult says yes.
         </p>
       </div>
       <div :class="[s.authColumn, centered && s.centered]">

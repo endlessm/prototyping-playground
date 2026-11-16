@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "emjvayysd7305hdn",
+  "artifact": "rqdt3g5dve4dehkz",
+  "artifactTitle": "3.2 Empty Dashboard",
+  "anchor": {
+    "kind": "button",
+    "label": "Button \"Show 2 more\"",
+    "at": {
+      "x": 0.5105,
+      "y": 0.7
+    },
+    "selector": "button:nth-of-type(4)",
+    "tag": "button",
+    "path": "._wizardBody_zbkl8_699 > ._wizardMain_zbkl8_706 > div > ._stack_zbkl8_315 > ._link_zbkl8_420",
+    "text": "Show 2 more",
+    "box": {
+      "left": 32,
+      "top": 553,
+      "width": 190,
+      "height": 20,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-10T21:32:37.102Z",
+  "messages": [
+    {
+      "id": "71zn9mzmwkrhp810",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "mais facil mostrar todas as opções",
+      "createdAt": "2026-11-10T21:27:31.227Z"
+    },
+    {
+      "id": "p8e1j0mky09db8tx",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Feito: tirei \"Show 2 more\" e a lista mostra os cinco programas. Adicionei Core: Threadbare (18 sessões, 15+, do catálogo real) e More: Threadbare, que não tem material de origem, então os detalhes dele são marcadores (\"Details to come\"). Ambos em _ui/cohort.ts.",
+      "createdAt": "2026-11-10T21:28:44.245Z"
+    }
+  ]
+}

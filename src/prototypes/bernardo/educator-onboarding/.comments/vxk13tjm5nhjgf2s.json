@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "vxk13tjm5nhjgf2s",
+  "artifact": "hx8cj5m2mbdf111m",
+  "artifactTitle": "1.4 Signed In",
+  "anchor": {
+    "kind": "paragraph",
+    "label": "Paragraph \"Taking you to your team.\"",
+    "at": {
+      "x": 0.5644,
+      "y": 0.5208
+    },
+    "selector": "p",
+    "tag": "p",
+    "path": "._auth_zbkl8_48 > ._authColumn_zbkl8_88 > ._stack_zbkl8_315 > ._stack_zbkl8_315 > ._lead_zbkl8_280",
+    "text": "Taking you to your team.",
+    "box": {
+      "left": 1626,
+      "top": 560,
+      "width": 186,
+      "height": 24,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-10T21:05:12.727Z",
+  "messages": [
+    {
+      "id": "g4hdszzvj0hmd69g",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Remove this",
+      "createdAt": "2026-11-10T20:56:11.503Z"
+    },
+    {
+      "id": "by20fqns9sg0aszj",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in 1.4 Signed In.vue: removed \"Taking you to your team.\" The page now shows the spinner and \"Signing you in…\".",
+      "createdAt": "2026-11-10T20:58:00.575Z"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "ezrqe2zdts5n57ag",
+  "artifact": "fn0y0cv72hrdd8q8",
+  "artifactTitle": "1.1 Join",
+  "anchor": {
+    "kind": "link",
+    "label": "Link \"No profile → one confirm page, the same…\"",
+    "at": {
+      "x": 0.3568,
+      "y": 0.6184
+    },
+    "selector": "div:nth-of-type(6) > a:nth-of-type(2)",
+    "tag": "a",
+    "path": "._auth_1ec72_48 > ._authColumn_1ec72_88 > ._stack_1ec72_315 > ._logic_1ec72_927 > a",
+    "text": "No profile → one confirm page, the same for all three",
+    "box": {
+      "left": 1534,
+      "top": 969,
+      "width": 370,
+      "height": 38,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-09T22:39:59.445Z",
+  "messages": [
+    {
+      "id": "vmj3a9chxn8ew1vw",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "label: \"Profile doesn't exist\"",
+      "createdAt": "2026-11-09T22:24:20.338Z"
+    },
+    {
+      "id": "sy6tb2ehxcvep8t9",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in 1.1 Join.vue: the row now reads \"Profile doesn’t exist\".",
+      "createdAt": "2026-11-09T22:33:17.157Z"
+    }
+  ]
+}

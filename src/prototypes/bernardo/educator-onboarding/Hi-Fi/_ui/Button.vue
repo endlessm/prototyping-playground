@@ -4,8 +4,14 @@ import { usePrototypeNavigate } from '#studio/prototype'
 // The system's button. Primary is the one orange action per screen, drawn with dark text: white on orange fails
 // contrast. `kids` is the teal action of a youth-gated page. With a destination it opens that view of the prototype.
 const props = withDefaults(
-  defineProps<{ to?: string; variant?: 'primary' | 'secondary' | 'ghost' | 'disabled' | 'kids'; block?: boolean }>(),
-  { variant: 'primary' },
+  defineProps<{
+    to?: string
+    variant?: 'primary' | 'secondary' | 'ghost' | 'disabled' | 'kids'
+    block?: boolean
+    /** Small is for an action beside a section's title. */
+    size?: 'sm' | 'lg'
+  }>(),
+  { variant: 'primary', size: 'lg' },
 )
 const emit = defineEmits<{ click: [] }>()
 const navigate = usePrototypeNavigate()
@@ -30,7 +36,7 @@ function select() {
     :variant="look[variant].variant"
     :disabled="variant === 'disabled'"
     :block="block"
-    size="lg"
+    :size="size"
     :class="['justify-center font-semibold', look[variant].class]"
     @click="select"
   >

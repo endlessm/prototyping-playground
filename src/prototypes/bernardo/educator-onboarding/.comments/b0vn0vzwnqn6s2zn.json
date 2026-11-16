@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "b0vn0vzwnqn6s2zn",
+  "artifact": "nqthyqbzkx69gpqr",
+  "artifactTitle": "2.1 Google Confirm",
+  "anchor": {
+    "kind": "link",
+    "label": "Link \"Terms not ticked → error on the box, no…\"",
+    "at": {
+      "x": 0.9432,
+      "y": 0.4605
+    },
+    "selector": "a:nth-of-type(2)",
+    "tag": "a",
+    "path": "._auth_zbkl8_48 > ._authColumn_zbkl8_88 > ._stack_zbkl8_315 > ._logic_zbkl8_927 > a",
+    "text": "Terms not ticked → error on the box, nothing created",
+    "box": {
+      "left": 1534,
+      "top": 882,
+      "width": 370,
+      "height": 38,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-10T20:31:58.422Z",
+  "messages": [
+    {
+      "id": "hsr4dz5sweap1szc",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "we can remove this screen",
+      "createdAt": "2026-11-09T22:51:45.671Z"
+    },
+    {
+      "id": "y2we6wk9cx5brp4j",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done: deleted Hi-Fi 2.2 Terms Not Accepted and this row from 2.1 Google Confirm. Its design note (the error state) is gone, so the later Sign Up notes moved up one (2.3 Email Confirm is now note 3, 2.6 note 4, 2.4 note 5, 2.5 note 6). On the Hi-Fi canvas its frame is removed, 2.6 moved into its place and the heading now reads \"Other states of Sign Up: GitHub without a verified email\". Lo-Fi 2.2 is untouched.",
+      "createdAt": "2026-11-09T22:52:38.393Z"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "tb9gs3y55tpfx7r2",
+  "artifact": "c7rtjk65k911f412",
+  "artifactTitle": "3.4 Cohorts · Every Stage",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"As Team Leader, you see every cohort in…\"",
+    "at": {
+      "x": 0.6677,
+      "y": 0.45
+    },
+    "selector": "main > span",
+    "tag": "span",
+    "path": "div > ._page_j838v_5 > ._app_j838v_124 > ._content_j838v_254 > ._row_j838v_325",
+    "text": "As Team Leader, you see every cohort in the team. Team Members see only the cohorts they created or were added to. 5 Th…",
+    "box": {
+      "left": 524,
+      "top": 261,
+      "width": 1279,
+      "height": 20,
+      "viewport": 2102
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T14:09:46.899Z",
+  "messages": [
+    {
+      "id": "tqa4ctp8wnwsd1fa",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Mensagem desnecessária",
+      "createdAt": "2026-11-11T13:54:35.529Z"
+    },
+    {
+      "id": "6xf64j0cnk7s7zjt",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Removida em TeamDashboard.vue, para Team Leader e Team Member. O marcador 5 foi para o lado das abas, e a nota 5 agora diz que é o selo Team Leader/Team Member ao lado do nome que mostra o papel.",
+      "createdAt": "2026-11-11T13:57:28.071Z"
+    }
+  ]
+}

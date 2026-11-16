@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "pv8th966bdwxcbwx",
+  "artifact": "7ka739h9yt3903g2",
+  "artifactTitle": "5.7 Starting Soon",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"GODOT-AS\"",
+    "at": {
+      "x": 0.7121,
+      "y": 0.5
+    },
+    "selector": "div:nth-of-type(4) > div:nth-of-type(2) > span:nth-of-type(1) > strong",
+    "tag": "strong",
+    "path": "._content_j838v_254 > ._card_j838v_538 > ._row_j838v_325 > ._row_j838v_325 > strong",
+    "text": "GODOT-AS",
+    "box": {
+      "left": 663,
+      "top": 745,
+      "width": 87,
+      "height": 20,
+      "viewport": 2102
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T14:56:11.900Z",
+  "messages": [
+    {
+      "id": "0ccr7hchc2p2q5q3",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "enrollment codes are a random mix of letters and numbers.",
+      "createdAt": "2026-11-11T14:43:10.911Z"
+    },
+    {
+      "id": "3z8t7xrgxekp3671",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in team.ts: codes are now random letters and numbers (B3N8R5TW here, H7K2Q9XM for Spring Game Makers, also in 5.2's email preview, and M6P2Z8KD for Fall Game Makers).",
+      "createdAt": "2026-11-11T14:48:16.918Z"
+    }
+  ]
+}

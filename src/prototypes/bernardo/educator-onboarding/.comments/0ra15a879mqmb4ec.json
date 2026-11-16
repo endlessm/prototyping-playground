@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "0ra15a879mqmb4ec",
+  "artifact": "rqdt3g5dve4dehkz",
+  "artifactTitle": "3.2 Empty Dashboard",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Program\"",
+    "at": {
+      "x": 0.9895,
+      "y": 0.8985
+    },
+    "selector": "div:nth-of-type(2) > div > div:nth-of-type(3) > div:nth-of-type(1)",
+    "tag": "div",
+    "path": "._takeover_zbkl8_628 > ._wizardBody_zbkl8_699 > ._wizardMain_zbkl8_706 > div > ._stack_zbkl8_315",
+    "text": "Explore: Threadbare13 workshops · Ages 13+Explore: Godot10 sessions · Ages 13+Explore: GitVersion control basicsShow 2 …",
+    "box": {
+      "left": 32,
+      "top": 307,
+      "width": 190,
+      "height": 266,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-10T21:32:34.479Z",
+  "messages": [
+    {
+      "id": "z7gn30eymy3vws4c",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "pode adicionar um pouco a largura dessa parte",
+      "createdAt": "2026-11-10T21:27:14.812Z"
+    },
+    {
+      "id": "7pxp75mvvhbbev3g",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Feito em _ui/CreateCohortWizard.vue: a coluna de programas passou de 190 px para 250 px.",
+      "createdAt": "2026-11-10T21:28:42.428Z"
+    }
+  ]
+}

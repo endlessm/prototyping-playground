@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "gzjph52z4mjb4w1h",
+  "artifact": "rqdt3g5dve4dehkz",
+  "artifactTitle": "3.2 Empty Dashboard",
+  "anchor": {
+    "kind": "paragraph",
+    "label": "Paragraph \"Suggested from the season. Change it to…\"",
+    "at": {
+      "x": 0.1794,
+      "y": 0.9167
+    },
+    "selector": "div:nth-of-type(1) > p",
+    "tag": "p",
+    "path": "._wizardBody_1fdyd_648 > ._wizardMain_1fdyd_655 > ._stack_1fdyd_315 > ._stack_1fdyd_315 > ._lead_1fdyd_280",
+    "text": "Suggested from the season. Change it to anything your learners will recognize. They'll see it on their invite.",
+    "box": {
+      "left": 32,
+      "top": 129,
+      "width": 1940,
+      "height": 24,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T13:54:08.789Z",
+  "messages": [
+    {
+      "id": "rs5cvfgryb214egf",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Isso pode ser removido",
+      "createdAt": "2026-11-10T21:48:44.494Z"
+    },
+    {
+      "id": "6a0q92rgcy4qzxee",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Feito em _ui/CreateCohort.vue: removi o texto abaixo de \"Name your class\" (o título agora vem direto com o campo). StepHeading aceita título sem texto, e a nota 4.2 não fala mais da dica.",
+      "createdAt": "2026-11-10T21:49:30.047Z"
+    }
+  ]
+}

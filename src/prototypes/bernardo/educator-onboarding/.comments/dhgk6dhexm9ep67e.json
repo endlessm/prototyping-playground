@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "dhgk6dhexm9ep67e",
+  "artifact": "rqdt3g5dve4dehkz",
+  "artifactTitle": "3.2 Empty Dashboard",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"What your learners get3 The page ends b…\"",
+    "at": {
+      "x": 0.2094,
+      "y": 0.0641
+    },
+    "selector": "div:nth-of-type(3) > div:nth-of-type(2) > div > div",
+    "tag": "div",
+    "path": "._app_1fdyd_124 > ._takeover_1fdyd_628 > ._wizardBody_1fdyd_648 > ._wizardMain_1fdyd_655 > ._panel_1fdyd_542",
+    "text": "What your learners get3 The page ends by saying what learners will get (an open class, the workshops, how they join), s…",
+    "box": {
+      "left": 32,
+      "top": 978,
+      "width": 1925,
+      "height": 156,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-10T21:48:16.762Z",
+  "messages": [
+    {
+      "id": "rasznttb135k4fca",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "essa sessão pode fazer parte da descrição do program. revise para não ter informações duplicadas.",
+      "createdAt": "2026-11-10T21:41:28.123Z"
+    },
+    {
+      "id": "y1hamq9x4twvd1qa",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Feito: \"What your learners get\" agora é a última parte do card do programa (_ui/ProgramDetails.vue), depois dos workshops. Ficaram só o que o card não dizia: open class com galeria e como entram (link ou convite por email). Tirei a linha dos workshops (já está no card) e o \"Next: invite your learners.\" A nota 4.3 foi reescrita.",
+      "createdAt": "2026-11-10T21:42:35.929Z"
+    }
+  ]
+}

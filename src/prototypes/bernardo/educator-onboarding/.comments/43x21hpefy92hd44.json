@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "43x21hpefy92hd44",
+  "artifact": "dv3bmm3hpf5vfves",
+  "artifactTitle": "0.1 Verify Age",
+  "anchor": {
+    "kind": "link",
+    "label": "Link \"18 or older → Join\"",
+    "at": {
+      "x": 0.627,
+      "y": 0.5132
+    },
+    "selector": "a:nth-of-type(1)",
+    "tag": "a",
+    "path": "._auth_6e0yy_48 > ._authColumn_6e0yy_78 > ._stack_6e0yy_305 > ._logic_6e0yy_917 > a",
+    "text": "18 or older → Join",
+    "box": {
+      "left": 1534,
+      "top": 797,
+      "width": 370,
+      "height": 38,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-09T21:15:05.493Z",
+  "messages": [
+    {
+      "id": "179ff0wkkn3az8rs",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "18 or older",
+      "createdAt": "2026-11-09T21:01:40.017Z"
+    },
+    {
+      "id": "kpf178axfqq5yd4c",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in 0.1 Verify Age.vue: the row now reads \"18 or older\" and still links to 1.1 Join.",
+      "createdAt": "2026-11-09T21:03:02.432Z"
+    }
+  ]
+}

@@ -19,7 +19,7 @@ import s from '../_ui/ui.module.css'
 
 <template>
   <AuthPage>
-    <Title :flow="1" :note="1">Join Endless Access</Title>
+    <Title :flow="1" :note="1">Join Endless Studios</Title>
     <Lead>New or returning, start with your email.</Lead>
     <Field label="Email">
       <Input type="email" value="maya.okafor@gmail.com" />
@@ -28,7 +28,6 @@ import s from '../_ui/ui.module.css'
       <div :class="s.row" style="align-items: flex-start">
         <Icon brand="google" />
         <span :class="s.grow">
-          Looks like a Google address.
           <TextLink to="Hi-Fi/1 Join and Log In/1.4 Signed In">Continue with Google</TextLink> and skip the password.
         </span>
         <Marker :flow="1" :n="2" />
@@ -38,26 +37,26 @@ import s from '../_ui/ui.module.css'
     <Divider>or continue with</Divider>
     <div :class="s.columns3">
       <Button variant="secondary" to="Hi-Fi/2 Sign Up/2.1 Google Confirm"><Icon brand="google" /> Google</Button>
-      <Button variant="secondary" to="Hi-Fi/2 Sign Up/2.1 Google Confirm"><Icon brand="github" /> GitHub</Button>
       <Button variant="secondary" to="Hi-Fi/2 Sign Up/2.1 Google Confirm"><Icon brand="microsoft" /> Microsoft</Button>
+      <Button variant="secondary" to="Hi-Fi/2 Sign Up/2.1 Google Confirm"><Icon brand="github" /> GitHub</Button>
     </div>
     <Logic
-      title="Profile check after Continue"
+      title="WITH EMAIL: DOES PROFILE EXIST?"
       :flow="1"
       :note="4"
       :rows="[
-        { label: 'Profile found → password appears on this page', to: 'Hi-Fi/1 Join and Log In/1.2 Returning' },
-        { label: 'No profile → straight to the sign-up form, email filled in', to: 'Hi-Fi/2 Sign Up/2.3 Email Confirm' },
+        { label: 'Profile Exists', to: 'Hi-Fi/1 Join and Log In/1.2 Returning' },
+        { label: 'Profile doesn’t exist', to: 'Hi-Fi/2 Sign Up/2.3 Email Confirm' },
       ]"
     />
     <Logic
-      title="Profile check after Google, GitHub or Microsoft"
+      title="WITH GOOGLE, GITHUB OR MICROSOFT: DOES PROFILE EXIST?"
       :flow="1"
       :note="5"
       :rows="[
-        { label: 'Profile found → signed in', to: 'Hi-Fi/1 Join and Log In/1.4 Signed In' },
-        { label: 'No profile → one confirm page, the same for all three', to: 'Hi-Fi/2 Sign Up/2.1 Google Confirm' },
-        { label: 'No verified email at GitHub → no account, verify first', to: 'Hi-Fi/2 Sign Up/2.6 GitHub Unverified' },
+        { label: 'Profile Exists', to: 'Hi-Fi/1 Join and Log In/1.4 Signed In' },
+        { label: 'Profile doesn’t exist', to: 'Hi-Fi/2 Sign Up/2.1 Google Confirm' },
+        { label: 'Github Email not verified', to: 'Hi-Fi/2 Sign Up/2.6 GitHub Unverified' },
       ]"
     />
   </AuthPage>

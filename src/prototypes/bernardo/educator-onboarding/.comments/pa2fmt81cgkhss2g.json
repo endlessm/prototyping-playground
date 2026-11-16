@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "pa2fmt81cgkhss2g",
+  "artifact": "rqdt3g5dve4dehkz",
+  "artifactTitle": "3.2 Empty Dashboard",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Explore: Threadbare is selected from th…\"",
+    "at": {
+      "x": 0.4237,
+      "y": 0.9074
+    },
+    "selector": "div:nth-of-type(2) > div > div:nth-of-type(2)",
+    "tag": "div",
+    "path": "._app_zbkl8_124 > ._takeover_zbkl8_628 > ._wizardBody_zbkl8_699 > ._wizardMain_zbkl8_706 > ._panel_zbkl8_542",
+    "text": "Explore: Threadbare is selected from the link you followed.1 Create Cohort is a four-step wizard (Program, Class name, …",
+    "box": {
+      "left": 32,
+      "top": 233,
+      "width": 1940,
+      "height": 54,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-10T21:32:32.305Z",
+  "messages": [
+    {
+      "id": "nx0pxghxrb8aq9x7",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Isso poderia ficar dentro do card do Program para a interface toda não se mexer se eu escolher outra coisa.",
+      "createdAt": "2026-11-10T21:26:47.363Z"
+    },
+    {
+      "id": "rt56qx88k91h0e41",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Feito em _ui/CreateCohortWizard.vue e _ui/ProgramDetails.vue: o aviso do link agora fica no topo do card do programa, à direita, então escolher outro programa não mexe a página. Encurtei o texto para \"Selected from the link you followed.\", já que o card mostra o nome do programa.",
+      "createdAt": "2026-11-10T21:28:40.214Z"
+    }
+  ]
+}

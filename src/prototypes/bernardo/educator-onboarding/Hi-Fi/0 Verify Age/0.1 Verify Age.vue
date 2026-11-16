@@ -1,5 +1,4 @@
 <!-- @studio-id dv3bmm3hpf5vfves -->
-<!-- @studio-state merj3ees8d7ecy9m Under 13 -->
 <!-- @studio-state mfp1s7mmd96t882n Not a date -->
 <script setup lang="ts">
 import AuthPage from '../_ui/AuthPage.vue'
@@ -18,7 +17,6 @@ defineProps<{ date?: string; error?: string; note?: number }>()
 
 <script lang="ts">
 export const states = [
-  { title: 'Under 13', props: { date: '03/14/2016', error: 'You need to be 13 or older to join Endless.', note: 2 } },
   { title: 'Not a date', props: { date: '02/30/1988', error: "February 30 isn't a date. Check the day.", note: 3 } },
 ]
 </script>
@@ -38,11 +36,11 @@ export const states = [
     <Button v-if="error" block>Continue</Button>
     <Button v-else block to="Hi-Fi/1 Join and Log In/1.1 Join">Continue</Button>
     <Logic
-      title="Age checked on Continue"
+      title="NEXT STEPS: Age check"
       :rows="[
-        { label: '18 or older → Join', to: 'Hi-Fi/1 Join and Log In/1.1 Join' },
-        { label: '13 to 17 → kID Safety page, then Join as a learner (never as an educator)', to: 'Hi-Fi/0 Verify Age/0.2 kID Safety' },
-        { label: 'Under 13 → inline error under the date, no account' },
+        { label: '18 or older', to: 'Hi-Fi/1 Join and Log In/1.1 Join' },
+        { label: '13 to 17 years old', to: 'Hi-Fi/0 Verify Age/0.2 kID Safety' },
+        { label: 'Under 13', to: 'Hi-Fi/0 Verify Age/0.3 Too Young' },
       ]"
     />
   </AuthPage>

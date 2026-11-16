@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "nnfqherfr84fdyhq",
+  "artifact": "nqthyqbzkx69gpqr",
+  "artifactTitle": "2.1 Google Confirm",
+  "anchor": {
+    "kind": "label",
+    "label": "Label \"Username Generate\"",
+    "at": {
+      "x": 0.4413,
+      "y": 0.3516
+    },
+    "selector": "#app > div > div > div > div:nth-of-type(2) > div:nth-of-type(2) > label:nth-of-type(2)",
+    "tag": "label",
+    "path": "._page_1rs75_5 > ._auth_1rs75_48 > ._authColumn_1rs75_88 > ._stack_1rs75_317 > ._stack_1rs75_317",
+    "text": "Username Generate",
+    "box": {
+      "left": 1377,
+      "top": 689,
+      "width": 400,
+      "height": 64,
+      "viewport": 2102
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T18:21:36.193Z",
+  "messages": [
+    {
+      "id": "sep8cc8q8et7g7b2",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "se é um menor de idade, o próprio site gera o Username. Se é maior, a pessoa tem liberdade pra decidir.",
+      "createdAt": "2026-11-11T18:07:31.226Z"
+    },
+    {
+      "id": "w8sfpxs8k64ak0h6",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Adults now choose their own username: an empty field, no Generate. Under 18, the site makes it: the generated name is locked and Generate offers another. Added an 'Under 18' state to 2.1 Google Confirm and 2.3 Email Confirm to show it (sample learner Ada). Changed in Hi-Fi/_ui/SignUpDetails.vue; walkthrough note 2.1 updated.",
+      "createdAt": "2026-11-11T18:19:10.571Z"
+    }
+  ]
+}

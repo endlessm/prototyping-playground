@@ -1,35 +1,42 @@
 // Create Cohort (flow 4) as a step-by-step wizard any page can open. Its states are the 4.1–4.3 screens.
 
-// Program details are wireframe placeholders: skills and workshop titles stand in for the real catalog.
+// The real catalog, from the published program pages and decks (the Endless Studios system's context/programs.md).
+// Explore: Godot names no skills, so its skills are inferred from its sessions. Explore: Git has no source beyond its
+// name.
 export const programs = [
   {
     name: 'Explore: Threadbare',
     short: '13 workshops · Ages 13+',
-    about: 'Learners build a small game in the Threadbare world.',
-    unlocks: '13 workshops, unlocked as you go',
-    skills: ['Game design', 'Storytelling', 'Level building'],
-    workshops: ['Explore the Threadbare world', 'Design a quest', 'Build your first level'],
+    about:
+      'One-hour, hands-on workshops where learners try different parts of game development by contributing to Threadbare, a shared community game.',
+    unlocks: '13 one-hour workshops, in any order',
+    skills: ['Art', 'Game Design', 'Engineering', 'Management & Production', 'Go to Market'],
+    workshops: ['Aesthetics & Visual Design', 'Animation & Effects', 'Music & Sound'],
     more: 10,
     school: true,
   },
   {
     name: 'Explore: Godot',
     short: '10 sessions · Ages 13+',
-    about: 'First steps in the Godot game engine.',
-    unlocks: '10 sessions, unlocked as you go',
-    skills: ['Programming basics', 'Game engines'],
-    workshops: ['Meet the Godot editor', 'Move a character', 'Add collisions'],
+    about: 'Learners use a real game engine, Godot, to build a level for a Threadbare-themed platformer.',
+    unlocks: '10 sessions, from a start date to an end date',
+    skills: ['Core Gameplay & Mechanics', 'Gameplay & Systems Programming', 'Quality Assurance & Playtesting'],
+    workshops: [
+      'Why do we play games? Why do we mod them?',
+      'Should game makers also be game players?',
+      'How do game makers create a fun and engaging level?',
+    ],
     more: 7,
     school: false,
   },
   {
     name: 'Explore: Git',
     short: 'Version control basics',
-    about: 'Save, share and undo work like a game studio.',
-    unlocks: 'Version control lessons, unlocked as you go',
-    skills: ['Version control', 'Working in a team'],
-    workshops: ['Why save versions', 'Your first commit', 'Branches'],
-    more: 4,
+    about: 'Version control fundamentals: save, share and undo work the way game studios do.',
+    unlocks: 'Sessions to be announced',
+    skills: ['Project & Workflow Management'],
+    workshops: ['To be announced'],
+    more: 0,
     school: false,
   },
 ]

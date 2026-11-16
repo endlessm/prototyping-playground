@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "72gqz1aee7sdfypp",
+  "artifact": "hx8cj5m2mbdf111m",
+  "artifactTitle": "1.4 Signed In",
+  "anchor": {
+    "kind": "link",
+    "label": "Link \"No path chosen yet → Choose a Path\"",
+    "at": {
+      "x": 0.7,
+      "y": 0.6974
+    },
+    "selector": "a:nth-of-type(2)",
+    "tag": "a",
+    "path": "._auth_1ec72_48 > ._authColumn_1ec72_88 > ._stack_1ec72_315 > ._logic_1ec72_927 > a",
+    "text": "No path chosen yet → Choose a Path",
+    "box": {
+      "left": 1534,
+      "top": 681,
+      "width": 370,
+      "height": 38,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-09T22:44:57.659Z",
+  "messages": [
+    {
+      "id": "zp993qpbwp8gch80",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Label \"Chose Teach path → No team yet\"",
+      "createdAt": "2026-11-09T22:42:37.124Z"
+    },
+    {
+      "id": "pbbctcmx79c82018",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in 1.4 Signed In.vue: the row now reads \"Chose Teach path → No team yet\". It linked to 2.4 Choose a Path, which no longer fits, so it now opens 3.1 After Sign-Up, where the team is created. Say if you'd rather it went elsewhere.",
+      "createdAt": "2026-11-09T22:45:21.966Z"
+    }
+  ]
+}

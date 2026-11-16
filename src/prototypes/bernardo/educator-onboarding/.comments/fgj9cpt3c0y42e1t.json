@@ -1,0 +1,55 @@
+{
+  "formatVersion": 1,
+  "id": "fgj9cpt3c0y42e1t",
+  "artifact": "fn0y0cv72hrdd8q8",
+  "artifactTitle": "1.1 Join",
+  "anchor": {
+    "kind": "paragraph",
+    "label": "Paragraph \"Profile check after Google, GitHub or M…\"",
+    "at": {
+      "x": 0.1622,
+      "y": 0.825
+    },
+    "selector": "div:nth-of-type(6) > p",
+    "tag": "p",
+    "path": "._auth_1ec72_48 > ._authColumn_1ec72_88 > ._stack_1ec72_315 > ._logic_1ec72_927 > p",
+    "text": "Profile check after Google, GitHub or Microsoft 5 Single sign-on works the same way: coming back from Google, GitHub or…",
+    "box": {
+      "left": 1534,
+      "top": 885,
+      "width": 370,
+      "height": 20,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-09T22:23:00.772Z",
+  "sentToAgent": {
+    "by": {
+      "contributor": "ma1xykkc2j3d2x24"
+    },
+    "at": "2026-11-09T22:05:41.091Z"
+  },
+  "messages": [
+    {
+      "id": "msv4n10q1hw6tb6f",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "new label \"WITH GOOGLE, GITHUB OR MICROSOFT: DOES PROFILE EXIST?\"",
+      "createdAt": "2026-11-09T22:02:10.212Z"
+    },
+    {
+      "id": "364gt24dmck13rjk",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in 1.1 Join.vue, Hi-Fi and Lo-Fi: the sign-in routing box now reads \"WITH GOOGLE, GITHUB OR MICROSOFT: DOES PROFILE EXIST?\".",
+      "createdAt": "2026-11-09T22:08:31.038Z"
+    }
+  ]
+}

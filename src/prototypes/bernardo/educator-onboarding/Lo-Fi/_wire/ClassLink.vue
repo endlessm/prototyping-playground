@@ -35,7 +35,7 @@ const csv = ref<CsvStep | null>(props.csv ?? null)
         <span :class="s.small" style="font-size: 12px">Class Link</span>
         <div :class="s.row">
           <span :class="[s.input, s.grow]" style="display: flex; align-items: center; background: #eee">
-            studio.endlessstudios.com/signup?code=SPRING-GM
+            studio.endlessstudios.com/signup/?code=SPRING-GM
           </span>
           <Button>Copy Link</Button>
         </div>
@@ -52,7 +52,7 @@ const csv = ref<CsvStep | null>(props.csv ?? null)
       </div>
     </Card>
     <div :class="s.columns" style="gap: 14px">
-      <Field label="Seats" hint="Max Number Of Users. The link stops at 5.">
+      <Field label="Seats" hint="Max number of users. The link stops at 5.">
         <template v-if="walkthrough" #note><Marker :flow="5" :n="2" /></template>
         <Input value="5" />
       </Field>

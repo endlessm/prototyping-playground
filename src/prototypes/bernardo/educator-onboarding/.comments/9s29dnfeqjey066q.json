@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "9s29dnfeqjey066q",
+  "artifact": "hx8cj5m2mbdf111m",
+  "artifactTitle": "1.4 Signed In",
+  "anchor": {
+    "kind": "link",
+    "label": "Link \"Under 18, no path chosen yet → Choose a…\"",
+    "at": {
+      "x": 0.2378,
+      "y": 0.6638
+    },
+    "selector": "a:nth-of-type(3)",
+    "tag": "a",
+    "path": "._auth_zbkl8_48 > ._authColumn_zbkl8_88 > ._stack_zbkl8_315 > ._logic_zbkl8_927 > a",
+    "text": "Under 18, no path chosen yet → Choose a Path (Under 18)",
+    "box": {
+      "left": 1534,
+      "top": 757,
+      "width": 370,
+      "height": 58,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-10T20:54:14.402Z",
+  "messages": [
+    {
+      "id": "xs313h2cqxd8at7w",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "remove \"(Under 18)\"",
+      "createdAt": "2026-11-10T20:52:44.913Z"
+    },
+    {
+      "id": "hr39398btp4dekzp",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in 1.4 Signed In.vue: now \"Under 18, no path chosen yet → Choose a Path\". It still opens 2.5 Choose a Path (Under 18).",
+      "createdAt": "2026-11-10T20:53:04.484Z"
+    }
+  ]
+}

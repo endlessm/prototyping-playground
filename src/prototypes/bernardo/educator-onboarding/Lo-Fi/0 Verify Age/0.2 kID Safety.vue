@@ -19,7 +19,7 @@ import Title from '../_wire/Title.vue'
       Some features are limited on your account to help keep you safe and follow youth protection laws in your country.
     </Lead>
     <Lead>You'll have the option to unlock these features by asking a parent or trusted adult to approve access.</Lead>
-    <Button block to="Lo-Fi/1 Join and Log In/1.1 Join">Ok!</Button>
+    <Button block to="Lo-Fi/1 Join and Log In/1.1 Join">OK!</Button>
     <span style="text-align: center; font-size: 12px"><TextLink>Learn more</TextLink></span>
   </AuthPage>
 </template>

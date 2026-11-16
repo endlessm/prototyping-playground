@@ -4,7 +4,7 @@ import Marker from './Marker.vue'
 import Subtitle from './Subtitle.vue'
 import s from './ui.module.css'
 
-defineProps<{ title: string; lead: string; note?: number }>()
+defineProps<{ title: string; lead?: string; note?: number }>()
 </script>
 
 <template>
@@ -13,6 +13,6 @@ defineProps<{ title: string; lead: string; note?: number }>()
       <Subtitle>{{ title }}</Subtitle>
       <Marker v-if="note" :flow="4" :n="note" />
     </div>
-    <Lead>{{ lead }}</Lead>
+    <Lead v-if="lead">{{ lead }}</Lead>
   </div>
 </template>

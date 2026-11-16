@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "a451590sp7b0fjyj",
+  "artifact": "7ka739h9yt3903g2",
+  "artifactTitle": "5.7 Starting Soon",
+  "anchor": {
+    "kind": "element",
+    "label": "Element <span._seatDots_j838v_814>",
+    "at": {
+      "x": 0.839,
+      "y": 0.4
+    },
+    "selector": "div:nth-of-type(4) > div > span:nth-of-type(2) > span",
+    "tag": "span",
+    "path": "._content_j838v_254 > ._stack_j838v_317 > ._row_j838v_325 > ._row_j838v_325 > ._seatDots_j838v_814",
+    "text": "",
+    "box": {
+      "left": 1523,
+      "top": 707,
+      "width": 164,
+      "height": 10,
+      "viewport": 2102
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T14:57:54.633Z",
+  "messages": [
+    {
+      "id": "xe4dq3dfs5xdy7nb",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Ao invés de bolinhas, coloque uma barra de progresso. Se houverem 200 alunos em uma classe, nao quero 200 bolinhas.",
+      "createdAt": "2026-11-11T14:55:59.526Z"
+    },
+    {
+      "id": "qqqy06w0jse7m332",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done: the dots are now a progress bar of seats taken against seats free, with the count beside it. The same bar replaced the dots on the 3.4 board cards and the seat bars on 5.1 and 5.5, so no class draws one mark per seat anymore.",
+      "createdAt": "2026-11-11T14:58:13.074Z"
+    }
+  ]
+}

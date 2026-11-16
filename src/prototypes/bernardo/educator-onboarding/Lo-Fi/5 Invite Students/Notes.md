@@ -11,8 +11,8 @@ Each number matches a marker on the screens; hover a marker to read its note the
 
 **[5.1 Class Link](./5.1%20Class%20Link.vue)**
 
-1. Main path is one shareable class link and code, built on today's enrollment codes (/signup?code=…). Homeschool co-ops already talk in a group chat, so Maya can paste one link there instead of collecting five addresses.
-2. Seats is today's "Max Number Of Users" field. The link stops working when the class is full or after the expiry date, which limits damage if the link leaks. "Approve each learner" is the extra guard for a public link.
+1. Main path is one shareable class link and code, built on today's enrollment codes (/signup/?code=…). Homeschool co-ops already talk in a group chat, so Maya can paste one link there instead of collecting five addresses.
+2. Seats is today's "Max number of users" field, which the app sets on each enrollment code. The link stops working when the class is full or after the expiry date, which limits damage if the link leaks. "Approve each learner" is the extra guard for a public link.
 3. An NDPA cohort can't have an open link: restricted accounts must be created by the institution. The link card is replaced by the CSV upload, and the cohort waits for Endless's review.
 
 **[5.3 Upload CSV](./5.3%20Upload%20CSV.vue)**

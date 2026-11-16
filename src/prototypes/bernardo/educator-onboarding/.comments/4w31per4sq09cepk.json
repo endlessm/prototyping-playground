@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "4w31per4sq09cepk",
+  "artifact": "7ka739h9yt3903g2",
+  "artifactTitle": "5.7 Starting Soon",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"7 of 12 seats taken · Link expires Apr …\"",
+    "at": {
+      "x": 0.3947,
+      "y": 0.25
+    },
+    "selector": "div:nth-of-type(4) > div:nth-of-type(3) > span",
+    "tag": "span",
+    "path": "._app_j838v_124 > ._content_j838v_254 > ._card_j838v_538 > ._row_j838v_325 > ._row_j838v_325",
+    "text": "7 of 12 seats taken · Link expires Apr 13, 2027",
+    "box": {
+      "left": 542,
+      "top": 808,
+      "width": 434,
+      "height": 16,
+      "viewport": 2102
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T14:56:12.004Z",
+  "messages": [
+    {
+      "id": "xy56fb2785mw3n4b",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "this part needs to be related do the \"Who's in\" session.",
+      "createdAt": "2026-11-11T14:45:24.088Z"
+    },
+    {
+      "id": "4ra84t3n2mxy55nk",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done: the seats moved to the Who's in header (seat dots plus \"7 of 12 seats taken\"). The link's expiry now sits under the link, in the Join link shared row.",
+      "createdAt": "2026-11-11T14:48:18.133Z"
+    }
+  ]
+}

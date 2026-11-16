@@ -43,7 +43,7 @@ const problems = [
       <div :class="[s.stack, s.tight]">
         <span :class="[s.row, s.label]">
           One learner per row, with these columns:
-          <Marker v-if="walkthrough" :flow="5" :n="4" />
+          <Marker v-if="walkthrough" :flow="5" :n="3" />
         </span>
         <span :class="s.small" >{{ columns.join(' · ') }}</span>
         <span :class="s.small" >
@@ -79,7 +79,7 @@ const problems = [
       <Panel v-else>
         <span :class="[s.row, s.label]">
           Rows to fix
-          <Marker v-if="walkthrough" :flow="5" :n="5" />
+          <Marker v-if="walkthrough" :flow="5" :n="4" />
         </span>
         <span v-for="problem in problems" :key="problem.row" :class="s.error">
           Row {{ problem.row }}: {{ problem.text }}
@@ -88,7 +88,7 @@ const problems = [
       </Panel>
 
       <span :class="s.small" >
-        Each learner gets their own invitation to finish signing up. Age and parent consent stay on their side.
+        Each learner gets their own invitation to finish signing up.
       </span>
     </template>
 
@@ -96,17 +96,16 @@ const problems = [
       v-if="walkthrough"
       title="After Add"
       :rows="[
-        { label: 'Open class → invitations sent → Team Dashboard', to: 'Hi-Fi/5 Invite Students/5.5 Team Dashboard' },
-        { label: 'NDPA class → restricted accounts made after Endless reviews the class', to: 'Hi-Fi/4 Create Cohort/4.4 In Review' },
+        { label: 'Invitations sent → the Learners tab shows who’s in', to: 'Hi-Fi/5 Cohort/5.5 Learners Joined' },
       ]"
     />
 
     <template #footer>
       <Button variant="ghost" @click="emit('close')">Cancel</Button>
       <Button v-if="step === 'choose'" variant="disabled">Add Learners</Button>
-      <Button v-else-if="step === 'ready'" to="Hi-Fi/5 Invite Students/5.5 Team Dashboard">Add 5 Learners</Button>
+      <Button v-else-if="step === 'ready'" to="Hi-Fi/5 Cohort/5.5 Learners Joined">Add 5 Learners</Button>
       <template v-else>
-        <Button variant="secondary" to="Hi-Fi/5 Invite Students/5.5 Team Dashboard">Add the 4 Ready</Button>
+        <Button variant="secondary" to="Hi-Fi/5 Cohort/5.5 Learners Joined">Add the 4 Ready</Button>
         <Button @click="step = 'ready'">Upload Fixed File</Button>
       </template>
     </template>

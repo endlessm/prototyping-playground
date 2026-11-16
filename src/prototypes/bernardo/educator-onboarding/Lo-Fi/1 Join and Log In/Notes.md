@@ -18,7 +18,7 @@ Each number matches a marker on the screens; hover a marker to read its note the
 
 **[1.2 Returning](./1.2%20Returning.vue)**
 
-3. Returning: the password field appears on the same page, under the email. The email stays an open field, so fixing a typo needs no Change step or going back.
+3. Returning: the password field appears on the same page, under the email. The email stays an open field, so fixing a typo needs no Change step or going back. The page doesn’t greet the educator by name or say “welcome back”: anyone can type an email here, and a greeting would tell them it has an account.
 
 ## Risk
 

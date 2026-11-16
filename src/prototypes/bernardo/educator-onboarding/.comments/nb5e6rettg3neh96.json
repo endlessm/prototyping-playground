@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "nb5e6rettg3neh96",
+  "artifact": "m3ghhtmpby66j14c",
+  "artifactTitle": "3.5 Team Settings",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"MOMaya Okaformaya.okafor@gmail.comTeam …\"",
+    "at": {
+      "x": 0.0047,
+      "y": 0.1217
+    },
+    "selector": "div:nth-of-type(4) > div",
+    "tag": "div",
+    "path": "._page_j838v_5 > ._app_j838v_124 > ._content_j838v_254 > ._stack_j838v_317 > ._list_j838v_885",
+    "text": "MOMaya Okaformaya.okafor@gmail.comTeam LeaderDFDana Fischerdana.fischer@outlook.comTeam Member",
+    "box": {
+      "left": 524,
+      "top": 377,
+      "width": 1279,
+      "height": 115,
+      "viewport": 2102
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T14:11:46.730Z",
+  "messages": [
+    {
+      "id": "ywz27fsqgg6t20zd",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "card branco",
+      "createdAt": "2026-11-11T14:10:33.392Z"
+    },
+    {
+      "id": "4cqk4gyvnhrq46sj",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Feito em TeamDashboard.vue: a lista de membros agora tem fundo branco, como os outros cards.",
+      "createdAt": "2026-11-11T14:11:44.020Z"
+    }
+  ]
+}

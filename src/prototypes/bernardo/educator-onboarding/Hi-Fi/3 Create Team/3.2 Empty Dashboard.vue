@@ -1,11 +1,11 @@
 <!-- @studio-id rqdt3g5dve4dehkz -->
 <script setup lang="ts">
-import EmptyDashboard from '../_ui/EmptyDashboard.vue'
+import TeamDashboard from '../_ui/TeamDashboard.vue'
 
-// A one-time banner explains the team; the empty state leads to the first cohort.
-// Rename (banner or the pencil by the name) opens a modal; Create Your First Cohort opens the cohort wizard.
+// A one-time banner says the team was made and Maya leads it; the empty Cohorts tab leads to the first cohort.
+// Rename (banner or the pencil by the name) opens a modal; Create Your First Cohort opens Create a class.
 </script>
 
 <template>
-  <EmptyDashboard team="Maya's Team" walkthrough />
+  <TeamDashboard team="Maya's Team" banner="made" solo walkthrough />
 </template>

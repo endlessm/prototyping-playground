@@ -11,12 +11,13 @@ import Title from '../_ui/Title.vue'
 import s from '../_ui/ui.module.css'
 
 // A known email: the password appears on the same page, under the email, which stays an open field.
+// No name and no "welcome back": that would tell anyone who types an email that it has an account.
 </script>
 
 <template>
   <AuthPage>
-    <Title :flow="1" :note="3">Welcome back, Maya</Title>
-    <Lead>Enter your password to log in.</Lead>
+    <Title :flow="1" :note="3">Log in to Endless Studios</Title>
+    <Lead>Enter your password to continue.</Lead>
     <Field label="Email">
       <Input type="email" value="maya.okafor@gmail.com" />
     </Field>

@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "qmssztcg4e9d8wrd",
+  "artifact": "fn0y0cv72hrdd8q8",
+  "artifactTitle": "1.1 Join",
+  "anchor": {
+    "kind": "link",
+    "label": "Link \"Profile found → password appears on thi…\"",
+    "at": {
+      "x": 0.8622,
+      "y": 0.6447
+    },
+    "selector": "div:nth-of-type(5) > a:nth-of-type(1)",
+    "tag": "a",
+    "path": "._auth_1ec72_48 > ._authColumn_1ec72_88 > ._stack_1ec72_315 > ._logic_1ec72_927 > a",
+    "text": "Profile found → password appears on this page",
+    "box": {
+      "left": 1534,
+      "top": 745,
+      "width": 370,
+      "height": 38,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-09T22:39:58.649Z",
+  "messages": [
+    {
+      "id": "nstqhnh47236pmfp",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "label: \"Profile Exists\"",
+      "createdAt": "2026-11-09T22:23:36.958Z"
+    },
+    {
+      "id": "whtk4eftas6gmv37",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in 1.1 Join.vue: the row now reads \"Profile Exists\".",
+      "createdAt": "2026-11-09T22:33:11.961Z"
+    }
+  ]
+}

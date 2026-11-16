@@ -8,8 +8,7 @@ import s from '../_ui/ui.module.css'
 
 // No Create Team step: the team is made for the educator while the dashboard loads.
 const routes = [
-  { label: "Create “Maya's Team” with Maya as owner → Team Dashboard", to: 'Hi-Fi/3 Create Team/3.2 Empty Dashboard' },
-  { label: "Joined from a co-teacher invite → that team's dashboard instead", to: 'Hi-Fi/3 Create Team/3.6 Joined as Co-Teacher' },
+  { label: "Create “Maya's Team” with Maya as Team Leader → Team Dashboard", to: 'Hi-Fi/3 Create Team/3.2 Empty Dashboard' },
 ]
 </script>
 

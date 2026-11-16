@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "tqbanxrn8dk09n3d",
+  "artifact": "hx8cj5m2mbdf111m",
+  "artifactTitle": "1.4 Signed In",
+  "anchor": {
+    "kind": "link",
+    "label": "Link \"Chose Teach path → No team yet\"",
+    "at": {
+      "x": 0.0649,
+      "y": 0.5658
+    },
+    "selector": "a:nth-of-type(2)",
+    "tag": "a",
+    "path": "._auth_zbkl8_48 > ._authColumn_zbkl8_88 > ._stack_zbkl8_315 > ._logic_zbkl8_927 > a",
+    "text": "Chose Teach path → No team yet",
+    "box": {
+      "left": 1534,
+      "top": 649,
+      "width": 370,
+      "height": 38,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-10T20:54:13.749Z",
+  "messages": [
+    {
+      "id": "t6sk11k786cq1yhe",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "add \"Already\" to the start of this sentence",
+      "createdAt": "2026-11-10T20:52:13.998Z"
+    },
+    {
+      "id": "rnmcy2bjfz32sm1b",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in 1.4 Signed In.vue: now \"Already chose Teach path → No team yet\".",
+      "createdAt": "2026-11-10T20:53:02.576Z"
+    }
+  ]
+}

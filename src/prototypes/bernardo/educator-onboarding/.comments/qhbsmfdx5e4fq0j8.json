@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "qhbsmfdx5e4fq0j8",
+  "artifact": "j49encebtzz2e3rt",
+  "artifactTitle": "5.4 Managers and Facilitators",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"MOMaya Okafor (you)maya.okafor@gmail.co…\"",
+    "at": {
+      "x": 0.0063,
+      "y": 0.569
+    },
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2)",
+    "tag": "div",
+    "path": "._app_j838v_124 > ._content_j838v_254 > ._stack_j838v_317 > ._stack_j838v_317 > ._list_j838v_885",
+    "text": "MOMaya Okafor (you)maya.okafor@gmail.comCreated it",
+    "box": {
+      "left": 524,
+      "top": 325,
+      "width": 1279,
+      "height": 58,
+      "viewport": 2102
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-11T14:57:54.995Z",
+  "messages": [
+    {
+      "id": "bnm3v7phaa7wkhd2",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "fundo branco",
+      "createdAt": "2026-11-11T14:21:13.060Z"
+    },
+    {
+      "id": "jpzq77g4v6me6nx0",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Feito em CohortPage.vue: a lista agora tem fundo branco. A lista de Learners, na 5.5, também ficou branca, para ficar igual.",
+      "createdAt": "2026-11-11T14:22:54.928Z"
+    }
+  ]
+}
