@@ -24,7 +24,7 @@ import {
   skillNameProblem,
 } from './content-rules.ts'
 import type { SystemAssetKind, SystemIcons, SystemLibrary } from './contract.ts'
-import { exampleId, overviewId } from './preview-ids.ts'
+import { exampleId, overviewId, playgroundId } from './preview-ids.ts'
 import type { ComponentPropsDoc } from './props.ts'
 import type { InstalledSystem } from './registry.ts'
 import { isBinaryFile, isTextContent } from './text-files.ts'
@@ -89,6 +89,12 @@ export interface CatalogComponent {
   source: string | null
   /** In the examples file's order. */
   examples: CatalogExample[]
+  /**
+   * The preview document's ID for its playground, the component file
+   * mounted alone with the props the studio sends; null without a
+   * component file.
+   */
+  playground: string | null
 }
 
 export interface CatalogDocument {
@@ -364,6 +370,7 @@ export function systemCatalog(
           title: exampleTitle(name),
           id: exampleId(system.id, component.slug, name),
         })),
+        playground: source ? playgroundId(system.id, component.slug) : null,
       }
     }),
     overview: existsSync(path.join(dir, OVERVIEW_FILE))
@@ -489,21 +496,34 @@ export function skillProblems(
 
 /**
  * What a system's preview document shows besides views: each example of
- * its component pages and its own Overview content, by preview ID, with the
+ * its component pages, each component's playground (its component file,
+ * after its examples) and its own Overview content, by preview ID, with the
  * absolute path of the file it comes from.
  */
 export function systemPreviews(system: InstalledSystem) {
   const componentsDir = path.join(system.dir, 'components')
-  const entries: { id: string; file: string; example?: string }[] = []
+  const entries: {
+    id: string
+    file: string
+    example?: string
+    playground?: true
+  }[] = []
   for (const component of discoverComponents(filesIn(componentsDir))) {
-    const { examples } = component.files
-    if (!examples) continue
-    const file = path.join(componentsDir, examples)
-    for (const name of exampleNames(readFileSync(file, 'utf8')))
+    const { examples, source } = component.files
+    if (examples) {
+      const file = path.join(componentsDir, examples)
+      for (const name of exampleNames(readFileSync(file, 'utf8')))
+        entries.push({
+          id: exampleId(system.id, component.slug, name),
+          file,
+          example: name,
+        })
+    }
+    if (source)
       entries.push({
-        id: exampleId(system.id, component.slug, name),
-        file,
-        example: name,
+        id: playgroundId(system.id, component.slug),
+        file: path.join(componentsDir, source),
+        playground: true,
       })
   }
   const overview = path.join(system.dir, OVERVIEW_FILE)

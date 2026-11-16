@@ -13,7 +13,11 @@ import {
   systemDocsReport,
   systemDocuments,
 } from '../../tooling/systems/catalog'
-import { exampleId, overviewId } from '../../tooling/systems/preview-ids'
+import {
+  exampleId,
+  overviewId,
+  playgroundId,
+} from '../../tooling/systems/preview-ids'
 import { loadSystems } from '../../tooling/systems/registry'
 
 let root: string
@@ -252,6 +256,7 @@ describe('a system’s catalog', () => {
             id: exampleId('hrbr000000000001', 'button', 'WithIcon'),
           },
         ],
+        playground: playgroundId('hrbr000000000001', 'button'),
       },
       {
         slug: 'card',
@@ -265,6 +270,7 @@ describe('a system’s catalog', () => {
         examplesFile: null,
         source: null,
         examples: [],
+        playground: null,
       },
       {
         slug: 'icon-button',
@@ -278,6 +284,7 @@ describe('a system’s catalog', () => {
         examplesFile: null,
         source: at('IconButton.vue'),
         examples: [],
+        playground: playgroundId('hrbr000000000001', 'icon-button'),
       },
     ])
     expect(catalog.overview).toBeNull()

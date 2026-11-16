@@ -1,7 +1,8 @@
 // The message channel between the studio and a preview document. Versioned
 // and validated as transport, not as a security boundary: both sides are
 // same-origin repository code. The studio configures which artifact the
-// document shows; the document says it is ready, how rendering went
+// document shows and, for a component's playground, the props it mounts the
+// component with; the document says it is ready, how rendering went
 // (status) and whether what it shows matches the saved source (lifecycle).
 // It asks the studio to open another studio address (navigate), so links in a
 // view go through the studio's history, and passes on the studio's keyboard
@@ -31,7 +32,15 @@ export interface Envelope {
   artifact: string
 }
 
-export type HostMessage = Envelope & { kind: 'configure' }
+/** Props for a component the document mounts by itself, as plain JSON. */
+export type PreviewProps = Record<string, unknown>
+
+/**
+ * `configure` names the artifact to show; `props` sets a playground's props,
+ * replacing the last ones whole: a key left out takes the component's default.
+ */
+export type HostMessage = Envelope &
+  ({ kind: 'configure' } | { kind: 'props'; props: PreviewProps })
 
 /**
  * The studio commands a preview passes on while it has focus: the source,
@@ -111,8 +120,50 @@ function isEnvelope(
   )
 }
 
+const MAX_DEPTH = 16
+const MAX_TEXT = 65_536
+const MAX_NODES = 2048
+
+/**
+ * Plain JSON values only, so a message never carries functions, class
+ * instances or anything the document would assign as more than data. A key
+ * named `__proto__` is refused, as assigning it would change a prototype.
+ */
+export function isPreviewProps(value: unknown): value is PreviewProps {
+  let nodes = 0
+  const seen = new Set<object>()
+  const json = (item: unknown, depth: number): boolean => {
+    if (++nodes > MAX_NODES || depth > MAX_DEPTH) return false
+    if (item === null || typeof item === 'boolean') return true
+    if (typeof item === 'number') return Number.isFinite(item)
+    if (typeof item === 'string') return item.length <= MAX_TEXT
+    if (typeof item !== 'object' || seen.has(item)) return false
+    seen.add(item)
+    if (Array.isArray(item))
+      return item.every((entry) => json(entry, depth + 1))
+    return plainRecord(item) && fields(item, depth)
+  }
+  const plainRecord = (item: object): item is Record<string, unknown> => {
+    const prototype = Object.getPrototypeOf(item)
+    return prototype === Object.prototype || prototype === null
+  }
+  const fields = (item: Record<string, unknown>, depth: number) =>
+    Object.getOwnPropertySymbols(item).length === 0 &&
+    Object.keys(item).every(
+      (key) => key !== '__proto__' && json(item[key], depth + 1),
+    )
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    !Array.isArray(value) &&
+    json(value, 0)
+  )
+}
+
 export function isHostMessage(value: unknown): value is HostMessage {
-  return isEnvelope(value) && value.kind === 'configure'
+  if (!isEnvelope(value)) return false
+  if (value.kind === 'configure') return true
+  return value.kind === 'props' && isPreviewProps(value.props)
 }
 
 export function isPreviewMessage(value: unknown): value is PreviewMessage {
