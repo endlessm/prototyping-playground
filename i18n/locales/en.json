@@ -1050,9 +1050,6 @@
     "overview": {
       "openInSystems": "Open in Systems"
     },
-    "variants": {
-      "soon": "Every example of {name}, side by side, will show here. Until then, see them on its page in Systems."
-    },
     "playground": {
       "soon": "{name} with controls for its props will show here."
     }
