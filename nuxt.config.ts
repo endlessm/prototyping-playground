@@ -83,6 +83,12 @@ export default defineNuxtConfig({
             tagPosition: 'head',
             tagPriority: 'critical',
           },
+          // Inflight's review widget, on the deployed site only.
+          {
+            src: 'https://inflight.co/widget.js',
+            'data-org': '7mzue71a',
+            async: true,
+          },
         ],
       },
     },
