@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { placeIllustrations } from './illustrations'
 import { tabSide } from './layout'
-import { FADE, FADED, FLOATING, levelTint, NOW_HALO, NOW_TINT } from './look'
+import { FADE, FADED, levelTint, NOW_HALO, NOW_TINT } from './look'
 import { usePathView } from './path'
 import { useMapState } from './state'
 import { placeDetail, type PlaceId } from './story'
@@ -30,18 +30,18 @@ const detail = computed(() => placeDetail(story.value, props.id))
 
 <template>
   <div
-    class="area absolute border-[1.5px] border-dashed"
+    class="area absolute border"
     :class="[tint.area, FADE, { [FADED]: dim }]"
     :style="{ left: `${rect.x}px`, top: `${rect.y}px`, width: `${rect.width}px`, height: `${rect.height}px` }"
   >
     <div
-      class="absolute top-0 z-3 flex -translate-y-1/2 items-center gap-2.5 rounded-[14px] bg-default py-1.5 pr-3.5 pl-2 whitespace-nowrap"
-      :class="[FLOATING, tabSide(place.kind) === 'left' ? 'left-5' : 'right-5', { [`outline-2 outline-primary-500 ${NOW_HALO}`]: now }]"
+      class="absolute top-0 z-3 flex -translate-y-1/2 items-center gap-2 rounded-full bg-default py-1 pr-3 pl-1.5 whitespace-nowrap"
+      :class="[tabSide(place.kind) === 'left' ? 'left-5' : 'right-5', { [`outline-2 outline-primary-500 ${NOW_HALO}`]: now }]"
     >
       <img
         :src="placeIllustrations[place.kind]"
         alt=""
-        :class="place.kind === 'Platform' ? 'mx-0.5 h-auto w-[30px]' : 'size-[30px]'"
+        :class="place.kind === 'Platform' ? 'mx-0.5 h-auto w-6' : 'size-6'"
       />
       <div>
         <p class="font-heading text-sm leading-[18px] font-bold tracking-tight text-highlighted">{{ place.name }}</p>

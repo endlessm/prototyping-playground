@@ -135,7 +135,7 @@ const shelves = computed(() =>
 <template>
   <div
     ref="frame"
-    class="relative overflow-hidden bg-muted bg-[radial-gradient(var(--ui-border-accented)_1px,transparent_1.2px)] bg-size-[20px_20px]"
+    class="relative overflow-hidden bg-default"
     :class="{ 'cursor-grab touch-none': pannable, 'cursor-grabbing select-none': drag }"
     role="region"
     aria-label="Roles map"

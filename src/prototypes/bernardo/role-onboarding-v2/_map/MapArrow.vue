@@ -33,13 +33,13 @@ const part = computed(() => [FADE, { 'opacity-22': props.dim }])
     >
       <div class="flex size-full items-center justify-center">
         <span
-          class="flex flex-col items-center rounded-[10px] border px-2 pt-[3px] pb-1 text-xs whitespace-nowrap"
+          class="flex flex-col items-center rounded-md px-1.5 py-0.5 text-xs whitespace-nowrap"
           :class="pillTint[look]"
         >
           <span class="leading-3" :class="{ 'text-dimmed': plain }">
             {{ arrow.label.verb }}
           </span>
-          <span class="leading-3.5 font-semibold" :class="{ 'text-highlighted': plain }">
+          <span class="leading-3.5 font-medium" :class="{ 'text-toned': plain }">
             {{ arrow.label.object }}
           </span>
         </span>

@@ -36,7 +36,7 @@ const sizes = {
 <template>
   <section
     v-if="rect"
-    class="absolute z-4 rounded-3xl border border-default bg-default px-3 pt-(--shelf-top) pb-(--shelf-bottom)"
+    class="absolute z-4 rounded-3xl border border-muted bg-default px-3 pt-(--shelf-top) pb-(--shelf-bottom)"
     :class="[FLOATING, FADE, { [FADED]: dim }]"
     :style="{
       ...sizes,
@@ -59,7 +59,7 @@ const sizes = {
         v-for="program in programs"
         :key="program.name"
         class="mt-(--shelf-gap) flex h-(--shelf-row) items-center gap-2.5 rounded-xl px-2"
-        :class="{ [`outline-[1.5px] outline-secondary-500/35 ${RUNS_TINT}`]: program.cohorts > 0 }"
+        :class="{ [RUNS_TINT]: program.cohorts > 0 }"
         :data-program="program.name"
       >
         <img :src="programIllustration" alt="" class="size-7" />

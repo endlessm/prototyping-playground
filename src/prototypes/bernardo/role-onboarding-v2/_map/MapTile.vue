@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { roleIllustrations } from './illustrations'
 import { usePathView } from './path'
 import { useMapState } from './state'
-import { FADE, FADED, FLOATING, NOW_HALO, NOW_TINT, roleColor, SELECTED_HALO } from './look'
+import { FADE, FADED, FLOATING, NOW_HALO, NOW_TINT, roleColor, roleText, SELECTED_HALO } from './look'
 import { joinStep, mapRoles, nodeTitle, type NodeId } from './story'
 
 // One person on the map, or a Cohort's learners as one tile: their illustration, name, role and the step they joined
@@ -33,7 +33,7 @@ const edge = computed(() =>
     ? `border-2 border-info-500 ${SELECTED_HALO}`
     : now.value
       ? `border-2 border-primary-500 ${NOW_HALO}`
-      : 'border border-default',
+      : 'border border-muted',
 )
 </script>
 
@@ -50,7 +50,7 @@ const edge = computed(() =>
     <span
       v-if="numbered"
       class="absolute top-2 left-2 grid size-5 place-items-center rounded-full text-xs leading-none font-bold"
-      :class="now ? 'bg-primary-600 text-inverted' : 'bg-elevated text-toned'"
+      :class="now ? 'bg-primary-600 text-inverted' : 'text-dimmed'"
       aria-hidden="true"
     >
       {{ step }}
@@ -66,11 +66,11 @@ const edge = computed(() =>
     >
       New
     </UBadge>
-    <img :src="roleIllustrations[node.role]" alt="" class="size-14" />
-    <span class="mt-2 px-1.5 text-center text-xs leading-4 font-semibold text-highlighted">{{ title }}</span>
-    <UBadge :color="roleColor(node.role)" variant="soft" size="md" class="mt-1.5 whitespace-nowrap">
+    <img :src="roleIllustrations[node.role]" alt="" class="mt-1 size-12" />
+    <span class="mt-2.5 px-1.5 text-center text-xs leading-4 font-semibold text-highlighted">{{ title }}</span>
+    <span class="mt-0.5 text-xs leading-4 font-medium whitespace-nowrap" :class="roleText[roleColor(node.role)]">
       {{ role.label }}
-    </UBadge>
+    </span>
   </button>
 </template>
 

@@ -14,7 +14,7 @@ const atMax = computed(() => props.scale >= props.max - 0.001)
 
 <template>
   <div
-    class="absolute top-3 right-3 z-10 flex items-center gap-0.5 rounded-lg border border-default bg-default p-1"
+    class="absolute top-3 right-3 z-10 flex items-center gap-0.5 rounded-lg border border-muted bg-default p-1"
     :class="FLOATING"
     role="toolbar"
     aria-label="Zoom"
