@@ -3,10 +3,11 @@ import AppSectionNav from '../../../../app/components/AppSectionNav.vue'
 import type { SystemCatalog } from '../../systems/composables/useSystemCatalog'
 import { labAddress, matchingComponents, tabAt } from '../utils/lab'
 
-// The Lab's section panel: a system picker when more than one active system
-// has components, a search, then the system's components in the Systems
-// navigation's order, the open one highlighted. Moving to another component
-// keeps the open tab.
+// The Lab's section panel, titled with the open system: a system picker
+// when more than one active system has components, a search (titles and
+// addresses first, then descriptions), then the system's components in the
+// Systems navigation's order, the open one highlighted. Moving to another
+// component keeps the open tab.
 const props = defineProps<{
   system: SystemCatalog
   /** The systems the Lab offers (`labSystems`). */
@@ -43,6 +44,17 @@ function onEscape(event: KeyboardEvent) {
 
 <template>
   <AppSectionNav :label="t('lab.title')">
+    <template #header>
+      <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+        <h2 class="truncate text-sm font-semibold text-highlighted">
+          {{ t('lab.title') }}
+        </h2>
+        <!-- With a picker, the picker names the system. -->
+        <p v-if="systems.length <= 1" class="truncate text-xs text-muted">
+          {{ system.label }}
+        </p>
+      </div>
+    </template>
     <div class="space-y-2 px-1 pt-1">
       <USelect
         v-if="systems.length > 1"

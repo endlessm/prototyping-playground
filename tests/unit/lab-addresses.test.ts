@@ -99,4 +99,21 @@ describe('the component search', () => {
     expect(matchingComponents(list, '')).toEqual(list)
     expect(matchingComponents(list, 'zzz')).toEqual([])
   })
+
+  test('matches descriptions too, listing title and address matches first', () => {
+    const list = [
+      { ...component('banner', 'Banner'), description: 'A dialog-like strip.' },
+      {
+        ...component('modal', 'Modal'),
+        description: 'A dialog over the page.',
+      },
+      { ...component('dialog', 'Dialog'), description: null },
+      { ...component('card', 'Card'), description: 'Holds one thing.' },
+    ]
+    expect(matchingComponents(list, 'dialog').map(({ slug }) => slug)).toEqual([
+      'dialog',
+      'banner',
+      'modal',
+    ])
+  })
 })

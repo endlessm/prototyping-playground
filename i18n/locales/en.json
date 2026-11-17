@@ -1027,6 +1027,7 @@
       "blank": "Nothing shows with these values yet. Try another value in Props. Some components need content only code can give, such as a slot or a list of items."
     },
     "title": "Lab",
+    "viewComponents": "View components",
     "openInLab": "Open in Lab",
     "openSystem": "Open {name} in Systems",
     "systemEmpty": "{name} has no components yet.",

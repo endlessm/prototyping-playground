@@ -53,7 +53,7 @@ watch(
     <template #body>
       <div ref="page" class="contents">
         <div v-if="!system" class="mx-auto w-full max-w-3xl px-4 py-6">
-          <AppNotFound />
+          <AppNotFound to="/lab" label="lab.viewComponents" />
         </div>
         <NuxtPage v-else :system="system" />
       </div>

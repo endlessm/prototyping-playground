@@ -55,13 +55,24 @@ export function labLanding(
   return first ? labAddress(first.id, first.components[0]!.slug) : null
 }
 
-/** The components whose title or address holds the search's words. */
+/**
+ * The components whose title or address holds the search's words, then
+ * those whose description does, each in the list's order.
+ */
 export function matchingComponents<
-  T extends Pick<CatalogComponent, 'slug' | 'title'>,
+  T extends Pick<CatalogComponent, 'slug' | 'title'> & {
+    description?: string | null
+  },
 >(components: T[], query: string) {
   const words = query.trim().toLowerCase()
   if (!words) return components
-  return components.filter(({ slug, title }) =>
-    [slug, title].some((value) => value.toLowerCase().includes(words)),
+  const holds = (value: string | null | undefined) =>
+    Boolean(value?.toLowerCase().includes(words))
+  const named = components.filter(
+    ({ slug, title }) => holds(slug) || holds(title),
   )
+  const described = components.filter(
+    (component) => !named.includes(component) && holds(component.description),
+  )
+  return [...named, ...described]
 }

@@ -6,5 +6,5 @@ import AppNotFound from '../../../../app/components/AppNotFound.vue'
 </script>
 
 <template>
-  <AppNotFound />
+  <AppNotFound to="/lab" label="lab.viewComponents" />
 </template>

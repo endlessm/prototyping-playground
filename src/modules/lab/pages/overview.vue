@@ -10,6 +10,7 @@ import { useLabComponent } from '../composables/useLabComponent'
 // Overview: the component's guide, Source and Props as its Systems page
 // shows them, without the examples, and a link to that page. Files that
 // couldn't load are listed with Try again; whatever did load still shows.
+// It reads at the Systems page's width.
 const { system, component, data, reload } = useLabComponent()
 const { t } = useI18n()
 
@@ -29,41 +30,43 @@ const systemsPage = computed(() =>
 </script>
 
 <template>
-  <ULink
-    :to="systemsPage"
-    class="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-highlighted hover:underline"
-  >
-    <UIcon name="i-lucide-shapes" class="size-3.5 text-muted" />
-    {{ t('lab.overview.openInSystems') }}
-  </ULink>
-  <ComponentLoadErrors
-    v-if="data?.errors.length"
-    :errors="data.errors"
-    @retry="retry"
-  />
+  <div class="max-w-3xl">
+    <ULink
+      :to="systemsPage"
+      class="mb-2 inline-flex items-center gap-1.5 text-sm font-medium text-highlighted hover:underline"
+    >
+      <UIcon name="i-lucide-shapes" class="size-3.5 text-muted" />
+      {{ t('lab.overview.openInSystems') }}
+    </ULink>
+    <ComponentLoadErrors
+      v-if="data?.errors.length"
+      :errors="data.errors"
+      @retry="retry"
+    />
 
-  <ComponentGuide
-    v-if="data?.page"
-    :key="attempt"
-    :source="data.page"
-    :file="component.doc!"
-  />
-  <i18n-t
-    v-else-if="!component.doc"
-    keypath="systems.component.noPage"
-    tag="p"
-    class="text-sm text-muted"
-    scope="global"
-  >
-    <template #file>
-      <code class="font-mono">{{ stem }}.md</code>
-    </template>
-  </i18n-t>
+    <ComponentGuide
+      v-if="data?.page"
+      :key="attempt"
+      :source="data.page"
+      :file="component.doc!"
+    />
+    <i18n-t
+      v-else-if="!component.doc"
+      keypath="systems.component.noPage"
+      tag="p"
+      class="text-sm text-muted"
+      scope="global"
+    >
+      <template #file>
+        <code class="font-mono">{{ stem }}.md</code>
+      </template>
+    </i18n-t>
 
-  <ComponentSource :system="system" :component="component" />
+    <ComponentSource :system="system" :component="component" />
 
-  <ComponentProps
-    v-if="component.source && data?.props"
-    :components="[data.props]"
-  />
+    <ComponentProps
+      v-if="component.source && data?.props"
+      :components="[data.props]"
+    />
+  </div>
 </template>

@@ -179,6 +179,11 @@ function scenarios(start: () => Promise<RunningStudio>) {
     await expect.poll(() => link(components(page), 'Button').count()).toBe(0)
     await page.getByRole('searchbox', { name: 'Search components' }).fill('zzz')
     await visible(page.getByText('No matching components.'))
+    // Descriptions match too: Button's says it "Starts an action."
+    await page
+      .getByRole('searchbox', { name: 'Search components' })
+      .fill('action')
+    await visible(link(components(page), 'Button'))
   })
 
   test('[LAB-02] a second active system with components can be picked', async () => {
@@ -236,6 +241,9 @@ function scenarios(start: () => Promise<RunningStudio>) {
     await expect
       .poll(() => page.title())
       .toBe(`Page not found — Lab — ${STUDIO}`)
+    // The way back stays in the Lab.
+    await link(page, 'View components').click()
+    await expect.poll(pathname(page), { timeout: 30_000 }).toBe(button)
   })
 
   test('[LAB-04] Overview shows the guide, Source and Props, and links to Systems and back', async () => {
@@ -245,6 +253,9 @@ function scenarios(start: () => Promise<RunningStudio>) {
     await visible(heading(page, 'Source'))
     await visible(page.getByText("Harbor's own button, drawn for the docks."))
     await visible(page.getByRole('button', { name: /^Props/ }))
+    // At the Systems page's reading width, not the bench's.
+    const guide = await heading(page, 'When to use').boundingBox()
+    expect(guide?.width).toBeLessThanOrEqual(768)
     await link(page, 'Open in Systems').click()
     await expect
       .poll(pathname(page), { timeout: 30_000 })

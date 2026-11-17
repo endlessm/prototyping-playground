@@ -1,5 +1,12 @@
 <script setup lang="ts">
-// Unknown addresses, prototypes and artifacts.
+// Unknown addresses, prototypes and artifacts. An area may offer its own
+// way back instead of all prototypes.
+const props = defineProps<{
+  /** Where the way back leads; all prototypes by default. */
+  to?: string
+  /** The way back's i18n key. */
+  label?: string
+}>()
 const { t } = useI18n()
 const deployed = !import.meta.dev
 </script>
@@ -11,8 +18,11 @@ const deployed = !import.meta.dev
     </p>
     <p class="text-sm text-muted">
       {{ t('notFound.message') }}
-      <ULink to="/prototypes" class="text-primary hover:underline">
-        {{ t('notFound.home') }}
+      <ULink
+        :to="props.to ?? '/prototypes'"
+        class="text-primary hover:underline"
+      >
+        {{ t(props.label ?? 'notFound.home') }}
       </ULink>
     </p>
     <!-- Archived work isn't on the deployed site, and nothing there says

@@ -47,6 +47,22 @@ function update(name: string, value: unknown) {
 }
 
 const panel = useTemplateRef('panel')
+
+// An address holding props the component lacks or values that don't fit is
+// rewritten without them, so passing the link on doesn't carry them along.
+watch(
+  () => [data.value?.props, route.query] as const,
+  ([loaded, query]) => {
+    if (!loaded) return
+    const clean = writeQuery(controls.value, values.value)
+    const keys = Object.keys(query)
+    const same =
+      keys.length === Object.keys(clean).length &&
+      keys.every((key) => query[key] === clean[key])
+    if (!same) void router.replace({ query: clean })
+  },
+  { immediate: true },
+)
 </script>
 
 <template>

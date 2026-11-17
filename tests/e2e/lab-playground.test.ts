@@ -249,6 +249,12 @@ function scenarios(start: () => Promise<RunningStudio>) {
 
   test('[LAB-05] props only code can set are listed with their type', async () => {
     const page = await open(playground('button'))
+    // With one system in the Lab, the list's header names it.
+    await visible(
+      page
+        .getByRole('complementary', { name: 'Lab' })
+        .getByText('Harbor', { exact: true }),
+    )
     const row = page.getByRole('listitem').filter({ hasText: 'Set in code' })
     await visible(row)
     expect(await row.textContent()).toContain('ui')
@@ -307,6 +313,8 @@ function scenarios(start: () => Promise<RunningStudio>) {
     )
     const button = stage(page).locator('button')
     await expect.poll(() => button.textContent()).toBe('Ahoy')
+    // What was ignored leaves the address, so passing it on doesn't spread it.
+    await expect.poll(query(page)).toEqual({ color: 'error', label: 'Ahoy' })
     expect(await button.getAttribute('data-color')).toBe('error')
     expect(await button.getAttribute('data-size')).toBe('md')
     expect(await button.isDisabled()).toBe(false)
