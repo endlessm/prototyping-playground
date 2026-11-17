@@ -48,6 +48,7 @@ import {
 import { fileCompileProblem } from '../systems/compile.ts'
 import { experimentBreakdownId } from '../systems/preview-ids.ts'
 import { loadSystems, systemsFolder } from '../systems/registry.ts'
+import { startComponent } from '../systems/start-source.ts'
 import { moduleChecks } from '../checks/module-checks.ts'
 import { serveSystemAssets } from '../systems/serve-assets.ts'
 import {
@@ -246,8 +247,10 @@ declare module '${MANIFEST_MODULE}' {
         const own = document.system
           ? systemPreviews(document.system)
               .filter(
-                ({ file, playground }) =>
-                  nuxt.options.dev || !playground || !fileCompileProblem(file),
+                ({ file, playground, breakdown }) =>
+                  nuxt.options.dev ||
+                  !(playground || breakdown) ||
+                  !fileCompileProblem(startComponent(file) ?? file),
               )
               .map(({ id, file, example, playground, breakdown }) => ({
                 id,

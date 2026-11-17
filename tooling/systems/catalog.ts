@@ -519,7 +519,7 @@ export function skillProblems(
 /**
  * What a system's preview document shows besides views: each example of
  * its component pages, each component's playground (its component file,
- * after its examples) and Breakdown (the same file, instrumented), and its
+ * after its examples) and Breakdown (its start source, instrumented), and its
  * own Overview content, by preview ID, with the
  * absolute path of the file it comes from.
  */
