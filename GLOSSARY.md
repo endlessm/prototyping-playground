@@ -55,7 +55,7 @@ One example of a component's examples file, as the Lab shows it beside the other
 _Avoid_: named state (a view's variation).
 
 **Playground**:
-A component file rendered alone in the Lab, with a control for each prop and its changed values in the address.
+A component file rendered alone in the Lab, with a control for each prop, opened with the values of its Default example (or samples) and its changed values in the address.
 _Avoid_: Endless Prototyping Playground (the whole environment).
 
 **App shell**:

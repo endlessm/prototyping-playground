@@ -1,6 +1,7 @@
 // Playground: a designer tries a component's props with controls built
-// from its `defineProps`, and the real component file updates in the
-// system's preview document without the frame reloading. Changed values
+// from its `defineProps`, seeded from its Default example or a sample so it
+// never opens empty, and the real component file updates in the system's
+// preview document without the frame reloading. Changed values
 // live in the address, so a reload or a shared link restores them, a value
 // that no longer fits is ignored, and Reset clears them. Components the
 // panel can't start say why. On a disposable copy of
@@ -156,6 +157,59 @@ const shown = computed(() => {
 <template><span>{{ shown }}</span></template>
 `,
 )
+// Shaped like the Endless Studios alert: its Default example writes its
+// copy and look as attributes, inside a wrapper the seeds skip.
+write(
+  'components/alert/alert.vue',
+  `<script setup lang="ts">
+defineProps<{
+  title?: string
+  description?: string
+  color?: 'info' | 'warning'
+  dismissible?: boolean
+}>()
+</script>
+<template>
+  <div role="alert" :data-color="color">
+    <strong>{{ title }}</strong> <span>{{ description }}</span>
+    <button v-if="dismissible">Dismiss</button>
+  </div>
+</template>
+`,
+)
+write(
+  'components/alert/alert.examples.vue',
+  `<script setup lang="ts">
+import { Example } from '#studio/examples'
+import HarborAlert from './alert.vue'
+</script>
+
+<template>
+  <Example name="Calm"><HarborAlert title="All clear" /></Example>
+  <Example name="Default">
+    <div class="w-full" title="Wrapper">
+      <HarborAlert
+        class="w-full"
+        color="warning"
+        title="Storm due at dusk"
+        description="Bring the boats in early."
+        dismissible
+        :actions="[{ label: 'Ok' }]"
+      />
+    </div>
+  </Example>
+</template>
+`,
+)
+// No examples and a label without a default: a sample stands in.
+write(
+  'components/tag/tag.vue',
+  `<script setup lang="ts">
+defineProps<{ label?: string }>()
+</script>
+<template><span>{{ label }}</span></template>
+`,
+)
 // Edited on disk while its playground is open.
 const BUOY = (word: string) => `<script setup lang="ts">
 defineProps<{ name?: string }>()
@@ -269,6 +323,52 @@ function scenarios(
       loading: 'true',
     })
     expect(await page.title()).toBe(`Playground — Button — Lab — ${STUDIO}`)
+  })
+
+  test('[LAB-05] it opens with its Default example’s values, keeps the address empty, and Reset returns to them', async () => {
+    const page = await open(playground('alert'))
+    const alert = stage(page).getByRole('alert')
+    await visible(alert.getByText('Storm due at dusk'))
+    await visible(alert.getByText('Bring the boats in early.'))
+    await visible(alert.getByRole('button', { name: 'Dismiss' }))
+    expect(await alert.getAttribute('data-color')).toBe('warning')
+    expect(query(page)()).toEqual({})
+    const title = page.getByRole('textbox', { name: 'title', exact: true })
+    expect(await title.inputValue()).toBe('Storm due at dusk')
+    expect(
+      await page
+        .getByRole('switch', { name: 'dismissible', exact: true })
+        .getAttribute('aria-checked'),
+    ).toBe('true')
+
+    await title.fill('Fog by morning')
+    await visible(alert.getByText('Fog by morning'))
+    await select(page, 'color', 'Default')
+    await expect.poll(() => alert.getAttribute('data-color')).toBeNull()
+    await expect.poll(query(page)).toEqual({
+      title: 'Fog by morning',
+      color: '',
+    })
+    // Set back to its seed, a value leaves the address again.
+    await title.fill('Storm due at dusk')
+    await expect.poll(query(page)).toEqual({ color: '' })
+
+    await page.getByRole('button', { name: 'Reset', exact: true }).click()
+    await expect.poll(query(page)).toEqual({})
+    await expect.poll(() => alert.getAttribute('data-color')).toBe('warning')
+    await visible(alert.getByText('Storm due at dusk'))
+  })
+
+  test('[LAB-05] a text prop with nothing to start from shows a sample from its name', async () => {
+    const page = await open(playground('tag'))
+    await visible(stage(page).getByText('Label', { exact: true }))
+    expect(
+      await page
+        .getByRole('textbox', { name: 'label', exact: true })
+        .inputValue(),
+    ).toBe('Label')
+    expect(query(page)()).toEqual({})
+    expect(await page.getByText(/^Nothing shows/).count()).toBe(0)
   })
 
   test('[LAB-05] props only code can set are listed with their type', async () => {

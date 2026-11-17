@@ -13,17 +13,26 @@ import {
 } from '../utils/playground'
 
 // Playground: the real component file on the stage, beside controls built
-// from its props. Changed values live in the address, replaced rather than
-// pushed so typing doesn't fill the history; what no longer fits a control
-// is dropped. A component without a component file, with props that can't
-// be read, or with a required prop the panel can't fill says why instead.
+// from its props and seeded from its Default example, so it opens showing
+// something and Reset comes back to that. Changed values live in the
+// address, replaced rather than pushed so typing doesn't fill the history;
+// what no longer fits a control is dropped. A component without a
+// component file, with props that can't be read, or with a required prop
+// the panel can't fill says why instead.
 // Escape in the stage brings the keyboard back to the controls.
 const { component, system, stem, data, reload } = useLabComponent()
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
-const controls = computed(() => data.value?.props?.props.map(controlFor) ?? [])
+const controls = computed(() => {
+  const loaded = data.value
+  return (
+    loaded?.props?.props.map((prop) =>
+      controlFor(prop, loaded.seeds[prop.name]),
+    ) ?? []
+  )
+})
 const values = computed(() => readValues(controls.value, route.query))
 const blocking = computed(() => blockingProp(controls.value, values.value))
 const props = computed(() => stageProps(controls.value, values.value))

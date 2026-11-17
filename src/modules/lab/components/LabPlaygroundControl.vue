@@ -6,7 +6,7 @@ import type { ControlValue, PlaygroundControl } from '../utils/playground'
 // panel can't edit show their type and that code sets them.
 const props = defineProps<{
   control: PlaygroundControl
-  /** The changed value, or undefined at its start. */
+  /** The changed value, or undefined at its start; empty when left out. */
   value: ControlValue | undefined
   disabled?: boolean
 }>()
@@ -15,7 +15,13 @@ const { t } = useI18n()
 
 // Reka's select can't hold undefined, so Default stands in for it.
 const UNSET = '\u0000default'
-const shown = computed(() => props.value ?? props.control.start)
+// An empty value is the prop left out: Default, or an empty field.
+const shown = computed(() => {
+  if (props.value === undefined) return props.control.start
+  return props.value === '' && props.control.kind !== 'text'
+    ? undefined
+    : props.value
+})
 const items = computed(() =>
   props.control.kind === 'select'
     ? [

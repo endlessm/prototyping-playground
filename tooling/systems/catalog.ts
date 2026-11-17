@@ -18,6 +18,7 @@ import {
   kebab,
   type DocsProblem,
 } from './components.ts'
+import { exampleSeeds, type ExampleSeeds } from './example-seeds.ts'
 import { exampleSnippets } from './example-snippets.ts'
 import {
   SKILL_FILE,
@@ -576,6 +577,12 @@ export interface ComponentPageData {
    * split. Empty without an examples file.
    */
   snippets: Record<string, string>
+  /**
+   * The values the Lab's Playground opens with, by prop: the literal
+   * attributes of the component's tag in its Default example. Empty
+   * without an examples file or one that can't be read that way.
+   */
+  seeds: ExampleSeeds
   /** Read from the component's code; null without a component file. */
   props: ComponentPropsDoc | null
   /** Files that couldn't be read, each with why. */
@@ -584,8 +591,9 @@ export interface ComponentPageData {
 
 /**
  * What each component page shows besides the catalog, by `<system ID>/<slug>`:
- * its page and examples text, each example's own code and its props. Props
- * are read with Vue's component metadata tooling, loaded only here.
+ * its page and examples text, each example's own code, the Playground's
+ * seeds and its props. Props are read with Vue's component metadata
+ * tooling, loaded only here.
  */
 export async function componentPages(systems: InstalledSystem[]) {
   const pages: Record<string, ComponentPageData> = {}
@@ -610,6 +618,7 @@ export async function componentPages(systems: InstalledSystem[]) {
         page,
         examples: text,
         snippets: text ? exampleSnippets(text, exampleNames(text)) : {},
+        seeds: text ? exampleSeeds(text, component.slug) : {},
         props: null,
         errors,
       }

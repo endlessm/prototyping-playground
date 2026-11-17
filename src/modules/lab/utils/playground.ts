@@ -1,10 +1,20 @@
 import type { LocationQuery } from 'vue-router'
 import type { PreviewProps } from '../../../../tooling/preview/protocol'
+import {
+  literalValue,
+  NUMBER_LITERAL as NUMBER,
+  STRING_LITERAL as STRING,
+} from '../../../../tooling/systems/literals'
 import type { PropDoc } from '../../../../tooling/systems/props'
 
+export { literalValue }
+
 // Playground's controls, derived from the props metadata alone, so
-// documenting a component is all its playground needs. Values a designer
-// changes live in the address, one query parameter per changed prop.
+// documenting a component is all its playground needs. Each control starts
+// seeded so the component never opens empty: the value its Default example
+// writes, then its declared default, then a sample for text that shows.
+// Values a designer changes live in the address, one query parameter per
+// changed prop; an empty one (`?color=`) leaves a seeded prop out.
 
 export type ControlValue = string | number | boolean
 /** The values changed from their start, by prop name. */
@@ -15,6 +25,8 @@ interface ControlBase {
   type: string
   required: boolean
   description: string
+  /** Its start comes from an example or a sample, so the stage gets it. */
+  seeded: boolean
 }
 
 export type PlaygroundControl = ControlBase &
@@ -34,22 +46,14 @@ export type PlaygroundControl = ControlBase &
 
 // Long enough for any label, short enough for an address.
 const MAX_TEXT = 2000
-const STRING = /^"((?:[^"\\]|\\.)*)"$/
-const SINGLE = /^'((?:[^'\\]|\\.)*)'$/
-const NUMBER = /^-?\d+(\.\d+)?$/
-
-/** A default written as a literal, or undefined for anything computed. */
-export function literalValue(text: string | null): ControlValue | undefined {
-  const value = text?.trim()
-  if (!value) return undefined
-  if (value === 'true') return true
-  if (value === 'false') return false
-  if (NUMBER.test(value)) return Number(value)
-  if (STRING.test(value)) return JSON.parse(value) as string
-  const single = SINGLE.exec(value)
-  if (single) return single[1]!.replace(/\\(.)/g, '$1')
-  return undefined
-}
+// Props whose text shows in the component, so an empty one looks broken.
+const CONTENT = new Set([
+  'label',
+  'title',
+  'description',
+  'placeholder',
+  'text',
+])
 
 // `"a" | "b"`, as the metadata tooling prints a union of string literals.
 function literalUnion(type: string) {
@@ -73,13 +77,31 @@ function fits(control: PlaygroundControl, value: unknown) {
   }
 }
 
-/** The control for one prop, with its starting value. */
-export function controlFor(prop: PropDoc): PlaygroundControl {
+// A sample from the prop's name, such as "Label" or "Model value". It is a
+// value given to the component, as an example's copy is, not studio
+// interface text, so it isn't translated.
+function sampleText(name: string) {
+  const words = name.replace(/([a-z\d])([A-Z])/g, '$1 $2').toLowerCase()
+  return words.charAt(0).toUpperCase() + words.slice(1)
+}
+
+/**
+ * The control for one prop, with its starting value: the prop's `seed` from
+ * the Default example when it fits, otherwise its literal default, and for
+ * text that shows (a label, a title, any required text) still without one, a
+ * sample from its name. A declared default comes before the sample, so the
+ * author's own copy wins over a made-up one.
+ */
+export function controlFor(
+  prop: PropDoc,
+  seed?: ControlValue,
+): PlaygroundControl {
   const base: ControlBase = {
     name: prop.name,
     type: prop.type,
     required: prop.required,
     description: prop.description,
+    seeded: false,
   }
   const parsed = literalValue(prop.default)
   const options = literalUnion(prop.type)
@@ -106,16 +128,39 @@ export function controlFor(prop: PropDoc): PlaygroundControl {
   } else {
     return { ...base, kind: 'code' }
   }
-  if (fits(control, parsed)) control.start = parsed as never
+  if (seed !== undefined && fits(control, seed)) {
+    control.start = seed as never
+    control.seeded = true
+  } else {
+    if (fits(control, parsed)) control.start = parsed as never
+    if (
+      control.kind === 'text' &&
+      !control.start &&
+      (prop.required || CONTENT.has(prop.name))
+    ) {
+      control.start = sampleText(prop.name)
+      control.seeded = true
+    }
+  }
   return control
 }
 
+// Whether the prop may be left out for the component's own default.
+function omittable(control: PlaygroundControl) {
+  if (control.kind === 'select') return control.unset
+  return (
+    (control.kind === 'text' || control.kind === 'number') && !control.required
+  )
+}
+
 // What a control's text in the address means, or undefined when it can't.
+// An empty parameter is a seeded prop left out.
 function fromQuery(control: PlaygroundControl, text: string) {
   switch (control.kind) {
     case 'switch':
       return text === 'true' ? true : text === 'false' ? false : undefined
     case 'number':
+      if (text === '') return text
       return NUMBER.test(text) ? Number(text) : undefined
     default:
       return text
@@ -123,9 +168,11 @@ function fromQuery(control: PlaygroundControl, text: string) {
 }
 
 function isChange(control: PlaygroundControl, value: unknown) {
-  if (!fits(control, value) || value === control.start) return false
-  // An emptied text field is the prop left out.
-  return !(control.kind === 'text' && value === '' && !control.required)
+  // An empty value leaves the prop out, which only changes a seeded one: any
+  // other start is the component's own default. A required text keeps it.
+  if (value === '' && (control.kind !== 'text' || !control.required))
+    return omittable(control) && control.seeded
+  return fits(control, value) && value !== control.start
 }
 
 /** The changed values an address holds; what doesn't fit is dropped. */
@@ -157,7 +204,11 @@ export function writeQuery(
   return query
 }
 
-/** The values after one control changes; undefined or its start drops it. */
+/**
+ * The values after one control changes; its start drops it. Undefined, a
+ * control emptied or set to Default, leaves the prop out: kept as an empty
+ * value when the prop starts with one, so it doesn't spring back.
+ */
 export function changeValue(
   controls: PlaygroundControl[],
   values: PlaygroundValues,
@@ -169,14 +220,18 @@ export function changeValue(
   const next = Object.fromEntries(
     Object.entries(values).filter(([key]) => key !== name),
   )
-  if (isChange(control, value)) next[name] = value!
+  const chosen =
+    value === undefined && (control.kind === 'text' || omittable(control))
+      ? ''
+      : value
+  if (isChange(control, chosen)) next[name] = chosen!
   return next
 }
 
 /**
  * The props the stage renders with: the changed values, and the start of
- * required props, which have no default of their own. Everything else is
- * left out, so it takes the component's default.
+ * seeded and required props. Everything else is left out, so it takes the
+ * component's default, as a prop emptied or set to Default does.
  */
 export function stageProps(
   controls: PlaygroundControl[],
@@ -185,8 +240,12 @@ export function stageProps(
   const props: PreviewProps = {}
   for (const control of controls) {
     const value = values[control.name]
-    if (value !== undefined) props[control.name] = value
-    else if (control.required && control.start !== undefined)
+    if (value !== undefined) {
+      if (value !== '' || !omittable(control)) props[control.name] = value
+    } else if (
+      (control.seeded || control.required) &&
+      control.start !== undefined
+    )
       props[control.name] = control.start
   }
   return props
