@@ -155,7 +155,8 @@ export function breakdownPlugin(options: {
     enforce: 'pre',
     async resolveId(source, importer) {
       if (instrumentedSource(source)) return posix(path.resolve(fsPath(source)))
-      const real = importer && instrumentedSource(importer)
+      // The copy's script block, as the build splits it out, imports too.
+      const real = importer && instrumentedSource(importer.split('?')[0]!)
       if (!real) return
       const resolved = await this.resolve(source, real, { skipSelf: true })
       if (!resolved || resolved.external) return resolved
