@@ -1074,6 +1074,36 @@
       "tryAgain": "Try again",
       "chooseFirst": "Choose a value for {prop} to start {name}.",
       "codeOnly": "Playground can’t start {name}. Its required prop {prop} can only be set in code."
+    },
+    "experiments": {
+      "tab": "Experiments",
+      "label": "Experiments with {name}",
+      "description": "Everyone’s explorations of {name}. Each one is a view in its maker’s own “{name} experiments” prototype.",
+      "new": "New experiment",
+      "empty": "No experiments yet.",
+      "join": "Join the studio to make experiments. Ask your agent to register you with yarn studio join.",
+      "noComponent": "Experiments start from the component file. Add {file} next to the component to make one.",
+      "loading": "Loading experiment…",
+      "error": "This experiment couldn’t render.",
+      "openAsView": "Open as view",
+      "duplicate": "Duplicate",
+      "duplicateNamed": "Duplicate {name}",
+      "all": "All experiments",
+      "stage": "{name} in the Lab",
+      "dialog": {
+        "newTitle": "New experiment",
+        "newDescription": "Starts from {name} as it is, in your “{name} experiments” prototype.",
+        "duplicateTitle": "Duplicate experiment",
+        "duplicateDescription": "Copies {name} into your own “{component} experiments” prototype.",
+        "name": "Name",
+        "placeholder": "Softer corners",
+        "addName": "Add a name.",
+        "create": "Create experiment",
+        "creating": "Creating",
+        "duplicate": "Duplicate",
+        "duplicating": "Duplicating",
+        "cancel": "Cancel"
+      }
     }
   }
 }

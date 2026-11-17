@@ -5,6 +5,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { isResourceId } from '../identity/resource-id.ts'
+import { readExperiment } from './experiments.ts'
 import { byOrder, compare, parseOrder } from './order.ts'
 import { artifactTitle } from './titles.ts'
 import type {
@@ -86,6 +87,25 @@ export interface Manifest {
   /** The system new prototypes start with. */
   defaultSystem: string | null
   contributors: ManifestContributor[]
+  /** The Lab's experiments, in the prototypes' order. */
+  experiments?: ManifestExperiment[]
+}
+
+/**
+ * A view that explores a system component in the Lab: its first comments
+ * name the component (`./experiments.ts`), in its prototype's own system.
+ */
+export interface ManifestExperiment {
+  /** The view's permanent ID. */
+  id: string
+  title: string
+  /** Its prototype's permanent ID. */
+  prototype: string
+  systemId: string
+  /** The component's address in the system, such as `button`. */
+  component: string
+  /** The day it was made, or null. */
+  created: string | null
 }
 
 export interface ManifestArtifact {
@@ -277,6 +297,7 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
   )
   const prototypes: ManifestPrototype[] = []
   const artifacts: Record<string, ManifestArtifact[]> = {}
+  const experiments: ManifestExperiment[] = []
   const owners = new Map<string, string>()
 
   for (const contributor of directories(base))
@@ -412,6 +433,14 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
         }
         if (type.fidelity?.isLofi(source)) artifact.lofi = true
         artifacts[id].push(artifact)
+        const experiment = readExperiment(source)
+        if (experiment && experiment.systemId === meta.systemId)
+          experiments.push({
+            id: artifactId,
+            title: artifact.title,
+            prototype: id,
+            ...experiment,
+          })
       }
     }
 
@@ -435,6 +464,7 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
           ...(avatar ? { avatar } : {}),
         }),
       ),
+      experiments,
     },
     artifacts,
     problems,
@@ -523,6 +553,9 @@ export function forDeploy(
         ...manifest,
         prototypes: kept,
         systems: manifest.systems.filter(({ id }) => !archivedSystems.has(id)),
+        experiments: manifest.experiments?.filter(({ prototype }) =>
+          kept.some(({ id }) => id === prototype),
+        ),
       },
       artifacts: Object.fromEntries(
         kept.map(({ id }) => [id, built.artifacts[id] ?? []]),
