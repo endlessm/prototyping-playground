@@ -6,6 +6,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, test } from 'vitest'
 import {
+  experimentOf,
   readExperiment,
   writeExperiment,
 } from '../../tooling/manifest/experiments'
@@ -44,6 +45,20 @@ describe('the experiment marker', () => {
     ).toBeNull()
     expect(readExperiment('<!-- @lab-experiment -->\n')).toBeNull()
     expect(readExperiment('<template><p /></template>')).toBeNull()
+  })
+
+  test('[LAB-41] counts only when it names its prototype’s own system', () => {
+    const source = `<!-- @lab-experiment ${SYSTEM} button -->\n<template><p /></template>\n`
+    expect(experimentOf(source, { systemId: SYSTEM })).toEqual({
+      systemId: SYSTEM,
+      component: 'button',
+      created: null,
+    })
+    expect(experimentOf(source, { systemId: 'othersystem00001' })).toBeNull()
+    expect(experimentOf(source, {})).toBeNull()
+    expect(
+      experimentOf('<template><p /></template>', { systemId: SYSTEM }),
+    ).toBeNull()
   })
 
   test('[LAB-41] is written after the permanent identity, or replaces the one there', () => {

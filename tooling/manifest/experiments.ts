@@ -47,6 +47,18 @@ export function readExperiment(source: string): ExperimentMarker | null {
 }
 
 /**
+ * The component a prototype's view explores. A marker naming another system
+ * than the prototype's is ignored: the view is an ordinary view.
+ */
+export function experimentOf(
+  source: string,
+  prototype: { systemId?: unknown },
+): ExperimentMarker | null {
+  const marker = readExperiment(source)
+  return marker && marker.systemId === prototype.systemId ? marker : null
+}
+
+/**
  * The source naming the component it explores: the comment replaces the one
  * there, or goes after the permanent identity's, or first.
  */

@@ -13,7 +13,7 @@ import {
   FileServiceError,
   versionOf,
 } from '../../../../tooling/files/source.ts'
-import { readExperiment } from '../../../../tooling/manifest/experiments.ts'
+import { experimentOf } from '../../../../tooling/manifest/experiments.ts'
 import {
   CONFIG_FILE,
   readConfig,
@@ -179,8 +179,8 @@ export async function saveExperiment(
   const refusal = access.refusalFor(found.contributor, found.meta)
   if (refusal) throw new FileServiceError(403, refusal.code, refusal.message)
   const source = readFileSync(file, 'utf8')
-  const marker = readExperiment(source)
-  if (!marker || marker.systemId !== found.meta.systemId) throw gone()
+  const marker = experimentOf(source, found.meta)
+  if (!marker) throw gone()
   if (versionOf(source) !== request.base)
     throw new FileServiceError(
       409,

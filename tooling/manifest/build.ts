@@ -6,7 +6,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { isResourceId } from '../identity/resource-id.ts'
 import { posix } from '../paths.ts'
-import { readExperiment } from './experiments.ts'
+import { experimentOf } from './experiments.ts'
 import { byOrder, compare, parseOrder } from './order.ts'
 import { artifactTitle } from './titles.ts'
 import type {
@@ -434,8 +434,8 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
         }
         if (type.fidelity?.isLofi(source)) artifact.lofi = true
         artifacts[id].push(artifact)
-        const experiment = readExperiment(source)
-        if (experiment && experiment.systemId === meta.systemId)
+        const experiment = experimentOf(source, meta)
+        if (experiment)
           experiments.push({
             id: artifactId,
             title: artifact.title,

@@ -32,7 +32,7 @@ import {
 } from '../../../../tooling/files/source.ts'
 import { nameProblem } from '../../../../tooling/files/tree.ts'
 import {
-  readExperiment,
+  experimentOf,
   writeExperiment,
   type ExperimentMarker,
 } from '../../../../tooling/manifest/experiments.ts'
@@ -204,8 +204,9 @@ function experimentsPrototype(
     if (owner !== me.studioId || meta.systemId !== marker.systemId) continue
     for (const file of treeFiles(dir)) {
       if (!file.toLowerCase().endsWith(EXTENSION)) continue
-      const explores = readExperiment(
+      const explores = experimentOf(
         readFileSync(path.join(dir, file), 'utf8'),
+        meta,
       )
       if (explores?.component === marker.component) return found
     }
@@ -401,9 +402,8 @@ export async function duplicateExperiment(
       continue
     }
     const source = readFileSync(file, 'utf8')
-    const marker = readExperiment(source)
-    if (marker && marker.systemId === meta.systemId)
-      original = { source, marker }
+    const marker = experimentOf(source, meta)
+    if (marker) original = { source, marker }
     break
   }
   if (!original) throw gone()

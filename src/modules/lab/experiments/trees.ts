@@ -11,7 +11,7 @@ import {
   PROTOTYPES_FOLDER,
   treeFiles,
 } from '../../../../tooling/manifest/build.ts'
-import { readExperiment } from '../../../../tooling/manifest/experiments.ts'
+import { experimentOf } from '../../../../tooling/manifest/experiments.ts'
 import type { IdentityFileType } from '../../../../tooling/identity/file-types.ts'
 import {
   CONFIG_FILE,
@@ -72,7 +72,7 @@ export async function experimentBreakdowns(options: {
       } catch {
         continue
       }
-      if (readExperiment(source)?.systemId !== system.id) continue
+      if (!experimentOf(source, meta)) continue
       let id: string | null
       try {
         id = view.identity.read(source)
