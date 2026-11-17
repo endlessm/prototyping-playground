@@ -61,7 +61,7 @@ function hover(knob: (typeof knobs.value)[number], on: boolean) {
     v-if="knobs.length"
     role="group"
     :aria-label="t('lab.knobs.inspector', { name: node.name })"
-    class="flex min-w-0 items-center gap-0.5 overflow-x-auto [scrollbar-width:none]"
+    class="flex min-w-28 items-center gap-0.5 overflow-x-auto [scrollbar-width:none]"
   >
     <LabKnob
       v-for="knob in knobs"
