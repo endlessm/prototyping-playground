@@ -15,6 +15,7 @@ import { importGuard } from '../checks/imports.ts'
 import { loadRegistry } from '../modules/registry.ts'
 import { standInNames } from './stand-ins.ts'
 import { breakdownFile, breakdownPlugin } from './breakdown.ts'
+import { knobSafelist } from './knobs.ts'
 
 import {
   COMPILE_ROUTE,
@@ -139,7 +140,7 @@ function writeEntry(document: PreviewDocument, options: PreviewOptions) {
       writeFileSync(
         path.join(dir, 'preview.css'),
         // The system's own files (its examples and overview), and the views.
-        `@import '${systemFile(app.stylesheet)}';\n@source '${relative(document.system!.dir)}';\n@source '${relative(options.prototypesDir)}';\n`,
+        `@import '${systemFile(app.stylesheet)}';\n@source '${relative(document.system!.dir)}';\n@source '${relative(options.prototypesDir)}';\n${knobSources(app.nuxtUi?.colors)}`,
       )
       lines.push(`import './preview.css'`)
     }
@@ -179,6 +180,13 @@ ${LIGHT_ONLY_SCRIPT}
   )
   return dir
 }
+
+// Every class a Breakdown knob can write, so a value chosen live renders
+// before any file uses it.
+const knobSources = (colors: string[] = []) =>
+  knobSafelist({ colors })
+    .map((line) => `@source inline("${line}");\n`)
+    .join('')
 
 export const VIEWS_RESOLVED = `\0${VIEWS_MODULE}`
 
