@@ -5,7 +5,7 @@
 // colours) gets a tinted outline. Found from the page itself
 // (`data-lab-node`, `data-slot`), and drawn again whenever the pieces move,
 // so a knob scrubbed while hovered keeps its highlight on the new shape.
-import type { KnobHighlight } from '../protocol.ts'
+import { pieceOf, slotOf, type KnobHighlight } from '../protocol.ts'
 import { ownsSlot } from './pieces.ts'
 
 interface Rect {
@@ -17,7 +17,8 @@ interface Rect {
 
 // The elements a target names: a piece's own, or one theme slot of it.
 function targetElements(target: string): Element[] {
-  const [node, slot] = target.split('#') as [string, string | undefined]
+  const node = pieceOf(target)
+  const slot = slotOf(target)
   const own = [
     ...document.querySelectorAll(`[data-lab-node~="${CSS.escape(node)}"]`),
   ]

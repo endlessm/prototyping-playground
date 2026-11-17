@@ -14,6 +14,7 @@ import {
   type KnobFamily,
   type KnobTheme,
 } from '../../../../tooling/preview/knobs.ts'
+import { pieceOf } from '../../../../tooling/preview/protocol.ts'
 import {
   directive,
   ROOT_NODE,
@@ -327,7 +328,7 @@ export function writeBreakdownChanges(
   const written: SourceChange[] = []
   const skipped: SourceChange[] = []
   for (const change of changes) {
-    const tag = tags.get(change.node.split('#')[0]!)
+    const tag = tags.get(pieceOf(change.node))
     if (!tag || (change.slot !== 'class' && tag.kind !== 'nuxt-ui')) {
       skipped.push(change)
       continue

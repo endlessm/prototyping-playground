@@ -79,6 +79,28 @@ export type HostMessage = Envelope &
 /** Node ID → theme slot (or `class`) → classes. */
 export type PreviewOverrides = Record<string, Record<string, string>>
 
+/*
+ * A Breakdown's node IDs, which the studio, the preview document and the
+ * tooling all read: `root` for the file the Breakdown shows, then each
+ * piece's path (`root>USidebar/UPopover/Notifications>UButton`, `/` inside
+ * a file, `>` into the next, `~2` for a second tag of a name), and a theme
+ * slot after `#` (`root>UButton#label`).
+ */
+
+/** The root of a Breakdown's tree: the file it shows. */
+export const ROOT_NODE = 'root'
+/** A theme slot's ID under its piece. */
+export const slotId = (piece: string, slot: string) => `${piece}#${slot}`
+/** The piece a node ID names: itself, or the piece a theme slot belongs to. */
+export const pieceOf = (id: string) => id.split('#')[0]!
+/** The theme slot a node ID names, or none for a piece. */
+export const slotOf = (id: string): string | undefined => id.split('#')[1]
+/** The piece whose file holds a piece's tag; none for the root. */
+export const fileOwnerOf = (id: string) => {
+  const piece = pieceOf(id)
+  return piece.includes('>') ? piece.slice(0, piece.lastIndexOf('>')) : null
+}
+
 /** What a hovered knob changes on a piece. */
 export interface KnobHighlight {
   /** The theme slot's node ID, `<node>#<slot>`, or a piece's own. */

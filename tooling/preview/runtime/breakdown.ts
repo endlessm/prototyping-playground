@@ -8,16 +8,20 @@
 // override store, fed by the studio's knobs (node ID → slot → classes), so
 // the pieces re-render from it without a reload.
 import { reactive, type ComponentInternalInstance, type VNode } from 'vue'
-import type { KnobHighlight, NodeBox, NodeBoxes } from '../protocol.ts'
+import {
+  pieceOf,
+  ROOT_NODE,
+  slotOf,
+  type KnobHighlight,
+  type NodeBox,
+  type NodeBoxes,
+  type PreviewOverrides,
+} from '../protocol.ts'
 import { createKnobLayer } from './knobs.ts'
 import { ownsSlot } from './pieces.ts'
 
-/** The root of the tree: the file the Breakdown mounts. */
-export const ROOT_NODE = 'root'
 /** The slot a Nuxt UI piece without theme slots reports its classes under. */
 const SLOTLESS_ROOT = 'base'
-/** Node ID → slot (a theme slot, or `class`) → classes. */
-export type BreakdownOverrides = Record<string, Record<string, string>>
 
 type Hook = ((vnode: VNode) => void) & { labId: string }
 type UiObject = Record<string, unknown>
@@ -95,7 +99,7 @@ export interface Breakdown {
     Hook
   >
   /** Replaces the overrides; the pieces re-render from them. */
-  setOverrides: (next: BreakdownOverrides) => void
+  setOverrides: (next: PreviewOverrides) => void
   /** The pieces to outline, by node ID (`<node>#<slot>` for a theme slot). */
   highlight: (hover: string | null, selected: string | null) => void
   /** The area a hovered knob changes, drawn in its colour, or none. */
@@ -112,7 +116,7 @@ export interface Breakdown {
 export function createBreakdown(
   post: (nodes: Record<string, NodeBoxes>) => void,
 ): Breakdown {
-  const overrides = reactive<BreakdownOverrides>({})
+  const overrides = reactive<PreviewOverrides>({})
   // How each piece reports its theme slots: not at all (0), from its
   // `data-slot` elements (1), or as its own element, for a Nuxt UI piece
   // whose theme has no slots (2).
@@ -235,7 +239,8 @@ export function createBreakdown(
   }
 
   function boxesOf(id: string) {
-    const [node, slot] = id.split('#')
+    const node = pieceOf(id)
+    const slot = slotOf(id)
     const found = measured[node!]
     if (!found) return []
     return slot === undefined ? found.boxes : (found.slots[slot] ?? [])

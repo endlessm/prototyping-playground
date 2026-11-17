@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import type { KnobHighlight } from '../../../../tooling/preview/protocol'
+import {
+  pieceOf,
+  slotId,
+  type KnobHighlight,
+} from '../../../../tooling/preview/protocol'
 import {
   KNOB_FAMILIES,
   knobLabel,
@@ -34,9 +38,7 @@ const props = defineProps<{
 const emit = defineEmits<{ highlight: [knob: KnobHighlight | null] }>()
 const { t } = useI18n()
 
-const owner = computed(() =>
-  props.node.slot ? props.node.id.split('#')[0]! : props.node.id,
-)
+const owner = computed(() => pieceOf(props.node.id))
 // The piece's own theme slots: the one a slot's card names, or those its
 // slot cards name; none for a piece whose theme has no slots.
 const theirs = computed(() =>
@@ -65,7 +67,7 @@ function hover(knob: (typeof knobs.value)[number], on: boolean) {
     'highlight',
     on
       ? {
-          target: `${owner.value}#${knob.slot}`,
+          target: slotId(owner.value, knob.slot),
           area: KNOB_FAMILIES[knob.family].area,
           color: KNOB_FAMILIES[knob.family].color,
         }

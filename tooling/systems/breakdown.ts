@@ -14,7 +14,10 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { parse } from 'vue/compiler-sfc'
 import { posix, within } from '../paths.ts'
+import { ROOT_NODE, slotId } from '../preview/protocol.ts'
 import type { InstalledSystem } from './registry.ts'
+
+export { ROOT_NODE }
 
 /** Where a piece comes from, as its source chip says. */
 export type BreakdownSource =
@@ -41,7 +44,6 @@ export interface BreakdownNode {
 export type BreakdownResult =
   { tree: BreakdownNode; error: null } | { tree: null; error: string }
 
-export const ROOT_NODE = 'root'
 /** The slot a Nuxt UI piece without theme slots reports its classes under. */
 export const SLOTLESS_ROOT = 'base'
 
@@ -363,7 +365,7 @@ export function readBreakdown(options: {
 
   const slotNodes = (parent: BreakdownNode, file: string): BreakdownNode[] =>
     nuxtUiParts(file).slots.map((slot) => ({
-      id: `${parent.id}#${slot}`,
+      id: slotId(parent.id, slot),
       name: slot,
       kind: 'slot',
       source: 'nuxt-ui',

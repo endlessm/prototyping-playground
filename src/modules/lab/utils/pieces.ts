@@ -1,4 +1,8 @@
-import type { NodeBox, NodeBoxes } from '../../../../tooling/preview/protocol'
+import {
+  pieceOf,
+  type NodeBox,
+  type NodeBoxes,
+} from '../../../../tooling/preview/protocol'
 import type { BreakdownNode } from '../../../../tooling/systems/breakdown'
 
 /**
@@ -49,8 +53,7 @@ export function pieceBox(
 ): NodeBox | null {
   const once = perItem.has(node.id)
   if (node.slot) {
-    const found =
-      nodes[node.id.slice(0, node.id.lastIndexOf('#'))]?.slots[node.slot]?.[0]
+    const found = nodes[pieceOf(node.id)]?.slots[node.slot]?.[0]
     return found && takesRoom(found) ? found : null
   }
   const reported = nodes[node.id]

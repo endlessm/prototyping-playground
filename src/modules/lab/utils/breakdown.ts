@@ -1,5 +1,6 @@
 // The Breakdown canvas's plain functions: the tree laid out top-down, the
 // zoom steps, and how each piece's source and file read on its card.
+import { fileOwnerOf, slotId } from '../../../../tooling/preview/protocol'
 import type {
   BreakdownNode,
   BreakdownSource,
@@ -144,7 +145,7 @@ export function layoutTree(
     let next = left + (total - children) / 2
     if (grid) {
       const group: LaidOutGroup = {
-        id: `${node.id}#slots`,
+        id: slotId(node.id, 'slots'),
         parent: card,
         cards: [],
         x: next,
@@ -255,8 +256,7 @@ export function cardFile(file: string | null, systemFolder: string) {
  * is its Nuxt UI tag's.
  */
 export function pieceElsewhere(tree: BreakdownNode, id: string) {
-  const piece = id.split('#')[0]!
-  const owner = piece.slice(0, piece.lastIndexOf('>'))
+  const owner = fileOwnerOf(id) ?? ''
   if (!owner || owner === tree.id) return null
   return treeNodes(tree).find((node) => node.id === owner)?.file ?? null
 }
