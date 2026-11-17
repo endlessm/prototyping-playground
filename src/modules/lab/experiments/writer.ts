@@ -8,6 +8,7 @@
 // one of the same knob family and leaves prefixed classes (`hover:`, `md:`)
 // alone. Pieces the file itself doesn't hold (inside a file it imports) are
 // left unsaved. Pure: the caller reads the file's tags (`fileTags`).
+import { NodeTypes } from '@vue/compiler-core'
 import { babelParse, MagicString } from 'vue/compiler-sfc'
 import {
   knobFamilyOf,
@@ -19,6 +20,7 @@ import {
   directive,
   ROOT_NODE,
   type FileTag,
+  type TemplateAttribute,
   type TemplateDirective,
 } from '../../../../tooling/systems/breakdown.ts'
 
@@ -42,16 +44,6 @@ export interface WrittenChanges {
 
 const PLAIN = /^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*$/
 
-interface Location {
-  start: { offset: number }
-  end: { offset: number }
-}
-interface StaticAttribute {
-  type: 6
-  name: string
-  value?: { content: string; loc: Location }
-  loc: Location
-}
 // The parts of Babel's expression tree read here.
 interface Node {
   type: string
@@ -140,8 +132,9 @@ function writeTag(
   const { element } = tag
   const nameEnd = element.loc.start.offset + 1 + element.tag.length
   const staticClass = element.props.find(
-    (prop) => prop.type === 6 && prop.name === 'class',
-  ) as StaticAttribute | undefined
+    (prop): prop is TemplateAttribute =>
+      prop.type === NodeTypes.ATTRIBUTE && prop.name === 'class',
+  )
   const classValue = staticClass?.value
   const forClass: SourceChange[] = []
   const forUi = new Map<string, SourceChange[]>()
@@ -168,7 +161,9 @@ function writeTag(
       const spread = element.props
         .filter(
           (prop): prop is TemplateDirective =>
-            prop.type === 7 && prop.name === 'bind' && !prop.arg,
+            prop.type === NodeTypes.DIRECTIVE &&
+            prop.name === 'bind' &&
+            !prop.arg,
         )
         .at(-1)
       const sources = spread?.exp ? [`${wrapped(spread.exp.content)}?.ui`] : []

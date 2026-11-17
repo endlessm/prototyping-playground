@@ -62,6 +62,7 @@
     "@nuxtjs/mdc": "^0.23.2",
     "@tailwindcss/vite": "^4.1.11",
     "@vitejs/plugin-vue": "^6.0.10",
+    "@vue/compiler-core": "^3.5.43",
     "@vueuse/core": "^14.2.1",
     "@vueuse/nuxt": "^14.2.1",
     "codemirror-lang-mermaid": "^0.5.0",

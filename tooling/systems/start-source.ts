@@ -10,6 +10,7 @@
 // files from where the source goes. Runs on Node.
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
+import { ElementTypes, NodeTypes } from '@vue/compiler-core'
 import {
   babelParse,
   parse,
@@ -19,7 +20,6 @@ import {
 } from 'vue/compiler-sfc'
 import { splitExamples } from './example-snippets.ts'
 import {
-  ELEMENT,
   resolveSystemImport,
   vueImports,
   type TemplateElement,
@@ -44,8 +44,6 @@ export interface StartSourceInput {
 const STAGE = 'flex min-h-40 flex-wrap items-center justify-center gap-3 p-6'
 const EXAMPLES_MODULE = '#studio/examples'
 const HEADER = /^\uFEFF?(?:\s|<!--[\s\S]*?-->)*/
-// Vue's template element type for a component, not a plain element.
-const COMPONENT = 1
 
 interface TemplateNode {
   type: number
@@ -59,7 +57,11 @@ function componentTags(descriptor: SFCDescriptor) {
   const root = descriptor.template?.ast as TemplateNode | undefined
   const tags: TemplateNode[] = []
   const visit = (node: TemplateNode) => {
-    if (node.type === ELEMENT && node.tagType === COMPONENT) tags.push(node)
+    if (
+      node.type === NodeTypes.ELEMENT &&
+      node.tagType === ElementTypes.COMPONENT
+    )
+      tags.push(node)
     for (const child of node.children ?? []) visit(child)
   }
   if (root) visit(root)

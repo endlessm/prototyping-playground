@@ -12,6 +12,7 @@
 // the rendered elements the same IDs.
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
+import { NodeTypes } from '@vue/compiler-core'
 import { parse } from 'vue/compiler-sfc'
 import { posix, within } from '../paths.ts'
 import { ROOT_NODE, slotId } from '../preview/protocol.ts'
@@ -141,39 +142,36 @@ export function resolveSystemImport(
   return null
 }
 
-// The parts of Vue's template AST read here, by its node type numbers.
-export const ELEMENT = 1
-const ATTRIBUTE = 6
-const DIRECTIVE = 7
-interface Location {
+// The parts of Vue's template AST read here.
+export interface TemplateLocation {
   start: { offset: number }
   end: { offset: number }
   source: string
 }
 interface Expression {
   content: string
-  loc: Location
+  loc: TemplateLocation
 }
 export interface TemplateAttribute {
-  type: typeof ATTRIBUTE
+  type: NodeTypes.ATTRIBUTE
   name: string
-  value?: { content: string }
-  loc: Location
+  value?: { content: string; loc: TemplateLocation }
+  loc: TemplateLocation
 }
 export interface TemplateDirective {
-  type: typeof DIRECTIVE
+  type: NodeTypes.DIRECTIVE
   name: string
   rawName?: string
   arg?: Expression
   exp?: Expression
-  loc: Location
+  loc: TemplateLocation
 }
 export interface TemplateElement {
-  type: typeof ELEMENT
+  type: NodeTypes.ELEMENT
   tag: string
   props: (TemplateAttribute | TemplateDirective)[]
   children: { type: number }[]
-  loc: Location
+  loc: TemplateLocation
 }
 
 /** One component tag of a file, as the tree and the instrumentation see it. */
@@ -208,7 +206,7 @@ export type FileTags =
 const attribute = (element: TemplateElement, name: string) =>
   element.props.find(
     (prop): prop is TemplateAttribute =>
-      prop.type === ATTRIBUTE && prop.name === name,
+      prop.type === NodeTypes.ATTRIBUTE && prop.name === name,
   )
 /** A directive such as `v-for`, or `v-bind` with the argument `arg`. */
 export const directive = (
@@ -218,7 +216,7 @@ export const directive = (
 ) =>
   element.props.find(
     (prop): prop is TemplateDirective =>
-      prop.type === DIRECTIVE &&
+      prop.type === NodeTypes.DIRECTIVE &&
       prop.name === name &&
       (arg === undefined || prop.arg?.content === arg),
   )
@@ -264,7 +262,7 @@ export function fileTags(
     repeated: boolean,
   ) => {
     for (const node of nodes) {
-      if (node.type !== ELEMENT) continue
+      if (node.type !== NodeTypes.ELEMENT) continue
       const element = node as TemplateElement
       const looped = repeated || Boolean(directive(element, 'for'))
       const kind = classify(element)

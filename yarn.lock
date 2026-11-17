@@ -13763,6 +13763,7 @@ __metadata:
     "@types/react": "npm:^19"
     "@types/react-dom": "npm:^19"
     "@vitejs/plugin-vue": "npm:^6.0.10"
+    "@vue/compiler-core": "npm:^3.5.43"
     "@vueuse/core": "npm:^14.2.1"
     "@vueuse/nuxt": "npm:^14.2.1"
     codemirror-lang-mermaid: "npm:^0.5.0"

@@ -12,6 +12,7 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import type { Plugin } from 'vite'
+import { NodeTypes } from '@vue/compiler-core'
 import { MagicString } from 'vue/compiler-sfc'
 import {
   directive,
@@ -62,7 +63,7 @@ const OPEN_PROPS = ['open', 'default-open', 'defaultOpen']
 /** Whether a tag sets whether it is open itself, which stays as it is. */
 const setsOpen = (element: FileTag['element']) =>
   element.props.some((prop) =>
-    prop.type === 6
+    prop.type === NodeTypes.ATTRIBUTE
       ? OPEN_PROPS.includes(prop.name)
       : (prop.name === 'bind' || prop.name === 'model') &&
         OPEN_PROPS.includes(prop.arg?.content ?? ''),
@@ -96,7 +97,10 @@ function instrumentTag(code: MagicString, tag: FileTag) {
       )
     } else {
       const spread = element.props.filter(
-        (prop) => prop.type === 7 && prop.name === 'bind' && !prop.arg,
+        (prop) =>
+          prop.type === NodeTypes.DIRECTIVE &&
+          prop.name === 'bind' &&
+          !prop.arg,
       )
       const object = spread.at(-1)
       added.push(
