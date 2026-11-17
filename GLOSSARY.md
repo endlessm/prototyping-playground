@@ -47,6 +47,17 @@ The example store state, handlers and query responses a stand-in uses for one de
 The isolated presentation of a view or system example within the studio.
 _Avoid_: Vue mount.
 
+**Lab**:
+The studio's bench for one system component at a time, with its overview, its variants and a playground.
+
+**Variant**:
+One example of a component's examples file, as the Lab shows it beside the others, with its own code.
+_Avoid_: named state (a view's variation).
+
+**Playground**:
+A component file rendered alone in the Lab, with a control for each prop, opened with the values of its Default example (or samples) and its changed values in the address.
+_Avoid_: Endless Prototyping Playground (the whole environment).
+
 **App shell**:
 The product's sidebar, top bar and footer surrounding its content.
 

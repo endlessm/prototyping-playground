@@ -45,6 +45,7 @@ import {
   systemDocsReport,
   systemPreviews,
 } from '../systems/catalog.ts'
+import { fileCompileProblem } from '../systems/compile.ts'
 import { loadSystems, systemsFolder } from '../systems/registry.ts'
 import { moduleChecks } from '../checks/module-checks.ts'
 import { serveSystemAssets } from '../systems/serve-assets.ts'
@@ -234,17 +235,25 @@ declare module '${MANIFEST_MODULE}' {
       baseURL: base,
       prototypesDir: path.resolve(root, prototypesFolder),
       // Each view, then each of its named states; then the system's own
-      // examples and Overview content.
+      // examples, components' playgrounds and Overview content. The build
+      // leaves out the playground of a component file that doesn't compile,
+      // so one broken file can't stop the site; its Playground says why.
       views: () => {
         const { manifest, artifacts } = read()
         const own = document.system
-          ? systemPreviews(document.system).map(({ id, file, example }) => ({
-              id,
-              file,
-              prototype: '',
-              path: '',
-              ...(example === undefined ? {} : { example }),
-            }))
+          ? systemPreviews(document.system)
+              .filter(
+                ({ file, playground }) =>
+                  nuxt.options.dev || !playground || !fileCompileProblem(file),
+              )
+              .map(({ id, file, example, playground }) => ({
+                id,
+                file,
+                prototype: '',
+                path: '',
+                ...(example === undefined ? {} : { example }),
+                ...(playground ? { playground } : {}),
+              }))
           : []
         const views = manifest.prototypes
           .filter(({ systemId }) => (systemId ?? NO_SYSTEM) === document.key)

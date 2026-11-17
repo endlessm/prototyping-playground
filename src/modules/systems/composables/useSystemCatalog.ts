@@ -2,6 +2,7 @@ import urls from 'virtual:studio-module-data'
 import type {
   CatalogComponent,
   CatalogDocument,
+  CatalogExample,
   ComponentPageData,
   CatalogSkill,
   SystemCatalog,
@@ -11,6 +12,7 @@ import type {
 export type {
   CatalogComponent,
   CatalogDocument,
+  CatalogExample,
   CatalogSkill,
   ComponentPageData,
   SystemCatalog,
