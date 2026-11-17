@@ -1074,6 +1074,32 @@
       "tryAgain": "Try again",
       "chooseFirst": "Choose a value for {prop} to start {name}.",
       "codeOnly": "Playground can’t start {name}. Its required prop {prop} can only be set in code."
+    },
+    "breakdown": {
+      "tab": "Breakdown",
+      "canvas": "Breakdown of {name}",
+      "pieces": "Pieces of {name}",
+      "stage": "{name} broken down",
+      "component": "{name} on the canvas",
+      "piece": "{name}, {file}",
+      "repeated": "Repeated for each item",
+      "toolbar": "Canvas tools",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "zoom": "Zoom {percent}",
+      "showComponent": "Show component",
+      "showBreakdown": "Show breakdown",
+      "selected": "Selected piece",
+      "sources": {
+        "system": "System",
+        "app": "{system} app",
+        "nuxt-ui": "Nuxt UI",
+        "icons": "Icons",
+        "experiment": "Experiment"
+      },
+      "noComponent": "Breakdown needs a component file. Add {file} next to the component to see how it is built.",
+      "unreadable": "Breakdown can’t read how {name} is built.",
+      "tryAgain": "Try again"
     }
   }
 }

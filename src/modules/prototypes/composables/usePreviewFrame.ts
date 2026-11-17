@@ -4,6 +4,7 @@ import {
   PREVIEW_CHANNEL,
   PREVIEW_VERSION,
   previewAddress,
+  type HostBody,
   type HostMessage,
   type PreviewMessage,
   type PreviewPhase,
@@ -22,6 +23,7 @@ const SILENT_MS = 15_000
  * saved source. Used by a view's page and by views embedded in documents.
  * A component's playground also sends the props to mount it with, after
  * each `ready` and whenever they change, without reloading the document.
+ * Other host messages, such as a Breakdown's highlight, go the same way.
  */
 export function usePreviewFrame(options: {
   frame: Readonly<Ref<HTMLIFrameElement | null>>
@@ -34,6 +36,8 @@ export function usePreviewFrame(options: {
   onMessage?: (message: PreviewMessage) => void
   /** A playground's props; a key that is undefined takes its default. */
   props?: () => PreviewProps
+  /** Further host messages, sent after each `ready` and whenever they change. */
+  messages?: () => HostBody[]
 }) {
   const session =
     Math.random().toString(36).slice(2, 10) + Date.now().toString(36)
@@ -78,6 +82,22 @@ export function usePreviewFrame(options: {
     }
     options.frame.value?.contentWindow?.postMessage(message, location.origin)
     sendProps()
+    sendMessages()
+  }
+
+  function sendMessages() {
+    if (!runtime || !options.messages) return
+    for (const body of options.messages()) {
+      const message = {
+        channel: PREVIEW_CHANNEL,
+        version: PREVIEW_VERSION,
+        session,
+        runtime,
+        artifact: options.artifact(),
+        ...(JSON.parse(JSON.stringify(body)) as HostBody),
+      } as HostMessage
+      options.frame.value?.contentWindow?.postMessage(message, location.origin)
+    }
   }
 
   function sendProps() {
@@ -122,6 +142,7 @@ export function usePreviewFrame(options: {
     configure()
   })
   if (options.props) watch(options.props, sendProps, { deep: true })
+  if (options.messages) watch(options.messages, sendMessages, { deep: true })
 
   useEventListener(window, 'message', (event: MessageEvent) => {
     if (

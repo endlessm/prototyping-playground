@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type {
+  HostBody,
   PreviewMessage,
   PreviewProps,
   PreviewState,
@@ -20,6 +21,8 @@ const props = withDefaults(
     title: string
     /** A playground's props, sent by message; examples have none. */
     props?: PreviewProps
+    /** Further host messages, such as a Breakdown's highlight. */
+    messages?: HostBody[]
     minHeight: number
     /** Room for an error and the start of its detail. */
     errorHeight: number
@@ -28,7 +31,11 @@ const props = withDefaults(
     /** Sizes the frame from `--frame-height`, its content's height. */
     frameClass?: string
   }>(),
-  { props: undefined, frameClass: 'h-(--frame-height)' },
+  {
+    props: undefined,
+    messages: undefined,
+    frameClass: 'h-(--frame-height)',
+  },
 )
 type View = Window & typeof globalThis
 const emit = defineEmits<{
@@ -47,6 +54,7 @@ const { src, state, detail, shown } = usePreviewFrame({
   document: previewDocument(props.systemId),
   artifact: () => props.artifact,
   props: props.props ? () => props.props! : undefined,
+  messages: props.messages ? () => props.messages! : undefined,
   onMessage: (message) => emit('message', message),
 })
 watch(state, (next) => emit('state', next), { immediate: true })

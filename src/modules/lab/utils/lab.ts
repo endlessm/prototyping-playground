@@ -15,6 +15,7 @@ export const LAB_TABS = [
   { id: 'overview', label: 'lab.tabs.overview', path: '' },
   { id: 'variants', label: 'lab.tabs.variants', path: 'variants' },
   { id: 'playground', label: 'lab.tabs.playground', path: 'playground' },
+  { id: 'breakdown', label: 'lab.breakdown.tab', path: 'breakdown' },
 ] as const
 
 export type LabTab = (typeof LAB_TABS)[number]
