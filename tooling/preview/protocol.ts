@@ -69,6 +69,11 @@ export type HostMessage = Envelope &
         kind: 'knob'
         knob: KnobHighlight | null
       }
+    | {
+        /** The colour knobs' classes, whose colours the document answers. */
+        kind: 'swatches'
+        classes: string[]
+      }
   )
 
 /** Node ID → theme slot (or `class`) → classes. */
@@ -162,6 +167,11 @@ export type PreviewMessage = Envelope &
          */
         kind: 'nodes'
         nodes: Record<string, NodeBoxes>
+      }
+    | {
+        /** Each colour knob class's colour in this document, by class. */
+        kind: 'swatches'
+        swatches: Record<string, string>
       }
   )
 
@@ -329,6 +339,29 @@ function isReportedNodes(value: unknown) {
   )
 }
 
+const MAX_SWATCHES = 2048
+const SWATCH_CLASS = /^(?:bg|text)-[a-z0-9]+(?:[-/][a-z0-9]+)*$/
+const MAX_COLOR = 128
+const isSwatchClasses = (value: unknown) =>
+  Array.isArray(value) &&
+  value.length <= MAX_SWATCHES &&
+  value.every((name) => typeof name === 'string' && SWATCH_CLASS.test(name))
+function isSwatches(value: unknown) {
+  if (!record(value) || Object.getPrototypeOf(value) !== Object.prototype)
+    return false
+  const names = ownKeys(value)
+  return (
+    names.length <= MAX_SWATCHES &&
+    names.every(
+      (name) =>
+        SWATCH_CLASS.test(name) &&
+        typeof value[name] === 'string' &&
+        (value[name] as string).length <= MAX_COLOR &&
+        !CONTROL.test(value[name] as string),
+    )
+  )
+}
+
 export function isHostMessage(value: unknown): value is HostMessage {
   if (!isEnvelope(value)) return false
   switch (value.kind) {
@@ -342,6 +375,8 @@ export function isHostMessage(value: unknown): value is HostMessage {
       return isOverrides(value.overrides)
     case 'knob':
       return isKnobHighlight(value.knob)
+    case 'swatches':
+      return isSwatchClasses(value.classes)
     default:
       return false
   }
@@ -374,6 +409,8 @@ export function isPreviewMessage(value: unknown): value is PreviewMessage {
       return propName(value.prop) && isPreviewValue(value.value)
     case 'nodes':
       return isReportedNodes(value.nodes)
+    case 'swatches':
+      return isSwatches(value.swatches)
     default:
       return false
   }

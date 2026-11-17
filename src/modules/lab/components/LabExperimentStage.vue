@@ -3,6 +3,7 @@ import { knobTheme } from '../../../../tooling/preview/knobs'
 import type { ExperimentBreakdown } from '../experiments/trees'
 import type { SavedChanges } from '../experiments/save'
 import LabBreakdownStage from './LabBreakdownStage.vue'
+import LabJoinNote from './LabJoinNote.vue'
 import LabExperimentPreview from './LabExperimentPreview.vue'
 import { useBreakdownChanges } from '../composables/useBreakdownChanges'
 import { useLabComponent } from '../composables/useLabComponent'
@@ -32,7 +33,7 @@ const router = useRouter()
 const base = useRuntimeConfig().app.baseURL
 const local = import.meta.dev
 
-const { data } = useModuleData<Record<string, ExperimentBreakdown>>(
+const { data, reload } = useModuleData<Record<string, ExperimentBreakdown>>(
   'lab',
   'experiments',
 )
@@ -133,6 +134,7 @@ async function save() {
     data-lab-experiment-stage
     :aria-label="t('lab.experiments.stage', { name: experiment.title })"
   >
+    <LabJoinNote class="mb-3" />
     <Suspense v-if="breakdown && tree">
       <LabBreakdownStage
         :key="breakdown.preview"
@@ -158,9 +160,16 @@ async function save() {
       class="space-y-2 rounded-md border border-default p-3 text-sm"
     >
       <p class="text-default">
-        {{ t('lab.save.unreadable', { name: experiment.title }) }}
+        {{ t('lab.breakdown.unreadable', { name: experiment.title }) }}
       </p>
       <p class="text-muted">{{ breakdown.tree.error }}</p>
+      <UButton
+        size="sm"
+        color="neutral"
+        variant="outline"
+        :label="t('lab.breakdown.tryAgain')"
+        @click="reload"
+      />
     </div>
     <LabExperimentPreview
       v-else

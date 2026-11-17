@@ -22,7 +22,7 @@ import {
 
 const ROOT = path.resolve(import.meta.dirname, '../..')
 const FILE = path.join(ROOT, 'src/prototypes/ben/button-experiments/View.vue')
-const theme = { colors: ['primary', 'secondary', 'neutral'], textSizes: [] }
+const theme = { colors: ['primary', 'secondary', 'neutral'], textSizes: {} }
 let endless: InstalledSystem
 
 beforeAll(async () => {

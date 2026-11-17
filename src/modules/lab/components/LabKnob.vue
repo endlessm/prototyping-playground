@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   KNOB_FAMILIES,
+  knobClass,
   knobDisplay,
   knobParse,
   knobPixels,
@@ -14,13 +15,16 @@ import { KNOB_ICONS } from '../utils/knobs'
 // One knob in the Breakdown's inspector: its family's coloured icon, then
 // its value, in pixels for sizes. Drag the icon sideways, type a value, or
 // press the arrow keys to move it along the theme's scale. A colour knob's
-// value opens the theme's colours and shades instead of taking text.
+// value opens the theme's colours and shades instead of taking text, each
+// with a swatch of the colour the system paints it with.
 const props = defineProps<{
   knob: Knob
   /** The value it shows: an unsaved one, or what the piece renders with. */
   value: string
   label: string
   theme: KnobTheme
+  /** Each colour class's colour in the preview, by class; empty until known. */
+  swatches?: Record<string, string>
 }>()
 const emit = defineEmits<{ change: [value: string]; hover: [on: boolean] }>()
 const { t } = useI18n()
@@ -28,8 +32,12 @@ const { t } = useI18n()
 const look = computed(() => KNOB_FAMILIES[props.knob.family])
 const isColor = computed(() => look.value.kind === 'color')
 const at = computed(() => ({ ...props.knob, value: props.value }))
-const display = computed(() => knobDisplay(props.knob.family, props.value))
-const pixels = computed(() => knobPixels(props.knob.family, props.value))
+const display = computed(() =>
+  knobDisplay(props.knob.family, props.value, props.theme),
+)
+const pixels = computed(() =>
+  knobPixels(props.knob.family, props.value, props.theme),
+)
 const valueText = computed(() =>
   pixels.value === null
     ? display.value
@@ -120,6 +128,7 @@ const short = (row: string, value: string) =>
     : value.startsWith(`${row}/`)
       ? `${value.slice(row.length + 1)}%`
       : value
+const swatch = (value: string) => props.swatches?.[knobClass(props.knob, value)]
 function choose(value: string) {
   open.value = false
   if (value !== props.value) emit('change', value)
@@ -159,11 +168,17 @@ onBeforeUnmount(() => hover(false))
       <UPopover v-if="isColor" v-model:open="open" :content="{ side: 'top' }">
         <button
           type="button"
-          class="max-w-24 truncate rounded font-mono text-xs text-default outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          class="flex max-w-28 items-center gap-1 rounded font-mono text-xs text-default outline-none focus-visible:ring-2 focus-visible:ring-primary"
           :aria-label="t('lab.knobs.color', { label, value })"
           @keydown="stepKey"
         >
-          {{ display }}
+          <span
+            v-if="swatch(value)"
+            aria-hidden="true"
+            class="size-3 shrink-0 rounded-full ring-1 ring-default ring-inset"
+            :style="{ backgroundColor: swatch(value) }"
+          />
+          <span class="truncate">{{ display }}</span>
         </button>
         <template #content>
           <div
@@ -183,8 +198,17 @@ onBeforeUnmount(() => hover(false))
                   class="font-mono"
                   :label="short(row.name, option)"
                   :aria-label="option"
+                  :aria-pressed="option === value"
                   @click="choose(option)"
-                />
+                >
+                  <template v-if="swatch(option)" #leading>
+                    <span
+                      aria-hidden="true"
+                      class="size-3 shrink-0 rounded-full ring-1 ring-default ring-inset"
+                      :style="{ backgroundColor: swatch(option) }"
+                    />
+                  </template>
+                </UButton>
               </div>
             </div>
           </div>

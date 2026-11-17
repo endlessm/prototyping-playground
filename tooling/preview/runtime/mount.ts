@@ -31,6 +31,7 @@ import {
 } from '../protocol.ts'
 import { COMPILE_ROUTE, PREVIEW_ROUTE } from '../constants.ts'
 import { createBreakdown, type Breakdown } from './breakdown.ts'
+import { measureSwatches } from './swatches.ts'
 import { EXAMPLE, PLAYGROUND_STAGE, type ExampleChoice } from './example.ts'
 import { THEME_QUERY } from '../theme.ts'
 import { PROTOTYPE_SCOPE, type PrototypeScope } from './navigation.ts'
@@ -477,6 +478,11 @@ export function mountPreview({ create, views }: MountOptions) {
       return breakdown?.highlight(event.data.hover, event.data.selected)
     if (event.data.kind === 'overrides') return applyOverrides(event.data)
     if (event.data.kind === 'knob') return breakdown?.knob(event.data.knob)
+    if (event.data.kind === 'swatches')
+      return post({
+        kind: 'swatches',
+        swatches: measureSwatches(event.data.classes),
+      })
     const next = event.data.artifact
     // Keep the address current, so a reload shows the same view.
     const url = new URL(location.href)

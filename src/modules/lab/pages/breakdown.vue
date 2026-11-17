@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { knobTheme } from '../../../../tooling/preview/knobs'
 import LabBreakdownStage from '../components/LabBreakdownStage.vue'
+import LabJoinNote from '../components/LabJoinNote.vue'
 import { useBreakdownChanges } from '../composables/useBreakdownChanges'
 import { useLabComponent } from '../composables/useLabComponent'
 import { useLabExperimentDialog } from '../composables/useLabExperimentDialog'
@@ -95,22 +96,25 @@ const mode = computed({
       @click="reload"
     />
   </div>
-  <Suspense v-else>
-    <LabBreakdownStage
-      :key="component.breakdown"
-      v-model:selected="selected"
-      v-model:mode="mode"
-      :tree="result.tree"
-      :system-id="system.id"
-      :system-folder="system.folder"
-      :system-label="system.label"
-      :artifact="component.breakdown"
-      :name="component.title"
-      :changes="changes"
-      :theme="theme"
-      save-as="experiment"
-      :can-save="canSave"
-      @save="saveAsExperiment"
-    />
-  </Suspense>
+  <div v-else class="space-y-3">
+    <LabJoinNote />
+    <Suspense>
+      <LabBreakdownStage
+        :key="component.breakdown"
+        v-model:selected="selected"
+        v-model:mode="mode"
+        :tree="result.tree"
+        :system-id="system.id"
+        :system-folder="system.folder"
+        :system-label="system.label"
+        :artifact="component.breakdown"
+        :name="component.title"
+        :changes="changes"
+        :theme="theme"
+        save-as="experiment"
+        :can-save="canSave"
+        @save="saveAsExperiment"
+      />
+    </Suspense>
+  </div>
 </template>

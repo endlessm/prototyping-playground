@@ -94,23 +94,41 @@ const ORDER = Object.keys(KNOB_FAMILIES) as KnobFamily[]
 export interface KnobTheme {
   /** Nuxt UI's theme colour names (`primary`, `neutral`…). */
   colors: string[]
-  /** The theme's own text sizes (`body` for `text-body`), if any. */
-  textSizes?: string[]
+  /**
+   * The theme's text sizes in CSS pixels, by the name their class uses
+   * (`body` for `text-body`, `caption-1`, `2.8xl` for `--text-2_8xl`),
+   * Tailwind's own among them when the theme sets them again.
+   */
+  textSizes?: Record<string, number>
+}
+
+// A length as CSS pixels, at the browser's default 16px root size.
+function lengthPx(value: string) {
+  const found = /^\s*(-?\d*\.?\d+)(px|rem|em)?\s*$/.exec(value)
+  if (!found) return null
+  const number = Number(found[1])
+  if (found[2] === 'rem' || found[2] === 'em') return number * 16
+  return found[2] || number === 0 ? number : null
 }
 
 /**
  * A system's knob theme from its catalog: its Nuxt UI colours and the text
- * sizes its own tokens name (`--text-body`), which aren't colours.
+ * sizes its tokens set (`--text-body: 14px`), which aren't colours. A
+ * `--text-*` token holding anything but a length (a colour) is no size, and
+ * `--text-<size>--line-height` is its size's line height.
  */
 export const knobTheme = (system: {
   colors: string[]
-  tokens: { name: string }[]
+  tokens: { name: string; value?: string }[]
 }): KnobTheme => ({
   colors: system.colors,
-  textSizes: system.tokens.flatMap(({ name }) => {
-    const size = /^--text-([a-z0-9]+)$/.exec(name)?.[1]
-    return size ? [size] : []
-  }),
+  textSizes: Object.fromEntries(
+    system.tokens.flatMap(({ name, value }) => {
+      const size = /^--text-([a-z0-9_]+(?:-[a-z0-9_]+)*)$/.exec(name)?.[1]
+      const px = size && value !== undefined ? lengthPx(value) : null
+      return size && px !== null ? [[size.replace(/_/g, '.'), px]] : []
+    }),
+  ),
 })
 
 export interface Knob {
@@ -144,22 +162,33 @@ const SPACING_STEPS = [
   0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16,
 ]
 const SPACING = scale(SPACING_STEPS.map((step) => [String(step), step * 4]))
-const TEXT_SIZES = scale([
-  ['xs', 12],
-  ['sm', 14],
-  ['base', 16],
-  ['lg', 18],
-  ['xl', 20],
-  ['2xl', 24],
-  ['3xl', 30],
-  ['4xl', 36],
-])
-const LARGER_TEXT: Record<string, number> = {
+// Tailwind's own text sizes, which a theme may set again.
+const TEXT_SIZES: Record<string, number> = {
+  xs: 12,
+  sm: 14,
+  base: 16,
+  lg: 18,
+  xl: 20,
+  '2xl': 24,
+  '3xl': 30,
+  '4xl': 36,
   '5xl': 48,
   '6xl': 60,
   '7xl': 72,
   '8xl': 96,
   '9xl': 128,
+}
+
+/**
+ * Every text size a theme offers, smallest first: Tailwind's, then the
+ * theme's own, each at the size the theme gives it.
+ */
+function textScale(theme?: KnobTheme): Scale {
+  const sizes = { ...TEXT_SIZES, ...theme?.textSizes }
+  return Object.entries(sizes)
+    .map(([value, px], order) => ({ value, px, order }))
+    .sort((a, b) => a.px - b.px || a.order - b.order)
+    .map(({ value, px }) => ({ value, px }))
 }
 const WEIGHTS = scale(
   [
@@ -254,9 +283,8 @@ export function knobFamilyOf(
     case 'text': {
       const size = rest.split('/')[0]!
       if (
-        TEXT_SIZES.some(({ value }) => value === size) ||
-        size in LARGER_TEXT ||
-        theme.textSizes?.includes(size)
+        Object.hasOwn(TEXT_SIZES, size) ||
+        Object.hasOwn(theme.textSizes ?? {}, size)
       )
         return { family: 'textSize', value: size }
       return colorOf(rest, TEXT_COLORS, theme)
@@ -311,12 +339,12 @@ export function knobsOf(
   return knobs
 }
 
-function scaleOf(family: KnobFamily): Scale {
+function scaleOf(family: KnobFamily, theme?: KnobTheme): Scale {
   switch (family) {
     case 'corners':
       return CORNERS
     case 'textSize':
-      return TEXT_SIZES
+      return textScale(theme)
     case 'weight':
       return WEIGHTS
     case 'ring':
@@ -331,7 +359,7 @@ function scaleOf(family: KnobFamily): Scale {
 /** Every value a family offers, in order. */
 export function knobValues(family: KnobFamily, theme: KnobTheme): string[] {
   if (KNOB_FAMILIES[family].kind === 'scale')
-    return scaleOf(family).map(({ value }) => value)
+    return scaleOf(family, theme).map(({ value }) => value)
   return [
     ...(family === 'fill' ? FILLS : TEXT_COLORS),
     ...theme.colors,
@@ -344,14 +372,17 @@ export function knobValues(family: KnobFamily, theme: KnobTheme): string[] {
   ]
 }
 
-/** A value's size in CSS pixels, or null for weights, colours and named sizes. */
-export function knobPixels(family: KnobFamily, value: string): number | null {
+/**
+ * A value's size in CSS pixels, a theme's text sizes at the size the theme
+ * gives them, or null for weights and colours.
+ */
+export function knobPixels(
+  family: KnobFamily,
+  value: string,
+  theme?: KnobTheme,
+): number | null {
   if (family === 'textSize')
-    return (
-      LARGER_TEXT[value] ??
-      scaleOf(family).find((entry) => entry.value === value)?.px ??
-      null
-    )
+    return textScale(theme).find((entry) => entry.value === value)?.px ?? null
   if (KNOB_FAMILIES[family].kind === 'color' || family === 'weight') return null
   if (family === 'corners')
     return CORNERS.find((entry) => entry.value === value)?.px ?? null
@@ -359,45 +390,64 @@ export function knobPixels(family: KnobFamily, value: string): number | null {
   return spacingPx(value)
 }
 
-/**
- * The value `steps` along the knob's scale from where it is, stopping at
- * the ends. A value off the scale moves to the nearest one that way.
- */
-export function knobStep(knob: Knob, steps: number, theme: KnobTheme): string {
-  const values = knobValues(knob.family, theme)
-  let at = values.indexOf(knob.value)
-  if (at < 0) {
-    const px = knobPixels(knob.family, knob.value)
-    if (px === null) at = steps > 0 ? -1 : values.length
-    else {
-      const sizes = values.map((value) => knobPixels(knob.family, value) ?? 0)
-      const above = sizes.findIndex((size) => size > px)
-      // Between two steps: one step up lands above it, one down below it.
-      at =
-        steps > 0
-          ? (above < 0 ? values.length : above) - 1
-          : above < 0
-            ? values.length
-            : above
-    }
-  }
-  return values[Math.min(values.length - 1, Math.max(0, at + steps))]!
-}
-
 const WEIGHT_NUMBERS = (name: string) =>
   (WEIGHTS.findIndex(({ value }) => value === name) + 1) * 100
 
 // A value as a number to compare: pixels, or a weight's number.
-const amount = (family: KnobFamily, value: string) =>
-  family === 'weight' ? WEIGHT_NUMBERS(value) : knobPixels(family, value)
+const amount = (family: KnobFamily, value: string, theme?: KnobTheme) =>
+  family === 'weight'
+    ? WEIGHT_NUMBERS(value) || null
+    : knobPixels(family, value, theme)
+
+/**
+ * The value `steps` along the knob's scale from where it is, stopping at
+ * the ends. Each step goes to the nearest value that way, so a value off
+ * the scale (`p-13`) lands on the next size up or down, and two values the
+ * same size (`text-base`, a theme's `text-body-2` at 16px) count as one. A
+ * colour off the theme's list stays where it is.
+ */
+export function knobStep(knob: Knob, steps: number, theme: KnobTheme): string {
+  const values = knobValues(knob.family, theme)
+  const at = values.indexOf(knob.value)
+  const current = amount(knob.family, knob.value, theme)
+  if (current === null) {
+    if (at < 0) return knob.value
+    return values[Math.min(values.length - 1, Math.max(0, at + steps))]!
+  }
+  const sized = values.flatMap((value) => {
+    const size = amount(knob.family, value, theme)
+    return size === null ? [] : [{ value, size }]
+  })
+  let value = knob.value
+  let size = current
+  for (let step = 0; step < Math.abs(steps); step++) {
+    const next = sized
+      .filter((each) => (steps > 0 ? each.size > size : each.size < size))
+      .reduce<{ value: string; size: number } | null>(
+        (best, each) =>
+          !best || Math.abs(each.size - size) < Math.abs(best.size - size)
+            ? each
+            : best,
+        null,
+      )
+    if (!next) break
+    value = next.value
+    size = next.size
+  }
+  return value
+}
 
 /**
  * What a knob shows for a value: pixels for sizes (`6`), a weight's number
  * (`600`), and anything else as the class spells it (`full`, `primary`).
  */
-export function knobDisplay(family: KnobFamily, value: string) {
+export function knobDisplay(
+  family: KnobFamily,
+  value: string,
+  theme?: KnobTheme,
+) {
   if (family === 'corners' && value === 'full') return value
-  const number = amount(family, value)
+  const number = amount(family, value, theme)
   return number === null || (number <= 0 && family === 'weight')
     ? value
     : String(number)
@@ -421,7 +471,7 @@ export function knobParse(
   let best: string | null = null
   let distance = Infinity
   for (const value of values) {
-    const at = amount(family, value)
+    const at = amount(family, value, theme)
     if (at === null || Math.abs(at - target) >= distance) continue
     best = value
     distance = Math.abs(at - target)
@@ -443,10 +493,7 @@ const PREFIX: Record<KnobFamily, string> = {
   size: 'size',
 }
 
-/**
- * The class a knob writes for a value. A text size drops a line height the
- * old class carried (`text-base/5`), as each size brings its own.
- */
+/** The class a knob writes for a value. */
 export const knobClass = (knob: Pick<Knob, 'family'>, value: string) =>
   `${PREFIX[knob.family]}-${value}`
 
@@ -479,7 +526,7 @@ export function knobSafelist(theme: KnobTheme): string[] {
   return [
     `rounded-${list(CORNERS.map(({ value }) => value))}`,
     `{p,px,py,gap}-${list(SPACING.map(({ value }) => value))}`,
-    `text-${list(TEXT_SIZES.map(({ value }) => value))}`,
+    `text-${list(textScale(theme).map(({ value }) => value))}`,
     `font-${list(WEIGHTS.map(({ value }) => value))}`,
     `ring-${list(RINGS.map(({ value }) => value))}`,
     `size-${list(SIZES.map(({ value }) => value))}`,

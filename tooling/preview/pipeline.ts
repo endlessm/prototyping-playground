@@ -15,7 +15,8 @@ import { importGuard } from '../checks/imports.ts'
 import { loadRegistry } from '../modules/registry.ts'
 import { standInNames } from './stand-ins.ts'
 import { breakdownFile, breakdownPlugin } from './breakdown.ts'
-import { knobSafelist } from './knobs.ts'
+import { knobSafelist, knobTheme, type KnobTheme } from './knobs.ts'
+import { systemCatalog } from '../systems/catalog.ts'
 
 import {
   COMPILE_ROUTE,
@@ -140,7 +141,7 @@ function writeEntry(document: PreviewDocument, options: PreviewOptions) {
       writeFileSync(
         path.join(dir, 'preview.css'),
         // The system's own files (its examples and overview), and the views.
-        `@import '${systemFile(app.stylesheet)}';\n@source '${relative(document.system!.dir)}';\n@source '${relative(options.prototypesDir)}';\n${knobSources(app.nuxtUi?.colors)}`,
+        `@import '${systemFile(app.stylesheet)}';\n@source '${relative(document.system!.dir)}';\n@source '${relative(options.prototypesDir)}';\n${knobSources(knobTheme(systemCatalog(document.system!, options.root)))}`,
       )
       lines.push(`import './preview.css'`)
     }
@@ -183,10 +184,40 @@ ${LIGHT_ONLY_SCRIPT}
 
 // Every class a Breakdown knob can write, so a value chosen live renders
 // before any file uses it.
-const knobSources = (colors: string[] = []) =>
-  knobSafelist({ colors })
+const knobSources = (theme: KnobTheme) =>
+  knobSafelist(theme)
     .map((line) => `@source inline("${line}");\n`)
     .join('')
+
+/**
+ * Nuxt UI's configuration with the theme's own text sizes known to
+ * tailwind-merge as sizes, so a knob's size replaces the size a piece has
+ * (`text-body`) instead of both staying, and a colour no longer replaces it.
+ */
+function withTextSizes(config: Record<string, unknown>, theme: KnobTheme) {
+  const sizes = Object.keys(theme.textSizes ?? {})
+  if (!sizes.length) return config
+  const tv = (config.tv ?? {}) as Record<string, unknown>
+  const merge = (tv.twMergeConfig ?? {}) as Record<string, unknown>
+  const extend = (merge.extend ?? {}) as Record<string, unknown>
+  const groups = (extend.classGroups ?? {}) as Record<string, unknown[]>
+  return {
+    ...config,
+    tv: {
+      ...tv,
+      twMergeConfig: {
+        ...merge,
+        extend: {
+          ...extend,
+          classGroups: {
+            ...groups,
+            'font-size': [...(groups['font-size'] ?? []), { text: sizes }],
+          },
+        },
+      },
+    },
+  }
+}
 
 export const VIEWS_RESOLVED = `\0${VIEWS_MODULE}`
 
@@ -354,7 +385,7 @@ async function systemPlugins(
         },
         components: { dts: false },
         theme: { colors: app.nuxtUi.colors },
-        ui: config,
+        ui: withTextSizes(config, knobTheme(systemCatalog(system, root))),
       }),
     )
   }

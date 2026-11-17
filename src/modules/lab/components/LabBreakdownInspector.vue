@@ -28,6 +28,8 @@ const props = defineProps<{
   changes: BreakdownChanges
   /** The file holding the piece's tag, when it isn't the Breakdown's own. */
   elsewhere: string | null
+  /** Each colour knob class's colour in the preview, by class. */
+  swatches: Record<string, string>
 }>()
 const emit = defineEmits<{ highlight: [knob: KnobHighlight | null] }>()
 const { t } = useI18n()
@@ -35,12 +37,23 @@ const { t } = useI18n()
 const owner = computed(() =>
   props.node.slot ? props.node.id.split('#')[0]! : props.node.id,
 )
+// The piece's own theme slots: the one a slot's card names, or those its
+// slot cards name; none for a piece whose theme has no slots.
+const theirs = computed(() =>
+  props.node.slot
+    ? [props.node.slot]
+    : props.node.children.flatMap(({ kind, slot }) =>
+        kind === 'slot' && slot ? [slot] : [],
+      ),
+)
 const knobs = computed(() => {
   if (props.elsewhere) return []
   const slots = props.classes[owner.value]
   if (!slots) return []
-  const own = props.node.slot
-    ? { [props.node.slot]: slots[props.node.slot] ?? '' }
+  // Only the piece's own theme slots: a Nuxt UI piece may render others
+  // inside it (a modal's close button) that aren't pieces of the tree.
+  const own = theirs.value.length
+    ? Object.fromEntries(theirs.value.map((slot) => [slot, slots[slot] ?? '']))
     : slots
   return knobsOf(own, props.theme)
 })
@@ -75,6 +88,7 @@ function hover(knob: (typeof knobs.value)[number], on: boolean) {
       :value="changes.valueOf(owner, knob) ?? knob.value"
       :label="label(knob)"
       :theme="theme"
+      :swatches="swatches"
       @change="changes.set(owner, knob, $event)"
       @hover="hover(knob, $event)"
     />

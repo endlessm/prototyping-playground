@@ -294,6 +294,74 @@ function scenarios(start: () => Promise<RunningStudio>, local: boolean) {
       expect.stringMatching(/^Text color: /),
     ])
   })
+
+  test('[LAB-KN-05] colour knobs show the system’s own colour beside each name', async () => {
+    const page = await open()
+    await select(page, BUTTON)
+    await toolbar(page)
+      .getByRole('button', { name: /^Fill: / })
+      .click()
+    const colors = page.getByRole('group', { name: 'Fill colors' })
+    await visible(colors)
+    const primary = colors.getByRole('button', { name: 'primary', exact: true })
+    expect(await primary.getAttribute('aria-pressed')).toBe('true')
+    // Its swatch paints the colour the button itself shows in the preview.
+    const painted = await piece(page, BUTTON).evaluate(
+      (element) => getComputedStyle(element).backgroundColor,
+    )
+    await expect
+      .poll(() =>
+        primary
+          .locator('span[aria-hidden="true"]')
+          .first()
+          .evaluate((element) => getComputedStyle(element).backgroundColor)
+          .catch(() => null),
+      )
+      .toBe(painted)
+    // Another shade has a colour of its own.
+    const lighter = await colors
+      .getByRole('button', { name: 'primary-100', exact: true })
+      .locator('span[aria-hidden="true"]')
+      .first()
+      .evaluate((element) => getComputedStyle(element).backgroundColor)
+    expect(lighter).not.toBe(painted)
+    expect(lighter).not.toBe('rgba(0, 0, 0, 0)')
+  })
+
+  test('[LAB-KN-06] a theme’s own text size shows in pixels and replaces the piece’s size', async () => {
+    const page = await open()
+    await select(page, BUTTON)
+    const size = knob(page, 'Text size')
+    await expect.poll(() => size.inputValue(), { timeout: 60_000 }).toBe('14')
+    await size.fill('caption-1')
+    await page.keyboard.press('Enter')
+    const fontSize = () =>
+      piece(page, BUTTON).evaluate(
+        (element) => getComputedStyle(element).fontSize,
+      )
+    await expect.poll(fontSize).toBe('13px')
+    expect(await size.inputValue()).toBe('13')
+    // Up the scale: the next size above 13px.
+    await page.keyboard.press('ArrowUp')
+    await expect.poll(fontSize).toBe('14px')
+  })
+
+  test('[LAB-KN-07] an overlay shows open, its own pieces with knobs; a piece without theme slots has knobs on itself', async () => {
+    const page = await newPage()
+    await page.setViewportSize({ width: 1440, height: 1000 })
+    await page.goto(`${studio.url}lab/${ENDLESS_STUDIOS}/modal/breakdown`)
+    await visible(rootFrame(page).getByRole('dialog'))
+    await select(page, 'root>UModal')
+    const knobs = toolbar(page).getByRole('group', { name: 'Knobs for UModal' })
+    await visible(knobs)
+    await visible(knob(page, 'Content corners'))
+    // Its close button's classes aren't the modal's.
+    expect(await knob(page, 'Corners').count()).toBe(0)
+
+    await page.goto(`${studio.url}lab/${ENDLESS_STUDIOS}/container/breakdown`)
+    await select(page, 'root>UContainer')
+    await visible(knob(page, 'Horizontal padding'))
+  })
 }
 
 describe('in the studio running locally', { timeout: 180_000 }, () => {

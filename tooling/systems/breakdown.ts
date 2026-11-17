@@ -41,6 +41,8 @@ export type BreakdownResult =
   { tree: BreakdownNode; error: null } | { tree: null; error: string }
 
 export const ROOT_NODE = 'root'
+/** The slot a Nuxt UI piece without theme slots reports its classes under. */
+export const SLOTLESS_ROOT = 'base'
 
 const posix = (file: string) => file.split(path.sep).join('/')
 const within = (file: string, dir: string) => {
@@ -93,7 +95,10 @@ export function nuxtUiCatalog(system: InstalledSystem, root: string) {
 }
 
 const slotsRead = new Map<string, { slots: string[]; reka: boolean }>()
-/** A Nuxt UI component's theme slots, in its template's order. */
+/**
+ * A Nuxt UI component's theme slots, in its template's order; none for a
+ * component whose theme is one class string (`UContainer`, `ULink`).
+ */
 function nuxtUiParts(file: string) {
   const known = slotsRead.get(file)
   if (known) return known
@@ -194,9 +199,12 @@ export interface FileTag {
   icon?: string
   /**
    * For a Nuxt UI piece: its root theme slot (the first its template
-   * renders), where the tag's own `class` lands too.
+   * renders), where the tag's own `class` lands too; `base` for one whose
+   * theme has no slots, whose classes are all its `class`.
    */
   rootSlot?: string
+  /** A Nuxt UI piece whose theme is one class string, with no `ui` slots. */
+  slotless?: true
 }
 
 export type FileTags =
@@ -300,6 +308,7 @@ export function fileTags(
       if (kind === 'nuxt-ui') {
         const [root] = nuxtUiParts(options.nuxtUi.components.get(name)!).slots
         if (root) tag.rootSlot = root
+        else Object.assign(tag, { rootSlot: SLOTLESS_ROOT, slotless: true })
       }
       tags.push(tag)
       walk(element.children, local, looped)

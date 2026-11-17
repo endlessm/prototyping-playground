@@ -36,5 +36,5 @@ export function useModuleData<T>(module: string, name: string) {
     import.meta.hot?.off('studio:data', changed)
     import.meta.hot?.off('vite:ws:connect', load)
   })
-  return { data, error }
+  return { data, error, reload: load }
 }

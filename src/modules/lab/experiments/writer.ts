@@ -147,6 +147,7 @@ function writeTag(
   for (const change of changes) {
     if (
       change.slot === 'class' ||
+      tag.slotless ||
       (change.slot === tag.rootSlot &&
         classValue &&
         holdsFamily(classValue.content, change.family, theme))

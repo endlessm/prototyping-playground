@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import type {
+  HostBody,
   KnobHighlight,
   NodeBoxes,
   PreviewMessage,
 } from '../../../../tooling/preview/protocol'
 import type { BreakdownNode } from '../../../../tooling/systems/breakdown'
-import type { KnobTheme } from '../../../../tooling/preview/knobs'
+import {
+  knobClass,
+  knobValues,
+  type KnobTheme,
+} from '../../../../tooling/preview/knobs'
 import type { BreakdownChanges } from '../composables/useBreakdownChanges'
 import LabBreakdownInspector from './LabBreakdownInspector.vue'
 import LabBreakdownSave from './LabBreakdownSave.vue'
@@ -68,7 +73,10 @@ const { t } = useI18n()
 const hovered = ref<string | null>(null)
 /** Where each rendered piece is in the preview, as the document reports. */
 const boxes = shallowRef<Record<string, NodeBoxes>>({})
+/** The colour knobs' colours, as the root's document paints them. */
+const swatches = shallowRef<Record<string, string>>({})
 function heard(message: PreviewMessage) {
+  if (message.kind === 'swatches') swatches.value = message.swatches
   if (message.kind !== 'nodes') return
   boxes.value = message.nodes
   emit('nodes', message.nodes)
@@ -85,6 +93,19 @@ const { pieces: messages, shared } = useBreakdownMessages(
   () => props.changes.overrides.value,
   () => knobLit.value,
 )
+
+// The root's document also answers the colour of every colour knob's class.
+const rootMessages = computed<HostBody[]>(() => [
+  ...messages.value,
+  {
+    kind: 'swatches',
+    classes: (['fill', 'textColor'] as const).flatMap((family) =>
+      knobValues(family, props.theme).map((value) =>
+        knobClass({ family }, value),
+      ),
+    ),
+  },
+])
 
 const slotClasses = computed(() =>
   Object.fromEntries(
@@ -425,7 +446,7 @@ defineExpose({ boxes })
                     :system-id="systemId"
                     :artifact="artifact"
                     :title="t('lab.breakdown.stage', { name })"
-                    :messages="messages"
+                    :messages="rootMessages"
                     :min-height="120"
                     :error-height="160"
                     :loading-text="t('lab.stage.loading')"
@@ -505,6 +526,7 @@ defineExpose({ boxes })
             :elsewhere="
               cardFile(pieceElsewhere(tree, selectedNode.id), systemFolder)
             "
+            :swatches="swatches"
             @highlight="knobLit = $event"
           />
         </template>

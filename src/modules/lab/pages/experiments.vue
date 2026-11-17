@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import LabExperimentCard from '../components/LabExperimentCard.vue'
+import LabJoinNote from '../components/LabJoinNote.vue'
 import { useLabComponent } from '../composables/useLabComponent'
 import { useLabExperimentDialog } from '../composables/useLabExperimentDialog'
 import { experimentsOf } from '../utils/experiments'
@@ -13,7 +14,7 @@ import { experimentsOf } from '../utils/experiments'
 const { system, component, stem } = useLabComponent()
 const { t } = useI18n()
 const manifest = await useManifest()
-const { me, known } = useMe()
+const { me } = useMe()
 const local = import.meta.dev
 const open = useLabExperimentDialog()
 
@@ -54,15 +55,9 @@ function create() {
         @click="create"
       />
     </div>
-    <p
-      v-if="local && known && !me.key"
-      role="note"
-      class="rounded-md border border-default p-3 text-sm text-default"
-    >
-      {{ t('lab.experiments.join') }}
-    </p>
+    <LabJoinNote />
     <i18n-t
-      v-else-if="local && me.key && !component.source"
+      v-if="local && me.key && !component.source"
       keypath="lab.experiments.noComponent"
       tag="p"
       class="text-sm text-muted"

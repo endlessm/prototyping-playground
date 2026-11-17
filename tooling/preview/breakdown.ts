@@ -55,6 +55,26 @@ const END = '\n'
 const bound = (name: string, quote: string, expression: string) =>
   ` :${name}=${quote}${expression}${quote}`
 
+// Overlays whose theme slots render only while open: a Breakdown shows
+// them open, as their pieces are what it is about.
+const OVERLAYS = [
+  'UModal',
+  'USlideover',
+  'UPopover',
+  'UTooltip',
+  'UDropdownMenu',
+]
+const OPEN_PROPS = ['open', 'default-open', 'defaultOpen']
+
+/** Whether a tag sets whether it is open itself, which stays as it is. */
+const setsOpen = (element: FileTag['element']) =>
+  element.props.some((prop) =>
+    prop.type === 6
+      ? OPEN_PROPS.includes(prop.name)
+      : (prop.name === 'bind' || prop.name === 'model') &&
+        OPEN_PROPS.includes(prop.arg?.content ?? ''),
+  )
+
 function instrumentTag(code: MagicString, tag: FileTag) {
   const { element, local } = tag
   const id = `\`${local}\``
@@ -63,9 +83,12 @@ function instrumentTag(code: MagicString, tag: FileTag) {
     ? Math.max(...element.props.map((prop) => prop.loc.end.offset))
     : element.loc.start.offset + 1 + element.tag.length
   const added: string[] = []
+  if (OVERLAYS.includes(tag.name) && !setsOpen(element))
+    added.push(' default-open')
   // `ui` for a Nuxt UI piece: its own binding, or what a `v-bind` object
   // gives it, merged with the overrides. Last, so it wins over the object.
-  if (tag.kind === 'nuxt-ui') {
+  // One without theme slots takes its overrides through `class` alone.
+  if (tag.kind === 'nuxt-ui' && !tag.slotless) {
     const ui = directive(element, 'bind', 'ui')
     if (ui?.exp) {
       const quote = quoteOf(ui.loc.source)
@@ -110,7 +133,9 @@ function instrumentTag(code: MagicString, tag: FileTag) {
       ).trimStart(),
     )
   } else added.push(bound('class', '"', `$lab.cls($,${id}${root})`))
-  const slotted = tag.kind === 'nuxt-ui' ? ',1' : ''
+  // A Nuxt UI piece reports its theme slots; one without any, its own
+  // element as its root slot.
+  const slotted = tag.kind === 'nuxt-ui' ? (tag.slotless ? ',2' : ',1') : ''
   added.push(
     bound('onVnodeMounted', '"', `$lab.hook($,${id}${slotted})`),
     bound('onVnodeUpdated', '"', `$lab.hook($,${id}${slotted})`),

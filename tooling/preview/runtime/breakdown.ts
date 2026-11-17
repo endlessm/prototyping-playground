@@ -10,9 +10,12 @@
 import { reactive, type ComponentInternalInstance, type VNode } from 'vue'
 import type { KnobHighlight, NodeBox, NodeBoxes } from '../protocol.ts'
 import { createKnobLayer } from './knobs.ts'
+import { ownsSlot } from './pieces.ts'
 
 /** The root of the tree: the file the Breakdown mounts. */
 export const ROOT_NODE = 'root'
+/** The slot a Nuxt UI piece without theme slots reports its classes under. */
+const SLOTLESS_ROOT = 'base'
 /** Node ID → slot (a theme slot, or `class`) → classes. */
 export type BreakdownOverrides = Record<string, Record<string, string>>
 
@@ -110,9 +113,12 @@ export function createBreakdown(
   post: (nodes: Record<string, NodeBoxes>) => void,
 ): Breakdown {
   const overrides = reactive<BreakdownOverrides>({})
+  // How each piece reports its theme slots: not at all (0), from its
+  // `data-slot` elements (1), or as its own element, for a Nuxt UI piece
+  // whose theme has no slots (2).
   const live = new Map<
     string,
-    { instances: Set<ComponentInternalInstance>; slotted: boolean }
+    { instances: Set<ComponentInternalInstance>; slotted: number }
   >()
   const hooks = new Map<string, Hook>()
   const full = (instance: ComponentInternalInstance, local: string) =>
@@ -194,7 +200,14 @@ export function createBreakdown(
     for (const [id, found] of elements) {
       const slots: Record<string, NodeBox[]> = {}
       const classes: Record<string, string> = {}
-      if (live.get(id)!.slotted)
+      const { slotted } = live.get(id)!
+      if (slotted === 2)
+        for (const element of found) {
+          const at = box(element)
+          if (at) (slots[SLOTLESS_ROOT] ??= []).push(at)
+          classes[SLOTLESS_ROOT] ??= element.getAttribute('class') ?? ''
+        }
+      else if (slotted)
         for (const element of found)
           for (const part of [
             element,
@@ -203,15 +216,13 @@ export function createBreakdown(
             const slot = part.getAttribute('data-slot')
             if (!slot) continue
             // A slot of a piece inside this one belongs to that piece.
-            const owner = part.closest('[data-lab-node]')
-            if (!owner?.getAttribute('data-lab-node')!.split(' ').includes(id))
-              continue
+            if (!ownsSlot(part, id)) continue
             const at = box(part)
             if (at) (slots[slot] ??= []).push(at)
             classes[slot] ??= part.getAttribute('class') ?? ''
           }
       nodes[id] = { boxes: boxes(found), slots }
-      if (live.get(id)!.slotted) nodes[id].classes = classes
+      if (slotted) nodes[id].classes = classes
     }
     measured = nodes
     draw()
@@ -247,7 +258,7 @@ export function createBreakdown(
   const place = ({ x, y, width, height }: NodeBox) =>
     `left: ${x}px; top: ${y}px; width: ${width}px; height: ${height}px;`
 
-  function hookFor(id: string, kind: 'hook' | 'drop', slotted: boolean) {
+  function hookFor(id: string, kind: 'hook' | 'drop', slotted: number) {
     const key = `${kind}:${id}`
     let hook = hooks.get(key)
     if (!hook) {
@@ -301,13 +312,13 @@ export function createBreakdown(
         )
       },
       hook: (instance, local, slotted) =>
-        hookFor(full(instance, local), 'hook', Boolean(slotted)),
-      drop: (instance, local) => hookFor(full(instance, local), 'drop', false),
+        hookFor(full(instance, local), 'hook', slotted ?? 0),
+      drop: (instance, local) => hookFor(full(instance, local), 'drop', 0),
     },
     rootHooks: {
-      onVnodeMounted: hookFor(ROOT_NODE, 'hook', false),
-      onVnodeUpdated: hookFor(ROOT_NODE, 'hook', false),
-      onVnodeBeforeUnmount: hookFor(ROOT_NODE, 'drop', false),
+      onVnodeMounted: hookFor(ROOT_NODE, 'hook', 0),
+      onVnodeUpdated: hookFor(ROOT_NODE, 'hook', 0),
+      onVnodeBeforeUnmount: hookFor(ROOT_NODE, 'drop', 0),
     },
     setOverrides(next) {
       for (const id of Object.keys(overrides))

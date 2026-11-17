@@ -30,6 +30,7 @@ import {
 const ENDLESS_STUDIOS = '8x5spen6xtvp96a9'
 const ADA_PROTOTYPE = 'adaexp0000000001'
 const ROUNDER = 'adarnd0000000001'
+const TANGLED = 'adatng0000000001'
 const posix = (file: string) => file.split(path.sep).join('/')
 mkdirSync('.e2e', { recursive: true })
 const folders: string[] = []
@@ -276,13 +277,26 @@ describe('in the studio running locally, as Ben', { timeout: 180_000 }, () => {
   })
 })
 
+// Ada's experiment, and one of hers whose template can't be read.
+function prototypesWithABrokenExperiment() {
+  const folder = prototypesWithAdasExperiment()
+  writeFileSync(
+    path.join(folder, 'ada', 'button-experiments', 'Tangled.vue'),
+    `<!-- @studio-id ${TANGLED} -->\n<!-- @lab-experiment ${ENDLESS_STUDIOS} button 2026-11-11 -->\n<template>\n  <div><UButton>Tangled</div>\n</template>\n`,
+  )
+  return folder
+}
+
 describe(
   'in the studio running locally, for someone who hasn’t joined',
   { timeout: 180_000 },
   () => {
     const { newPage, url } = useStudio(() =>
       startDevServer(
-        studioEnv(prototypesWithAdasExperiment(), 'nobody@elsewhere.example'),
+        studioEnv(
+          prototypesWithABrokenExperiment(),
+          'nobody@elsewhere.example',
+        ),
       ),
     )
     const studio = {
@@ -304,6 +318,34 @@ describe(
       )
       expect(await button(page, 'New experiment').count()).toBe(0)
       expect(await button(page, 'Duplicate Rounder').count()).toBe(0)
+    })
+
+    test('[LAB-47] the Breakdown says why Save as experiment is unavailable', async () => {
+      const page = await newPage()
+      await page.goto(`${studio.url}lab/${ENDLESS_STUDIOS}/button/breakdown`)
+      await visible(
+        page
+          .getByRole('note')
+          .getByText(
+            'Join the studio to make experiments. Ask your agent to register you with yarn studio join.',
+          ),
+      )
+    })
+
+    test('[LAB-17] an experiment whose structure can’t be read says so, with Try again', async () => {
+      const page = await newPage()
+      await page.goto(`${studio.url}${experiments}/${TANGLED}`)
+      const alert = page
+        .getByRole('region', { name: 'Tangled in the Lab' })
+        .getByRole('alert')
+      await visible(
+        alert.getByText('Breakdown can’t read how Tangled is built.'),
+      )
+      await visible(alert.getByText(/Tangled\.vue/))
+      await button(alert, 'Try again').click()
+      await visible(
+        alert.getByText('Breakdown can’t read how Tangled is built.'),
+      )
     })
   },
 )

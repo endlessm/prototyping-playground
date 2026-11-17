@@ -6,6 +6,7 @@
 // (`data-lab-node`, `data-slot`), and drawn again whenever the pieces move,
 // so a knob scrubbed while hovered keeps its highlight on the new shape.
 import type { KnobHighlight } from '../protocol.ts'
+import { ownsSlot } from './pieces.ts'
 
 interface Rect {
   x: number
@@ -25,13 +26,7 @@ function targetElements(target: string): Element[] {
     [element, ...element.querySelectorAll(`[data-slot="${CSS.escape(slot)}"]`)]
       .filter((part) => part.getAttribute('data-slot') === slot)
       // A slot of a piece inside this one belongs to that piece.
-      .filter((part) =>
-        part
-          .closest('[data-lab-node]')
-          ?.getAttribute('data-lab-node')
-          ?.split(' ')
-          .includes(node),
-      ),
+      .filter((part) => ownsSlot(part, node)),
   )
 }
 
