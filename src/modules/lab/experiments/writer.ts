@@ -39,8 +39,6 @@ export interface WrittenChanges {
   skipped: SourceChange[]
 }
 
-// The slots that are the piece itself, where its `class` lands too.
-const OWN_SLOTS = ['base', 'root']
 const PLAIN = /^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*$/
 
 interface Location {
@@ -149,7 +147,7 @@ function writeTag(
   for (const change of changes) {
     if (
       change.slot === 'class' ||
-      (OWN_SLOTS.includes(change.slot) &&
+      (change.slot === tag.rootSlot &&
         classValue &&
         holdsFamily(classValue.content, change.family, theme))
     )

@@ -91,6 +91,9 @@ function instrumentTag(code: MagicString, tag: FileTag) {
       )
     }
   }
+  // A Nuxt UI piece's own class wins over its root slot's `ui`, so the root
+  // slot's overrides reach the class too.
+  const root = tag.rootSlot ? `,\`${tag.rootSlot}\`` : ''
   const className = directive(element, 'bind', 'class')
   if (className?.exp) {
     const quote = quoteOf(className.loc.source)
@@ -100,10 +103,10 @@ function instrumentTag(code: MagicString, tag: FileTag) {
       bound(
         'class',
         quote,
-        `[(${className.exp.content}${END}),$lab.cls($,${id})]`,
+        `[(${className.exp.content}${END}),$lab.cls($,${id}${root})]`,
       ).trimStart(),
     )
-  } else added.push(bound('class', '"', `$lab.cls($,${id})`))
+  } else added.push(bound('class', '"', `$lab.cls($,${id}${root})`))
   const slotted = tag.kind === 'nuxt-ui' ? ',1' : ''
   added.push(
     bound('onVnodeMounted', '"', `$lab.hook($,${id}${slotted})`),

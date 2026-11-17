@@ -192,6 +192,11 @@ export interface FileTag {
   target?: string | null
   /** For an icon with a written name. */
   icon?: string
+  /**
+   * For a Nuxt UI piece: its root theme slot (the first its template
+   * renders), where the tag's own `class` lands too.
+   */
+  rootSlot?: string
 }
 
 export type FileTags =
@@ -291,6 +296,10 @@ export function fileTags(
       if (kind === 'icon') {
         const icon = attribute(element, 'name')?.value?.content
         if (icon) tag.icon = icon
+      }
+      if (kind === 'nuxt-ui') {
+        const [root] = nuxtUiParts(options.nuxtUi.components.get(name)!).slots
+        if (root) tag.rootSlot = root
       }
       tags.push(tag)
       walk(element.children, local, looped)

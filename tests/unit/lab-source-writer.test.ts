@@ -196,6 +196,14 @@ describe('the piece’s root slot and class', () => {
       `  <UButton :ui="{ base: 'rounded-xl' }" class="lg:hidden">Go</UButton>`,
     )
   })
+
+  test('the root slot is the piece’s own: an input’s base is not its root', () => {
+    expect(
+      write('  <UInput class="rounded-full" />', [
+        corners('rounded-xl', 'root>UInput'),
+      ]).template,
+    ).toBe(`  <UInput :ui="{ base: 'rounded-xl' }" class="rounded-full" />`)
+  })
 })
 
 describe('finding the piece', () => {

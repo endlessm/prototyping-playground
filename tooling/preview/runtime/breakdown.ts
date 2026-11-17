@@ -71,7 +71,11 @@ export interface Breakdown {
       local: string,
       original?: unknown,
     ) => unknown
-    cls: (instance: ComponentInternalInstance, local: string) => unknown
+    cls: (
+      instance: ComponentInternalInstance,
+      local: string,
+      root?: string,
+    ) => unknown
     hook: (
       instance: ComponentInternalInstance,
       local: string,
@@ -286,7 +290,16 @@ export function createBreakdown(
             merged[slot] = [merged[slot], classes].filter(Boolean).join(' ')
         return merged
       },
-      cls: (instance, local) => overrides[full(instance, local)]?.class,
+      // A Nuxt UI piece's class wins over its root slot's `ui`: that slot's
+      // overrides come after the class, so they win as they would in `ui`.
+      cls(instance, local, root) {
+        const own = overrides[full(instance, local)]
+        if (!own) return undefined
+        return (
+          [own.class, root ? own[root] : undefined].filter(Boolean).join(' ') ||
+          undefined
+        )
+      },
       hook: (instance, local, slotted) =>
         hookFor(full(instance, local), 'hook', Boolean(slotted)),
       drop: (instance, local) => hookFor(full(instance, local), 'drop', false),

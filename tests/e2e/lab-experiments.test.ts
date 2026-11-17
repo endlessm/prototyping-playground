@@ -207,13 +207,15 @@ describe('in the studio running locally, as Ben', { timeout: 180_000 }, () => {
     await visible(
       stagePreview(page, 'Softer corners').getByText('Invite Learners'),
     )
-    const frame = await stage
-      .locator('iframe[title="Softer corners broken down"]')
-      .boundingBox()
+    const root = stage.locator('iframe[title="Softer corners broken down"]')
+    const frame = await root.boundingBox()
     const inside = await stagePreview(page, 'Softer corners')
       .getByText('Invite Learners')
       .boundingBox()
-    expect(frame!.height).toBeGreaterThanOrEqual(160)
+    // Its own height, whatever the canvas's zoom.
+    expect(
+      await root.evaluate((element) => (element as HTMLElement).offsetHeight),
+    ).toBeGreaterThanOrEqual(160)
     expect(
       Math.abs(inside!.x + inside!.width / 2 - (frame!.x + frame!.width / 2)),
     ).toBeLessThan(4)
