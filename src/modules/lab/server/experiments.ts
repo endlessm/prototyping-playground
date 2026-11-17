@@ -4,12 +4,13 @@
 //   POST { action: "create", system, component, name, changes? }
 //        a new experiment of the component in your prototype for it,
 //        made the first time → { prototype, artifact }
-//   POST { action: "duplicate", experiment, name, changes? }
+//   POST { action: "duplicate", experiment, name, changes?, props? }
 //        anyone's experiment copied into your own → { prototype, artifact }
 //
 // With a Breakdown's `changes` (Save as experiment, Save as my experiment),
-// they are written into the new experiment, which answers `saved` and
-// `skipped` as Save does (`save.ts`).
+// and the dial panel's `props` with `duplicate`, they are written into the
+// new experiment, which answers `saved`, `skipped` and `skippedProps` as
+// Save does (`save.ts`).
 //
 // Who is asking comes from Git, as everywhere in the studio; refusals answer
 // with the studio's own sentences and statuses. The deployed site has no
@@ -48,6 +49,7 @@ export default (async ({ root, contributorsFolder, method, body }) => {
           name: request.name,
         },
         request.changes,
+        request.props,
       )
     default:
       throw invalid()

@@ -7,7 +7,9 @@
 // `class`, since `class` wins over `ui` there. Each new class replaces the
 // one of the same knob family and leaves prefixed classes (`hover:`, `md:`)
 // alone. Pieces the file itself doesn't hold (inside a file it imports) are
-// left unsaved. Pure: the caller reads the file's tags (`fileTags`).
+// left unsaved. The dial panel's props are written apart (`writePropChanges`)
+// as static attributes on their tags. Pure: the caller reads the file's tags
+// (`fileTags`).
 import { NodeTypes } from '@vue/compiler-core'
 import { babelParse, MagicString } from 'vue/compiler-sfc'
 import {
@@ -23,6 +25,8 @@ import {
   type TemplateAttribute,
   type TemplateDirective,
 } from '../../../../tooling/systems/breakdown.ts'
+import { kebab } from '../../../../tooling/systems/components.ts'
+import { attributeOf } from './instances.ts'
 
 /** One class to write: what Save sends for each unsaved change. */
 export interface SourceChange {
@@ -334,5 +338,134 @@ export function writeBreakdownChanges(
   const code = new MagicString(source)
   for (const [tag, list] of byTag)
     writeTag(code, source, tag, list, options.theme)
+  return { source: code.toString(), written, skipped }
+}
+
+/** One prop to write on an instance's tag; null leaves it to its default. */
+export interface PropChange {
+  /** The tag's node ID. */
+  node: string
+  /** The prop's name, camel-cased. */
+  prop: string
+  value: string | number | boolean | null
+}
+
+export interface WrittenProps {
+  source: string
+  written: PropChange[]
+  /** Props bound to code, or on tags the file doesn't hold, left unsaved. */
+  skipped: PropChange[]
+}
+
+type TagProp = FileTag['element']['props'][number]
+
+const escapeAttribute = (text: string) =>
+  text.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+
+// A prop as an attribute: text in quotes, `true` bare, a number or `false`
+// as a literal binding, so the file keeps static values Save can read back.
+function propAttribute(name: string, value: string | number | boolean) {
+  if (value === true) return name
+  if (typeof value === 'string') return `${name}="${escapeAttribute(value)}"`
+  return `:${name}="${String(value)}"`
+}
+
+// Removes an attribute with the space before it.
+function removeProp(code: MagicString, source: string, prop: TagProp) {
+  let start = prop.loc.start.offset
+  while (start > 0 && /\s/.test(source[start - 1]!)) start--
+  code.remove(start, prop.loc.end.offset)
+}
+
+// Adds attributes after a tag's last one: on lines of their own, at its
+// indent, when the tag puts its attributes on lines of their own.
+function appendProps(
+  code: MagicString,
+  source: string,
+  tag: FileTag,
+  attributes: string[],
+) {
+  const { element } = tag
+  const nameEnd = element.loc.start.offset + 1 + element.tag.length
+  const props = element.props
+  const last = props.reduce<TagProp | null>(
+    (latest, prop) =>
+      !latest || prop.loc.end.offset > latest.loc.end.offset ? prop : latest,
+    null,
+  )
+  const end = last ? last.loc.end.offset : nameEnd
+  const first = props[0]
+  if (
+    last &&
+    first &&
+    source.slice(nameEnd, first.loc.start.offset).includes('\n')
+  ) {
+    const lineStart = source.lastIndexOf('\n', last.loc.start.offset) + 1
+    const indent = /^\s*/.exec(
+      source.slice(lineStart, last.loc.start.offset),
+    )![0]
+    code.appendLeft(
+      end,
+      attributes.map((each) => `\n${indent}${each}`).join(''),
+    )
+  } else code.appendLeft(end, attributes.map((each) => ` ${each}`).join(''))
+}
+
+/**
+ * The file's source with each prop written on its tag as a static value:
+ * replacing the attribute or literal binding already there, in its own
+ * spelling, or added kebab-cased after the tag's last attribute; a prop set
+ * back to its default loses its attribute. A prop the tag binds to code,
+ * or on a tag the file doesn't hold, is left unsaved. Pure: the caller
+ * reads the file's tags (`fileTags`).
+ */
+export function writePropChanges(
+  source: string,
+  changes: PropChange[],
+  options: { tags: FileTag[] },
+): WrittenProps {
+  const tags = new Map(
+    options.tags.map((tag) => [`${ROOT_NODE}>${tag.local}`, tag]),
+  )
+  const code = new MagicString(source)
+  const written: PropChange[] = []
+  const skipped: PropChange[] = []
+  const added = new Map<FileTag, string[]>()
+  for (const change of changes) {
+    const tag = tags.get(change.node)
+    if (!tag || tag.kind === 'icon') {
+      skipped.push(change)
+      continue
+    }
+    const existing = tag.element.props.flatMap((prop) => {
+      const found = attributeOf(prop)
+      return found?.name === change.prop ? [{ prop, ...found }] : []
+    })
+    if (existing.some(({ attribute }) => 'code' in attribute)) {
+      skipped.push(change)
+      continue
+    }
+    written.push(change)
+    const [first, ...rest] = existing
+    for (const extra of rest) removeProp(code, source, extra.prop)
+    if (first && change.value === null) removeProp(code, source, first.prop)
+    else if (first) {
+      const spelled =
+        first.prop.type === NodeTypes.ATTRIBUTE
+          ? first.prop.name
+          : first.prop.arg!.content
+      code.overwrite(
+        first.prop.loc.start.offset,
+        first.prop.loc.end.offset,
+        propAttribute(spelled, change.value!),
+      )
+    } else if (change.value !== null)
+      added.set(tag, [
+        ...(added.get(tag) ?? []),
+        propAttribute(kebab(change.prop), change.value),
+      ])
+  }
+  for (const [tag, attributes] of added)
+    appendProps(code, source, tag, attributes)
   return { source: code.toString(), written, skipped }
 }

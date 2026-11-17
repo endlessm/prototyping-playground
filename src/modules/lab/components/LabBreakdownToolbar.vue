@@ -2,9 +2,10 @@
 // The Breakdown's toolbar, a pill at the bottom centre of the canvas: zoom
 // out, the zoom as a percentage, zoom in; the selected piece's name and,
 // after it, room for that piece's knobs (the `inspector` slot); Reset and
-// Save while the breakdown shows (the `actions` slot); then the button that
-// switches between the component alone and its breakdown, and the one that
-// lets the canvas cover the screen.
+// Save while the breakdown shows, and beside the component alone too when
+// its dial panel moves knobs there (the `actions` slot); then the button
+// that switches between the component alone and its breakdown, and the one
+// that lets the canvas cover the screen.
 defineProps<{
   zoom: number
   mode: 'breakdown' | 'component'
@@ -12,6 +13,8 @@ defineProps<{
   selected: string | null
   /** Whether the canvas covers the screen. */
   expanded: boolean
+  /** Whether Reset and Save show with the component alone too. */
+  actionsWithComponent?: boolean
 }>()
 const emit = defineEmits<{
   zoomIn: []
@@ -65,7 +68,9 @@ const { t } = useI18n()
       >
       <slot name="inspector" />
     </template>
-    <template v-if="mode === 'breakdown' && $slots.actions">
+    <template
+      v-if="(mode === 'breakdown' || actionsWithComponent) && $slots.actions"
+    >
       <USeparator orientation="vertical" class="h-5" />
       <slot name="actions" />
     </template>

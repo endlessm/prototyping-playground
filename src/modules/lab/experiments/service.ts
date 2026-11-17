@@ -51,7 +51,9 @@ import {
 import {
   applyChanges,
   changesOf,
+  propsOf,
   type RequestedChange,
+  type RequestedProp,
   type SavedChanges,
 } from './save.ts'
 
@@ -246,6 +248,7 @@ async function addExperiment(
     system: InstalledSystem
   }) => string,
   changes?: RequestedChange[],
+  props?: RequestedProp[],
 ): Promise<SavedExperiment> {
   const me = contributorOf(context)
   const name = cleanName(request.name)
@@ -259,12 +262,14 @@ async function addExperiment(
   // every change for another try.
   let saved: SavedChanges | undefined
   const finish = (source: string, target: string) => {
-    if (!changes) return source
+    if (!changes && !props) return source
     const written = applyChanges(source, {
       file: target,
       system,
       root: context.root,
-      changes,
+      changes: changes ?? [],
+      props,
+      component: component.slug,
     })
     const count = written.skipped.length
     if (count)
@@ -273,7 +278,13 @@ async function addExperiment(
         'unplaced',
         `${count === 1 ? '1 change is to a piece' : `${count} changes are to pieces`} inside other files, which an experiment can’t change, so nothing was saved. Your changes are still there.`,
       )
-    saved = { saved: written.saved, skipped: written.skipped }
+    saved = {
+      saved: written.saved,
+      skipped: written.skipped,
+      ...(written.skippedProps.length
+        ? { skippedProps: written.skippedProps }
+        : {}),
+    }
     return written.source
   }
   const view = viewType(context)
@@ -350,16 +361,18 @@ export function createExperiment(
 
 /**
  * Anyone's experiment, copied into your own with fresh permanent IDs, with
- * a Breakdown's changes written into it when there are any (Save as my
- * experiment).
+ * a Breakdown's changes and the dial panel's props written into it when
+ * there are any (Save as my experiment).
  */
 export async function duplicateExperiment(
   context: ExperimentsContext,
   request: { experiment: unknown; name: unknown },
   changes?: unknown,
+  props?: unknown,
 ) {
   contributorOf(context)
   const wantedChanges = changes === undefined ? undefined : changesOf(changes)
+  const wantedProps = props === undefined ? undefined : propsOf(props)
   const view = viewType(context)
   const access = fileAccess(context)
   const wanted = String(request.experiment ?? '')
@@ -400,5 +413,6 @@ export async function duplicateExperiment(
       return writeExperiment(copied, made.marker)
     },
     wantedChanges,
+    wantedProps,
   )
 }

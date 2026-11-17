@@ -5,8 +5,9 @@
 // Breakdown instruments its start source (`button.lab-start.vue`, made from
 // its files by `startSource`), the same a new experiment of it starts from. In the copy, each tag the tree
 // reader names (`fileTags`) reports its rendered elements to the runtime's
-// `$lab` under its node ID and takes its `ui` (Nuxt UI pieces) and `class`
-// through `$lab`, which merges the overrides the studio sends. The `.vue`
+// `$lab` under its node ID, takes its `ui` (Nuxt UI pieces) and `class`
+// through `$lab`, which merges the overrides the studio sends, and the dial
+// panel's props after its own attributes (`$lab.props`). The `.vue`
 // files the copy imports inside the followed folders are served
 // instrumented too, so the IDs continue through the copied app.
 import { readFileSync } from 'node:fs'
@@ -79,6 +80,8 @@ function instrumentTag(code: MagicString, tag: FileTag) {
   const added: string[] = []
   if (OVERLAYS.includes(tag.name) && !setsOpen(element))
     added.push(' default-open')
+  // The dial panel's props, after the tag's own attributes so they win.
+  if (tag.kind !== 'icon') added.push(` v-bind="$lab.props($,${id})"`)
   // `ui` for a Nuxt UI piece: its own binding, or what a `v-bind` object
   // gives it, merged with the overrides. Last, so it wins over the object.
   // One without theme slots takes its overrides through `class` alone.

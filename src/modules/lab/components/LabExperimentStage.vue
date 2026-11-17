@@ -23,7 +23,7 @@ import { experimentSaveAs, requestedChanges } from '../utils/saving'
 // edit on disk. Until its tree arrives, the experiment's live preview
 // stands in.
 const props = defineProps<{ experiment: LabExperiment }>()
-const { system, component } = useLabComponent()
+const { system, component, data: componentData } = useLabComponent()
 const { t } = useI18n()
 const { me } = useMe()
 const toast = useStudioToast()
@@ -39,6 +39,8 @@ const { data, reload } = useModuleData<Record<string, ExperimentBreakdown>>(
 )
 const breakdown = computed(() => data.value?.[props.experiment.id] ?? null)
 const tree = computed(() => breakdown.value?.tree.tree ?? null)
+// The component's props, which the dial panel offers on its instances.
+const propDocs = computed(() => componentData.value?.props?.props ?? [])
 
 const selected = ref<string | null>(null)
 const changes = useBreakdownChanges()
@@ -86,9 +88,10 @@ function saveAsMine() {
     }),
     name: props.experiment.title,
     changes: requestedChanges(changes.all()),
+    props: changes.allProps(),
     // The changes are kept in the copy now, so leaving doesn't ask.
     onMade: (made) => {
-      changes.keepOnly(made.skipped ?? [])
+      changes.keepOnly(made.skipped ?? [], made.skippedProps ?? [])
       savedToast(made)
     },
   })
@@ -108,11 +111,12 @@ async function save() {
           artifact: props.experiment.id,
           base: startedOver.value ?? latest.value,
           changes: requestedChanges(changes.all()),
+          props: changes.allProps(),
         }),
       },
     )
     latest.value = reply.version
-    changes.keepOnly(reply.skipped)
+    changes.keepOnly(reply.skipped, reply.skippedProps ?? [])
     if (changes.pending.value) startedOver.value = reply.version
     savedToast(reply)
   } catch (error) {
@@ -151,6 +155,9 @@ async function save() {
         :save-as="saveAs"
         :can-save="canSave"
         :saving="saving"
+        dials
+        :instances="breakdown.instances"
+        :prop-docs="propDocs"
         @save="save"
       />
     </Suspense>

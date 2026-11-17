@@ -1,4 +1,9 @@
-import type { RequestedChange, SkippedChange } from '../experiments/save'
+import type {
+  RequestedChange,
+  RequestedProp,
+  SkippedChange,
+  SkippedProp,
+} from '../experiments/save'
 import type { ExperimentRequest } from '../utils/experiments'
 
 export interface ExperimentDialog {
@@ -10,6 +15,8 @@ export interface ExperimentDialog {
   name?: string
   /** A Breakdown's changes, written into the experiment it makes. */
   changes?: RequestedChange[]
+  /** The dial panel's props, written on the copy's tags. */
+  props?: RequestedProp[]
   /** Called once it is made, before it opens. */
   onMade?: (made: MadeExperimentReply) => void
 }
@@ -20,6 +27,7 @@ export interface MadeExperimentReply {
   artifact: string
   saved?: number
   skipped?: SkippedChange[]
+  skippedProps?: SkippedProp[]
 }
 
 /**

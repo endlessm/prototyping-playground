@@ -251,6 +251,7 @@ export default defineNuxtConfig({
           '@codemirror/view',
           '@lezer/highlight',
           'codemirror-lang-mermaid',
+          'dialkit/vue',
           'mermaid',
           'yaml',
         ],

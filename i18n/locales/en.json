@@ -1175,6 +1175,16 @@
         "keep": "Keep editing",
         "discard": "Discard and leave"
       }
+    },
+    "dial": {
+      "panel": "Controls for {name}",
+      "title": "Controls",
+      "none": "Nothing to adjust in this experiment yet.",
+      "props": "Props",
+      "default": "Default",
+      "code": "Set in code",
+      "inCode": "{name}: set in code",
+      "skipped": "{count} prop is set in code on its tag, so it wasn’t saved. It’s still unsaved. | {count} props are set in code on their tags, so they weren’t saved. They’re still unsaved."
     }
   }
 }
