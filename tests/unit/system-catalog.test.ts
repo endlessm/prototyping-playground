@@ -14,6 +14,7 @@ import {
   systemDocuments,
 } from '../../tooling/systems/catalog'
 import {
+  breakdownId,
   exampleId,
   overviewId,
   playgroundId,
@@ -257,6 +258,7 @@ describe('a system’s catalog', () => {
           },
         ],
         playground: playgroundId('hrbr000000000001', 'button'),
+        breakdown: breakdownId('hrbr000000000001', 'button'),
       },
       {
         slug: 'card',
@@ -271,6 +273,7 @@ describe('a system’s catalog', () => {
         source: null,
         examples: [],
         playground: null,
+        breakdown: null,
       },
       {
         slug: 'icon-button',
@@ -285,6 +288,7 @@ describe('a system’s catalog', () => {
         source: at('IconButton.vue'),
         examples: [],
         playground: playgroundId('hrbr000000000001', 'icon-button'),
+        breakdown: breakdownId('hrbr000000000001', 'icon-button'),
       },
     ])
     expect(catalog.overview).toBeNull()

@@ -8,6 +8,7 @@ import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 import { systemCatalog, systemPreviews } from '../../tooling/systems/catalog'
 import {
+  breakdownId,
   exampleId,
   overviewId,
   playgroundId,
@@ -85,6 +86,12 @@ describe('a component’s playground preview', () => {
         playground: true,
       },
       {
+        id: breakdownId(HARBOR, 'button'),
+        file: path.join(components, 'button/Button.vue'),
+        playground: true,
+        breakdown: true,
+      },
+      {
         id: exampleId(HARBOR, 'card', 'Plain'),
         file: path.join(components, 'card/card.examples.vue'),
         example: 'Plain',
@@ -93,6 +100,12 @@ describe('a component’s playground preview', () => {
         id: playgroundId(HARBOR, 'icon-button'),
         file: path.join(components, 'IconButton.vue'),
         playground: true,
+      },
+      {
+        id: breakdownId(HARBOR, 'icon-button'),
+        file: path.join(components, 'IconButton.vue'),
+        playground: true,
+        breakdown: true,
       },
       { id: overviewId(HARBOR), file: path.join(system.dir, 'overview.vue') },
     ])

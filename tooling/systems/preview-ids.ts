@@ -30,5 +30,13 @@ export const exampleId = (system: string, slug: string, name: string) =>
 export const playgroundId = (system: string, slug: string) =>
   idOf(`playground:${system}:${slug}`)
 
+/**
+ * The preview document's ID for a component's Breakdown: its component file
+ * instrumented so each piece's elements carry its node ID, mounted like its
+ * playground.
+ */
+export const breakdownId = (system: string, slug: string) =>
+  idOf(`breakdown:${system}:${slug}`)
+
 /** The preview document's ID for a system's own Overview content. */
 export const overviewId = (system: string) => idOf(`overview:${system}`)

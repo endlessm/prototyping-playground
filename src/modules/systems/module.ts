@@ -114,7 +114,7 @@ export default {
     components: {
       watch: [`${folder}/*/components/**`],
       load: async ({ root, dev }) =>
-        componentPages(await systemsFor(root, dev)),
+        componentPages(await systemsFor(root, dev), root),
     },
   },
 } satisfies StudioModule

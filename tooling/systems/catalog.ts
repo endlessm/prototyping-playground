@@ -26,7 +26,13 @@ import {
   skillNameProblem,
 } from './content-rules.ts'
 import type { SystemAssetKind, SystemIcons, SystemLibrary } from './contract.ts'
-import { exampleId, overviewId, playgroundId } from './preview-ids.ts'
+import { readBreakdown, type BreakdownResult } from './breakdown.ts'
+import {
+  breakdownId,
+  exampleId,
+  overviewId,
+  playgroundId,
+} from './preview-ids.ts'
 import type { ComponentPropsDoc } from './props.ts'
 import type { InstalledSystem } from './registry.ts'
 import { isBinaryFile, isTextContent } from './text-files.ts'
@@ -97,6 +103,11 @@ export interface CatalogComponent {
    * component file.
    */
   playground: string | null
+  /**
+   * The preview document's ID for its Breakdown, the component file
+   * instrumented with its pieces' node IDs; null without a component file.
+   */
+  breakdown: string | null
 }
 
 export interface CatalogDocument {
@@ -193,6 +204,10 @@ export function documentTitle(source: string, file: string) {
   const heading = /^#\s+(.+?)\s*#*\s*$/m.exec(body)?.[1]
   return heading ?? path.posix.basename(file).replace(/\.md$/i, '')
 }
+
+/** A component's title: its page's, or one from its name. */
+const titleOf = (page: string | null, name: string) =>
+  text(frontmatter(page ?? '')?.title) ?? skillTitle(kebab(name))
 
 /** "build-flow" → "Build flow". */
 export function skillTitle(name: string) {
@@ -359,7 +374,7 @@ export function systemCatalog(
       return {
         slug: component.slug,
         name: component.name,
-        title: text(data.title) ?? skillTitle(kebab(component.name)),
+        title: titleOf(read(doc), component.name),
         description: text(data.description),
         sourceNote: text(data.source),
         docsUrl: text(data.docs),
@@ -373,6 +388,7 @@ export function systemCatalog(
           id: exampleId(system.id, component.slug, name),
         })),
         playground: source ? playgroundId(system.id, component.slug) : null,
+        breakdown: source ? breakdownId(system.id, component.slug) : null,
       }
     }),
     overview: existsSync(path.join(dir, OVERVIEW_FILE))
@@ -499,7 +515,8 @@ export function skillProblems(
 /**
  * What a system's preview document shows besides views: each example of
  * its component pages, each component's playground (its component file,
- * after its examples) and its own Overview content, by preview ID, with the
+ * after its examples) and Breakdown (the same file, instrumented), and its
+ * own Overview content, by preview ID, with the
  * absolute path of the file it comes from.
  */
 export function systemPreviews(system: InstalledSystem) {
@@ -509,6 +526,7 @@ export function systemPreviews(system: InstalledSystem) {
     file: string
     example?: string
     playground?: true
+    breakdown?: true
   }[] = []
   for (const component of discoverComponents(filesIn(componentsDir))) {
     const { examples, source } = component.files
@@ -522,11 +540,19 @@ export function systemPreviews(system: InstalledSystem) {
         })
     }
     if (source)
-      entries.push({
-        id: playgroundId(system.id, component.slug),
-        file: path.join(componentsDir, source),
-        playground: true,
-      })
+      entries.push(
+        {
+          id: playgroundId(system.id, component.slug),
+          file: path.join(componentsDir, source),
+          playground: true,
+        },
+        {
+          id: breakdownId(system.id, component.slug),
+          file: path.join(componentsDir, source),
+          playground: true,
+          breakdown: true,
+        },
+      )
   }
   const overview = path.join(system.dir, OVERVIEW_FILE)
   if (existsSync(overview))
@@ -585,6 +611,12 @@ export interface ComponentPageData {
   seeds: ExampleSeeds
   /** Read from the component's code; null without a component file. */
   props: ComponentPropsDoc | null
+  /**
+   * The Breakdown's tree of pieces, read from the component file and the
+   * files it imports, or why it can't be read; null without a component
+   * file.
+   */
+  breakdown: BreakdownResult | null
   /** Files that couldn't be read, each with why. */
   errors: string[]
 }
@@ -592,10 +624,13 @@ export interface ComponentPageData {
 /**
  * What each component page shows besides the catalog, by `<system ID>/<slug>`:
  * its page and examples text, each example's own code, the Playground's
- * seeds and its props. Props are read with Vue's component metadata
+ * seeds, its props and its Breakdown's tree. Props are read with Vue's component metadata
  * tooling, loaded only here.
  */
-export async function componentPages(systems: InstalledSystem[]) {
+export async function componentPages(
+  systems: InstalledSystem[],
+  root = process.cwd(),
+) {
   const pages: Record<string, ComponentPageData> = {}
   const sources = new Map<string, ComponentPageData>()
   for (const system of systems) {
@@ -620,6 +655,14 @@ export async function componentPages(systems: InstalledSystem[]) {
         snippets: text ? exampleSnippets(text, exampleNames(text)) : {},
         seeds: text ? exampleSeeds(text, component.slug) : {},
         props: null,
+        breakdown: source
+          ? readBreakdown({
+              file: path.join(componentsDir, source),
+              system,
+              root,
+              name: titleOf(page, component.name),
+            })
+          : null,
         errors,
       }
       pages[`${system.id}/${component.slug}`] = data
