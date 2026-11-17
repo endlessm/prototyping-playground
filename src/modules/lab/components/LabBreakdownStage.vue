@@ -58,6 +58,8 @@ const props = defineProps<{
   saveAs?: 'experiment' | 'mine' | 'file'
   canSave?: boolean
   saving?: boolean
+  /** Whether the component view has the dial panel beside it. */
+  dials?: boolean
 }>()
 /** The selected piece's node ID. */
 const selected = defineModel<string | null>('selected', { default: null })
@@ -200,6 +202,21 @@ const { width: viewportWidth, height: viewportHeight } =
 const COMPONENT_WIDTH = 560
 // The toolbar's height and its room from the canvas's bottom edge.
 const TOOLBAR = 72
+// The dial panel's width and margins, docked at the canvas's right edge;
+// the component starts centred in the room left of it.
+const DIAL_ROOM = 288 + 2 * 12
+
+// DialKit (and the motion libraries it brings) loads with the panel, when
+// the component view first opens, so the Lab's start doesn't carry it.
+const LabDialPanel = defineAsyncComponent(() => import('./LabDialPanel.vue'))
+const dialsOpened = ref(false)
+watch(
+  mode,
+  (now) => {
+    if (props.dials && now === 'component') dialsOpened.value = true
+  },
+  { immediate: true },
+)
 
 // The breakdown opens fitted to the canvas, above the toolbar (never below
 // half size, so the cards stay readable), with the root at the top.
@@ -229,8 +246,11 @@ watchEffect(() => {
     })
   }
   if (!views.component.placed) {
+    const x = props.dials
+      ? Math.max(CANVAS_PADDING, (width - DIAL_ROOM) / 2 - COMPONENT_WIDTH / 2)
+      : width / 2 - COMPONENT_WIDTH / 2
     Object.assign(views.component, {
-      x: width / 2 - COMPONENT_WIDTH / 2,
+      x,
       y: CANVAS_PADDING,
       placed: true,
     })
@@ -532,6 +552,22 @@ defineExpose({ boxes })
       </div>
     </div>
     <div
+      v-if="dialsOpened"
+      v-show="mode === 'component'"
+      class="absolute top-3 right-3 max-h-[calc(100%-6.5rem)] w-72 overflow-y-auto overscroll-contain rounded-[14px]"
+      @pointerdown.stop
+    >
+      <LabDialPanel
+        :tree="tree"
+        :classes="slotClasses"
+        :measured="Object.keys(boxes).length > 0"
+        :theme="theme"
+        :changes="changes"
+        :system-folder="systemFolder"
+        :name="name"
+      />
+    </div>
+    <div
       class="absolute bottom-4 left-1/2 flex w-full -translate-x-1/2 justify-center"
     >
       <LabBreakdownToolbar
@@ -539,6 +575,7 @@ defineExpose({ boxes })
         :mode="mode"
         :selected="selectedNode?.name ?? null"
         :expanded="expanded"
+        :actions-with-component="dials"
         @expand="expand(!expanded)"
         @zoom-in="zoomTo(zoomStep(view.zoom, 1))"
         @zoom-out="zoomTo(zoomStep(view.zoom, -1))"

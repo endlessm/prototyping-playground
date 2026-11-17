@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import {
-  pieceOf,
   slotId,
   type KnobHighlight,
 } from '../../../../tooling/preview/protocol'
 import {
   KNOB_FAMILIES,
   knobLabel,
-  knobsOf,
   type KnobTheme,
 } from '../../../../tooling/preview/knobs'
 import type { BreakdownNode } from '../../../../tooling/systems/breakdown'
 import type { BreakdownChanges } from '../composables/useBreakdownChanges'
+import { pieceKnobs } from '../utils/knobs'
 import LabKnob from './LabKnob.vue'
 
 // The selected piece's knobs, in the Breakdown's toolbar: one for each
@@ -38,27 +37,11 @@ const props = defineProps<{
 const emit = defineEmits<{ highlight: [knob: KnobHighlight | null] }>()
 const { t } = useI18n()
 
-const owner = computed(() => pieceOf(props.node.id))
-// The piece's own theme slots: the one a slot's card names, or those its
-// slot cards name; none for a piece whose theme has no slots.
-const theirs = computed(() =>
-  props.node.slot
-    ? [props.node.slot]
-    : props.node.children.flatMap(({ kind, slot }) =>
-        kind === 'slot' && slot ? [slot] : [],
-      ),
+const found = computed(() =>
+  pieceKnobs(props.node, props.classes, props.theme, props.elsewhere),
 )
-const knobs = computed(() => {
-  if (props.elsewhere) return []
-  const slots = props.classes[owner.value]
-  if (!slots) return []
-  // Only the piece's own theme slots: a Nuxt UI piece may render others
-  // inside it (a modal's close button) that aren't pieces of the tree.
-  const own = theirs.value.length
-    ? Object.fromEntries(theirs.value.map((slot) => [slot, slots[slot] ?? '']))
-    : slots
-  return knobsOf(own, props.theme)
-})
+const owner = computed(() => found.value.owner)
+const knobs = computed(() => found.value.knobs)
 const label = (knob: (typeof knobs.value)[number]) =>
   knobLabel(knob, (family) => t(`lab.knobs.families.${family}`))
 

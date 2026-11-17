@@ -151,6 +151,7 @@ async function save() {
         :save-as="saveAs"
         :can-save="canSave"
         :saving="saving"
+        dials
         @save="save"
       />
     </Suspense>

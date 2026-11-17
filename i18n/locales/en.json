@@ -1187,6 +1187,11 @@
         "keep": "Keep editing",
         "discard": "Discard and leave"
       }
+    },
+    "dial": {
+      "panel": "Controls for {name}",
+      "title": "Controls",
+      "none": "Nothing to adjust in this experiment yet."
     }
   }
 }
