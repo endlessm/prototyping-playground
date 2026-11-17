@@ -7,17 +7,8 @@
 // that each value is one the theme offers; then each change is written into
 // its piece's tag (`./writer.ts`). Imports only Node, `tooling/` and the Lab.
 import { readFileSync, writeFileSync } from 'node:fs'
-import path from 'node:path'
-import {
-  fileAccess,
-  FileServiceError,
-  versionOf,
-} from '../../../../tooling/files/source.ts'
+import { fileAccess, versionOf } from '../../../../tooling/files/source.ts'
 import { experimentOf } from '../../../../tooling/manifest/experiments.ts'
-import {
-  CONFIG_FILE,
-  readConfig,
-} from '../../../../tooling/modules/registry.ts'
 import {
   KNOB_FAMILIES,
   knobClass,
@@ -31,12 +22,13 @@ import {
   nuxtUiCatalog,
 } from '../../../../tooling/systems/breakdown.ts'
 import { systemCatalog } from '../../../../tooling/systems/catalog.ts'
+import type { InstalledSystem } from '../../../../tooling/systems/registry.ts'
 import {
-  loadSystems,
-  systemsFolder,
-  type InstalledSystem,
-} from '../../../../tooling/systems/registry.ts'
-import type { ExperimentsContext } from './service.ts'
+  gone,
+  installedSystems,
+  refuse,
+  type ExperimentsContext,
+} from './context.ts'
 import { writeBreakdownChanges, type SourceChange } from './writer.ts'
 
 /** One unsaved change as the page sends it: a knob's new value on a piece. */
@@ -62,9 +54,7 @@ const MAX_CHANGES = 500
 const SLOT = /^[A-Za-z][A-Za-z0-9]*$/
 
 const invalid = (message = 'Invalid changes to save.') =>
-  new FileServiceError(400, 'invalid', message)
-const gone = () =>
-  new FileServiceError(404, 'not_found', 'This experiment no longer exists.')
+  refuse(400, 'invalid', message)
 
 /** The changes of a request, or a refusal when any isn't one. */
 export function changesOf(value: unknown): RequestedChange[] {
@@ -89,17 +79,11 @@ export function changesOf(value: unknown): RequestedChange[] {
 
 /** A system by its permanent ID, as the studio has it installed. */
 export async function systemOf(context: ExperimentsContext, id: string) {
-  const config = readConfig(
-    path.resolve(context.root, context.configFile ?? CONFIG_FILE),
+  const system = (await installedSystems(context)).find(
+    (each) => each.id === id,
   )
-  const { systems } = await loadSystems(
-    context.root,
-    config,
-    context.systemsFolder ?? systemsFolder(),
-  )
-  const system = systems.find((each) => each.id === id)
   if (!system)
-    throw new FileServiceError(
+    throw refuse(
       404,
       'not_found',
       'This experiment’s system is no longer installed.',
@@ -138,7 +122,7 @@ export function applyChanges(
     follow: () => false,
   })
   if (!found.tags)
-    throw new FileServiceError(
+    throw refuse(
       422,
       'unreadable',
       `This experiment’s template can’t be read: ${found.problem}`,
@@ -177,12 +161,12 @@ export async function saveExperiment(
   const found = access.prototypeOf(String(request.prototype ?? ''))
   const { file } = access.artifactOf(found.dir, String(request.artifact ?? ''))
   const refusal = access.refusalFor(found.contributor, found.meta)
-  if (refusal) throw new FileServiceError(403, refusal.code, refusal.message)
+  if (refusal) throw refuse(403, refusal.code, refusal.message)
   const source = readFileSync(file, 'utf8')
   const marker = experimentOf(source, found.meta)
   if (!marker) throw gone()
   if (versionOf(source) !== request.base)
-    throw new FileServiceError(
+    throw refuse(
       409,
       'changed',
       'This file changed on disk since you opened it.',

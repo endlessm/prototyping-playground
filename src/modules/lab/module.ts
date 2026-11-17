@@ -47,27 +47,11 @@ export default {
         `${watchedPrototypes()}/**/meta.json`,
       ],
       load: async ({ root, dev }) => {
-        const [
-          { experimentBreakdowns },
-          { identityFileTypes },
-          { loadRegistry },
-        ] = await Promise.all([
+        const [{ experimentBreakdowns }, { labContext }] = await Promise.all([
           import('./experiments/trees.ts'),
-          import('../../../tooling/identity/file-types.ts'),
-          import('../../../tooling/modules/registry.ts'),
+          import('./experiments/context.ts'),
         ])
-        const configFile = process.env.STUDIO_CONFIG || undefined
-        const registry = await loadRegistry(root, {
-          modulesFolder: process.env.STUDIO_MODULES || undefined,
-          configFile,
-        })
-        return experimentBreakdowns({
-          root,
-          dev,
-          fileTypes: await identityFileTypes(registry.modules),
-          prototypesFolder: process.env.STUDIO_PROTOTYPES || PROTOTYPES_FOLDER,
-          configFile,
-        })
+        return experimentBreakdowns({ ...(await labContext(root)), dev })
       },
     },
   },

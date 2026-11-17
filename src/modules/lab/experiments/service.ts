@@ -19,7 +19,6 @@ import {
   auditIdentities,
   identitiesInUse,
 } from '../../../../tooling/identity/audit.ts'
-import type { IdentityFileType } from '../../../../tooling/identity/file-types.ts'
 import {
   createPrototype,
   localDate,
@@ -27,8 +26,6 @@ import {
 import {
   defaultIdentify,
   fileAccess,
-  FileServiceError,
-  type FileServiceOptions,
 } from '../../../../tooling/files/source.ts'
 import { nameProblem } from '../../../../tooling/files/tree.ts'
 import {
@@ -40,18 +37,17 @@ import {
   PROTOTYPES_FOLDER,
   treeFiles,
 } from '../../../../tooling/manifest/build.ts'
-import {
-  CONFIG_FILE,
-  readConfig,
-} from '../../../../tooling/modules/registry.ts'
 import { systemCatalog } from '../../../../tooling/systems/catalog.ts'
 import { stemOf } from '../../../../tooling/systems/components.ts'
 import { startSource } from '../../../../tooling/systems/start-source.ts'
+import type { InstalledSystem } from '../../../../tooling/systems/registry.ts'
 import {
-  loadSystems,
-  systemsFolder,
-  type InstalledSystem,
-} from '../../../../tooling/systems/registry.ts'
+  gone,
+  installedSystems,
+  refuse,
+  viewTypeIn,
+  type ExperimentsContext,
+} from './context.ts'
 import {
   applyChanges,
   changesOf,
@@ -59,22 +55,7 @@ import {
   type SavedChanges,
 } from './save.ts'
 
-export interface ExperimentsContext {
-  /** The studio's root folder. */
-  root: string
-  /** Relative to the root; `src/prototypes` by default. */
-  prototypesFolder?: string
-  /** Relative to the root or absolute; `contributors` by default. */
-  contributorsFolder?: string
-  /** Relative to the root; `studio.config.json` by default. */
-  configFile?: string
-  /** Relative to the root; the studio's systems folder by default. */
-  systemsFolder?: string
-  /** Every installed file type, so no identity is handed out twice. */
-  fileTypes: IdentityFileType[]
-  /** Who is working; your Git identity by default. */
-  identify?: FileServiceOptions['identify']
-}
+export type { ExperimentsContext }
 
 /** A new experiment: its prototype's and its view's permanent IDs. */
 export interface MadeExperiment {
@@ -85,12 +66,7 @@ export interface MadeExperiment {
 /** An experiment made with a Breakdown's changes written into it. */
 export type SavedExperiment = MadeExperiment & Partial<SavedChanges>
 
-const VIEW = 'view'
 const EXTENSION = '.vue'
-
-const refuse = (status: number, code: string, message: string) =>
-  new FileServiceError(status, code, message)
-const gone = () => refuse(404, 'not_found', 'This experiment no longer exists.')
 
 /** The registered contributor working, or the studio's refusal. */
 function contributorOf(context: ExperimentsContext) {
@@ -115,7 +91,7 @@ function contributorOf(context: ExperimentsContext) {
 }
 
 function viewType(context: ExperimentsContext) {
-  const type = context.fileTypes.find(({ id }) => id === VIEW)
+  const type = viewTypeIn(context.fileTypes)
   if (!type)
     throw refuse(
       500,
@@ -132,15 +108,9 @@ async function componentOf(
   slug: unknown,
 ) {
   const { root } = context
-  const config = readConfig(
-    path.resolve(root, context.configFile ?? CONFIG_FILE),
+  const system = (await installedSystems(context)).find(
+    ({ id }) => id === systemId,
   )
-  const { systems } = await loadSystems(
-    root,
-    config,
-    context.systemsFolder ?? systemsFolder(),
-  )
-  const system = systems.find(({ id }) => id === systemId)
   const component = system
     ? systemCatalog(system, root).components.find((each) => each.slug === slug)
     : undefined
