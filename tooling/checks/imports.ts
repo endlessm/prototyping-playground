@@ -3,6 +3,7 @@ import { existsSync, readFileSync, realpathSync } from 'node:fs'
 import ts from 'typescript'
 import { parse } from 'vue/compiler-sfc'
 import type { Plugin } from 'vite'
+import { within } from '../paths.ts'
 import type { InstalledSystem } from '../systems/registry.ts'
 
 export interface ImportPolicy {
@@ -12,13 +13,6 @@ export interface ImportPolicy {
   modules: { id: string; dir: string; library: string }[]
 }
 
-const within = (file: string, dir: string) => {
-  const relative = path.relative(dir, file)
-  return (
-    relative === '' ||
-    (!relative.startsWith('..') && !path.isAbsolute(relative))
-  )
-}
 const canonical = (file: string): string => {
   try {
     return realpathSync(file)

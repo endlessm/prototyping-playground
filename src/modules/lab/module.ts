@@ -1,6 +1,7 @@
 import path from 'node:path'
 import type { StudioModule } from '../../../tooling/modules/contract.ts'
 import { PROTOTYPES_FOLDER } from '../../../tooling/manifest/build.ts'
+import { posix, within } from '../../../tooling/paths.ts'
 
 // The Lab: a bench for one system component at a time, beside the list of
 // the system's components. It reads the Systems module's build data and
@@ -77,8 +78,8 @@ export default {
 // files only on the next load.
 function watchedPrototypes() {
   const folder = process.env.STUDIO_PROTOTYPES || PROTOTYPES_FOLDER
-  const relative = path.relative(process.cwd(), path.resolve(folder))
-  return !relative || relative.startsWith('..') || path.isAbsolute(relative)
-    ? PROTOTYPES_FOLDER
-    : relative.split(path.sep).join('/')
+  const absolute = path.resolve(folder)
+  return absolute !== process.cwd() && within(absolute, process.cwd())
+    ? posix(path.relative(process.cwd(), absolute))
+    : PROTOTYPES_FOLDER
 }

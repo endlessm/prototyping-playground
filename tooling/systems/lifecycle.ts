@@ -34,6 +34,7 @@ import {
   type FolderOps,
 } from '../files/folder-locks.ts'
 import { ID, PLAIN_TEXT } from '../modules/registry.ts'
+import { posix } from '../paths.ts'
 import { editConfig } from '../settings/config-file.ts'
 import { loadSystems, SYSTEMS_FOLDER } from './registry.ts'
 
@@ -115,7 +116,6 @@ export interface LifecycleResult {
   references: number
 }
 
-const posix = (file: string) => file.split(path.sep).join('/')
 const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`
 const read = (file: string) => readFileSync(file, 'utf8')
 

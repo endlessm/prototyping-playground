@@ -5,6 +5,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { isResourceId } from '../identity/resource-id.ts'
+import { posix } from '../paths.ts'
 import { readExperiment } from './experiments.ts'
 import { byOrder, compare, parseOrder } from './order.ts'
 import { artifactTitle } from './titles.ts'
@@ -177,7 +178,7 @@ export interface BuiltManifest {
   problems: string[]
 }
 
-export const posix = (file: string) => file.split(path.sep).join('/')
+export { posix }
 export { compare }
 // Leading underscores mark a prototype's helpers; dot files are hidden.
 export const listed = (name: string) =>

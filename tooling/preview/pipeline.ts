@@ -12,6 +12,7 @@ import vue from '@vitejs/plugin-vue'
 import type { InlineConfig, Plugin, PluginOption, ViteDevServer } from 'vite'
 import type { InstalledSystem } from '../systems/registry.ts'
 import { importGuard } from '../checks/imports.ts'
+import { posix } from '../paths.ts'
 import { loadRegistry } from '../modules/registry.ts'
 import { standInNames } from './stand-ins.ts'
 import { breakdownFile, breakdownPlugin } from './breakdown.ts'
@@ -36,7 +37,6 @@ const NAVIGATION = path.resolve(import.meta.dirname, 'runtime/navigation.ts')
 export const EXAMPLES_MODULE = '#studio/examples'
 const EXAMPLES = path.resolve(import.meta.dirname, 'runtime/example.ts')
 
-const posix = (file: string) => file.split(path.sep).join('/')
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 export interface PreviewView {

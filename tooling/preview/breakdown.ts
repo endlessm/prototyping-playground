@@ -19,18 +19,11 @@ import {
   nuxtUiCatalog,
   type FileTag,
 } from '../systems/breakdown.ts'
+import { posix, within } from '../paths.ts'
 import type { InstalledSystem } from '../systems/registry.ts'
 import { componentStart, startComponent } from '../systems/start-source.ts'
 
 const SUFFIX = '.lab-breakdown.vue'
-const posix = (file: string) => file.split(path.sep).join('/')
-const within = (file: string, dir: string) => {
-  const relative = path.relative(dir, file)
-  return (
-    relative === '' ||
-    (!relative.startsWith('..') && !path.isAbsolute(relative))
-  )
-}
 
 // A dev server's `/@fs/<absolute path>` address, as a file path.
 const fsPath = (source: string) =>

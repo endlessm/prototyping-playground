@@ -13,6 +13,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { parse } from 'vue/compiler-sfc'
+import { posix, within } from '../paths.ts'
 import type { InstalledSystem } from './registry.ts'
 
 /** Where a piece comes from, as its source chip says. */
@@ -43,15 +44,6 @@ export type BreakdownResult =
 export const ROOT_NODE = 'root'
 /** The slot a Nuxt UI piece without theme slots reports its classes under. */
 export const SLOTLESS_ROOT = 'base'
-
-const posix = (file: string) => file.split(path.sep).join('/')
-const within = (file: string, dir: string) => {
-  const relative = path.relative(dir, file)
-  return (
-    relative === '' ||
-    (!relative.startsWith('..') && !path.isAbsolute(relative))
-  )
-}
 
 /** `u-button` → `UButton`; PascalCase stays. */
 export const pascal = (tag: string) =>
