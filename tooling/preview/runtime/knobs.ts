@@ -5,15 +5,13 @@
 // colours) gets a tinted outline. Found from the page itself
 // (`data-lab-node`, `data-slot`), and drawn again whenever the pieces move,
 // so a knob scrubbed while hovered keeps its highlight on the new shape.
-import { pieceOf, slotOf, type KnobHighlight } from '../protocol.ts'
-import { ownsSlot } from './pieces.ts'
-
-interface Rect {
-  x: number
-  y: number
-  width: number
-  height: number
-}
+import {
+  pieceOf,
+  slotOf,
+  type KnobHighlight,
+  type NodeBox,
+} from '../protocol.ts'
+import { overlayLayer, ownsSlot, place } from './pieces.ts'
 
 // The elements a target names: a piece's own, or one theme slot of it.
 function targetElements(target: string): Element[] {
@@ -31,7 +29,7 @@ function targetElements(target: string): Element[] {
   )
 }
 
-const page = (rect: DOMRect): Rect => ({
+const page = (rect: DOMRect): NodeBox => ({
   x: rect.x + window.scrollX,
   y: rect.y + window.scrollY,
   width: rect.width,
@@ -39,8 +37,8 @@ const page = (rect: DOMRect): Rect => ({
 })
 
 // What sits inside an element, text included, in document order.
-function contents(element: Element): Rect[] {
-  const found: Rect[] = []
+function contents(element: Element): NodeBox[] {
+  const found: NodeBox[] = []
   for (const child of element.childNodes) {
     let rect: DOMRect | null = null
     if (child instanceof Element) rect = child.getBoundingClientRect()
@@ -54,7 +52,7 @@ function contents(element: Element): Rect[] {
   return found
 }
 
-function areas(element: Element, area: KnobHighlight['area']): Rect[] {
+function areas(element: Element, area: KnobHighlight['area']): NodeBox[] {
   const box = page(element.getBoundingClientRect())
   const style = getComputedStyle(element)
   const px = (value: string) => Number.parseFloat(value) || 0
@@ -77,7 +75,7 @@ function areas(element: Element, area: KnobHighlight['area']): Rect[] {
     left: px(style.paddingLeft),
   }
   if (area === 'padding' || area === 'paddingX' || area === 'paddingY') {
-    const sides: Rect[] = []
+    const sides: NodeBox[] = []
     if (area !== 'paddingX') {
       sides.push({ ...inner, height: pad.top })
       sides.push({
@@ -98,7 +96,7 @@ function areas(element: Element, area: KnobHighlight['area']): Rect[] {
   }
   if (area === 'gap') {
     const inside = contents(element)
-    const gaps: Rect[] = []
+    const gaps: NodeBox[] = []
     for (let index = 1; index < inside.length; index++) {
       const before = inside[index - 1]!
       const after = inside[index]!
@@ -127,17 +125,9 @@ function areas(element: Element, area: KnobHighlight['area']): Rect[] {
   return [box]
 }
 
-const place = ({ x, y, width, height }: Rect) =>
-  `left: ${x}px; top: ${y}px; width: ${width}px; height: ${height}px;`
-
 /** The knob highlight's layer, over everything in the document. */
 export function createKnobLayer() {
-  const layer = document.createElement('div')
-  layer.dataset.labKnobOverlay = ''
-  layer.setAttribute('aria-hidden', 'true')
-  layer.style.cssText =
-    'position: absolute; inset: 0 auto auto 0; width: 0; height: 0; pointer-events: none; z-index: 2147483647;'
-  document.documentElement.append(layer)
+  const layer = overlayLayer('lab-knob-overlay')
   let shown: KnobHighlight | null = null
 
   function redraw() {

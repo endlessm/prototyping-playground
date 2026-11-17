@@ -18,7 +18,7 @@ import {
   type PreviewOverrides,
 } from '../protocol.ts'
 import { createKnobLayer } from './knobs.ts'
-import { ownsSlot } from './pieces.ts'
+import { overlayLayer, ownsSlot, place } from './pieces.ts'
 
 /** The slot a Nuxt UI piece without theme slots reports its classes under. */
 const SLOTLESS_ROOT = 'base'
@@ -136,12 +136,7 @@ export function createBreakdown(
     hover: null,
     selected: null,
   }
-  const layer = document.createElement('div')
-  layer.dataset.labOverlay = ''
-  layer.setAttribute('aria-hidden', 'true')
-  layer.style.cssText =
-    'position: absolute; inset: 0 auto auto 0; width: 0; height: 0; pointer-events: none; z-index: 2147483647;'
-  document.documentElement.append(layer)
+  const layer = overlayLayer('lab-overlay')
   const knobs = createKnobLayer()
 
   const resized = new ResizeObserver(() => schedule())
@@ -260,9 +255,6 @@ export function createBreakdown(
       }),
     )
   }
-  const place = ({ x, y, width, height }: NodeBox) =>
-    `left: ${x}px; top: ${y}px; width: ${width}px; height: ${height}px;`
-
   function hookFor(id: string, kind: 'hook' | 'drop', slotted: number) {
     const key = `${kind}:${id}`
     let hook = hooks.get(key)
