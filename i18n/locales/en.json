@@ -1089,6 +1089,8 @@
       "zoom": "Zoom {percent}",
       "showComponent": "Show component",
       "showBreakdown": "Show breakdown",
+      "fullScreen": "Full screen",
+      "exitFullScreen": "Exit full screen",
       "selected": "Selected piece",
       "sources": {
         "system": "System",

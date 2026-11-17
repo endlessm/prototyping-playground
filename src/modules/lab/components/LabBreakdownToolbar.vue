@@ -3,14 +3,22 @@
 // out, the zoom as a percentage, zoom in; the selected piece's name and,
 // after it, room for that piece's knobs (the `inspector` slot); Reset and
 // Save while the breakdown shows (the `actions` slot); then the button that
-// switches between the component alone and its breakdown.
+// switches between the component alone and its breakdown, and the one that
+// lets the canvas cover the screen.
 defineProps<{
   zoom: number
   mode: 'breakdown' | 'component'
   /** The selected piece's name, or none. */
   selected: string | null
+  /** Whether the canvas covers the screen. */
+  expanded: boolean
 }>()
-const emit = defineEmits<{ zoomIn: []; zoomOut: []; toggle: [] }>()
+const emit = defineEmits<{
+  zoomIn: []
+  zoomOut: []
+  toggle: []
+  expand: []
+}>()
 const { t } = useI18n()
 </script>
 
@@ -74,6 +82,20 @@ const { t } = useI18n()
           : t('lab.breakdown.showBreakdown')
       "
       @click="emit('toggle')"
+    />
+    <UButton
+      :icon="expanded ? 'i-lucide-minimize' : 'i-lucide-maximize'"
+      color="neutral"
+      variant="ghost"
+      size="sm"
+      class="rounded-full"
+      :aria-label="
+        expanded
+          ? t('lab.breakdown.exitFullScreen')
+          : t('lab.breakdown.fullScreen')
+      "
+      :aria-pressed="expanded"
+      @click="emit('expand')"
     />
   </div>
 </template>

@@ -5,8 +5,8 @@
 // The root card shows the component live in its system's preview
 // document, which marks each piece's elements with its node ID. Hovering a
 // card outlines its piece in the preview, clicking selects it, and Escape
-// or the empty canvas lets go; the canvas pans, zooms and switches to the
-// component alone. On the real Endless Studios system, with a disposable
+// or the empty canvas lets go; the canvas pans, zooms, switches to the
+// component alone and covers the screen. On the real Endless Studios system, with a disposable
 // copy of tests/fixtures/endless-studios-screens as the prototypes,
 // against the dev server and the static build.
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
@@ -223,6 +223,37 @@ function scenarios(start: () => Promise<RunningStudio>) {
     await toolbar(page).getByRole('button', { name: 'Show breakdown' }).click()
     await expect.poll(() => new URL(page.url()).search).toBe('')
     await visible(toolbar(page).getByRole('button', { name: 'Show component' }))
+  })
+
+  test('[LAB-BD-05] the canvas goes full screen and back, by its button or Escape', async () => {
+    const page = await open(`${button}/breakdown`)
+    await visible(card(page, 'root'))
+    const covers = async () => {
+      const area = await box(canvas(page))
+      const size = page.viewportSize()!
+      return (
+        area.x === 0 &&
+        area.y === 0 &&
+        area.width === size.width &&
+        area.height === size.height
+      )
+    }
+    expect(await covers()).toBe(false)
+    await toolbar(page).getByRole('button', { name: 'Full screen' }).click()
+    await expect.poll(covers).toBe(true)
+    await toolbar(page)
+      .getByRole('button', { name: 'Exit full screen' })
+      .click()
+    await expect.poll(covers).toBe(false)
+
+    await toolbar(page).getByRole('button', { name: 'Full screen' }).click()
+    await expect.poll(covers).toBe(true)
+    await page.evaluate(
+      () => document.fullscreenElement && document.exitFullscreen(),
+    )
+    await page.keyboard.press('Escape')
+    await expect.poll(covers).toBe(false)
+    await visible(toolbar(page).getByRole('button', { name: 'Full screen' }))
   })
 
   test('[LAB-BD-04] hovering a card outlines its piece in the preview; clicking selects it until Escape or the canvas', async () => {

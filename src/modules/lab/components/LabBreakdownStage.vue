@@ -300,9 +300,31 @@ useEventListener(
   { passive: false },
 )
 
+// Full screen covers the window with the canvas and asks the browser for
+// full screen on the whole page, not the canvas, so the knobs' popovers,
+// which open at the page's end, still show. Leaving the browser's full
+// screen (its own Escape) leaves the canvas's too.
+const expanded = ref(false)
+const fullscreen = useFullscreen(
+  import.meta.client ? document.documentElement : undefined,
+)
+async function expand(next: boolean) {
+  expanded.value = next
+  if (next && fullscreen.isSupported.value)
+    await fullscreen.enter().catch(() => {})
+  if (!next && fullscreen.isFullscreen.value) await fullscreen.exit()
+}
+watch(fullscreen.isFullscreen, (now, before) => {
+  if (before && !now) expanded.value = false
+})
+onBeforeUnmount(() => {
+  if (expanded.value && fullscreen.isFullscreen.value) void fullscreen.exit()
+})
+
 useEventListener(window, 'keydown', (event: KeyboardEvent) => {
-  if (event.key === 'Escape' && selected.value && !event.defaultPrevented)
-    selected.value = null
+  if (event.key !== 'Escape' || event.defaultPrevented) return
+  if (selected.value) selected.value = null
+  else if (expanded.value) void expand(false)
 })
 
 function toggle() {
@@ -324,8 +346,17 @@ defineExpose({ boxes })
 <template>
   <section
     :aria-label="t('lab.breakdown.canvas', { name })"
-    class="relative h-[min(75vh,52rem)] min-h-96 overflow-hidden rounded-lg border border-default bg-elevated/40"
+    class="overflow-hidden"
+    :class="
+      expanded
+        ? 'fixed inset-0 bg-default'
+        : 'relative h-[min(75vh,52rem)] min-h-96 rounded-lg border border-default bg-elevated/40'
+    "
   >
+    <div
+      v-if="expanded"
+      class="pointer-events-none absolute inset-0 bg-elevated/40"
+    />
     <div
       ref="viewport"
       class="absolute inset-0 cursor-grab touch-none bg-[radial-gradient(var(--ui-border-accented)_1px,transparent_1px)] select-none active:cursor-grabbing"
@@ -507,6 +538,8 @@ defineExpose({ boxes })
         :zoom="view.zoom"
         :mode="mode"
         :selected="selectedNode?.name ?? null"
+        :expanded="expanded"
+        @expand="expand(!expanded)"
         @zoom-in="zoomTo(zoomStep(view.zoom, 1))"
         @zoom-out="zoomTo(zoomStep(view.zoom, -1))"
         @toggle="toggle"
