@@ -98,6 +98,21 @@ export interface KnobTheme {
   textSizes?: string[]
 }
 
+/**
+ * A system's knob theme from its catalog: its Nuxt UI colours and the text
+ * sizes its own tokens name (`--text-body`), which aren't colours.
+ */
+export const knobTheme = (system: {
+  colors: string[]
+  tokens: { name: string }[]
+}): KnobTheme => ({
+  colors: system.colors,
+  textSizes: system.tokens.flatMap(({ name }) => {
+    const size = /^--text-([a-z0-9]+)$/.exec(name)?.[1]
+    return size ? [size] : []
+  }),
+})
+
 export interface Knob {
   /** `<slot>.<family>`, unique in a piece. */
   id: string
@@ -196,8 +211,11 @@ const SPACING_TOKEN = /^\d+(?:\.\d+)?$/
 const spacingPx = (value: string) =>
   SPACING_TOKEN.test(value) ? Number(value) * 4 : null
 
-// The family a class belongs to, and its value, or null when it is no knob.
-function read(
+/**
+ * The knob family a class belongs to, and its value, or null when it is no
+ * knob (a prefixed class such as `hover:rounded-lg` never is).
+ */
+export function knobFamilyOf(
   className: string,
   theme: KnobTheme,
 ): { family: KnobFamily; value: string } | null {
@@ -278,7 +296,7 @@ export function knobsOf(
   for (const [slot, classes] of Object.entries(slots)) {
     const found = new Map<KnobFamily, Knob>()
     for (const className of classes.split(/\s+/).filter(Boolean)) {
-      const knob = read(className, theme)
+      const knob = knobFamilyOf(className, theme)
       // The last class of a family is the one that shows.
       if (knob)
         found.set(knob.family, {
