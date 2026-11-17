@@ -3,12 +3,13 @@
 // breakdown.ts`). Each instrumented tag registers the component it renders
 // under its node ID, so the runtime can find the elements of every piece,
 // mark them with `data-lab-node`, report where they and their theme slots
-// are, and outline the pieces the studio highlights. Each tag's `ui` and
-// `class` go through the override store, which nothing feeds yet: the
-// studio's overrides arrive here later (node ID → slot → classes), and the
-// pieces re-render from it without a reload.
+// are and the classes their theme slots render with, and outline the pieces
+// the studio highlights. Each tag's `ui` and `class` go through the
+// override store, fed by the studio's knobs (node ID → slot → classes), so
+// the pieces re-render from it without a reload.
 import { reactive, type ComponentInternalInstance, type VNode } from 'vue'
-import type { NodeBox, NodeBoxes } from '../protocol.ts'
+import type { KnobHighlight, NodeBox, NodeBoxes } from '../protocol.ts'
+import { createKnobLayer } from './knobs.ts'
 
 /** The root of the tree: the file the Breakdown mounts. */
 export const ROOT_NODE = 'root'
@@ -90,6 +91,8 @@ export interface Breakdown {
   setOverrides: (next: BreakdownOverrides) => void
   /** The pieces to outline, by node ID (`<node>#<slot>` for a theme slot). */
   highlight: (hover: string | null, selected: string | null) => void
+  /** The area a hovered knob changes, drawn in its colour, or none. */
+  knob: (next: KnobHighlight | null) => void
   /** Reports where the pieces are again, even when nothing moved. */
   report: () => void
   dispose: () => void
@@ -125,6 +128,7 @@ export function createBreakdown(
   layer.style.cssText =
     'position: absolute; inset: 0 auto auto 0; width: 0; height: 0; pointer-events: none; z-index: 2147483647;'
   document.documentElement.append(layer)
+  const knobs = createKnobLayer()
 
   const resized = new ResizeObserver(() => schedule())
   const changed = new MutationObserver((records) => {
@@ -185,6 +189,7 @@ export function createBreakdown(
     const nodes: Record<string, NodeBoxes> = {}
     for (const [id, found] of elements) {
       const slots: Record<string, NodeBox[]> = {}
+      const classes: Record<string, string> = {}
       if (live.get(id)!.slotted)
         for (const element of found)
           for (const part of [
@@ -199,11 +204,14 @@ export function createBreakdown(
               continue
             const at = box(part)
             if (at) (slots[slot] ??= []).push(at)
+            classes[slot] ??= part.getAttribute('class') ?? ''
           }
       nodes[id] = { boxes: boxes(found), slots }
+      if (live.get(id)!.slotted) nodes[id].classes = classes
     }
     measured = nodes
     draw()
+    knobs.redraw()
     const text = JSON.stringify(nodes)
     if (always || text !== last) {
       last = text
@@ -297,6 +305,7 @@ export function createBreakdown(
       lit = { hover, selected }
       draw()
     },
+    knob: (next) => knobs.show(next),
     report: () => measure(true),
     dispose() {
       cancelAnimationFrame(pending)
@@ -305,6 +314,7 @@ export function createBreakdown(
       window.removeEventListener('resize', onResize)
       for (const element of marked) element.removeAttribute('data-lab-node')
       layer.remove()
+      knobs.dispose()
     },
   }
 }

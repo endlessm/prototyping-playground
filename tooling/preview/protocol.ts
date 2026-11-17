@@ -9,7 +9,8 @@
 // shortcuts pressed while it has focus (shortcut). A playground's component
 // that changes one of its own props says so (update). For a Breakdown, the
 // document reports where each piece's elements are (nodes) and the studio
-// says which piece to highlight (highlight).
+// says which piece to highlight (highlight), the unsaved changes of its
+// knobs (overrides) and the area a hovered knob changes (knob).
 // Imported by both sides, so it imports nothing of either.
 import { isResourceId } from '../identity/resource-id.ts'
 
@@ -55,7 +56,33 @@ export type HostMessage = Envelope &
         hover: string | null
         selected: string | null
       }
+    | {
+        /**
+         * A Breakdown's unsaved changes, replacing the last ones whole:
+         * classes by node ID and theme slot, merged over the piece's own.
+         */
+        kind: 'overrides'
+        overrides: PreviewOverrides
+      }
+    | {
+        /** The area a hovered knob changes, drawn in its colour, or none. */
+        kind: 'knob'
+        knob: KnobHighlight | null
+      }
   )
+
+/** Node ID → theme slot (or `class`) → classes. */
+export type PreviewOverrides = Record<string, Record<string, string>>
+
+/** What a hovered knob changes on a piece. */
+export interface KnobHighlight {
+  /** The theme slot's node ID, `<node>#<slot>`, or a piece's own. */
+  target: string
+  /** Corners outlined; padding and gaps hatched; anything else outlined. */
+  area: 'corners' | 'padding' | 'paddingX' | 'paddingY' | 'gap' | 'box'
+  /** `#rrggbb`. */
+  color: string
+}
 
 /** A host message's own fields, without the envelope. */
 export type HostBody = HostMessage extends infer M
@@ -78,6 +105,8 @@ export interface NodeBoxes {
   boxes: NodeBox[]
   /** For a Nuxt UI piece: each `data-slot` element inside it, by slot. */
   slots: Record<string, NodeBox[]>
+  /** For a Nuxt UI piece: the classes each theme slot renders with. */
+  classes?: Record<string, string>
 }
 
 /**
@@ -255,9 +284,41 @@ function isNodeBoxes(value: unknown) {
   const { slots } = value
   return (
     record(slots) &&
-    ownKeys(slots).every((slot) => propName(slot) && isBoxes(slots[slot]))
+    ownKeys(slots).every((slot) => propName(slot) && isBoxes(slots[slot])) &&
+    (value.classes === undefined || isSlotClasses(value.classes))
   )
 }
+
+const MAX_CLASSES = 2048
+const isClasses = (value: unknown) =>
+  typeof value === 'string' &&
+  value.length <= MAX_CLASSES &&
+  !CONTROL.test(value)
+function isSlotClasses(value: unknown) {
+  if (!record(value) || Object.getPrototypeOf(value) !== Object.prototype)
+    return false
+  return ownKeys(value).every(
+    (slot) => propName(slot) && isClasses(value[slot]),
+  )
+}
+function isOverrides(value: unknown) {
+  if (!record(value) || Object.getPrototypeOf(value) !== Object.prototype)
+    return false
+  const ids = ownKeys(value)
+  return (
+    ids.length <= MAX_REPORTED_NODES &&
+    ids.every((id) => isBreakdownNodeId(id) && isSlotClasses(value[id]))
+  )
+}
+const KNOB_AREAS = ['corners', 'padding', 'paddingX', 'paddingY', 'gap', 'box']
+const isKnobHighlight = (value: unknown) =>
+  value === null ||
+  (record(value) &&
+    isBreakdownNodeId(value.target) &&
+    typeof value.area === 'string' &&
+    KNOB_AREAS.includes(value.area) &&
+    typeof value.color === 'string' &&
+    /^#[0-9a-f]{6}$/i.test(value.color))
 function isReportedNodes(value: unknown) {
   if (!record(value) || Object.getPrototypeOf(value) !== Object.prototype)
     return false
@@ -277,6 +338,10 @@ export function isHostMessage(value: unknown): value is HostMessage {
       return isPreviewProps(value.props)
     case 'highlight':
       return nodeOrNone(value.hover) && nodeOrNone(value.selected)
+    case 'overrides':
+      return isOverrides(value.overrides)
+    case 'knob':
+      return isKnobHighlight(value.knob)
     default:
       return false
   }

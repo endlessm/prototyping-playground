@@ -25,6 +25,7 @@ import {
   PREVIEW_VERSION,
   readAddress,
   type PreviewMessage,
+  type PreviewOverrides,
   type PreviewPhase,
   type PreviewState,
 } from '../protocol.ts'
@@ -242,6 +243,9 @@ export function mountPreview({ create, views }: MountOptions) {
       : {}
   // The shown Breakdown's runtime, which finds and outlines its pieces.
   let breakdown: Breakdown | null = null
+  // The knobs' changes the studio last sent, kept for the next mount.
+  let sentOverrides: { artifact: string; overrides: PreviewOverrides } | null =
+    null
   // Each view file's newest `states` and `system`, from its hot updates.
   const latestExports = new Map<string, ViewModule>()
   // When the latest attempt asked for its view's code: changes made before
@@ -395,6 +399,8 @@ export function mountPreview({ create, views }: MountOptions) {
         if (attempt === render) post({ kind: 'nodes', nodes })
       })
       Object.assign(props, breakdown.rootHooks)
+      if (sentOverrides?.artifact === id)
+        breakdown.setOverrides(sentOverrides.overrides)
     }
     const box = document.createElement('div')
     box.hidden = true
@@ -469,6 +475,8 @@ export function mountPreview({ create, views }: MountOptions) {
     if (event.data.kind === 'props') return applyProps(event.data)
     if (event.data.kind === 'highlight')
       return breakdown?.highlight(event.data.hover, event.data.selected)
+    if (event.data.kind === 'overrides') return applyOverrides(event.data)
+    if (event.data.kind === 'knob') return breakdown?.knob(event.data.knob)
     const next = event.data.artifact
     // Keep the address current, so a reload shows the same view.
     const url = new URL(location.href)
@@ -480,6 +488,16 @@ export function mountPreview({ create, views }: MountOptions) {
       breakdown?.report()
     }
   })
+
+  // A Breakdown's unsaved changes restyle its pieces in place.
+  function applyOverrides(message: {
+    artifact: string
+    overrides: PreviewOverrides
+  }) {
+    sentOverrides = { artifact: message.artifact, overrides: message.overrides }
+    if (message.artifact === artifact)
+      breakdown?.setOverrides(message.overrides)
+  }
 
   // A playground's new props replace its current ones in place, so the
   // component updates without remounting; keys left out take its defaults.
