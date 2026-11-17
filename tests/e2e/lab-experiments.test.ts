@@ -87,9 +87,7 @@ async function visible(locator: { isVisible: () => Promise<boolean> }) {
 }
 const experiments = `lab/${ENDLESS_STUDIOS}/button/experiments`
 const card = (page: Page, name: string): Locator =>
-  page
-    .locator('[data-experiment]')
-    .filter({ has: page.getByRole('link', { name, exact: true }) })
+  page.getByRole('article', { name, exact: true })
 const preview = (scope: Page | Locator, title: string) =>
   scope.frameLocator(`iframe[title="${title}"]`)
 const button = (scope: Page | Locator, name: string) =>

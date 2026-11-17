@@ -85,8 +85,10 @@ async function visible(locator: { isVisible: () => Promise<boolean> }) {
 }
 const experiments = `lab/${ENDLESS_STUDIOS}/button/experiments`
 const rounderPage = `${experiments}/${ROUNDER}`
+// The canvas's cards, each carrying its piece's node ID.
+const pieces = (page: Page) => page.getByRole('group', { name: /^Pieces of / })
 const card = (page: Page, id: string) =>
-  page.locator(`[data-breakdown-card][data-breakdown-node="${id}"]`)
+  pieces(page).locator(`[data-lab-node="${id}"]`)
 const rootFrame = (page: Page): FrameLocator =>
   card(page, 'root').locator('iframe[data-preview-frame]').contentFrame()
 const piece = (page: Page, id = BUTTON) =>

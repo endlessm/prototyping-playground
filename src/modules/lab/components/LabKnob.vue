@@ -10,7 +10,7 @@ import {
   type Knob,
   type KnobTheme,
 } from '../../../../tooling/preview/knobs'
-import { KNOB_ICONS } from '../utils/knobs'
+import { KNOB_LOOKS } from '../utils/knobs'
 
 // One knob in the Breakdown's inspector: its family's coloured icon, then
 // its value, in pixels for sizes. Drag the icon sideways, type a value, or
@@ -146,7 +146,8 @@ onBeforeUnmount(() => hover(false))
 <template>
   <UTooltip :text="label" :content="{ side: 'top' }">
     <div
-      :data-knob="knob.id"
+      role="group"
+      :aria-label="label"
       class="flex h-7 shrink-0 items-center gap-1 rounded-full pr-1.5 pl-0.5 transition-colors focus-within:bg-elevated hover:bg-elevated"
       @pointerenter="hover(true)"
       @pointerleave="hover(false)"
@@ -157,13 +158,13 @@ onBeforeUnmount(() => hover(false))
         data-knob-handle
         aria-hidden="true"
         class="grid size-6 shrink-0 cursor-ew-resize touch-none place-items-center rounded-full"
-        :style="{ color: look.color, backgroundColor: `${look.color}1f` }"
+        :class="KNOB_LOOKS[knob.family].class"
         @pointerdown="grab"
         @pointermove="dragged"
         @pointerup="released"
         @pointercancel="released"
       >
-        <UIcon :name="KNOB_ICONS[knob.family]" class="size-3.5" />
+        <UIcon :name="KNOB_LOOKS[knob.family].icon" class="size-3.5" />
       </span>
       <UPopover v-if="isColor" v-model:open="open" :content="{ side: 'top' }">
         <button

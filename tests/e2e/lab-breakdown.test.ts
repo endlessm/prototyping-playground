@@ -40,8 +40,10 @@ afterAll(() => {
 const pathname = (page: Page) => () => new URL(page.url()).pathname
 const tabs = (page: Page) =>
   page.getByRole('navigation', { name: 'Component tabs' })
+// The canvas's cards, each carrying its piece's node ID.
+const pieces = (page: Page) => page.getByRole('group', { name: /^Pieces of / })
 const card = (page: Page, id: string) =>
-  page.locator(`[data-breakdown-card][data-breakdown-node="${id}"]`)
+  pieces(page).locator(`[data-lab-node="${id}"]`)
 const cardButton = (page: Page, id: string) => card(page, id).locator('button')
 const rootFrame = (page: Page): FrameLocator =>
   card(page, 'root').locator('iframe[data-preview-frame]').contentFrame()
@@ -65,7 +67,8 @@ async function placed(page: Page) {
     .poll(() => transform(page), { timeout: 60_000 })
     .not.toBe('translate(0px, 0px) scale(1)')
 }
-const canvas = (page: Page) => page.locator('[data-breakdown-canvas]')
+const canvas = (page: Page) =>
+  page.getByRole('region', { name: /^Breakdown of / })
 async function ready(page: Page) {
   await expect
     .poll(
@@ -131,10 +134,10 @@ function scenarios(start: () => Promise<RunningStudio>) {
   test('[LAB-BD-02] the button is its file, then UButton, then UButton’s theme slots, live in the root card', async () => {
     const page = await open(`${button}/breakdown`)
     await visible(card(page, 'root'))
-    const ids = await page
-      .locator('[data-breakdown-card]')
+    const ids = await pieces(page)
+      .locator('[data-lab-node]')
       .evaluateAll((cards) =>
-        cards.map((element) => (element as HTMLElement).dataset.breakdownNode),
+        cards.map((element) => element.getAttribute('data-lab-node')),
       )
     expect(ids).toEqual([
       'root',
@@ -154,9 +157,7 @@ function scenarios(start: () => Promise<RunningStudio>) {
     expect(await card(page, 'root>UButton#label').textContent()).toContain(
       'ui.label',
     )
-    expect(
-      await page.locator('[data-breakdown-chip]').first().textContent(),
-    ).toContain('Nuxt UI')
+    await visible(pieces(page).getByText('Nuxt UI', { exact: true }).first())
     // The preview marks UButton's element with the file's node and its own.
     await ready(page)
     await visible(piece(page, 'root>UButton'))
@@ -185,10 +186,8 @@ function scenarios(start: () => Promise<RunningStudio>) {
     expect(
       await card(page, 'root>USidebar/UPopover/UButton/UIcon').textContent(),
     ).toContain('i-lucide-bell')
-    const chips = await page.locator('[data-breakdown-chip]').allTextContents()
-    expect(chips.map((chip) => chip.trim())).toEqual(
-      expect.arrayContaining(['Endless Studios app', 'Nuxt UI', 'Lucide']),
-    )
+    for (const chip of ['Endless Studios app', 'Nuxt UI', 'Lucide'])
+      await visible(pieces(page).getByText(chip, { exact: true }).first())
     await ready(page)
     await visible(piece(page, 'root>USidebar/UNavigationMenu'))
   })
@@ -219,12 +218,11 @@ function scenarios(start: () => Promise<RunningStudio>) {
 
     await toolbar(page).getByRole('button', { name: 'Show component' }).click()
     await expect.poll(() => new URL(page.url()).search).toBe('?view=component')
-    const stage = page.locator('[data-breakdown-mode]')
-    expect(await stage.getAttribute('data-breakdown-mode')).toBe('component')
     await visible(page.getByTitle('Button on the canvas'))
+    await visible(toolbar(page).getByRole('button', { name: 'Show breakdown' }))
     await toolbar(page).getByRole('button', { name: 'Show breakdown' }).click()
     await expect.poll(() => new URL(page.url()).search).toBe('')
-    expect(await stage.getAttribute('data-breakdown-mode')).toBe('breakdown')
+    await visible(toolbar(page).getByRole('button', { name: 'Show component' }))
   })
 
   test('[LAB-BD-04] hovering a card outlines its piece in the preview; clicking selects it until Escape or the canvas', async () => {

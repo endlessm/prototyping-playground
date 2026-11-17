@@ -34,8 +34,10 @@ afterAll(() => {
   rmSync(content, { recursive: true, force: true })
 })
 
+// The canvas's cards, each carrying its piece's node ID.
+const pieces = (page: Page) => page.getByRole('group', { name: /^Pieces of / })
 const card = (page: Page, id: string) =>
-  page.locator(`[data-breakdown-card][data-breakdown-node="${id}"]`)
+  pieces(page).locator(`[data-lab-node="${id}"]`)
 const cardButton = (page: Page, id: string) => card(page, id).locator('button')
 const rootFrame = (page: Page): FrameLocator =>
   card(page, 'root').locator('iframe[data-preview-frame]').contentFrame()
@@ -169,9 +171,9 @@ function scenarios(start: () => Promise<RunningStudio>, local: boolean) {
         )
         .toBe('16px')
     // Dragged sideways.
-    const handle = toolbar(page).locator(
-      '[data-knob="base.corners"] [data-knob-handle]',
-    )
+    const handle = toolbar(page)
+      .getByRole('group', { name: 'Corners', exact: true })
+      .locator('[data-knob-handle]')
     const at = (await handle.boundingBox())!
     await page.mouse.move(at.x + at.width / 2, at.y + at.height / 2)
     await page.mouse.down()

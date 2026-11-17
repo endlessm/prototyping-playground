@@ -211,8 +211,9 @@ export const clampZoom = (zoom: number) =>
   Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom))
 
 /**
- * Each source's chip: its icon and colours. A source keeps its colour on
- * every card, so the chips read at a glance.
+ * Each source's chip: its icon and colours (`--color-source-*` in the
+ * studio's stylesheet). A source keeps its colour on every card, so the
+ * chips read at a glance.
  */
 export const SOURCE_CHIPS: Record<
   BreakdownSource,
@@ -220,23 +221,24 @@ export const SOURCE_CHIPS: Record<
 > = {
   'nuxt-ui': {
     icon: 'i-lucide-slash',
-    class: 'bg-neutral-100 text-neutral-700 ring-neutral-200',
+    class: 'bg-source-nuxt-ui/8 text-source-nuxt-ui ring-source-nuxt-ui/20',
   },
   app: {
     icon: 'i-lucide-app-window',
-    class: 'bg-blue-50 text-blue-700 ring-blue-200',
+    class: 'bg-source-app/8 text-source-app ring-source-app/20',
   },
   icons: {
     icon: 'i-lucide-shapes',
-    class: 'bg-orange-50 text-orange-700 ring-orange-200',
+    class: 'bg-source-icons/8 text-source-icons ring-source-icons/20',
   },
   system: {
     icon: 'i-lucide-component',
-    class: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+    class: 'bg-source-system/8 text-source-system ring-source-system/20',
   },
   experiment: {
     icon: 'i-lucide-flask-conical',
-    class: 'bg-violet-50 text-violet-700 ring-violet-200',
+    class:
+      'bg-source-experiment/8 text-source-experiment ring-source-experiment/20',
   },
 }
 

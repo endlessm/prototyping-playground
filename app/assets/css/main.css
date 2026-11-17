@@ -7,6 +7,28 @@
 @source '../../../src/modules';
 @source '../../../tests/fixtures/modules';
 
+/* The Lab's Breakdown: each knob family's colour, the same in the studio
+   and in the highlight a preview draws (`KNOB_FAMILIES`), and each source
+   chip's colour. */
+@theme {
+  --color-knob-corners: #ec4899;
+  --color-knob-padding: #3b82f6;
+  --color-knob-padding-x: #3b82f6;
+  --color-knob-padding-y: #6366f1;
+  --color-knob-gap: #14b8a6;
+  --color-knob-text-size: #8b5cf6;
+  --color-knob-weight: #f59e0b;
+  --color-knob-fill: #f97316;
+  --color-knob-text-color: #e11d48;
+  --color-knob-ring: #22c55e;
+  --color-knob-size: #a855f7;
+  --color-source-nuxt-ui: var(--color-neutral-700);
+  --color-source-app: var(--color-blue-700);
+  --color-source-icons: var(--color-orange-700);
+  --color-source-system: var(--color-emerald-700);
+  --color-source-experiment: var(--color-violet-700);
+}
+
 /* Scrollbars and form controls are light: the studio has no dark mode. */
 :root {
   color-scheme: light;

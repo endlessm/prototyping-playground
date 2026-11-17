@@ -4,7 +4,8 @@ import type { BreakdownNode } from '../../../../tooling/systems/breakdown'
 // One piece of a Breakdown on the canvas: its preview on a dotted inset,
 // its name, then its file and the library under it in monospace. The whole
 // card is one button, laid over the preview so the preview never takes the
-// click: hovering lifts it, and the selected one has a blue outline.
+// click: hovering lifts it, and the selected one has a blue outline. It
+// carries its piece's node ID as the preview's elements do.
 const props = defineProps<{
   node: BreakdownNode
   /** Its file as the card writes it, or null. */
@@ -27,12 +28,9 @@ const line = computed(() =>
 
 <template>
   <div
-    data-breakdown-card
-    :data-breakdown-node="node.id"
+    :data-lab-node="node.id"
     class="group relative flex flex-col rounded-xl border bg-default shadow-xs transition duration-150 hover:-translate-y-0.5 hover:shadow-md has-[button:focus-visible]:ring-2 has-[button:focus-visible]:ring-primary"
-    :class="
-      selected ? 'border-blue-500 ring-2 ring-blue-500/70' : 'border-default'
-    "
+    :class="selected ? 'border-info ring-2 ring-info/70' : 'border-default'"
   >
     <div
       class="pointer-events-none m-1.5 flex items-center justify-center overflow-hidden rounded-lg border border-default bg-[radial-gradient(var(--ui-border-accented)_1px,transparent_1px)] bg-size-[10px_10px]"

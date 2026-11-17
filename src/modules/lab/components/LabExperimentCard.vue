@@ -12,7 +12,7 @@ defineProps<{
 </script>
 
 <template>
-  <article :data-experiment="experiment.id" class="flex min-w-0 flex-col gap-2">
+  <article :aria-label="experiment.title" class="flex min-w-0 flex-col gap-2">
     <LabExperimentPreview
       :system-id="experiment.systemId"
       :experiment="experiment.id"

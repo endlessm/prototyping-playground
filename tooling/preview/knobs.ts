@@ -32,6 +32,8 @@ export interface KnobFamilyLook {
 }
 
 // Pink corners, blue padding and teal spacing follow the reference video.
+// The studio's theme names the same colours (`--color-knob-*` in its
+// stylesheet); these reach a preview's highlight, where its theme can't.
 export const KNOB_FAMILIES: Record<KnobFamily, KnobFamilyLook> = {
   corners: {
     color: '#ec4899',

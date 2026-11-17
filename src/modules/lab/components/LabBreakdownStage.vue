@@ -324,12 +324,10 @@ defineExpose({ boxes })
 <template>
   <section
     :aria-label="t('lab.breakdown.canvas', { name })"
-    :data-breakdown-mode="mode"
     class="relative h-[min(75vh,52rem)] min-h-96 overflow-hidden rounded-lg border border-default bg-elevated/40"
   >
     <div
       ref="viewport"
-      data-breakdown-canvas
       class="absolute inset-0 cursor-grab touch-none bg-[radial-gradient(var(--ui-border-accented)_1px,transparent_1px)] select-none active:cursor-grabbing"
       :style="dots"
       @pointerdown="pressed"
@@ -404,7 +402,6 @@ defineExpose({ boxes })
           <span
             v-for="edge in layout.edges"
             :key="`chip:${edge.id}`"
-            data-breakdown-chip
             class="absolute flex -translate-x-1/2 -translate-y-1/2 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap ring-1"
             :class="SOURCE_CHIPS[edge.child.source].class"
             :style="{

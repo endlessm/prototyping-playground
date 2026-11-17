@@ -85,8 +85,10 @@ afterAll(() => {
   rmSync(empty, { recursive: true, force: true })
 })
 
+// The canvas's cards, each carrying its piece's node ID.
+const pieces = (page: Page) => page.getByRole('group', { name: /^Pieces of / })
 const card = (page: Page, id: string) =>
-  page.locator(`[data-breakdown-card][data-breakdown-node="${id}"]`)
+  pieces(page).locator(`[data-lab-node="${id}"]`)
 /** A card's clipped piece: the window its frame shows through. */
 const clip = (page: Page, id: string) =>
   card(page, id).locator('[data-breakdown-clip]')
@@ -197,12 +199,10 @@ function scenarios(start: () => Promise<RunningStudio>) {
 
   test('[LAB-BD-22] a large tree mounts frames only for the cards in view, and more as it pans', async () => {
     const page = await open(sidebar)
-    const cards = page.locator('[data-breakdown-card]')
+    const cards = pieces(page).locator('[data-lab-node]')
     await visible(card(page, 'root>USidebar'))
     await visible(clip(page, 'root>USidebar'))
-    const frames = page.locator(
-      '[data-breakdown-card] iframe[data-preview-frame]',
-    )
+    const frames = page.locator('[data-lab-node] iframe[data-preview-frame]')
     const total = await cards.count()
     const mounted = await frames.count()
     expect(total).toBeGreaterThan(50)
@@ -211,9 +211,9 @@ function scenarios(start: () => Promise<RunningStudio>) {
 
     // A card far below the first view gets its frame once it is in view.
     const deep = cards.last()
-    const id = (await deep.getAttribute('data-breakdown-node'))!
+    const id = (await deep.getAttribute('data-lab-node'))!
     expect(await pieceFrame(page, id).count()).toBe(0)
-    const canvas = page.locator('[data-breakdown-canvas]')
+    const canvas = page.getByRole('region', { name: /^Breakdown of / })
     await canvas.hover({ position: { x: 20, y: 20 } })
     for (let step = 0; step < 40; step += 1) {
       const where = await box(deep)
