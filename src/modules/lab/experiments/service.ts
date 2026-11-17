@@ -50,6 +50,12 @@ import {
   loadSystems,
   systemsFolder,
 } from '../../../../tooling/systems/registry.ts'
+import {
+  applyChanges,
+  changesOf,
+  type RequestedChange,
+  type SavedChanges,
+} from './save.ts'
 import { experimentSource } from './source.ts'
 
 export interface ExperimentsContext {
@@ -74,6 +80,9 @@ export interface MadeExperiment {
   prototype: string
   artifact: string
 }
+
+/** An experiment made with a Breakdown's changes written into it. */
+export type SavedExperiment = MadeExperiment & Partial<SavedChanges>
 
 const VIEW = 'view'
 const EXTENSION = '.vue'
@@ -263,7 +272,8 @@ async function addExperiment(
     marker: ExperimentMarker
     fresh: () => string
   }) => string,
-): Promise<MadeExperiment> {
+  changes?: RequestedChange[],
+): Promise<SavedExperiment> {
   const me = contributorOf(context)
   const name = cleanName(request.name)
   const { system, component, files } = await componentOf(
@@ -271,6 +281,20 @@ async function addExperiment(
     request.system,
     request.component,
   )
+  // The Breakdown's changes go into the source before it is written, so a
+  // change that can't be written leaves nothing behind.
+  let saved: SavedChanges | undefined
+  const finish = (source: string, target: string) => {
+    if (!changes) return source
+    const written = applyChanges(source, {
+      file: target,
+      system,
+      root: context.root,
+      changes,
+    })
+    saved = { saved: written.saved, skipped: written.skipped }
+    return written.source
+  }
   const view = viewType(context)
   const marker = {
     systemId: system.id,
@@ -288,11 +312,11 @@ async function addExperiment(
     let artifact = ''
     writeView(context, found.dir, name, (fresh) => {
       const target = path.join(found.dir, `${name}${EXTENSION}`)
-      const source = make({ target, files, marker, fresh })
+      const source = finish(make({ target, files, marker, fresh }), target)
       artifact = view.identity.read(source)!
       return source
     })
-    return { prototype: found.meta.studioId as string, artifact }
+    return { prototype: found.meta.studioId as string, artifact, ...saved }
   }
   const created = createPrototype(
     { ...context, fileTypes: context.fileTypes },
@@ -307,36 +331,51 @@ async function addExperiment(
       context,
       dir,
       name,
-      (fresh) => make({ target, files, marker, fresh }),
+      (fresh) => finish(make({ target, files, marker, fresh }), target),
       created.artifact,
     )
   } catch (error) {
     rmSync(dir, { recursive: true, force: true })
     throw error
   }
-  return { prototype: created.id, artifact: created.artifact }
+  return { prototype: created.id, artifact: created.artifact, ...saved }
 }
 
-/** A new experiment of a component, from its rendering source. */
+/**
+ * A new experiment of a component, from its rendering source, with a
+ * Breakdown's changes written into it when there are any (Save as
+ * experiment).
+ */
 export function createExperiment(
   context: ExperimentsContext,
   request: { system: unknown; component: unknown; name: unknown },
+  changes?: unknown,
 ) {
   const view = viewType(context)
-  return addExperiment(context, request, ({ target, files, marker, fresh }) =>
-    view.identity.write(
-      writeExperiment(experimentSource({ ...files, target }), marker),
-      fresh(),
-    ),
+  return addExperiment(
+    context,
+    request,
+    ({ target, files, marker, fresh }) =>
+      view.identity.write(
+        writeExperiment(experimentSource({ ...files, target }), marker),
+        fresh(),
+      ),
+    changes === undefined ? undefined : changesOf(changes),
   )
 }
 
-/** Anyone's experiment, copied into your own with fresh permanent IDs. */
+/**
+ * Anyone's experiment, copied into your own with fresh permanent IDs, with
+ * a Breakdown's changes written into it when there are any (Save as my
+ * experiment).
+ */
 export async function duplicateExperiment(
   context: ExperimentsContext,
   request: { experiment: unknown; name: unknown },
+  changes?: unknown,
 ) {
   contributorOf(context)
+  const wantedChanges = changes === undefined ? undefined : changesOf(changes)
   const view = viewType(context)
   const access = fileAccess(context)
   const wanted = String(request.experiment ?? '')
@@ -377,5 +416,6 @@ export async function duplicateExperiment(
       )
       return writeExperiment(copied, made.marker)
     },
+    wantedChanges,
   )
 }

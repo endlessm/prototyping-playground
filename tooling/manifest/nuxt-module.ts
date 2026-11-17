@@ -46,6 +46,7 @@ import {
   systemPreviews,
 } from '../systems/catalog.ts'
 import { fileCompileProblem } from '../systems/compile.ts'
+import { experimentBreakdownId } from '../systems/preview-ids.ts'
 import { loadSystems, systemsFolder } from '../systems/registry.ts'
 import { moduleChecks } from '../checks/module-checks.ts'
 import { serveSystemAssets } from '../systems/serve-assets.ts'
@@ -234,11 +235,12 @@ declare module '${MANIFEST_MODULE}' {
       workDir,
       baseURL: base,
       prototypesDir: path.resolve(root, prototypesFolder),
-      // Each view, then each of its named states; then the system's own
-      // examples, components' playgrounds and Breakdowns, and Overview
-      // content. The build leaves out the playground and Breakdown of a
-      // component file that doesn't compile, so one broken file can't stop
-      // the site; its Playground says why.
+      // Each view, then each of its named states and, for a Lab
+      // experiment, its Breakdown; then the system's own examples,
+      // components' playgrounds and Breakdowns, and Overview content. The
+      // build leaves out the playground and Breakdown of a component file
+      // that doesn't compile, so one broken file can't stop the site; its
+      // Playground says why.
       views: () => {
         const { manifest, artifacts } = read()
         const own = document.system
@@ -257,6 +259,9 @@ declare module '${MANIFEST_MODULE}' {
                 ...(breakdown ? { breakdown } : {}),
               }))
           : []
+        const experiments = new Set(
+          (manifest.experiments ?? []).map(({ id }) => id),
+        )
         const views = manifest.prototypes
           .filter(({ systemId }) => (systemId ?? NO_SYSTEM) === document.key)
           .flatMap(({ id: prototype }) =>
@@ -276,6 +281,15 @@ declare module '${MANIFEST_MODULE}' {
                     ...shared,
                     state: state.title,
                   })),
+                  ...(experiments.has(view.id)
+                    ? [
+                        {
+                          id: experimentBreakdownId(view.id),
+                          ...shared,
+                          breakdown: true,
+                        },
+                      ]
+                    : []),
                 ]
               }),
           )

@@ -38,5 +38,12 @@ export const playgroundId = (system: string, slug: string) =>
 export const breakdownId = (system: string, slug: string) =>
   idOf(`breakdown:${system}:${slug}`)
 
+/**
+ * The preview document's ID for a Lab experiment's Breakdown: the view's
+ * file instrumented like a component's, mounted as the view.
+ */
+export const experimentBreakdownId = (view: string) =>
+  idOf(`experiment-breakdown:${view}`)
+
 /** The preview document's ID for a system's own Overview content. */
 export const overviewId = (system: string) => idOf(`overview:${system}`)

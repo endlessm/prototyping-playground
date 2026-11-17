@@ -1,11 +1,15 @@
 // The Lab's experiments on the local dev server, at
 // `<base>_studio/modules/lab/experiments`:
 //
-//   POST { action: "create", system, component, name }
+//   POST { action: "create", system, component, name, changes? }
 //        a new experiment of the component in your prototype for it,
 //        made the first time → { prototype, artifact }
-//   POST { action: "duplicate", experiment, name }
+//   POST { action: "duplicate", experiment, name, changes? }
 //        anyone's experiment copied into your own → { prototype, artifact }
+//
+// With a Breakdown's `changes` (Save as experiment, Save as my experiment),
+// they are written into the new experiment, which answers `saved` and
+// `skipped` as Save does (`save.ts`).
 //
 // Who is asking comes from Git, as everywhere in the studio; refusals answer
 // with the studio's own sentences and statuses. The deployed site has no
@@ -42,16 +46,24 @@ export default (async ({ root, contributorsFolder, method, body }) => {
   }
   switch (request.action) {
     case 'create':
-      return createExperiment(context, {
-        system: request.system,
-        component: request.component,
-        name: request.name,
-      })
+      return createExperiment(
+        context,
+        {
+          system: request.system,
+          component: request.component,
+          name: request.name,
+        },
+        request.changes,
+      )
     case 'duplicate':
-      return duplicateExperiment(context, {
-        experiment: request.experiment,
-        name: request.name,
-      })
+      return duplicateExperiment(
+        context,
+        {
+          experiment: request.experiment,
+          name: request.name,
+        },
+        request.changes,
+      )
     default:
       throw invalid()
   }

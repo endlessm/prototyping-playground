@@ -1,10 +1,12 @@
+import path from 'node:path'
 import type { StudioModule } from '../../../tooling/modules/contract.ts'
+import { PROTOTYPES_FOLDER } from '../../../tooling/manifest/build.ts'
 
 // The Lab: a bench for one system component at a time, beside the list of
 // the system's components. It reads the Systems module's build data and
 // reuses its pieces, and lists experiments from the manifest; only making
-// experiments writes files, through its handler on the local dev server, so
-// the deployed site has the rest too.
+// and saving experiments writes files, through its handlers on the local dev
+// server, so the deployed site has the rest too.
 export default {
   id: 'lab',
   label: 'Lab',
@@ -34,5 +36,49 @@ export default {
       ],
     },
   ],
-  server: { experiments: 'server/experiments.ts' },
+  server: { experiments: 'server/experiments.ts', save: 'server/save.ts' },
+  data: {
+    // Each experiment's Breakdown (its tree, preview and file version),
+    // read again whenever a view changes, the deployed site's too.
+    experiments: {
+      watch: [
+        `${watchedPrototypes()}/**/*.vue`,
+        `${watchedPrototypes()}/**/meta.json`,
+      ],
+      load: async ({ root, dev }) => {
+        const [
+          { experimentBreakdowns },
+          { identityFileTypes },
+          { loadRegistry },
+        ] = await Promise.all([
+          import('./experiments/trees.ts'),
+          import('../../../tooling/identity/file-types.ts'),
+          import('../../../tooling/modules/registry.ts'),
+        ])
+        const configFile = process.env.STUDIO_CONFIG || undefined
+        const registry = await loadRegistry(root, {
+          modulesFolder: process.env.STUDIO_MODULES || undefined,
+          configFile,
+        })
+        return experimentBreakdowns({
+          root,
+          dev,
+          fileTypes: await identityFileTypes(registry.modules),
+          prototypesFolder: process.env.STUDIO_PROTOTYPES || PROTOTYPES_FOLDER,
+          configFile,
+        })
+      },
+    },
+  },
 } satisfies StudioModule
+
+// Watch patterns are repository-relative. A prototypes folder outside the
+// repository can't be watched, so its experiments' Breakdowns follow their
+// files only on the next load.
+function watchedPrototypes() {
+  const folder = process.env.STUDIO_PROTOTYPES || PROTOTYPES_FOLDER
+  const relative = path.relative(process.cwd(), path.resolve(folder))
+  return !relative || relative.startsWith('..') || path.isAbsolute(relative)
+    ? PROTOTYPES_FOLDER
+    : relative.split(path.sep).join('/')
+}
