@@ -48,7 +48,7 @@ The isolated presentation of a view or system example within the studio.
 _Avoid_: Vue mount.
 
 **Lab**:
-The studio's bench for one system component at a time, with its overview, its variants, a playground and everyone's experiments with it.
+The studio's bench for one system component at a time, with its overview, its variants, a playground, its breakdown and everyone's experiments with it.
 
 **Variant**:
 One example of a component's examples file, as the Lab shows it beside the others, with its own code.
@@ -57,6 +57,14 @@ _Avoid_: named state (a view's variation).
 **Playground**:
 A component file rendered alone in the Lab, with a control for each prop, opened with the values of its Default example (or samples) and its changed values in the address.
 _Avoid_: Endless Prototyping Playground (the whole environment).
+
+**Breakdown**:
+How a system component or an experiment is built, drawn in the Lab as a tree of pieces on a canvas: the component file, the system's and app's components it uses, the Nuxt UI components and icons they end in, and each Nuxt UI component's theme slots, each piece with its live preview, file and source.
+_Avoid_: anatomy, layers; node (say piece in the interface).
+
+**Knob**:
+A control in a Breakdown's inspector for one thing a piece's theme classes set (corners, padding, space between items, text size, weight, fill, text color, ring, size), stepping along the theme's own scale and colours; its changes show at once and stay unsaved until Save.
+_Avoid_: prop control (the Playground's), token.
 
 **Experiment**:
 A view exploring a new version of a system component, marked with that component in a comment at its top, kept in its maker's own "<Component> experiments" prototype and listed in the Lab's Experiments tab.

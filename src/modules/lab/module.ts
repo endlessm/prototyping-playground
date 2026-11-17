@@ -11,7 +11,7 @@ export default {
   id: 'lab',
   label: 'Lab',
   description:
-    'A bench for each system component: its overview, its variants side by side, a playground for its props and everyone’s experiments with it.',
+    'A bench for each system component: its overview, its variants side by side, a playground for its props, its breakdown into pieces with knobs, and everyone’s experiments with it.',
   rail: { position: 'top', icon: 'i-lucide-flask-conical', order: 25 },
   pages: [
     { path: '/lab', file: 'pages/index.vue' },
