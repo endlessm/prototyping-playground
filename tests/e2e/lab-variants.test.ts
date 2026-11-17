@@ -228,13 +228,57 @@ function endlessStudiosScenarios(start: () => Promise<RunningStudio>) {
     )
     // Only that variant's code opened.
     expect(await page.locator('[data-variant-code] pre').count()).toBe(1)
-    await card(page, 'Block').getByRole('button', { name: 'Copy Code' }).click()
+    await card(page, 'Block')
+      .getByRole('button', { name: 'Copy code for Block', exact: true })
+      .click()
     await visible(
       page.locator('[data-slot="title"]').filter({ hasText: 'Code copied' }),
     )
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
       '<UButton block icon="i-lucide-log-in">Log In</UButton>',
     )
+  })
+
+  test('[LAB-31] a copy the browser blocks says so in plain words, with what to do instead', async () => {
+    const page = await newPage()
+    await page.goto(`${studio.url}${variants(ENDLESS_STUDIOS, 'button')}`)
+    await visible(heading(page, 'States'))
+    await page.evaluate(() => {
+      navigator.clipboard.writeText = () =>
+        Promise.reject(
+          new DOMException('Document is not focused.', 'NotAllowedError'),
+        )
+    })
+    await card(page, 'States')
+      .getByRole('button', { name: 'Copy code for States', exact: true })
+      .click()
+    await visible(
+      page
+        .locator('[data-slot="description"]')
+        .filter({ hasText: 'Your browser blocked the clipboard.' }),
+    )
+    expect(await page.getByText(/Document is not focused/).count()).toBe(0)
+  })
+
+  test('[LAB-21] the cards of a row line up, their code buttons at the same height', async () => {
+    const page = await newPage()
+    await page.goto(`${studio.url}${variants(ENDLESS_STUDIOS, 'button')}`)
+    await visible(heading(page, 'Common pairs'))
+    const showCodeOf = (title: string) =>
+      card(page, title).getByRole('button', { name: 'Show code' })
+    await visible(showCodeOf('Common pairs'))
+    const [left, right] = await Promise.all([
+      box(card(page, 'Default')),
+      box(card(page, 'Common pairs')),
+    ])
+    // Side by side, in one row of two columns.
+    expect(Math.abs(left.y - right.y)).toBeLessThan(2)
+    expect(right.x).toBeGreaterThan(left.x)
+    const [a, b] = await Promise.all([
+      box(showCodeOf('Default')),
+      box(showCodeOf('Common pairs')),
+    ])
+    expect(Math.abs(a.y - b.y)).toBeLessThan(2)
   })
 }
 

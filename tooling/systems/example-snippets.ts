@@ -101,7 +101,8 @@ export function splitExamples(source: string): Map<string, string> | null {
 
 /**
  * The code each example shows, by its name: its own block when the file
- * splits into exactly these examples, otherwise the whole file.
+ * splits into exactly these examples, otherwise the whole file. Either way
+ * with Unix line endings, so a copy pastes the same on every computer.
  */
 export function exampleSnippets(source: string, names: string[]) {
   const split = splitExamples(source)
@@ -109,7 +110,8 @@ export function exampleSnippets(source: string, names: string[]) {
     split !== null &&
     split.size === names.length &&
     names.every((name) => split.has(name))
+  const whole = source.replace(/\r\n?/g, '\n').trimEnd()
   return Object.fromEntries(
-    names.map((name) => [name, fits ? split.get(name)! : source.trimEnd()]),
+    names.map((name) => [name, fits ? split.get(name)! : whole]),
   ) as Record<string, string>
 }

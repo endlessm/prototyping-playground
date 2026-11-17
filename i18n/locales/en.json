@@ -1052,9 +1052,11 @@
       "openInSystems": "Open in Systems"
     },
     "variants": {
-      "copy": "Copy Code",
+      "copy": "Copy code",
+      "copyFor": "Copy code for {name}",
       "copied": "Code copied",
-      "copyFailed": "The code wasn’t copied"
+      "copyFailed": "The code wasn’t copied",
+      "copyBlocked": "Your browser blocked the clipboard. Open Show code and copy the text yourself."
     },
     "playground": {
       "stage": "{name} in the playground",

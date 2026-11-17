@@ -206,6 +206,13 @@ describe('odd examples files', () => {
     })
     expect(exampleSnippets(source, ['One'])).toEqual({ One: '<A />' })
   })
+
+  test('the whole file given in place of a block has Unix line endings too', () => {
+    const source = file('  <Example name="Open"><A />\r\n  <B />\r\n')
+    const { Open } = exampleSnippets(source, ['Open'])
+    expect(Open).not.toContain('\r')
+    expect(Open).toBe(source.replace(/\r\n/g, '\n').trimEnd())
+  })
 })
 
 describe('the component page data', () => {
