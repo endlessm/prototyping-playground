@@ -85,3 +85,24 @@ describe('the highlight message', () => {
       expect(isBreakdownNodeId(id)).toBe(false)
   })
 })
+
+describe('the nodeProps message', () => {
+  test('sets plain props by node ID, null leaving one to its default', () => {
+    const message = (props: unknown) =>
+      isHostMessage({ ...envelope, kind: 'nodeProps', props })
+    expect(
+      message({
+        'root>UAlert': { title: 'Hi', close: true, color: null },
+        'root>UAlert~2': {},
+      }),
+    ).toBe(true)
+    expect(message({})).toBe(true)
+    expect(message({ 'root>UAlert': { 'not a prop': 1 } })).toBe(false)
+    expect(message({ 'root>UAlert': { onClick: () => {} } })).toBe(false)
+    // Never a listener or markup, which a tag would run or render.
+    expect(message({ 'root>UAlert': { onclick: 'alert(1)' } })).toBe(false)
+    expect(message({ 'root>UAlert': { innerHTML: '<b>x</b>' } })).toBe(false)
+    expect(message({ ' root': { title: 'Hi' } })).toBe(false)
+    expect(message([])).toBe(false)
+  })
+})

@@ -145,6 +145,30 @@ export function controlFor(
   return control
 }
 
+/**
+ * The control for a prop of one of the component's tags in an experiment,
+ * as the dial panel offers it: `controlFor`'s, starting from the value the
+ * tag writes when it fits (a number written as text, `size="2"`, read as
+ * one), otherwise the prop's literal default, never a made-up sample, since
+ * the tag renders without one.
+ */
+export function tagControl(
+  prop: PropDoc,
+  written?: ControlValue,
+): PlaygroundControl {
+  const seed =
+    prop.type === 'number' &&
+    typeof written === 'string' &&
+    NUMBER.test(written)
+      ? Number(written)
+      : written
+  const control = controlFor(prop, seed)
+  const fromTag = seed !== undefined && control.seeded && control.start === seed
+  if (control.seeded && !fromTag) control.start = undefined
+  control.seeded = fromTag
+  return control
+}
+
 // Whether the prop may be left out for the component's own default.
 function omittable(control: PlaygroundControl) {
   if (control.kind === 'select') return control.unset

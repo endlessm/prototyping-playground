@@ -6,6 +6,8 @@ import type {
   PreviewMessage,
 } from '../../../../tooling/preview/protocol'
 import type { BreakdownNode } from '../../../../tooling/systems/breakdown'
+import type { PropDoc } from '../../../../tooling/systems/props'
+import type { ComponentInstance } from '../experiments/instances'
 import {
   knobClass,
   knobValues,
@@ -60,6 +62,10 @@ const props = defineProps<{
   saving?: boolean
   /** Whether the component view has the dial panel beside it. */
   dials?: boolean
+  /** For the dial panel: the tags that are the Lab's component. */
+  instances?: ComponentInstance[]
+  /** For the dial panel: the component's props, as its Playground reads them. */
+  propDocs?: PropDoc[]
 }>()
 /** The selected piece's node ID. */
 const selected = defineModel<string | null>('selected', { default: null })
@@ -94,6 +100,7 @@ const { pieces: messages, shared } = useBreakdownMessages(
   }),
   () => props.changes.overrides.value,
   () => knobLit.value,
+  () => props.changes.nodeProps.value,
 )
 
 // The root's document also answers the colour of every colour knob's class.
@@ -565,6 +572,8 @@ defineExpose({ boxes })
         :changes="changes"
         :system-folder="systemFolder"
         :name="name"
+        :instances="instances"
+        :prop-docs="propDocs"
       />
     </div>
     <div

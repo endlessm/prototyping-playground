@@ -10,7 +10,8 @@
 // that changes one of its own props says so (update). For a Breakdown, the
 // document reports where each piece's elements are (nodes) and the studio
 // says which piece to highlight (highlight), the unsaved changes of its
-// knobs (overrides) and the area a hovered knob changes (knob).
+// knobs (overrides) and of the dial panel's props (nodeProps) and the area
+// a hovered knob changes (knob).
 // Imported by both sides, so it imports nothing of either.
 import { isResourceId } from '../identity/resource-id.ts'
 
@@ -65,6 +66,15 @@ export type HostMessage = Envelope &
         overrides: PreviewOverrides
       }
     | {
+        /**
+         * The dial panel's unsaved props, replacing the last ones whole:
+         * props by node ID, set over what each tag writes; null leaves a
+         * prop to the component's default.
+         */
+        kind: 'nodeProps'
+        props: PreviewNodeProps
+      }
+    | {
         /** The area a hovered knob changes, drawn in its colour, or none. */
         kind: 'knob'
         knob: KnobHighlight | null
@@ -78,6 +88,8 @@ export type HostMessage = Envelope &
 
 /** Node ID → theme slot (or `class`) → classes. */
 export type PreviewOverrides = Record<string, Record<string, string>>
+/** Node ID → prop → value, as plain JSON. */
+export type PreviewNodeProps = Record<string, PreviewProps>
 
 /*
  * A Breakdown's node IDs, which the studio, the preview document and the
@@ -285,6 +297,15 @@ const PROP_NAME = /^[A-Za-z_$][\w$]{0,127}$/
 /** A prop's name as a component declares it, never `__proto__`. */
 const propName = (value: unknown): value is string =>
   typeof value === 'string' && PROP_NAME.test(value) && value !== '__proto__'
+// What a tag would turn into script or markup rather than a prop's value.
+const UNSAFE_PROPS = ['innerHTML', 'outerHTML', 'innerText', 'textContent']
+/**
+ * A prop the dial panel may set and Save may write as an attribute: a
+ * declared name, never a listener (`onClick`, a static `onclick`) nor one
+ * a DOM element takes as markup (`innerHTML`).
+ */
+export const isSettableProp = (value: unknown): value is string =>
+  propName(value) && !/^on/i.test(value) && !UNSAFE_PROPS.includes(value)
 
 const MAX_NODE_ID = 512
 /** A Breakdown node's ID: its path of tags, files (`>`) and slots (`#`). */
@@ -342,6 +363,20 @@ function isOverrides(value: unknown) {
     ids.every((id) => isBreakdownNodeId(id) && isSlotClasses(value[id]))
   )
 }
+function isNodeProps(value: unknown) {
+  if (!record(value) || Object.getPrototypeOf(value) !== Object.prototype)
+    return false
+  const ids = ownKeys(value)
+  return (
+    ids.length <= MAX_REPORTED_NODES &&
+    ids.every(
+      (id) =>
+        isBreakdownNodeId(id) &&
+        isPreviewProps(value[id]) &&
+        ownKeys(value[id] as Record<string, unknown>).every(isSettableProp),
+    )
+  )
+}
 const KNOB_AREAS = ['corners', 'padding', 'paddingX', 'paddingY', 'gap', 'box']
 const isKnobHighlight = (value: unknown) =>
   value === null ||
@@ -395,6 +430,8 @@ export function isHostMessage(value: unknown): value is HostMessage {
       return nodeOrNone(value.hover) && nodeOrNone(value.selected)
     case 'overrides':
       return isOverrides(value.overrides)
+    case 'nodeProps':
+      return isNodeProps(value.props)
     case 'knob':
       return isKnobHighlight(value.knob)
     case 'swatches':

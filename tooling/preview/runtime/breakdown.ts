@@ -5,8 +5,9 @@
 // mark them with `data-lab-node`, report where they and their theme slots
 // are and the classes their theme slots render with, and outline the pieces
 // the studio highlights. Each tag's `ui` and `class` go through the
-// override store, fed by the studio's knobs (node ID → slot → classes), so
-// the pieces re-render from it without a reload.
+// override store, fed by the studio's knobs (node ID → slot → classes), and
+// takes the dial panel's props after its own attributes (node ID → prop →
+// value), so the pieces re-render from them without a reload.
 import { reactive, type ComponentInternalInstance, type VNode } from 'vue'
 import {
   pieceOf,
@@ -15,6 +16,7 @@ import {
   type KnobHighlight,
   type NodeBox,
   type NodeBoxes,
+  type PreviewNodeProps,
   type PreviewOverrides,
 } from '../protocol.ts'
 import { createKnobLayer } from './knobs.ts'
@@ -89,6 +91,8 @@ export interface Breakdown {
       slotted?: number,
     ) => Hook
     drop: (instance: ComponentInternalInstance, local: string) => Hook
+    /** The dial panel's props for a tag, set over what the tag writes. */
+    props: (instance: ComponentInternalInstance, local: string) => UiObject
   }
   /**
    * Vnode hooks for the mounted component's own props, so the root piece
@@ -100,6 +104,8 @@ export interface Breakdown {
   >
   /** Replaces the overrides; the pieces re-render from them. */
   setOverrides: (next: PreviewOverrides) => void
+  /** Replaces the dial panel's props; the tags re-render with them. */
+  setNodeProps: (next: PreviewNodeProps) => void
   /** The pieces to outline, by node ID (`<node>#<slot>` for a theme slot). */
   highlight: (hover: string | null, selected: string | null) => void
   /** The area a hovered knob changes, drawn in its colour, or none. */
@@ -117,6 +123,7 @@ export function createBreakdown(
   post: (nodes: Record<string, NodeBoxes>) => void,
 ): Breakdown {
   const overrides = reactive<PreviewOverrides>({})
+  const nodeProps = reactive<PreviewNodeProps>({})
   // How each piece reports its theme slots: not at all (0), from its
   // `data-slot` elements (1), or as its own element, for a Nuxt UI piece
   // whose theme has no slots (2).
@@ -311,6 +318,18 @@ export function createBreakdown(
       hook: (instance, local, slotted) =>
         hookFor(full(instance, local), 'hook', slotted ?? 0),
       drop: (instance, local) => hookFor(full(instance, local), 'drop', 0),
+      // Bound after the tag's own attributes, so a prop set here wins; null
+      // becomes undefined, leaving the prop to the component's default.
+      props(instance, local) {
+        const own = nodeProps[full(instance, local)]
+        if (!own) return {}
+        return Object.fromEntries(
+          Object.entries(own).map(([name, value]) => [
+            name,
+            value === null ? undefined : value,
+          ]),
+        )
+      },
     },
     rootHooks: {
       onVnodeMounted: hookFor(ROOT_NODE, 'hook', 0),
@@ -321,6 +340,11 @@ export function createBreakdown(
       for (const id of Object.keys(overrides))
         if (!(id in next)) Reflect.deleteProperty(overrides, id)
       Object.assign(overrides, structuredClone(next))
+    },
+    setNodeProps(next) {
+      for (const id of Object.keys(nodeProps))
+        if (!(id in next)) Reflect.deleteProperty(nodeProps, id)
+      Object.assign(nodeProps, structuredClone(next))
     },
     highlight(hover, selected) {
       lit = { hover, selected }

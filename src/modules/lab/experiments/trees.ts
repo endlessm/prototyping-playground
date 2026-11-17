@@ -13,6 +13,8 @@ import {
 } from '../../../../tooling/manifest/build.ts'
 import { experimentOf } from '../../../../tooling/manifest/experiments.ts'
 import {
+  fileTags,
+  nuxtUiCatalog,
   readBreakdown,
   type BreakdownResult,
 } from '../../../../tooling/systems/breakdown.ts'
@@ -22,6 +24,7 @@ import {
   viewTypeIn,
   type ExperimentsContext,
 } from './context.ts'
+import { componentInstances, type ComponentInstance } from './instances.ts'
 
 export interface ExperimentBreakdown {
   /** The tree read from the experiment's file, or why it can't be. */
@@ -30,6 +33,11 @@ export interface ExperimentBreakdown {
   preview: string
   /** The version of the file the tree was read from. */
   version: string
+  /**
+   * The tags of the experiment's own file that are the Lab's component,
+   * with the attributes written on them, for the dial panel's props.
+   */
+  instances: ComponentInstance[]
 }
 
 /** Every experiment's Breakdown, by the view's permanent ID. */
@@ -61,7 +69,8 @@ export async function experimentBreakdowns(
       } catch {
         continue
       }
-      if (!experimentOf(source, meta)) continue
+      const marker = experimentOf(source, meta)
+      if (!marker) continue
       let id: string | null
       try {
         id = view.identity.read(source)
@@ -69,6 +78,11 @@ export async function experimentBreakdowns(
         continue
       }
       if (!id) continue
+      const tags = fileTags(source, file, {
+        system,
+        nuxtUi: nuxtUiCatalog(system, root),
+        follow: () => false,
+      }).tags
       found[id] = {
         tree: readBreakdown({
           file,
@@ -79,6 +93,7 @@ export async function experimentBreakdowns(
         }),
         preview: experimentBreakdownId(id),
         version: versionOf(source),
+        instances: tags ? componentInstances(tags, marker.component) : [],
       }
     }
   }

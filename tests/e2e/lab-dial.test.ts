@@ -1,11 +1,19 @@
 // The dial panel: an experiment's component alone on its canvas has a
 // DialKit panel beside it, with a folder for each piece that has knobs,
 // named as the Breakdown names it, offering the inspector's knobs over the
-// theme's own values. It moves the same unsaved changes as the Breakdown,
-// both ways, and Reset clears both. The Breakdown hides it, and the deployed
-// site shows it without Save. The real Endless Studios system, with Ada's
-// "Button experiments" prototype on a disposable prototypes folder.
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+// theme's own values, and for each tag that is the Lab's component, its
+// props, starting from what the tag writes, saved as static attributes. It
+// moves the same unsaved changes as the Breakdown, both ways, and Reset
+// clears both. The Breakdown hides it, and the deployed site shows it
+// without Save. The real Endless Studios system, with Ada's "Button
+// experiments" prototype on a disposable prototypes folder.
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
 import path from 'node:path'
 import type { FrameLocator, Page } from 'playwright'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
@@ -29,6 +37,19 @@ const ROUNDER_SOURCE = `<!-- @studio-id ${ROUNDER} -->
 </template>
 `
 const posix = (file: string) => file.split(path.sep).join('/')
+const BUSY = 'adabsy0000000001'
+const BUSY_SOURCE = `<!-- @studio-id ${BUSY} -->
+<!-- @lab-experiment ${ENDLESS_STUDIOS} button 2026-11-11 -->
+<script setup lang="ts">
+const busy = false
+</script>
+
+<template>
+  <div class="flex min-h-40 items-center justify-center p-6">
+    <UButton :loading="busy" size="md">Send the invite</UButton>
+  </div>
+</template>
+`
 mkdirSync('.e2e', { recursive: true })
 const folders: string[] = []
 
@@ -49,7 +70,12 @@ function prototypesWithAdasExperiment() {
     }),
   )
   writeFileSync(path.join(dir, 'Rounder.vue'), ROUNDER_SOURCE)
-  return { folder, rounder: path.join(dir, 'Rounder.vue') }
+  writeFileSync(path.join(dir, 'Busy.vue'), BUSY_SOURCE)
+  return {
+    folder,
+    rounder: path.join(dir, 'Rounder.vue'),
+    busy: path.join(dir, 'Busy.vue'),
+  }
 }
 const studioEnv = (folder: string) => ({
   STUDIO_PROTOTYPES: posix(folder),
@@ -70,8 +96,11 @@ async function visible(locator: { isVisible: () => Promise<boolean> }) {
   await expect.poll(() => locator.isVisible(), { timeout: 60_000 }).toBe(true)
 }
 const rounderPage = `lab/${ENDLESS_STUDIOS}/button/experiments/${ROUNDER}`
+const busyPage = `lab/${ENDLESS_STUDIOS}/button/experiments/${BUSY}`
 const panel = (page: Page) =>
   page.getByRole('region', { name: 'Controls for Rounder' })
+const busyPanel = (page: Page) =>
+  page.getByRole('region', { name: 'Controls for Busy' })
 // A select in the panel is a button named by its label and its value.
 const control = (page: Page, label: string) =>
   panel(page).getByRole('button', { name: new RegExp(`^${label}`) })
@@ -120,7 +149,7 @@ async function choose(page: Page, label: string, option: string) {
 }
 
 describe('in the studio running locally, as Ada', { timeout: 300_000 }, () => {
-  const { folder } = prototypesWithAdasExperiment()
+  const { folder, busy } = prototypesWithAdasExperiment()
   const studio = useStudio(() => startDevServer(studioEnv(folder)))
 
   test('[LAB-DK-01] the component alone has a panel with a folder for each piece with knobs, and the Breakdown hides it', async () => {
@@ -177,6 +206,54 @@ describe('in the studio running locally, as Ada', { timeout: 300_000 }, () => {
     await expect.poll(() => radius(page)).not.toBe('6px')
     // Nothing pending and nothing selected: Reset and Save step aside.
     await expect.poll(() => save.count()).toBe(0)
+  })
+
+  test('[LAB-DK-04] the component’s Props folder starts from its tag, moves the preview, resets, and Save writes it on the tag', async () => {
+    const page = await studio.open(`${busyPage}?view=component`)
+    const props = busyPanel(page)
+    await visible(props.getByRole('button', { name: 'Props' }))
+    // A prop bound to code is shown, not offered.
+    await visible(props.getByRole('group', { name: 'loading: set in code' }))
+    const size = props.getByRole('button', { name: /^size/ })
+    const variant = props.getByRole('button', { name: /^variant/ })
+    await expect.poll(() => size.innerText()).toMatch(/md/)
+    await expect.poll(() => variant.innerText()).toMatch(/solid/)
+    const button = page
+      .locator('iframe[title="Busy on the canvas"]')
+      .contentFrame()
+      .getByRole('button', { name: 'Send the invite' })
+    const before = await button.getAttribute('class')
+    await variant.click()
+    await page
+      .getByRole('listbox', { name: 'variant' })
+      .getByRole('option', { name: 'outline', exact: true })
+      .click()
+    await expect.poll(() => button.getAttribute('class')).not.toBe(before)
+    const save = toolbar(page).getByRole('button', { name: /^Save/ })
+    await expect
+      .poll(() => save.getAttribute('aria-label'))
+      .toBe('Save, 1 unsaved change')
+    // Reset clears the panel and the preview.
+    await toolbar(page)
+      .getByRole('button', { name: 'Discard unsaved changes' })
+      .click()
+    await expect.poll(() => variant.innerText()).toMatch(/solid/)
+    await expect.poll(() => button.getAttribute('class')).toBe(before)
+    // Save writes the new value on the tag, the binding left as it is.
+    await size.click()
+    await page
+      .getByRole('listbox', { name: 'size' })
+      .getByRole('option', { name: 'xl', exact: true })
+      .click()
+    await expect
+      .poll(() => save.getAttribute('aria-label'))
+      .toBe('Save, 1 unsaved change')
+    await save.click()
+    await visible(page.getByText('Saved 1 change').first())
+    await expect
+      .poll(() => readFileSync(busy, 'utf8'))
+      .toContain('<UButton :loading="busy" size="xl">Send the invite</UButton>')
+    await expect.poll(() => size.innerText()).toMatch(/xl/)
   })
 })
 

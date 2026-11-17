@@ -136,6 +136,48 @@ describe('Save', () => {
     })
   })
 
+  test('[LAB-DK-04] the dial panel’s props go on the button’s tag as static attributes; one bound to code is left unsaved', async () => {
+    const source = ROUNDER_SOURCE.replace(
+      '<UButton class="rounded-full">',
+      '<UButton class="rounded-full" :loading="busy" size="md">',
+    )
+    write(ROUNDER, source)
+    const saved = await saveExperiment(context(), {
+      prototype: ADA_EXPERIMENTS,
+      artifact: ADA_ROUNDER,
+      base: versionOf(source),
+      changes: [corners],
+      props: [
+        { node: 'root>UButton', prop: 'size', value: 'xl' },
+        { node: 'root>UButton', prop: 'variant', value: 'outline' },
+        { node: 'root>UButton', prop: 'loading', value: true },
+      ],
+    })
+    const expected = source.replace(
+      '<UButton class="rounded-full" :loading="busy" size="md">',
+      '<UButton class="rounded-xl" :loading="busy" size="xl" variant="outline">',
+    )
+    expect(read(ROUNDER)).toBe(expected)
+    expect(saved).toEqual({
+      version: versionOf(expected),
+      saved: 3,
+      skipped: [],
+      skippedProps: [{ node: 'root>UButton', prop: 'loading' }],
+    })
+    // Over a version changed on disk since, nothing is written.
+    const error = await refusal(() =>
+      saveExperiment(context(), {
+        prototype: ADA_EXPERIMENTS,
+        artifact: ADA_ROUNDER,
+        base: versionOf(source),
+        changes: [],
+        props: [{ node: 'root>UButton', prop: 'size', value: 'xs' }],
+      }),
+    )
+    expect(error.status).toBe(409)
+    expect(read(ROUNDER)).toBe(expected)
+  })
+
   test('[LAB-SV-01] a piece inside another file is left unsaved and named', async () => {
     const inside = { ...corners, node: 'root>StudioSidebar>USidebar' }
     const saved = await rounder([corners, inside])

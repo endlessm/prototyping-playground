@@ -25,6 +25,7 @@ import {
   PREVIEW_VERSION,
   readAddress,
   type PreviewMessage,
+  type PreviewNodeProps,
   type PreviewOverrides,
   type PreviewPhase,
   type PreviewState,
@@ -247,6 +248,8 @@ export function mountPreview({ create, views }: MountOptions) {
   // The knobs' changes the studio last sent, kept for the next mount.
   let sentOverrides: { artifact: string; overrides: PreviewOverrides } | null =
     null
+  // The dial panel's props the studio last sent, kept for the next mount.
+  let sentNodeProps: { artifact: string; props: PreviewNodeProps } | null = null
   // Each view file's newest `states` and `system`, from its hot updates.
   const latestExports = new Map<string, ViewModule>()
   // When the latest attempt asked for its view's code: changes made before
@@ -402,6 +405,8 @@ export function mountPreview({ create, views }: MountOptions) {
       Object.assign(props, breakdown.rootHooks)
       if (sentOverrides?.artifact === id)
         breakdown.setOverrides(sentOverrides.overrides)
+      if (sentNodeProps?.artifact === id)
+        breakdown.setNodeProps(sentNodeProps.props)
     }
     const box = document.createElement('div')
     box.hidden = true
@@ -477,6 +482,7 @@ export function mountPreview({ create, views }: MountOptions) {
     if (event.data.kind === 'highlight')
       return breakdown?.highlight(event.data.hover, event.data.selected)
     if (event.data.kind === 'overrides') return applyOverrides(event.data)
+    if (event.data.kind === 'nodeProps') return applyNodeProps(event.data)
     if (event.data.kind === 'knob') return breakdown?.knob(event.data.knob)
     if (event.data.kind === 'swatches')
       return post({
@@ -503,6 +509,15 @@ export function mountPreview({ create, views }: MountOptions) {
     sentOverrides = { artifact: message.artifact, overrides: message.overrides }
     if (message.artifact === artifact)
       breakdown?.setOverrides(message.overrides)
+  }
+
+  // The dial panel's props re-render their tags in place.
+  function applyNodeProps(message: {
+    artifact: string
+    props: PreviewNodeProps
+  }) {
+    sentNodeProps = { artifact: message.artifact, props: message.props }
+    if (message.artifact === artifact) breakdown?.setNodeProps(message.props)
   }
 
   // A playground's new props replace its current ones in place, so the

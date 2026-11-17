@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FormError, FormSubmitEvent } from '@nuxt/ui'
 import { refreshManifest } from '../../../../app/composables/useManifest'
-import type { RequestedChange } from '../experiments/save'
+import type { RequestedChange, RequestedProp } from '../experiments/save'
 import type { MadeExperimentReply } from '../composables/useLabExperimentDialog'
 import type { ExperimentRequest } from '../utils/experiments'
 import { labAddress } from '../utils/lab'
@@ -22,6 +22,7 @@ const props = defineProps<{
   description: string
   name?: string
   changes?: RequestedChange[]
+  props?: RequestedProp[]
   onMade?: (made: MadeExperimentReply) => void
 }>()
 const emit = defineEmits<{ close: [] }>()
@@ -52,6 +53,7 @@ async function make(event: FormSubmitEvent<typeof state>) {
           ...props.request,
           name: event.data.name.trim(),
           ...(props.changes && { changes: props.changes }),
+          ...(props.props?.length && { props: props.props }),
         }),
       },
     )
