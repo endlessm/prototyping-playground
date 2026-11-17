@@ -18,6 +18,7 @@ import {
 // pushed so typing doesn't fill the history; what no longer fits a control
 // is dropped. A component without a component file, with props that can't
 // be read, or with a required prop the panel can't fill says why instead.
+// Escape in the stage brings the keyboard back to the controls.
 const { component, system, data, reload } = useLabComponent()
 const { t } = useI18n()
 const route = useRoute()
@@ -38,6 +39,14 @@ function change(name: string, value: ControlValue | undefined) {
 function reset() {
   void router.replace({ query: {} })
 }
+// A prop the component changed itself, such as a modal closed with Escape:
+// its control follows, as if the person had set it.
+function update(name: string, value: unknown) {
+  if (['string', 'number', 'boolean'].includes(typeof value))
+    change(name, value as ControlValue)
+}
+
+const panel = useTemplateRef('panel')
 </script>
 
 <template>
@@ -97,12 +106,16 @@ function reset() {
           :artifact="component.playground"
           :title="t('lab.playground.stage', { name: component.title })"
           :props="props"
+          @update="update"
+          @escape="panel?.focus()"
         />
       </Suspense>
     </div>
     <LabPlaygroundControls
+      ref="panel"
       :controls="controls"
       :values="values"
+      :disabled="blocking?.kind === 'code'"
       @change="change"
       @reset="reset"
     />

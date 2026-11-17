@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type {
+  PreviewMessage,
   PreviewProps,
-  PreviewState,
 } from '../../../../tooling/preview/protocol'
 import { usePreviewFrame } from '../../prototypes/composables/usePreviewFrame'
 
@@ -11,6 +11,10 @@ import { usePreviewFrame } from '../../prototypes/composables/usePreviewFrame'
 // reloads. Props that make it throw show the error in its place until the
 // next props. The frame grows with the component up to a cap, then scrolls
 // inside, so pop-ups stay in it and the controls beside it stay in view.
+// A prop the component changes itself (a modal closing) comes out as
+// `update`. Escape in the stage hands the keyboard back to the studio
+// (`escape`), once the component has closed what it had open, so an overlay
+// that holds the focus never traps it.
 const props = defineProps<{
   systemId: string
   /** The playground's preview ID: the catalog component's `playground`. */
@@ -19,7 +23,10 @@ const props = defineProps<{
   /** Plain JSON values; a key left out or undefined takes its default. */
   props: PreviewProps
 }>()
-const emit = defineEmits<{ state: [state: PreviewState] }>()
+const emit = defineEmits<{
+  update: [prop: string, value: unknown]
+  escape: []
+}>()
 
 const MIN_HEIGHT = 160
 // Room for an error and the start of its detail.
@@ -34,8 +41,10 @@ const { src, state, detail, shown } = usePreviewFrame({
   document: previewDocument(props.systemId),
   artifact: () => props.artifact,
   props: () => props.props,
+  onMessage: (message: PreviewMessage) => {
+    if (message.kind === 'update') emit('update', message.prop, message.value)
+  },
 })
-watch(state, (next) => emit('state', next), { immediate: true })
 
 // The document is on the studio's origin, so its content can be measured.
 const height = ref(MIN_HEIGHT)
@@ -52,8 +61,34 @@ function measure() {
   observer = new view.ResizeObserver(fit)
   observer.observe(app)
   fit()
+  // Capturing, as an overlay may stop Escape from bubbling past it.
+  view.addEventListener(
+    'keydown',
+    (event) => {
+      if (event.key === 'Escape') void settled(view).then(() => emit('escape'))
+    },
+    true,
+  )
 }
 onBeforeUnmount(() => observer?.disconnect())
+
+// How long Escape waits for an overlay to close and its focus to return.
+const SETTLE_MS = 1000
+const POLL_MS = 50
+const OVERLAY = '[role="dialog"],[role="alertdialog"]'
+// Moving the focus out while an overlay still closes would have it pull the
+// focus back into the stage when it returns focus to its trigger.
+function settled(view: Window) {
+  const until = performance.now() + SETTLE_MS
+  return new Promise<void>((resolve) => {
+    const check = () => {
+      if (!view.document.querySelector(OVERLAY) || performance.now() > until)
+        setTimeout(resolve, POLL_MS)
+      else setTimeout(check, POLL_MS)
+    }
+    check()
+  })
+}
 
 const frameHeight = computed(() => {
   const wanted =

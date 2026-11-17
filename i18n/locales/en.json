@@ -1059,6 +1059,7 @@
       "stage": "{name} in the playground",
       "props": "Props",
       "reset": "Reset",
+      "resetDone": "Values reset",
       "default": "Default",
       "choose": "Choose a value",
       "setInCode": "Set in code",

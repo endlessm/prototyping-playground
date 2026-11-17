@@ -8,6 +8,7 @@ const props = defineProps<{
   control: PlaygroundControl
   /** The changed value, or undefined at its start. */
   value: ControlValue | undefined
+  disabled?: boolean
 }>()
 const emit = defineEmits<{ change: [value: ControlValue | undefined] }>()
 const { t } = useI18n()
@@ -71,6 +72,7 @@ function type(value: string | number | null | undefined) {
         :items="items"
         :placeholder="t('lab.playground.choose')"
         :required="control.required"
+        :disabled="disabled"
         size="sm"
         class="w-full"
         @update:model-value="pick"
@@ -79,6 +81,7 @@ function type(value: string | number | null | undefined) {
         v-else-if="control.kind === 'switch'"
         :model-value="Boolean(shown)"
         :required="control.required"
+        :disabled="disabled"
         size="sm"
         @update:model-value="emit('change', $event)"
       />
@@ -86,6 +89,7 @@ function type(value: string | number | null | undefined) {
         v-else-if="control.kind === 'number'"
         :model-value="(shown as number | undefined) ?? null"
         :required="control.required"
+        :disabled="disabled"
         size="sm"
         class="w-full"
         @update:model-value="type"
@@ -94,6 +98,7 @@ function type(value: string | number | null | undefined) {
         v-else
         :model-value="(shown as string | undefined) ?? ''"
         :required="control.required"
+        :disabled="disabled"
         size="sm"
         class="w-full"
         @update:model-value="type"

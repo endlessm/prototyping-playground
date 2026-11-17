@@ -87,6 +87,52 @@ defineProps<{ tone: 'calm' | 'loud' }>()
 <template><span>Chip {{ tone }}</span></template>
 `,
 )
+// Modal-like: open, it takes the focus and keeps Tab inside, and Escape or
+// its close button ask to close it, as a v-model:open overlay does.
+write(
+  'components/sheet/sheet.vue',
+  `<script setup lang="ts">
+import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
+const props = defineProps<{
+  /** Whether it shows. */
+  open?: boolean
+}>()
+const emit = defineEmits<{ 'update:open': [open: boolean] }>()
+const close = ref<HTMLButtonElement>()
+function onKey(event: KeyboardEvent) {
+  if (!props.open) return
+  if (event.key === 'Escape') emit('update:open', false)
+  if (event.key === 'Tab') {
+    event.preventDefault()
+    close.value?.focus()
+  }
+}
+document.addEventListener('keydown', onKey)
+onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
+watch(
+  () => props.open,
+  async (open) => {
+    await nextTick()
+    if (open) close.value?.focus()
+  },
+  { immediate: true },
+)
+</script>
+<template>
+  <div v-if="open" role="dialog" aria-label="Sheet">
+    <button ref="close" @click="emit('update:open', false)">Close</button>
+  </div>
+</template>
+`,
+)
+write(
+  'components/gauge/gauge.vue',
+  `<script setup lang="ts">
+defineProps<{ marks?: number[] }>()
+</script>
+<template><span>Gauge</span></template>
+`,
+)
 
 writeFileSync(
   path.join(content, 'studio.config.json'),
@@ -263,6 +309,81 @@ function scenarios(start: () => Promise<RunningStudio>) {
     await select(page, 'tone', 'loud')
     await visible(stage(page).getByText('Chip loud'))
     await expect.poll(query(page)).toEqual({ tone: 'loud' })
+  })
+
+  test('[LAB-05] an overlay in the stage closes with Escape, its control follows and the keyboard comes back to the studio', async () => {
+    const page = await open(playground('sheet'))
+    const control = page.getByRole('switch', { name: 'open', exact: true })
+    await visible(control)
+    await control.focus()
+    await page.keyboard.press('Space')
+    await visible(stage(page).getByRole('dialog', { name: 'Sheet' }))
+    await expect.poll(query(page)).toEqual({ open: 'true' })
+    await expect
+      .poll(() => page.evaluate(() => document.activeElement?.tagName))
+      .toBe('IFRAME')
+    // Tab stays inside while the sheet is open, as a modal's focus trap does.
+    await page.keyboard.press('Tab')
+    expect(await page.evaluate(() => document.activeElement?.tagName)).toBe(
+      'IFRAME',
+    )
+
+    await page.keyboard.press('Escape')
+    await expect.poll(() => stage(page).getByRole('dialog').count()).toBe(0)
+    await expect.poll(query(page)).toEqual({})
+    expect(await control.getAttribute('aria-checked')).toBe('false')
+    await expect
+      .poll(() =>
+        control.evaluate((element) => element === document.activeElement),
+      )
+      .toBe(true)
+  })
+
+  test('[LAB-05] its close button closes it too, and the open control follows', async () => {
+    const page = await open(`${playground('sheet')}?open=true`)
+    await stage(page).getByRole('button', { name: 'Close' }).click()
+    await expect.poll(query(page)).toEqual({})
+    await expect
+      .poll(() =>
+        page
+          .getByRole('switch', { name: 'open', exact: true })
+          .getAttribute('aria-checked'),
+      )
+      .toBe('false')
+  })
+
+  test('[LAB-05] Reset keeps the keyboard where it was and says it worked', async () => {
+    const page = await open(`${playground('button')}?color=error`)
+    const reset = page.getByRole('button', { name: 'Reset', exact: true })
+    await visible(reset)
+    await reset.focus()
+    await page.keyboard.press('Enter')
+    await expect.poll(query(page)).toEqual({})
+    await visible(page.getByRole('status').filter({ hasText: 'Values reset' }))
+    expect(await reset.isEnabled()).toBe(true)
+    expect(
+      await reset.evaluate((element) => element === document.activeElement),
+    ).toBe(true)
+    await page.keyboard.press('Enter')
+    expect(
+      await reset.evaluate((element) => element === document.activeElement),
+    ).toBe(true)
+  })
+
+  test('[LAB-05] without a prop the panel can change, there is no Reset; while the stage can’t start, the controls are disabled', async () => {
+    const gauge = await open(playground('gauge'))
+    await visible(gauge.getByText('Set in code'))
+    expect(await gauge.getByRole('button', { name: 'Reset' }).count()).toBe(0)
+
+    const dialog = await open(playground('dialog'))
+    const title = dialog.getByRole('textbox', { name: 'title', exact: true })
+    await visible(title)
+    expect(await title.isDisabled()).toBe(true)
+    expect(
+      await dialog
+        .getByRole('button', { name: 'Reset', exact: true })
+        .isDisabled(),
+    ).toBe(true)
   })
 }
 

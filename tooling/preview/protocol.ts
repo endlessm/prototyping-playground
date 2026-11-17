@@ -6,7 +6,8 @@
 // (status) and whether what it shows matches the saved source (lifecycle).
 // It asks the studio to open another studio address (navigate), so links in a
 // view go through the studio's history, and passes on the studio's keyboard
-// shortcuts pressed while it has focus (shortcut).
+// shortcuts pressed while it has focus (shortcut). A playground's component
+// that changes one of its own props says so (update).
 // Imported by both sides, so it imports nothing of either.
 import { isResourceId } from '../identity/resource-id.ts'
 
@@ -79,6 +80,15 @@ export type PreviewMessage = Envelope &
         replace: boolean
       }
     | { kind: 'shortcut'; action: PreviewShortcut }
+    | {
+        /**
+         * A playground's component changed one of its props itself, as a
+         * modal closing on Escape emits `update:open`.
+         */
+        kind: 'update'
+        prop: string
+        value: unknown
+      }
   )
 
 const STATES: PreviewState[] = ['loading', 'ready', 'error', 'empty']
@@ -130,6 +140,16 @@ const MAX_NODES = 2048
  * named `__proto__` is refused, as assigning it would change a prototype.
  */
 export function isPreviewProps(value: unknown): value is PreviewProps {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    !Array.isArray(value) &&
+    isPreviewValue(value)
+  )
+}
+
+/** One plain JSON value, held to the same rules as props. */
+export function isPreviewValue(value: unknown) {
   let nodes = 0
   const seen = new Set<object>()
   const json = (item: unknown, depth: number): boolean => {
@@ -152,13 +172,13 @@ export function isPreviewProps(value: unknown): value is PreviewProps {
     Object.keys(item).every(
       (key) => key !== '__proto__' && json(item[key], depth + 1),
     )
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    !Array.isArray(value) &&
-    json(value, 0)
-  )
+  return json(value, 0)
 }
+
+const PROP_NAME = /^[A-Za-z_$][\w$]{0,127}$/
+/** A prop's name as a component declares it, never `__proto__`. */
+const propName = (value: unknown): value is string =>
+  typeof value === 'string' && PROP_NAME.test(value) && value !== '__proto__'
 
 export function isHostMessage(value: unknown): value is HostMessage {
   if (!isEnvelope(value)) return false
@@ -189,6 +209,8 @@ export function isPreviewMessage(value: unknown): value is PreviewMessage {
       return isStudioHref(value.href) && typeof value.replace === 'boolean'
     case 'shortcut':
       return SHORTCUTS.includes(value.action as PreviewShortcut)
+    case 'update':
+      return propName(value.prop) && isPreviewValue(value.value)
     default:
       return false
   }

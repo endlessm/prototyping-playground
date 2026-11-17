@@ -27,10 +27,12 @@ const props = withDefaults(
   }>(),
   { close: true, dismissible: true, overlay: true },
 );
+// Closing with Escape, the close button or a click outside asks to set `open` to false, as `v-model:open` expects.
+const emit = defineEmits<{ 'update:open': [open: boolean] }>();
 </script>
 
 <template>
-  <UModal v-bind="props">
+  <UModal v-bind="props" @update:open="emit('update:open', $event)">
     <slot />
     <template v-if="$slots.body" #body><slot name="body" /></template>
     <template v-if="$slots.footer" #footer><slot name="footer" /></template>

@@ -7,7 +7,8 @@
 // saved source. A named state renders its view with the state's props; a
 // view's `system` options reach the system's app factory, and a state's
 // `system` overrides them option by option. A component's playground mounts
-// its component file with the props the studio sends, applied in place. A
+// its component file with the props the studio sends, applied in place, and
+// tells the studio when the component changes one itself. A
 // lo-fi view is drawn in grayscale with a handwritten font. Links to studio
 // addresses and the studio's shortcuts go to the studio, so a view's links
 // use its history. It imports nothing of the studio's app but plain
@@ -16,6 +17,7 @@ import { reactive, type App, type Component } from 'vue'
 import { isTyping, previewShortcut } from '../../../app/utils/shortcuts.ts'
 import {
   acceptsHost,
+  isPreviewValue,
   isStudioHref,
   PREVIEW_CHANNEL,
   PREVIEW_VERSION,
@@ -174,6 +176,19 @@ async function compileDetail(artifact: string) {
 // What the history entry remembers of a reload for a moved view.
 const MOVED = 'studioMovedView'
 
+// The props a component declares, by name.
+function declaredProps(component: Component) {
+  const declared = (component as { props?: unknown }).props
+  if (Array.isArray(declared))
+    return declared.filter((name): name is string => typeof name === 'string')
+  return plain(declared) ? Object.keys(declared) : []
+}
+
+// A playground's listener for a prop the component changes itself; prop
+// names never hold a colon, so these keys never clash with a prop.
+const LISTENER = 'onUpdate:'
+const isListener = (key: string) => key.startsWith(LISTENER)
+
 const describe = (error: unknown) =>
   error instanceof Error ? error.stack || error.message : String(error)
 
@@ -209,8 +224,14 @@ export function mountPreview({ create, views }: MountOptions) {
   } | null = null
   // The props the studio last sent for a playground, kept for its next mount.
   let sent: { artifact: string; props: Record<string, unknown> } | null = null
-  const sentProps = (id: string) =>
-    sent?.artifact === id ? structuredClone(sent.props) : {}
+  const sentProps = (id: string): Record<string, unknown> =>
+    sent?.artifact === id
+      ? Object.fromEntries(
+          Object.entries(structuredClone(sent.props)).filter(
+            ([key]) => !isListener(key),
+          ),
+        )
+      : {}
   // Each view file's newest `states` and `system`, from its hot updates.
   const latestExports = new Map<string, ViewModule>()
   // When the latest attempt asked for its view's code: changes made before
@@ -337,7 +358,16 @@ export function mountPreview({ create, views }: MountOptions) {
       }
       Object.assign(props, found)
     }
-    if (view.playground) Object.assign(props, sentProps(id))
+    if (view.playground) {
+      Object.assign(props, sentProps(id))
+      // A prop the component changes itself, such as a modal's `open` on
+      // Escape, goes to the studio, which owns the value and sends it back.
+      for (const name of declaredProps(component))
+        props[`${LISTENER}${name}`] = (value: unknown) => {
+          if (attempt === render && isPreviewValue(value))
+            post({ kind: 'update', prop: name, value })
+        }
+    }
     if (view.lofi) {
       try {
         await lofiLook()
@@ -434,7 +464,8 @@ export function mountPreview({ create, views }: MountOptions) {
     if (state !== 'ready') return
     const next = sentProps(message.artifact)
     for (const key of Object.keys(shown.props))
-      if (!(key in next)) Reflect.deleteProperty(shown.props, key)
+      if (!(key in next) && !isListener(key))
+        Reflect.deleteProperty(shown.props, key)
     Object.assign(shown.props, next)
   }
 
