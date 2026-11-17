@@ -247,6 +247,18 @@ export function cardFile(file: string | null, systemFolder: string) {
   return file.startsWith(prefix) ? file.slice(prefix.length) : file
 }
 
+/**
+ * The file holding a piece's tag when it isn't the tree's own file (a tag
+ * inside an app component the file imports), or null. A theme slot's piece
+ * is its Nuxt UI tag's.
+ */
+export function pieceElsewhere(tree: BreakdownNode, id: string) {
+  const piece = id.split('#')[0]!
+  const owner = piece.slice(0, piece.lastIndexOf('>'))
+  if (!owner || owner === tree.id) return null
+  return treeNodes(tree).find((node) => node.id === owner)?.file ?? null
+}
+
 /** Every node of the tree, parents first. */
 export const treeNodes = (node: BreakdownNode): BreakdownNode[] => [
   node,

@@ -168,31 +168,29 @@ function scenarios(start: () => Promise<RunningStudio>) {
     ).toContain('root')
   })
 
-  test('[LAB-BD-02] the sidebar goes through its copied app file to its Nuxt UI pieces', async () => {
+  test('[LAB-BD-02] the sidebar starts from the app’s own sidebar and goes through the copied app files it uses', async () => {
     const page = await open(`${sidebar}/breakdown`)
-    const app = card(page, 'root>StudioSidebar')
+    const app = card(page, 'root>USidebar/UPopover/Notifications')
     await visible(app)
     expect(await app.textContent()).toContain(
-      'studios/components/App/StudioSidebar.vue',
+      'studios/components/Notifications/index.vue',
     )
     for (const id of [
-      'root>StudioSidebar>USidebar',
-      'root>StudioSidebar>USidebar/UNavigationMenu',
-      'root>StudioSidebar>USidebar/UPopover/UButton/UIcon',
+      'root>USidebar',
+      'root>USidebar/UNavigationMenu',
+      'root>USidebar/UPopover/UButton/UIcon',
+      'root>USidebar/UPopover/Notifications>UButton',
     ])
       expect(await card(page, id).count(), id).toBe(1)
     expect(
-      await card(
-        page,
-        'root>StudioSidebar>USidebar/UPopover/UButton/UIcon',
-      ).textContent(),
+      await card(page, 'root>USidebar/UPopover/UButton/UIcon').textContent(),
     ).toContain('i-lucide-bell')
     const chips = await page.locator('[data-breakdown-chip]').allTextContents()
     expect(chips.map((chip) => chip.trim())).toEqual(
       expect.arrayContaining(['Endless Studios app', 'Nuxt UI', 'Lucide']),
     )
     await ready(page)
-    await visible(piece(page, 'root>StudioSidebar>USidebar/UNavigationMenu'))
+    await visible(piece(page, 'root>USidebar/UNavigationMenu'))
   })
 
   test('[LAB-BD-03] the canvas zooms, pans and switches to the component alone', async () => {
@@ -248,7 +246,7 @@ function scenarios(start: () => Promise<RunningStudio>) {
       .toBe('true')
     await expect.poll(() => toolbar(page).textContent()).toContain('UButton')
     // A theme slot's card outlines that slot.
-    await cardButton(page, 'root>UButton#label').hover()
+    await cardButton(page, 'root>UButton#base').hover()
     await expect.poll(() => outlines(page).count()).toBe(2)
 
     await page.keyboard.press('Escape')

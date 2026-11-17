@@ -5,13 +5,13 @@ import { useBreakdownChanges } from '../composables/useBreakdownChanges'
 import { useLabComponent } from '../composables/useLabComponent'
 import { useLabExperimentDialog } from '../composables/useLabExperimentDialog'
 import { useLeaveGuard } from '../composables/useLeaveGuard'
-import { controlFor, readValues, stageProps } from '../utils/playground'
 import { useSavedToast } from '../composables/useSavedToast'
 import { requestedChanges } from '../utils/saving'
 
 // Breakdown: the component drawn as the tree of pieces it is built from,
-// its root live with the same values the Playground opens with (its
-// Default example's), so it never starts empty. Whether the canvas shows
+// starting from the source its new experiments start from (its Default
+// example, so it never starts empty), so Save as experiment writes every
+// change into the new experiment's own tags. Whether the canvas shows
 // the breakdown or the component alone lives in the address. The original
 // never changes: Save as experiment keeps the knobs' changes as a new
 // experiment, and leaving with changes asks first. A component without a
@@ -24,14 +24,6 @@ const route = useRoute()
 const router = useRouter()
 
 const result = computed(() => data.value?.breakdown ?? null)
-const props = computed(() => {
-  const loaded = data.value
-  const controls =
-    loaded?.props?.props.map((prop) =>
-      controlFor(prop, loaded.seeds[prop.name]),
-    ) ?? []
-  return stageProps(controls, readValues(controls, {}))
-})
 
 const selected = ref<string | null>(null)
 
@@ -60,7 +52,7 @@ function saveAsExperiment() {
     changes: requestedChanges(changes.all()),
     // The changes are kept in the experiment now, so leaving doesn't ask.
     onMade: (made) => {
-      changes.reset()
+      changes.keepOnly(made.skipped ?? [])
       savedToast(made)
     },
   })
@@ -114,7 +106,6 @@ const mode = computed({
       :system-label="system.label"
       :artifact="component.breakdown"
       :name="component.title"
-      :props="props"
       :changes="changes"
       :theme="theme"
       save-as="experiment"

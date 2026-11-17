@@ -87,7 +87,7 @@ function saveAsMine() {
     changes: requestedChanges(changes.all()),
     // The changes are kept in the copy now, so leaving doesn't ask.
     onMade: (made) => {
-      changes.reset()
+      changes.keepOnly(made.skipped ?? [])
       savedToast(made)
     },
   })

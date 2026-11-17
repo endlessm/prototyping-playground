@@ -112,7 +112,7 @@ function nuxtUiParts(file: string) {
 }
 
 /** The default imports of `.vue` files in a file's scripts, by local name. */
-function vueImports(scripts: string[]) {
+export function vueImports(scripts: string[]) {
   const imports = new Map<string, string>()
   for (const script of scripts)
     for (const [, name, specifier] of script.matchAll(
@@ -143,7 +143,7 @@ export function resolveSystemImport(
 }
 
 // The parts of Vue's template AST read here, by its node type numbers.
-const ELEMENT = 1
+export const ELEMENT = 1
 const ATTRIBUTE = 6
 const DIRECTIVE = 7
 interface Location {
@@ -323,6 +323,8 @@ export function readBreakdown(options: {
   name: string
   source?: BreakdownSource
   follow?: string[]
+  /** The root's source, when it isn't the file's own text. */
+  text?: string
 }): BreakdownResult {
   const { system, root } = options
   const nuxtUi = nuxtUiCatalog(system, root)
@@ -344,10 +346,14 @@ export function readBreakdown(options: {
     fallback
   const nuxtUiLabel = libraryOf('@nuxt/ui', 'Nuxt UI')
 
+  const rootFile = path.resolve(options.file)
   const read = (file: string): FileTags => {
     let source: string
     try {
-      source = readFileSync(file, 'utf8')
+      source =
+        file === rootFile && options.text !== undefined
+          ? options.text
+          : readFileSync(file, 'utf8')
     } catch (error) {
       return { tags: null, problem: (error as Error).message }
     }
@@ -439,7 +445,6 @@ export function readBreakdown(options: {
     return node
   }
 
-  const rootFile = path.resolve(options.file)
   const own = read(rootFile)
   if (!own.tags)
     return {

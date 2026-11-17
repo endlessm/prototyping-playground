@@ -89,8 +89,8 @@ const card = (page: Page, id: string) =>
   page.locator(`[data-breakdown-card][data-breakdown-node="${id}"]`)
 const rootFrame = (page: Page): FrameLocator =>
   card(page, 'root').locator('iframe[data-preview-frame]').contentFrame()
-const piece = (page: Page) =>
-  rootFrame(page).locator(`[data-lab-node~="${BUTTON}"]`).first()
+const piece = (page: Page, id = BUTTON) =>
+  rootFrame(page).locator(`[data-lab-node~="${id}"]`).first()
 const radius = (page: Page) =>
   piece(page)
     .evaluate((element) => getComputedStyle(element).borderTopLeftRadius)
@@ -123,12 +123,12 @@ function useStudio(start: () => Promise<RunningStudio>) {
   return {
     newPage,
     url: () => running.studio!.url,
-    async open(address: string) {
+    async open(address: string, shown = BUTTON) {
       const page = await newPage()
       await page.setViewportSize({ width: 1440, height: 1000 })
       await page.bringToFront()
       await page.goto(`${running.studio!.url}${address}`)
-      await visible(piece(page))
+      await visible(piece(page, shown))
       return page
     },
   }
@@ -297,6 +297,55 @@ describe('in the studio running locally, as Ben', { timeout: 300_000 }, () => {
       /<UButton :ui="\{ base: 'rounded-lg' \}">Invite Learners<\/UButton>/,
     )
     expect(readdirSync(ben)).toContain('Rounder corners.vue')
+  })
+
+  test('[LAB-SV-02] Save as experiment on the input writes every change into the new experiment', async () => {
+    const field = 'root>UFormField'
+    const input = 'root>UFormField/UInput'
+    const page = await studio.open(
+      `lab/${ENDLESS_STUDIOS}/input/breakdown`,
+      input,
+    )
+    async function stepUp(id: string, name: string, from: string) {
+      await select(page, id)
+      await expect
+        .poll(() => knob(page, name).inputValue(), { timeout: 60_000 })
+        .toBe(from)
+      await knob(page, name).focus()
+      await page.keyboard.press('ArrowRight')
+    }
+    await stepUp(input, 'Corners', '6')
+    await stepUp(field, 'Label weight', '500')
+    const save = saveButton(page, /^Save as experiment/)
+    await expect
+      .poll(() => save.getAttribute('aria-label'))
+      .toBe('Save as experiment, 2 unsaved changes')
+    await save.click()
+    await name(page, 'Rounder field')
+    await visible(page.getByText('Saved 2 changes').first())
+    const made = path.join(
+      folder,
+      'ben',
+      'input-experiments',
+      'Rounder field.vue',
+    )
+    await expect.poll(() => existsSync(made)).toBe(true)
+    const source = readFileSync(made, 'utf8')
+    expect(source).toContain(
+      `<UFormField :ui="{ label: 'font-semibold' }" label="Cohort name"`,
+    )
+    expect(source).toContain(
+      `<UInput :ui="{ base: 'rounded-lg' }" v-model="name"`,
+    )
+    // The new experiment opens with the changes in its own file.
+    await visible(piece(page, input))
+    await select(page, input)
+    await expect
+      .poll(() => knob(page, 'Corners').inputValue(), { timeout: 60_000 })
+      .toBe('8')
+    await expect
+      .poll(() => saveButton(page, /^Save/).getAttribute('aria-label'))
+      .toBe('Save')
   })
 })
 

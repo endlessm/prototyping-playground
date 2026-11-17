@@ -1,7 +1,9 @@
 // The Breakdown's instrumentation: a Vite plugin of a system's preview
 // document that serves an instrumented copy of a `.vue` file under a name of
 // its own (`button.vue` → `button.lab-breakdown.vue`), so the plain file the
-// examples and playground use stays as it is. In the copy, each tag the tree
+// examples and playground use stays as it is. A system component's
+// Breakdown instruments its start source (`button.lab-start.vue`, made from
+// its files by `startSource`), the same a new experiment of it starts from. In the copy, each tag the tree
 // reader names (`fileTags`) reports its rendered elements to the runtime's
 // `$lab` under its node ID and takes its `ui` (Nuxt UI pieces) and `class`
 // through `$lab`, which merges the overrides the studio sends. The `.vue`
@@ -18,6 +20,7 @@ import {
   type FileTag,
 } from '../systems/breakdown.ts'
 import type { InstalledSystem } from '../systems/registry.ts'
+import { componentStart, startComponent } from '../systems/start-source.ts'
 
 const SUFFIX = '.lab-breakdown.vue'
 const posix = (file: string) => file.split(path.sep).join('/')
@@ -153,6 +156,8 @@ export function breakdownPlugin(options: {
   const follow = (target: string) =>
     target.endsWith('.vue') &&
     options.folders.some((dir) => within(target, dir))
+  // Each start source's instrumented copy, with the files it is made from.
+  const starts = new Map<string, Set<string>>()
   return {
     name: `studio-preview-breakdown:${options.system.key}`,
     enforce: 'pre',
@@ -171,8 +176,19 @@ export function breakdownPlugin(options: {
     load(id) {
       const real = instrumentedSource(id)
       if (!real) return
-      this.addWatchFile(real)
-      return instrument(readFileSync(real, 'utf8'), real, {
+      const component = startComponent(real)
+      let source: string
+      if (component) {
+        const start = componentStart(component, options.system)
+        source = start.source
+        const files = new Set(start.files.map((file) => path.resolve(file)))
+        starts.set(posix(path.resolve(id)), files)
+        for (const file of files) this.addWatchFile(file)
+      } else {
+        this.addWatchFile(real)
+        source = readFileSync(real, 'utf8')
+      }
+      return instrument(source, real, {
         system: options.system,
         root: options.root,
         follow,
@@ -180,13 +196,19 @@ export function breakdownPlugin(options: {
     },
     // A copy lives under a name no file has, so a change to its real file
     // reaches it only through here: it is read again and hot-updated in
-    // the documents that show it.
+    // the documents that show it. A start source is made from several of
+    // its system's files (the component, its examples, an app component),
+    // so it follows any of them.
     async hotUpdate({ file }) {
       if (!file.endsWith('.vue')) return
-      const copy = this.environment.moduleGraph.getModuleById(
-        posix(breakdownFile(path.resolve(file))),
-      )
-      if (copy) await this.environment.reloadModule(copy)
+      const graph = this.environment.moduleGraph
+      const changed = path.resolve(file)
+      const ids = [posix(breakdownFile(changed))]
+      for (const [id, files] of starts) if (files.has(changed)) ids.push(id)
+      for (const id of ids) {
+        const copy = graph.getModuleById(id)
+        if (copy) await this.environment.reloadModule(copy)
+      }
     },
   }
 }

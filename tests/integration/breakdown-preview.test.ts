@@ -1,6 +1,7 @@
 // A component's Breakdown is one more thing its system's preview document
-// shows: its component file, instrumented so each piece's elements carry
-// its node ID, mounted like its playground. The catalog names its preview
+// shows: the source its new experiments start from (`startSource`), served
+// beside its component file and instrumented so each piece's elements carry
+// its node ID. The catalog names its preview
 // and the component page data carries its tree; a component without a
 // component file has neither.
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
@@ -60,13 +61,12 @@ afterEach(() => {
 })
 
 describe('a component’s breakdown preview', () => {
-  test('is listed after its playground, from its component file', async () => {
+  test('is listed after its playground, from its start source beside its component file', async () => {
     const system = await harbor()
     const components = path.join(system.dir, 'components')
     expect(systemPreviews(system)).toContainEqual({
       id: breakdownId(HARBOR, 'button'),
-      file: path.join(components, 'button/Button.vue'),
-      playground: true,
+      file: path.join(components, 'button/Button.lab-start.vue'),
       breakdown: true,
     })
     const ids = systemPreviews(system).map(({ id }) => id)

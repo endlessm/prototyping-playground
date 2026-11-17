@@ -10,9 +10,9 @@ import {
   writeExperiment,
 } from '../../tooling/manifest/experiments'
 import {
-  experimentSource,
+  startSource,
   wrapsOneNuxtUiTag,
-} from '../../src/modules/lab/experiments/source'
+} from '../../tooling/systems/start-source'
 import {
   experimentAddress,
   experimentsOf,
@@ -88,7 +88,7 @@ describe('an experiment’s first source', () => {
   })
 
   test('[LAB-42] a Nuxt UI wrapper starts from its Default example, on a centred stage', () => {
-    const source = experimentSource({
+    const source = startSource({
       component: {
         file: `/studio/${COMPONENTS}/button/button.vue`,
         source: read('button/button.vue'),
@@ -112,7 +112,7 @@ describe('an experiment’s first source', () => {
   })
 
   test('[LAB-42] the example’s script comes along, without Example and with its imports still reaching their files', () => {
-    const source = experimentSource({
+    const source = startSource({
       component: {
         file: '/studio/src/systems/harbor/components/button/button.vue',
         source: '<template><UButton v-bind="$attrs" /></template>',
@@ -153,7 +153,7 @@ import { tides } from '../../data/tides'
   })
 
   test('[LAB-42] without a Default example, the first one', () => {
-    const source = experimentSource({
+    const source = startSource({
       component: {
         file: '/s/components/badge/badge.vue',
         source: '<template><UBadge /></template>',
@@ -171,7 +171,7 @@ import { tides } from '../../data/tides'
   test('[LAB-42] a composite starts from its own source, its relative imports still reaching their files', () => {
     const file = `/studio/${COMPONENTS}/studio-sidebar/studio-sidebar.vue`
     const original = read('studio-sidebar/studio-sidebar.vue')
-    const source = experimentSource({
+    const source = startSource({
       component: { file, source: original },
       examples: null,
       target:
@@ -194,7 +194,7 @@ import { tides } from '../../data/tides'
   })
 
   test('[LAB-42] a wrapper without examples starts from its own source too', () => {
-    const source = experimentSource({
+    const source = startSource({
       component: {
         file: '/s/components/badge/badge.vue',
         source:

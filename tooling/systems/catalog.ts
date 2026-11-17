@@ -27,6 +27,7 @@ import {
 } from './content-rules.ts'
 import type { SystemAssetKind, SystemIcons, SystemLibrary } from './contract.ts'
 import { readBreakdown, type BreakdownResult } from './breakdown.ts'
+import { startFile, startSource } from './start-source.ts'
 import {
   breakdownId,
   exampleId,
@@ -551,8 +552,7 @@ export function systemPreviews(system: InstalledSystem) {
         },
         {
           id: breakdownId(system.id, component.slug),
-          file: path.join(componentsDir, source),
-          playground: true,
+          file: startFile(path.join(componentsDir, source)),
           breakdown: true,
         },
       )
@@ -664,6 +664,18 @@ export async function componentPages(
               system,
               root,
               name: titleOf(page, component.name),
+              text: startSource({
+                component: {
+                  file: path.join(componentsDir, source),
+                  source: read(source) ?? '',
+                },
+                examples:
+                  examples && text
+                    ? { file: path.join(componentsDir, examples), source: text }
+                    : null,
+                target: startFile(path.join(componentsDir, source)),
+                system,
+              }),
             })
           : null,
         errors,

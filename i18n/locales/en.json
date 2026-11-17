@@ -1134,6 +1134,7 @@
     "knobs": {
       "inspector": "Knobs for {name}",
       "none": "Nothing to adjust on this piece",
+      "elsewhere": "This piece lives in {file}, so an experiment can’t change it",
       "pixels": "{value} px",
       "families": {
         "corners": "Corners",
@@ -1166,7 +1167,7 @@
       "saving": "Saving",
       "saved": "Saved {count} change | Saved {count} changes",
       "savedTo": "Written into {file}.",
-      "skipped": "{count} change is to a piece inside another file and wasn’t saved. | {count} changes are to pieces inside other files and weren’t saved.",
+      "skipped": "{count} change is to a piece outside this experiment’s file, so it wasn’t saved. It’s still unsaved. | {count} changes are to pieces outside this experiment’s file, so they weren’t saved. They’re still unsaved.",
       "failed": "Couldn’t save your changes",
       "stale": "Discard your unsaved changes to pick up the new version, then make them again.",
       "loading": "Loading the experiment’s Breakdown…",

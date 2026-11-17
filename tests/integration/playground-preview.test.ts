@@ -87,8 +87,7 @@ describe('a component’s playground preview', () => {
       },
       {
         id: breakdownId(HARBOR, 'button'),
-        file: path.join(components, 'button/Button.vue'),
-        playground: true,
+        file: path.join(components, 'button/Button.lab-start.vue'),
         breakdown: true,
       },
       {
@@ -103,8 +102,7 @@ describe('a component’s playground preview', () => {
       },
       {
         id: breakdownId(HARBOR, 'icon-button'),
-        file: path.join(components, 'IconButton.vue'),
-        playground: true,
+        file: path.join(components, 'IconButton.lab-start.vue'),
         breakdown: true,
       },
       { id: overviewId(HARBOR), file: path.join(system.dir, 'overview.vue') },

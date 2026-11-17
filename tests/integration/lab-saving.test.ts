@@ -236,6 +236,35 @@ describe('Save as experiment and Save as my experiment', () => {
     expect(read(ROUNDER)).toBe(ROUNDER_SOURCE)
   })
 
+  test('[LAB-SV-02] a change Save as experiment can’t place makes nothing, saying why', async () => {
+    actor = 'ben'
+    const inside = { ...corners, node: 'root>StudioSidebar>USidebar' }
+    const refused = await refusal(() =>
+      createExperiment(
+        context(),
+        { system: ENDLESS, component: 'button', name: 'Softer' },
+        [corners, inside],
+      ),
+    )
+    expect(refused.status).toBe(422)
+    expect(refused.message).toBe(
+      '1 change is to a piece inside other files, which an experiment can’t change, so nothing was saved. Your changes are still there.',
+    )
+    expect(fs.existsSync(at('src/prototypes/ben/button-experiments'))).toBe(
+      false,
+    )
+    await refusal(() =>
+      duplicateExperiment(
+        context(),
+        { experiment: ADA_ROUNDER, name: 'Rounder still' },
+        [inside],
+      ),
+    )
+    expect(fs.existsSync(at('src/prototypes/ben/button-experiments'))).toBe(
+      false,
+    )
+  })
+
   test('a value the theme doesn’t offer makes nothing', async () => {
     actor = 'ben'
     await refusal(() =>

@@ -3,7 +3,6 @@ import type {
   KnobHighlight,
   NodeBoxes,
   PreviewMessage,
-  PreviewProps,
 } from '../../../../tooling/preview/protocol'
 import type { BreakdownNode } from '../../../../tooling/systems/breakdown'
 import type { KnobTheme } from '../../../../tooling/preview/knobs'
@@ -19,6 +18,7 @@ import {
   cardFile,
   clampZoom,
   layoutTree,
+  pieceElsewhere,
   SOURCE_CHIPS,
   treeNodes,
   zoomStep,
@@ -45,8 +45,6 @@ const props = defineProps<{
   artifact: string
   /** The component's name, for the frames' and canvas's labels. */
   name: string
-  /** What the preview mounts the file with, as plain JSON. */
-  props?: PreviewProps
   /** The knobs' unsaved changes, kept by the page. */
   changes: BreakdownChanges
   /** The system's colours and text sizes the knobs offer. */
@@ -427,7 +425,6 @@ defineExpose({ boxes })
                     :system-id="systemId"
                     :artifact="artifact"
                     :title="t('lab.breakdown.stage', { name })"
-                    :props="props.props"
                     :messages="messages"
                     :min-height="120"
                     :error-height="160"
@@ -444,7 +441,6 @@ defineExpose({ boxes })
                   :system-id="systemId"
                   :artifact="artifact"
                   :name="name"
-                  :props="props.props"
                   :messages="messages"
                   :frame-width="FRAME_WIDTH"
                   :viewport="viewport"
@@ -476,7 +472,6 @@ defineExpose({ boxes })
               :system-id="systemId"
               :artifact="artifact"
               :title="t('lab.breakdown.component', { name })"
-              :props="props.props"
               :messages="shared"
               :min-height="160"
               :error-height="200"
@@ -507,6 +502,9 @@ defineExpose({ boxes })
             :measured="Object.keys(boxes).length > 0"
             :theme="theme"
             :changes="changes"
+            :elsewhere="
+              cardFile(pieceElsewhere(tree, selectedNode.id), systemFolder)
+            "
             @highlight="knobLit = $event"
           />
         </template>

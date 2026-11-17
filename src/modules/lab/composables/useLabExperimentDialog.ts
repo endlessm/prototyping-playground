@@ -1,4 +1,4 @@
-import type { RequestedChange } from '../experiments/save'
+import type { RequestedChange, SkippedChange } from '../experiments/save'
 import type { ExperimentRequest } from '../utils/experiments'
 
 export interface ExperimentDialog {
@@ -19,7 +19,7 @@ export interface MadeExperimentReply {
   prototype: string
   artifact: string
   saved?: number
-  skipped?: unknown[]
+  skipped?: SkippedChange[]
 }
 
 /**

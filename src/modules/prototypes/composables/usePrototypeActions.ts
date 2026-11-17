@@ -9,6 +9,7 @@ import {
 import { onApple } from '../../../../app/utils/shortcuts'
 import { prototypeMenu, type PrototypeActionId } from '../utils/actions'
 import { makerOf } from '../utils/gallery'
+import { isOwnPrototype } from '../utils/ownership'
 
 /** Where deleted files go on this computer. */
 export const trashPlace = () =>
@@ -22,9 +23,7 @@ export function useMayChange(prototype: () => ManifestPrototype) {
   const { me, known } = useMe()
   return computed(() => {
     if (!import.meta.dev || !known.value || !me.value.key) return false
-    if (me.value.role === 'admin') return true
-    const { owner, contributor } = prototype()
-    return owner ? owner === me.value.studioId : contributor === me.value.key
+    return me.value.role === 'admin' || isOwnPrototype(me.value, prototype())
   })
 }
 

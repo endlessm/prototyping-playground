@@ -3,7 +3,6 @@ import type {
   HostBody,
   NodeBoxes,
   PreviewMessage,
-  PreviewProps,
   PreviewState,
 } from '../../../../tooling/preview/protocol'
 import type { BreakdownNode } from '../../../../tooling/systems/breakdown'
@@ -27,7 +26,6 @@ const props = defineProps<{
   artifact: string
   /** The component's name, for the frame's title. */
   name: string
-  props?: PreviewProps
   messages: HostBody[]
   /** The width the root renders the component at, in CSS pixels. */
   frameWidth: number
@@ -110,7 +108,6 @@ const notShown = computed(
             :system-id="systemId"
             :artifact="artifact"
             :title="t('lab.pieces.frame', { piece: node.name, name })"
-            :props="props.props"
             :messages="messages"
             :min-height="40"
             :error-height="40"

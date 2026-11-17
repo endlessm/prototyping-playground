@@ -13,7 +13,9 @@ import LabKnob from './LabKnob.vue'
 // The selected piece's knobs, in the Breakdown's toolbar: one for each
 // thing the classes of its theme slots set, or a note when there is
 // nothing to adjust. A theme slot's card offers that slot's knobs; changes
-// are kept on the Nuxt UI piece the slot belongs to.
+// are kept on the Nuxt UI piece the slot belongs to. A piece whose tag
+// lives in another file has none, and says where it lives: Save writes
+// only into the experiment's own file, so its changes could never be kept.
 const props = defineProps<{
   node: BreakdownNode
   /**
@@ -24,6 +26,8 @@ const props = defineProps<{
   measured: boolean
   theme: KnobTheme
   changes: BreakdownChanges
+  /** The file holding the piece's tag, when it isn't the Breakdown's own. */
+  elsewhere: string | null
 }>()
 const emit = defineEmits<{ highlight: [knob: KnobHighlight | null] }>()
 const { t } = useI18n()
@@ -32,6 +36,7 @@ const owner = computed(() =>
   props.node.slot ? props.node.id.split('#')[0]! : props.node.id,
 )
 const knobs = computed(() => {
+  if (props.elsewhere) return []
   const slots = props.classes[owner.value]
   if (!slots) return []
   const own = props.node.slot
@@ -74,6 +79,9 @@ function hover(knob: (typeof knobs.value)[number], on: boolean) {
       @hover="hover(knob, $event)"
     />
   </div>
+  <span v-else-if="elsewhere" class="px-2 text-xs whitespace-nowrap text-muted">
+    {{ t('lab.knobs.elsewhere', { file: elsewhere }) }}
+  </span>
   <span v-else-if="measured" class="px-2 text-xs whitespace-nowrap text-muted">
     {{ t('lab.knobs.none') }}
   </span>

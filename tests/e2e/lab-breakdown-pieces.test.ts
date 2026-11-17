@@ -165,12 +165,12 @@ function scenarios(start: () => Promise<RunningStudio>) {
     )
 
     // A theme slot's card clips to that slot inside the piece.
-    const label = 'root>UButton#label'
+    const label = 'root>UButton#base'
     await visible(clip(page, label))
     const slot = inPiece(
       page,
       label,
-      `[data-lab-node~="${id}"] [data-slot="label"]`,
+      `[data-lab-node~="${id}"][data-slot="base"]`,
     )
     await visible(slot)
     const labelWindow = await box(clip(page, label))
@@ -187,17 +187,19 @@ function scenarios(start: () => Promise<RunningStudio>) {
 
   test('[LAB-BD-21] a piece the content doesn’t render says so instead of showing an empty card', async () => {
     const page = await open(button)
-    await visible(clip(page, 'root>UButton#label'))
+    await visible(clip(page, 'root>UButton#base'))
+    // The Default example's text is the button's own content, not its label.
+    await visible(notShown(page, 'root>UButton#label'))
     await visible(notShown(page, 'root>UButton#leadingIcon'))
     expect(await clip(page, 'root>UButton#leadingIcon').count()).toBe(0)
-    expect(await notShown(page, 'root>UButton#label').count()).toBe(0)
+    expect(await notShown(page, 'root>UButton#base').count()).toBe(0)
   })
 
   test('[LAB-BD-22] a large tree mounts frames only for the cards in view, and more as it pans', async () => {
     const page = await open(sidebar)
     const cards = page.locator('[data-breakdown-card]')
-    await visible(card(page, 'root>StudioSidebar>USidebar'))
-    await visible(clip(page, 'root>StudioSidebar'))
+    await visible(card(page, 'root>USidebar'))
+    await visible(clip(page, 'root>USidebar'))
     const frames = page.locator(
       '[data-breakdown-card] iframe[data-preview-frame]',
     )

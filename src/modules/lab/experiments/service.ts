@@ -46,9 +46,11 @@ import {
 } from '../../../../tooling/modules/registry.ts'
 import { systemCatalog } from '../../../../tooling/systems/catalog.ts'
 import { stemOf } from '../../../../tooling/systems/components.ts'
+import { startSource } from '../../../../tooling/systems/start-source.ts'
 import {
   loadSystems,
   systemsFolder,
+  type InstalledSystem,
 } from '../../../../tooling/systems/registry.ts'
 import {
   applyChanges,
@@ -56,7 +58,6 @@ import {
   type RequestedChange,
   type SavedChanges,
 } from './save.ts'
-import { experimentSource } from './source.ts'
 
 export interface ExperimentsContext {
   /** The studio's root folder. */
@@ -271,6 +272,7 @@ async function addExperiment(
     files: Awaited<ReturnType<typeof componentOf>>['files']
     marker: ExperimentMarker
     fresh: () => string
+    system: InstalledSystem
   }) => string,
   changes?: RequestedChange[],
 ): Promise<SavedExperiment> {
@@ -282,7 +284,8 @@ async function addExperiment(
     request.component,
   )
   // The Breakdown's changes go into the source before it is written, so a
-  // change that can't be written leaves nothing behind.
+  // change that can't be written leaves nothing behind, and the page keeps
+  // every change for another try.
   let saved: SavedChanges | undefined
   const finish = (source: string, target: string) => {
     if (!changes) return source
@@ -292,6 +295,13 @@ async function addExperiment(
       root: context.root,
       changes,
     })
+    const count = written.skipped.length
+    if (count)
+      throw refuse(
+        422,
+        'unplaced',
+        `${count === 1 ? '1 change is to a piece' : `${count} changes are to pieces`} inside other files, which an experiment can’t change, so nothing was saved. Your changes are still there.`,
+      )
     saved = { saved: written.saved, skipped: written.skipped }
     return written.source
   }
@@ -312,7 +322,10 @@ async function addExperiment(
     let artifact = ''
     writeView(context, found.dir, name, (fresh) => {
       const target = path.join(found.dir, `${name}${EXTENSION}`)
-      const source = finish(make({ target, files, marker, fresh }), target)
+      const source = finish(
+        make({ target, files, marker, fresh, system }),
+        target,
+      )
       artifact = view.identity.read(source)!
       return source
     })
@@ -331,7 +344,7 @@ async function addExperiment(
       context,
       dir,
       name,
-      (fresh) => finish(make({ target, files, marker, fresh }), target),
+      (fresh) => finish(make({ target, files, marker, fresh, system }), target),
       created.artifact,
     )
   } catch (error) {
@@ -355,9 +368,9 @@ export function createExperiment(
   return addExperiment(
     context,
     request,
-    ({ target, files, marker, fresh }) =>
+    ({ target, files, marker, fresh, system }) =>
       view.identity.write(
-        writeExperiment(experimentSource({ ...files, target }), marker),
+        writeExperiment(startSource({ ...files, target, system }), marker),
         fresh(),
       ),
     changes === undefined ? undefined : changesOf(changes),

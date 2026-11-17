@@ -276,7 +276,8 @@ async function compileError(
   root: string,
 ) {
   try {
-    await server.transformRequest(`/@fs/${posix(view.file)}`)
+    const target = view.breakdown ? breakdownFile(view.file) : view.file
+    await server.transformRequest(`/@fs/${posix(target)}`)
     return {}
   } catch (failure) {
     const error = failure as Error & {
