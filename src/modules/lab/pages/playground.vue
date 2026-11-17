@@ -81,7 +81,9 @@ const panel = useTemplateRef('panel')
     />
   </div>
   <div v-else class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_17rem]">
-    <div class="min-w-0">
+    <!-- The stage stays in view while the controls scroll: above them on
+         narrow screens, beside them on wide ones. -->
+    <div class="sticky top-0 z-10 min-w-0 bg-default pb-2 lg:top-4 lg:pb-0">
       <i18n-t
         v-if="blocking"
         :keypath="

@@ -133,6 +133,15 @@ defineProps<{ marks?: number[] }>()
 <template><span>Gauge</span></template>
 `,
 )
+// Its content comes from a slot alone, so nothing shows on the stage.
+write(
+  'components/frame/frame.vue',
+  `<script setup lang="ts">
+defineProps<{ padded?: boolean }>()
+</script>
+<template><div><slot /></div></template>
+`,
+)
 
 writeFileSync(
   path.join(content, 'studio.config.json'),
@@ -246,15 +255,50 @@ function scenarios(start: () => Promise<RunningStudio>) {
     expect(await row.textContent()).toContain('{ base?: string')
   })
 
-  test('[LAB-05] each control is labelled with its prop, its description on hover', async () => {
+  test('[LAB-05] each control is labelled with its prop and described by the prop’s description, shown under it', async () => {
     const page = await open(playground('button'))
-    await visible(page.getByRole('combobox', { name: 'color', exact: true }))
-    await page.getByText('color', { exact: true }).hover()
+    const color = page.getByRole('combobox', { name: 'color', exact: true })
+    await visible(color)
+    await visible(page.getByText('A semantic role from the theme.'))
+    expect(
+      await color.evaluate((element) =>
+        (element.getAttribute('aria-describedby') ?? '')
+          .split(' ')
+          .map((id) => document.getElementById(id)?.textContent?.trim())
+          .join(' '),
+      ),
+    ).toContain('A semantic role from the theme.')
+  })
+
+  test('[LAB-05] a stage where nothing shows says why it may be blank', async () => {
+    const page = await open(playground('frame'))
     await visible(
       page
-        .locator('[data-slot="content"]')
-        .filter({ hasText: 'A semantic role from the theme.' }),
+        .getByRole('status')
+        .filter({ hasText: /Nothing shows with these values yet\./ }),
     )
+    const button = await open(playground('button'))
+    await visible(stage(button).getByRole('button', { name: 'Moor the boat' }))
+    expect(await button.getByText(/^Nothing shows/).count()).toBe(0)
+  })
+
+  test('[LAB-05] the stage stays in view while the controls scroll, on wide and narrow screens', async () => {
+    for (const size of [
+      { width: 1280, height: 600 },
+      { width: 390, height: 700 },
+    ]) {
+      const page = await open(playground('button'))
+      await page.setViewportSize(size)
+      const frame = page.locator('iframe[data-preview-frame]')
+      await visible(stage(page).getByRole('button', { name: 'Moor the boat' }))
+      await page.getByText('Set in code').scrollIntoViewIfNeeded()
+      await expect
+        .poll(async () => {
+          const box = await frame.boundingBox()
+          return Boolean(box && box.y >= 0 && box.y + 40 < size.height)
+        })
+        .toBe(true)
+    }
   })
 
   test('[LAB-05] a shared address restores its values, ignores bad ones, and Reset clears them', async () => {

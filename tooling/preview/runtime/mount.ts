@@ -27,7 +27,7 @@ import {
   type PreviewState,
 } from '../protocol.ts'
 import { COMPILE_ROUTE, PREVIEW_ROUTE } from '../constants.ts'
-import { EXAMPLE, EXAMPLE_ROW, type ExampleChoice } from './example.ts'
+import { EXAMPLE, PLAYGROUND_STAGE, type ExampleChoice } from './example.ts'
 import { THEME_QUERY } from '../theme.ts'
 import { PROTOTYPE_SCOPE, type PrototypeScope } from './navigation.ts'
 
@@ -381,7 +381,10 @@ export function mountPreview({ create, views }: MountOptions) {
     const box = document.createElement('div')
     box.hidden = true
     box.classList.toggle('lofi-view', view.lofi)
-    if (view.playground) box.style.cssText = EXAMPLE_ROW
+    if (view.playground) {
+      box.style.cssText = PLAYGROUND_STAGE
+      box.dataset.playground = ''
+    }
     host.append(box)
     let failed = ''
     const app = create({ component, props, system })

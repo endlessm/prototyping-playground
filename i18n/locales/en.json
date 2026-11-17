@@ -1023,7 +1023,8 @@
   "lab": {
     "stage": {
       "loading": "Loading component…",
-      "error": "This component couldn’t render."
+      "error": "This component couldn’t render.",
+      "blank": "Nothing shows with these values yet. Try another value in Props. Some components need content only code can give, such as a slot or a list of items."
     },
     "title": "Lab",
     "openInLab": "Open in Lab",

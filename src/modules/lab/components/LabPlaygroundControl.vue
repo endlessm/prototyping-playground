@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { ControlValue, PlaygroundControl } from '../utils/playground'
 
-// One prop's control: labelled with the prop's name, its description in a
-// tooltip on the name, required props marked. Props the panel can't edit
-// show their type and that code sets them.
+// One prop's control: labelled with the prop's name, its description under
+// it as help the control is described by, required props marked. Props the
+// panel can't edit show their type and that code sets them.
 const props = defineProps<{
   control: PlaygroundControl
   /** The changed value, or undefined at its start. */
@@ -43,19 +43,11 @@ function type(value: string | number | null | undefined) {
     <UFormField
       v-if="control.kind !== 'code'"
       :name="control.name"
-      :ui="{ label: 'font-mono text-xs' }"
+      :help="control.description || undefined"
+      :ui="{ label: 'font-mono text-xs', help: 'mt-1 text-xs' }"
     >
       <template #label>
-        <UTooltip
-          :text="control.description"
-          :disabled="!control.description"
-          :content="{ side: 'left' }"
-          :ui="{ content: 'h-auto max-w-xs', text: 'whitespace-normal' }"
-        >
-          <span :class="{ 'cursor-help': control.description }">{{
-            control.name
-          }}</span>
-        </UTooltip>
+        {{ control.name }}
         <!-- The control itself says it is required, so this mark is only seen. -->
         <span
           v-if="control.required"
@@ -106,16 +98,7 @@ function type(value: string | number | null | undefined) {
     </UFormField>
     <div v-else class="text-sm">
       <p class="font-mono text-xs text-highlighted">
-        <UTooltip
-          :text="control.description"
-          :disabled="!control.description"
-          :content="{ side: 'left' }"
-          :ui="{ content: 'h-auto max-w-xs', text: 'whitespace-normal' }"
-        >
-          <span :class="{ 'cursor-help': control.description }">{{
-            control.name
-          }}</span>
-        </UTooltip>
+        {{ control.name }}
         <template v-if="control.required">
           <span aria-hidden="true" class="ms-0.5 text-error">*</span>
           <span class="sr-only">{{ t('lab.playground.required') }}</span>
@@ -127,6 +110,9 @@ function type(value: string | number | null | undefined) {
         :title="control.type"
       >
         {{ control.type }}
+      </p>
+      <p v-if="control.description" class="mt-1 text-xs text-muted">
+        {{ control.description }}
       </p>
     </div>
   </li>

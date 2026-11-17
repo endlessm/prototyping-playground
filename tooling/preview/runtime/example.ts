@@ -16,10 +16,12 @@ export interface ExampleChoice {
 
 export const EXAMPLE: InjectionKey<ExampleChoice> = Symbol('studio-example')
 
-// Inline, since the system's Tailwind doesn't scan the studio's files. A
-// component's playground is laid out the same way.
+// Inline, since the system's Tailwind doesn't scan the studio's files.
 export const EXAMPLE_ROW =
   'display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 24px;'
+// A component's playground: the same row, its content centred on a stage at
+// least as tall as the studio's stage frame starts.
+export const PLAYGROUND_STAGE = `${EXAMPLE_ROW} justify-content: center; min-height: 160px; box-sizing: border-box;`
 
 export const Example = defineComponent({
   name: 'Example',
