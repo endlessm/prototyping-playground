@@ -1,17 +1,11 @@
 <script setup lang="ts">
-import { useSystemCatalog } from '../../systems/composables/useSystemCatalog'
-import { labLanding } from '../utils/lab'
-
 // `/lab` opens the default system's first component, in place of itself in
 // the history. Without any component to open, it says so and points to
 // Systems.
 definePageMeta({
   middleware: async () => {
-    const [manifest, { systems }] = await Promise.all([
-      useManifest(),
-      useSystemCatalog(),
-    ])
-    const landing = labLanding(systems.value, manifest.value.defaultSystem)
+    const { labLandingAddress } = await import('../utils/redirects')
+    const landing = await labLandingAddress()
     if (landing) return navigateTo(landing, { replace: true })
   },
 })

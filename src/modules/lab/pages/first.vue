@@ -1,20 +1,14 @@
 <script setup lang="ts">
 import { systemAddress } from '../../systems/utils/pages'
-import {
-  useSystemCatalog,
-  type SystemCatalog,
-} from '../../systems/composables/useSystemCatalog'
-import { labAddress } from '../utils/lab'
+import type { SystemCatalog } from '../../systems/composables/useSystemCatalog'
 
 // `/lab/<system id>` opens the system's first component, in place of itself
 // in the history. A system without components says so.
 definePageMeta({
   middleware: async (to) => {
-    const { systemOf } = await useSystemCatalog()
-    const id = String(to.params.systemId)
-    const system = systemOf(id)
-    const first = system?.status === 'active' && system.components[0]
-    if (first) return navigateTo(labAddress(id, first.slug), { replace: true })
+    const { systemLandingAddress } = await import('../utils/redirects')
+    const first = await systemLandingAddress(String(to.params.systemId))
+    if (first) return navigateTo(first, { replace: true })
   },
 })
 
