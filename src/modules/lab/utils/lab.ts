@@ -9,13 +9,19 @@ import { inSystemOrder } from '../../systems/utils/pages'
 /**
  * A component's tabs, in the tab bar's order. Each is a child page of the
  * component's address; its `path` continues that address, and `label` is
- * its i18n key.
+ * its i18n key. A `nested` tab also has pages under its address.
  */
 export const LAB_TABS = [
   { id: 'overview', label: 'lab.tabs.overview', path: '' },
   { id: 'variants', label: 'lab.tabs.variants', path: 'variants' },
   { id: 'playground', label: 'lab.tabs.playground', path: 'playground' },
   { id: 'breakdown', label: 'lab.breakdown.tab', path: 'breakdown' },
+  {
+    id: 'experiments',
+    label: 'lab.experiments.tab',
+    path: 'experiments',
+    nested: true,
+  },
 ] as const
 
 export type LabTab = (typeof LAB_TABS)[number]
@@ -29,7 +35,10 @@ export function tabAt(path: string, systemId: string, slug: string) {
   const base = labAddress(systemId, slug)
   if (path !== base && !path.startsWith(`${base}/`)) return undefined
   const rest = path.slice(base.length).replace(/^\/|\/$/g, '')
-  return LAB_TABS.find((tab) => tab.path === rest)
+  return LAB_TABS.find(
+    (tab) =>
+      tab.path === rest || ('nested' in tab && rest.startsWith(`${tab.path}/`)),
+  )
 }
 
 /**

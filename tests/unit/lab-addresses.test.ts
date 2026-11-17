@@ -73,14 +73,25 @@ describe('Lab addresses and tabs', () => {
 
   test('an address under the component naming no tab has none', () => {
     expect(tabAt('/lab/hrbr/button/nope', 'hrbr', 'button')).toBeUndefined()
+    expect(
+      tabAt('/lab/hrbr/button/variants/nope', 'hrbr', 'button'),
+    ).toBeUndefined()
   })
 
-  test('the tabs read Overview, Variants, Playground, Breakdown', () => {
+  test('[LAB-41] one experiment’s address is under the Experiments tab', () => {
+    expect(
+      tabAt('/lab/hrbr/button/experiments/vw00000000000001', 'hrbr', 'button')
+        ?.id,
+    ).toBe('experiments')
+  })
+
+  test('the tabs read Overview, Variants, Playground, Breakdown, then Experiments', () => {
     expect(LAB_TABS.map(({ id }) => id)).toEqual([
       'overview',
       'variants',
       'playground',
       'breakdown',
+      'experiments',
     ])
   })
 })

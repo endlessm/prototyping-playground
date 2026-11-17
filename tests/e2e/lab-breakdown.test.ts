@@ -105,7 +105,7 @@ function scenarios(start: () => Promise<RunningStudio>) {
     return page
   }
 
-  test('[LAB-BD-01] Breakdown is the tab after Playground, with its own address and title', async () => {
+  test('[LAB-BD-01] Breakdown is the tab between Playground and Experiments, with its own address and title', async () => {
     const page = await open(`${button}/playground`)
     const names = tabs(page).getByRole('link')
     await visible(names.last())
@@ -114,6 +114,7 @@ function scenarios(start: () => Promise<RunningStudio>) {
       'Variants',
       'Playground',
       'Breakdown',
+      'Experiments',
     ])
     await tabs(page).getByRole('link', { name: 'Breakdown' }).click()
     await expect.poll(pathname(page)).toBe(`${button}/breakdown`)
