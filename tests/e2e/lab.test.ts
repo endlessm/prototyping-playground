@@ -230,6 +230,31 @@ function scenarios(start: () => Promise<RunningStudio>) {
     await visible(heading(page, 'When to use'))
   })
 
+  test('[LAB-03] the tabs switch from the keyboard, and the current one is announced', async () => {
+    const page = await open(button)
+    const overview = link(tabs(page), 'Overview')
+    await visible(overview)
+    await overview.focus()
+    await page.keyboard.press('Tab')
+    expect(
+      await link(tabs(page), 'Variants').evaluate(
+        (element) => element === document.activeElement,
+      ),
+    ).toBe(true)
+    await page.keyboard.press('Enter')
+    await expect.poll(pathname(page)).toBe(`${button}/variants`)
+    await expect
+      .poll(() => link(tabs(page), 'Variants').getAttribute('aria-current'))
+      .toBe('page')
+    expect(await overview.getAttribute('aria-current')).toBeNull()
+    await page.keyboard.press('Tab')
+    await page.keyboard.press('Enter')
+    await expect.poll(pathname(page)).toBe(`${button}/playground`)
+    await expect
+      .poll(() => link(tabs(page), 'Playground').getAttribute('aria-current'))
+      .toBe('page')
+  })
+
   test('[LAB-03] an unknown component or system says Page not found, with the list kept', async () => {
     const page = await open(`/lab/${HARBOR}/gone`)
     await visible(page.getByText('Page not found'))

@@ -142,6 +142,27 @@ defineProps<{ padded?: boolean }>()
 <template><div><slot /></div></template>
 `,
 )
+// Throws past 10, so a value can break it and another bring it back.
+write(
+  'components/meter/meter.vue',
+  `<script setup lang="ts">
+import { computed } from 'vue'
+const props = defineProps<{ level?: number }>()
+const shown = computed(() => {
+  if ((props.level ?? 0) > 10) throw new Error('The meter only goes to 10.')
+  return \`Level \${props.level ?? 0}\`
+})
+</script>
+<template><span>{{ shown }}</span></template>
+`,
+)
+// Edited on disk while its playground is open.
+const BUOY = (word: string) => `<script setup lang="ts">
+defineProps<{ name?: string }>()
+</script>
+<template><p>{{ '${word}' }} {{ name }}</p></template>
+`
+write('components/buoy/buoy.vue', BUOY('Buoy'))
 
 writeFileSync(
   path.join(content, 'studio.config.json'),
@@ -183,7 +204,10 @@ const select = async (page: Page, name: string, option: string) => {
   await page.getByRole('option', { name: option, exact: true }).click()
 }
 
-function scenarios(start: () => Promise<RunningStudio>) {
+function scenarios(
+  start: () => Promise<RunningStudio>,
+  { local }: { local: boolean },
+) {
   const newPage = useBrowser()
   let studio: RunningStudio
   beforeAll(async () => {
@@ -437,12 +461,47 @@ function scenarios(start: () => Promise<RunningStudio>) {
         .isDisabled(),
     ).toBe(true)
   })
+
+  test('[LAB-05] a value that makes the component throw shows its error on the stage, and another value brings it back', async () => {
+    const page = await open(`${playground('meter')}?level=3`)
+    await visible(stage(page).getByText('Level 3'))
+    const level = page.getByRole('spinbutton', { name: 'level', exact: true })
+    await level.fill('11')
+    await level.press('Enter')
+    const alert = page
+      .getByRole('alert')
+      .filter({ hasText: 'This component couldn’t render.' })
+    await visible(alert)
+    expect(await alert.textContent()).toContain('The meter only goes to 10.')
+    // The controls stay usable while the stage shows the error.
+    await level.fill('5')
+    await level.press('Enter')
+    await visible(stage(page).getByText('Level 5'))
+    await expect.poll(() => alert.count()).toBe(0)
+    await expect.poll(query(page)).toEqual({ level: '5' })
+  })
+
+  test.runIf(local)(
+    '[LAB-05] the stage follows the component file on disk and keeps the chosen values',
+    async () => {
+      const page = await open(`${playground('buoy')}?name=North`)
+      await visible(stage(page).getByText('Buoy North'))
+      write('components/buoy/buoy.vue', BUOY('Marker'))
+      await visible(stage(page).getByText('Marker North'))
+      await expect.poll(query(page)).toEqual({ name: 'North' })
+      expect(
+        await page
+          .getByRole('textbox', { name: 'name', exact: true })
+          .inputValue(),
+      ).toBe('North')
+    },
+  )
 }
 
 describe('in the studio running locally', { timeout: 180_000 }, () => {
-  scenarios(() => startDevServer(ENV))
+  scenarios(() => startDevServer(ENV), { local: true })
 })
 
 describe('on the deployed site', { timeout: 180_000 }, () => {
-  scenarios(() => startStaticSite('/', ENV))
+  scenarios(() => startStaticSite('/', ENV), { local: false })
 })
