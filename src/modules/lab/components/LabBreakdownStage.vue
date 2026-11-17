@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type {
-  HostBody,
   NodeBoxes,
   PreviewMessage,
   PreviewProps,
@@ -8,6 +7,7 @@ import type {
 import type { BreakdownNode } from '../../../../tooling/systems/breakdown'
 import SystemPreviewFrame from '../../systems/components/SystemPreviewFrame.vue'
 import LabBreakdownCard from './LabBreakdownCard.vue'
+import LabBreakdownPiece from './LabBreakdownPiece.vue'
 import LabBreakdownToolbar from './LabBreakdownToolbar.vue'
 import {
   CANVAS_PADDING,
@@ -18,6 +18,8 @@ import {
   treeNodes,
   zoomStep,
 } from '../utils/breakdown'
+import { onePerItem } from '../utils/pieces'
+import { useBreakdownMessages } from '../composables/useBreakdownMessages'
 
 // A Breakdown: a tree of pieces drawn top-down on a dotted canvas that pans
 // (drag the empty canvas, or scroll) and zooms (the toolbar, or ⌘/Ctrl and
@@ -57,11 +59,13 @@ function heard(message: PreviewMessage) {
   boxes.value = message.nodes
   emit('nodes', message.nodes)
 }
-const messages = computed<HostBody[]>(() => [
-  { kind: 'highlight', hover: hovered.value, selected: selected.value },
-])
+const { pieces: messages, shared } = useBreakdownMessages(() => ({
+  hover: hovered.value,
+  selected: selected.value,
+}))
 
 const nodes = computed(() => treeNodes(props.tree))
+const perItem = computed(() => onePerItem(props.tree))
 const selectedNode = computed(
   () => nodes.value.find(({ id }) => id === selected.value) ?? null,
 )
@@ -73,6 +77,8 @@ watch(nodes, (next) => {
 
 const WIDTH = { root: 340, component: 232, leaf: 184 }
 const INSET = { component: 96, leaf: 56 }
+// The root's preview width: its card less the card's and inset's edges.
+const FRAME_WIDTH = WIDTH.root - 16
 const widthOf = (node: BreakdownNode) =>
   node.id === props.tree.id
     ? WIDTH.root
@@ -401,6 +407,20 @@ defineExpose({ boxes })
                   />
                 </Suspense>
               </template>
+              <template v-else #preview>
+                <LabBreakdownPiece
+                  :node="placed.node"
+                  :per-item="perItem"
+                  :system-id="systemId"
+                  :artifact="artifact"
+                  :name="name"
+                  :props="props.props"
+                  :messages="messages"
+                  :frame-width="FRAME_WIDTH"
+                  :viewport="viewport"
+                  :zoom="views.breakdown.zoom"
+                />
+              </template>
             </LabBreakdownCard>
           </div>
         </div>
@@ -427,6 +447,7 @@ defineExpose({ boxes })
               :artifact="artifact"
               :title="t('lab.breakdown.component', { name })"
               :props="props.props"
+              :messages="shared"
               :min-height="160"
               :error-height="200"
               :loading-text="t('lab.stage.loading')"

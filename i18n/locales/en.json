@@ -1130,6 +1130,11 @@
         "duplicating": "Duplicating",
         "cancel": "Cancel"
       }
+    },
+    "pieces": {
+      "frame": "{piece} in {name}",
+      "notShown": "Not shown with this content",
+      "error": "Couldn’t render"
     }
   }
 }
