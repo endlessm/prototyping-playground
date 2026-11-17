@@ -1,7 +1,7 @@
 // Whether a component file compiles decides whether the static build gives
 // it a playground: a file Vue can't compile names its problem, a sound one
 // (TypeScript in its template included) has none.
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, rmSync, utimesSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { afterAll, describe, expect, test } from 'vitest'
@@ -48,5 +48,17 @@ const props = defineProps<{ tone: 'calm' | 'loud' }>()
 
   test('a missing file names why it can’t be read', () => {
     expect(fileCompileProblem(path.join(dir, 'Gone.vue'))).toMatch(/ENOENT/)
+  })
+
+  test('a file fixed or broken since it was last asked about gets a new answer', () => {
+    const at = file('Fixed.vue', '<template><div></template>\n')
+    expect(fileCompileProblem(at)).toBe('Element is missing end tag.')
+    writeFileSync(at, '<template><div></div></template>\n')
+    // A later time, as an editor's save gives it.
+    utimesSync(at, new Date(), new Date(Date.now() + 5_000))
+    expect(fileCompileProblem(at)).toBeNull()
+    writeFileSync(at, '<template><span></template>\n')
+    utimesSync(at, new Date(), new Date(Date.now() + 10_000))
+    expect(fileCompileProblem(at)).toBe('Element is missing end tag.')
   })
 })

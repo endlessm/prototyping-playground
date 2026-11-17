@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { stemOf } from '../../../../tooling/systems/components'
 import LabPlaygroundControls from '../components/LabPlaygroundControls.vue'
 import LabPlaygroundStage from '../components/LabPlaygroundStage.vue'
 import { useLabComponent } from '../composables/useLabComponent'
@@ -19,7 +18,7 @@ import {
 // is dropped. A component without a component file, with props that can't
 // be read, or with a required prop the panel can't fill says why instead.
 // Escape in the stage brings the keyboard back to the controls.
-const { component, system, data, reload } = useLabComponent()
+const { component, system, stem, data, reload } = useLabComponent()
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
@@ -28,9 +27,6 @@ const controls = computed(() => data.value?.props?.props.map(controlFor) ?? [])
 const values = computed(() => readValues(controls.value, route.query))
 const blocking = computed(() => blockingProp(controls.value, values.value))
 const props = computed(() => stageProps(controls.value, values.value))
-const stem = computed(() =>
-  stemOf(component.value.source ?? component.value.name),
-)
 
 function change(name: string, value: ControlValue | undefined) {
   const next = changeValue(controls.value, values.value, name, value)

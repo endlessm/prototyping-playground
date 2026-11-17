@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { stemOf } from '../../../../tooling/systems/components'
 import ComponentGuide from '../../systems/components/ComponentGuide.vue'
 import ComponentLoadErrors from '../../systems/components/ComponentLoadErrors.vue'
 import ComponentProps from '../../systems/components/ComponentProps.vue'
@@ -11,7 +10,7 @@ import { useLabComponent } from '../composables/useLabComponent'
 // shows them, without the examples, and a link to that page. Files that
 // couldn't load are listed with Try again; whatever did load still shows.
 // It reads at the Systems page's width.
-const { system, component, data, reload } = useLabComponent()
+const { system, component, stem, data, reload } = useLabComponent()
 const { t } = useI18n()
 
 // Remounts the guide, so it tries again from scratch.
@@ -21,9 +20,6 @@ function retry() {
   void reload()
 }
 
-const stem = computed(() =>
-  stemOf(component.value.source ?? component.value.name),
-)
 const systemsPage = computed(() =>
   systemAddress(system.value.id, `components/${component.value.slug}`),
 )

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { stemOf } from '../../../../tooling/systems/components'
 import LabVariantCard from '../components/LabVariantCard.vue'
 import { useLabComponent } from '../composables/useLabComponent'
 
@@ -7,11 +6,7 @@ import { useLabComponent } from '../composables/useLabComponent'
 // two columns when the bench is wide and one when it's narrow, each with
 // its own code. A component without examples says which file to add, as
 // its Systems page does.
-const { system, component, data } = useLabComponent()
-
-const stem = computed(() =>
-  stemOf(component.value.source ?? component.value.name),
-)
+const { system, component, stem, data } = useLabComponent()
 </script>
 
 <template>

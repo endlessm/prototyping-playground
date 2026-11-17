@@ -9,6 +9,8 @@ import type {
 export interface LabComponent {
   system: ComputedRef<SystemCatalog>
   component: ComputedRef<CatalogComponent>
+  /** Its files' shared name, such as `button` for `button.vue`. */
+  stem: ComputedRef<string>
   /** Its page, examples text and props; undefined until they load. */
   data: ComputedRef<ComponentPageData | undefined>
   /** Fetches the components' data again, as "Try again" does. */

@@ -6,6 +6,7 @@ import {
   useComponentPages,
   type SystemCatalog,
 } from '../../systems/composables/useSystemCatalog'
+import { stemOf } from '../../../../tooling/systems/components'
 import { tabAt } from '../utils/lab'
 
 // The bench: the open component's title, description and tab bar, kept on
@@ -30,6 +31,9 @@ const data = computed(() =>
 provideLabComponent({
   system: computed(() => props.system),
   component: computed(() => component.value!),
+  stem: computed(() =>
+    stemOf(component.value!.source ?? component.value!.name),
+  ),
   data,
   reload,
 })
