@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type {
-  HostBody,
   KnobHighlight,
   NodeBoxes,
   PreviewMessage,
@@ -13,6 +12,7 @@ import LabBreakdownInspector from './LabBreakdownInspector.vue'
 import LabBreakdownSave from './LabBreakdownSave.vue'
 import SystemPreviewFrame from '../../systems/components/SystemPreviewFrame.vue'
 import LabBreakdownCard from './LabBreakdownCard.vue'
+import LabBreakdownPiece from './LabBreakdownPiece.vue'
 import LabBreakdownToolbar from './LabBreakdownToolbar.vue'
 import {
   CANVAS_PADDING,
@@ -23,6 +23,8 @@ import {
   treeNodes,
   zoomStep,
 } from '../utils/breakdown'
+import { onePerItem } from '../utils/pieces'
+import { useBreakdownMessages } from '../composables/useBreakdownMessages'
 
 // A Breakdown: a tree of pieces drawn top-down on a dotted canvas that pans
 // (drag the empty canvas, or scroll) and zooms (the toolbar, or ⌘/Ctrl and
@@ -72,25 +74,19 @@ function heard(message: PreviewMessage) {
   boxes.value = message.nodes
   emit('nodes', message.nodes)
 }
-const messages = computed<HostBody[]>(() => [
-  // A hovered knob's own highlight replaces the selection's outline.
-  {
-    kind: 'highlight',
+/** The area of the hovered knob, drawn in the pieces. */
+const knobLit = ref<KnobHighlight | null>(null)
+// Every frame hears the knobs' unsaved changes; the pieces also hear the
+// hovered knob, whose own highlight replaces the selection's outline.
+const { pieces: messages, shared } = useBreakdownMessages(
+  () => ({
     hover: hovered.value,
     selected: knobLit.value ? null : selected.value,
-  },
-  ...knobMessages.value,
-])
+  }),
+  () => props.changes.overrides.value,
+  () => knobLit.value,
+)
 
-// The knobs' messages: the unsaved changes and the hovered knob's area.
-const knobLit = ref<KnobHighlight | null>(null)
-const overrideMessages = computed<HostBody[]>(() => [
-  { kind: 'overrides', overrides: props.changes.overrides.value },
-])
-const knobMessages = computed<HostBody[]>(() => [
-  ...overrideMessages.value,
-  { kind: 'knob', knob: knobLit.value },
-])
 const slotClasses = computed(() =>
   Object.fromEntries(
     Object.entries(boxes.value).map(([id, found]) => [id, found.classes]),
@@ -98,6 +94,7 @@ const slotClasses = computed(() =>
 )
 
 const nodes = computed(() => treeNodes(props.tree))
+const perItem = computed(() => onePerItem(props.tree))
 const selectedNode = computed(
   () => nodes.value.find(({ id }) => id === selected.value) ?? null,
 )
@@ -109,6 +106,8 @@ watch(nodes, (next) => {
 
 const WIDTH = { root: 340, component: 232, leaf: 184 }
 const INSET = { component: 96, leaf: 56 }
+// The root's preview width: its card less the card's and inset's edges.
+const FRAME_WIDTH = WIDTH.root - 16
 const widthOf = (node: BreakdownNode) =>
   node.id === props.tree.id
     ? WIDTH.root
@@ -437,6 +436,20 @@ defineExpose({ boxes })
                   />
                 </Suspense>
               </template>
+              <template v-else #preview>
+                <LabBreakdownPiece
+                  :node="placed.node"
+                  :per-item="perItem"
+                  :system-id="systemId"
+                  :artifact="artifact"
+                  :name="name"
+                  :props="props.props"
+                  :messages="messages"
+                  :frame-width="FRAME_WIDTH"
+                  :viewport="viewport"
+                  :zoom="views.breakdown.zoom"
+                />
+              </template>
             </LabBreakdownCard>
           </div>
         </div>
@@ -463,7 +476,7 @@ defineExpose({ boxes })
               :artifact="artifact"
               :title="t('lab.breakdown.component', { name })"
               :props="props.props"
-              :messages="overrideMessages"
+              :messages="shared"
               :min-height="160"
               :error-height="200"
               :loading-text="t('lab.stage.loading')"

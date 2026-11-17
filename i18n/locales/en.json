@@ -1156,6 +1156,11 @@
       "saveAsExperiment": "Save as experiment",
       "saveAsMine": "Save as my experiment",
       "pending": "{count} unsaved change | {count} unsaved changes"
+    },
+    "pieces": {
+      "frame": "{piece} in {name}",
+      "notShown": "Not shown with this content",
+      "error": "Couldn’t render"
     }
   }
 }

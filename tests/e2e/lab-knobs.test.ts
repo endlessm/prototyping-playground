@@ -149,6 +149,24 @@ function scenarios(start: () => Promise<RunningStudio>) {
     await knob(page, 'Corners').fill('15')
     await page.keyboard.press('Enter')
     await expect.poll(() => radius(page)).toBe('16px')
+    // Every preview follows: the piece's own card and the component alone.
+    for (const frame of [
+      card(page, BUTTON).locator('iframe[data-preview-frame]').contentFrame(),
+      page.getByTitle('Button on the canvas').contentFrame(),
+    ])
+      await expect
+        .poll(
+          () =>
+            frame
+              .locator(`[data-lab-node~="${BUTTON}"]`)
+              .first()
+              .evaluate(
+                (element) => getComputedStyle(element).borderTopLeftRadius,
+              )
+              .catch(() => null),
+          { timeout: 60_000 },
+        )
+        .toBe('16px')
     // Dragged sideways.
     const handle = toolbar(page).locator(
       '[data-knob="base.corners"] [data-knob-handle]',
