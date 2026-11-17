@@ -12,8 +12,6 @@ import { inSystemOrder } from '../../systems/utils/pages'
  * its i18n key. A `nested` tab also has pages under its address.
  */
 export const LAB_TABS = [
-  { id: 'overview', label: 'lab.tabs.overview', path: '' },
-  { id: 'variants', label: 'lab.tabs.variants', path: 'variants' },
   { id: 'playground', label: 'lab.tabs.playground', path: 'playground' },
   { id: 'breakdown', label: 'lab.breakdown.tab', path: 'breakdown' },
   {
@@ -29,6 +27,10 @@ export type LabTab = (typeof LAB_TABS)[number]
 /** `/lab`, `/lab/<system id>`, `/lab/<system id>/<slug>[/<tab>]`. */
 export const labAddress = (systemId?: string, slug?: string, tab = '') =>
   ['/lab', systemId, slug, tab].filter(Boolean).join('/')
+
+/** Where a component opens: its Playground, which the tab bar then marks. */
+export const componentLanding = (systemId: string, slug: string) =>
+  labAddress(systemId, slug, 'playground')
 
 /** The tab an address inside a component shows; none for any other. */
 export function tabAt(path: string, systemId: string, slug: string) {
@@ -62,7 +64,7 @@ export function labLanding(
   defaultSystem: string | null,
 ) {
   const [first] = labSystems(systems, defaultSystem)
-  return first ? labAddress(first.id, first.components[0]!.slug) : null
+  return first ? componentLanding(first.id, first.components[0]!.slug) : null
 }
 
 /**

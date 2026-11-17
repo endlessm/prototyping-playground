@@ -113,8 +113,6 @@ function scenarios(start: () => Promise<RunningStudio>) {
     const names = tabs(page).getByRole('link')
     await visible(names.last())
     expect(await names.allTextContents()).toEqual([
-      'Overview',
-      'Variants',
       'Playground',
       'Breakdown',
       'Experiments',

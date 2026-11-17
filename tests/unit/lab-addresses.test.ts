@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest'
 import type { SystemCatalog } from '../../tooling/systems/catalog'
 import {
   LAB_TABS,
+  componentLanding,
   labAddress,
   labLanding,
   labSystems,
@@ -42,11 +43,15 @@ describe('the systems the Lab offers', () => {
   })
 
   test('/lab lands on the default system’s first component', () => {
-    expect(labLanding([lantern, harbor], 'hrbr')).toBe('/lab/hrbr/button')
+    expect(labLanding([lantern, harbor], 'hrbr')).toBe(
+      '/lab/hrbr/button/playground',
+    )
   })
 
   test('/lab lands on the first offered system when the default has no components', () => {
-    expect(labLanding([lantern, empty], 'mpty')).toBe('/lab/ltrn/lamp')
+    expect(labLanding([lantern, empty], 'mpty')).toBe(
+      '/lab/ltrn/lamp/playground',
+    )
   })
 
   test('/lab has nowhere to land without components', () => {
@@ -55,10 +60,20 @@ describe('the systems the Lab offers', () => {
 })
 
 describe('Lab addresses and tabs', () => {
-  test('a tab-less component address is Overview', () => {
+  test('a component opens on its Playground', () => {
     expect(labAddress('hrbr', 'button')).toBe('/lab/hrbr/button')
-    expect(tabAt('/lab/hrbr/button', 'hrbr', 'button')?.id).toBe('overview')
-    expect(tabAt('/lab/hrbr/button/', 'hrbr', 'button')?.id).toBe('overview')
+    expect(componentLanding('hrbr', 'button')).toBe(
+      '/lab/hrbr/button/playground',
+    )
+    expect(
+      tabAt(componentLanding('hrbr', 'button'), 'hrbr', 'button')?.id,
+    ).toBe('playground')
+  })
+
+  test('a tab-less or retired tab’s address names no tab', () => {
+    expect(tabAt('/lab/hrbr/button', 'hrbr', 'button')).toBeUndefined()
+    expect(tabAt('/lab/hrbr/button/', 'hrbr', 'button')).toBeUndefined()
+    expect(tabAt('/lab/hrbr/button/variants', 'hrbr', 'button')).toBeUndefined()
   })
 
   test('each tab has its own address', () => {
@@ -66,15 +81,15 @@ describe('Lab addresses and tabs', () => {
       const address = labAddress('hrbr', 'button', tab.path)
       expect(tabAt(address, 'hrbr', 'button')).toBe(tab)
     }
-    expect(labAddress('hrbr', 'button', 'variants')).toBe(
-      '/lab/hrbr/button/variants',
+    expect(labAddress('hrbr', 'button', 'breakdown')).toBe(
+      '/lab/hrbr/button/breakdown',
     )
   })
 
   test('an address under the component naming no tab has none', () => {
     expect(tabAt('/lab/hrbr/button/nope', 'hrbr', 'button')).toBeUndefined()
     expect(
-      tabAt('/lab/hrbr/button/variants/nope', 'hrbr', 'button'),
+      tabAt('/lab/hrbr/button/playground/nope', 'hrbr', 'button'),
     ).toBeUndefined()
   })
 
@@ -85,10 +100,8 @@ describe('Lab addresses and tabs', () => {
     ).toBe('experiments')
   })
 
-  test('the tabs read Overview, Variants, Playground, Breakdown, then Experiments', () => {
+  test('the tabs read Playground, Breakdown, then Experiments', () => {
     expect(LAB_TABS.map(({ id }) => id)).toEqual([
-      'overview',
-      'variants',
       'playground',
       'breakdown',
       'experiments',

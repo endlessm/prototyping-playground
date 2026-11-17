@@ -12,7 +12,7 @@ export default {
   id: 'lab',
   label: 'Lab',
   description:
-    'A bench for each system component: its overview, its variants side by side, a playground for its props, its breakdown into pieces with knobs, and everyone’s experiments with it.',
+    'A bench for each system component: a playground for its props, its breakdown into pieces with knobs, and everyone’s experiments with it.',
   rail: { position: 'top', icon: 'i-lucide-flask-conical', order: 25 },
   pages: [
     { path: '/lab', file: 'pages/index.vue' },
@@ -25,8 +25,8 @@ export default {
           path: ':component',
           file: 'pages/component.vue',
           children: [
-            { path: '', file: 'pages/overview.vue' },
-            { path: 'variants', file: 'pages/variants.vue' },
+            { path: '', file: 'pages/landing.vue' },
+            { path: 'variants', file: 'pages/landing.vue' },
             { path: 'playground', file: 'pages/playground.vue' },
             { path: 'breakdown', file: 'pages/breakdown.vue' },
             { path: 'experiments', file: 'pages/experiments.vue' },

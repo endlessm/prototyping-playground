@@ -1,8 +1,7 @@
 // The Lab: a designer opens a system's components from the rail, picks one
-// from the list beside the bench, and moves between its Overview, Variants
-// and Playground tabs, each at its own address. Overview reads as the
-// component's Systems page does, and the two link to each other. The
-// studio runs as Ben, who maintains Harbor, on a disposable copy of
+// from the list beside the bench, which opens on its Playground, and moves
+// between its Playground, Breakdown and Experiments tabs, each at its own
+// address. The component's Systems page links to it. The studio runs as Ben, who maintains Harbor, on a disposable copy of
 // `tests/fixtures/systems-area` with components added to Harbor and to
 // Lantern, so two active systems have components.
 import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
@@ -154,15 +153,17 @@ function scenarios(start: () => Promise<RunningStudio>) {
     return page
   }
 
-  test('[LAB-01] the rail’s Lab button lands on the default system’s first component', async () => {
+  test('[LAB-01] the rail’s Lab button lands on the default system’s first component, on its Playground', async () => {
     const page = await open('/prototypes')
     const rail = page.getByRole('navigation', { name: 'Main' })
     await visible(link(rail, 'Lab'))
     await link(rail, 'Lab').click()
-    await expect.poll(pathname(page), { timeout: 30_000 }).toBe(button)
+    await expect
+      .poll(pathname(page), { timeout: 30_000 })
+      .toBe(`${button}/playground`)
     await visible(heading(page, 'Button'))
     await visible(page.getByText('Starts an action.'))
-    expect(await page.title()).toBe(`Overview — Button — Lab — ${STUDIO}`)
+    expect(await page.title()).toBe(`Playground — Button — Lab — ${STUDIO}`)
   })
 
   test('[LAB-02] the list highlights the open component and its search filters it', async () => {
@@ -194,65 +195,70 @@ function scenarios(start: () => Promise<RunningStudio>) {
     await page.getByRole('option', { name: 'Lantern' }).click()
     await expect
       .poll(pathname(page), { timeout: 30_000 })
-      .toBe(`/lab/${LANTERN}/lamp`)
+      .toBe(`/lab/${LANTERN}/lamp/playground`)
     await visible(heading(page, 'Lamp'))
     await visible(link(components(page), 'Lamp'))
   })
 
-  test('[LAB-03] each tab has its own address, title and history entry', async () => {
+  test('[LAB-03] the tabs are Playground, Breakdown and Experiments, each with its own address, title and history entry', async () => {
     const page = await open(button)
-    await visible(link(tabs(page), 'Overview'))
-    expect(
-      await link(tabs(page), 'Overview').getAttribute('aria-current'),
-    ).toBe('page')
-    await link(tabs(page), 'Variants').click()
-    await expect.poll(pathname(page)).toBe(`${button}/variants`)
-    await expect
-      .poll(() => page.title())
-      .toBe(`Variants — Button — Lab — ${STUDIO}`)
-    expect(
-      await link(tabs(page), 'Variants').getAttribute('aria-current'),
-    ).toBe('page')
-    await link(tabs(page), 'Playground').click()
     await expect.poll(pathname(page)).toBe(`${button}/playground`)
+    await visible(link(tabs(page), 'Playground'))
+    expect(await tabs(page).getByRole('link').allTextContents()).toEqual([
+      'Playground',
+      'Breakdown',
+      'Experiments',
+    ])
+    expect(
+      await link(tabs(page), 'Playground').getAttribute('aria-current'),
+    ).toBe('page')
+    await link(tabs(page), 'Breakdown').click()
+    await expect.poll(pathname(page)).toBe(`${button}/breakdown`)
     await expect
       .poll(() => page.title())
-      .toBe(`Playground — Button — Lab — ${STUDIO}`)
+      .toBe(`Breakdown — Button — Lab — ${STUDIO}`)
+    expect(
+      await link(tabs(page), 'Breakdown').getAttribute('aria-current'),
+    ).toBe('page')
     // Moving to another component keeps the tab.
     await link(components(page), 'Card').click()
-    await expect.poll(pathname(page)).toBe(`/lab/${HARBOR}/card/playground`)
+    await expect.poll(pathname(page)).toBe(`/lab/${HARBOR}/card/breakdown`)
+    await page.goBack()
+    await expect.poll(pathname(page)).toBe(`${button}/breakdown`)
     await page.goBack()
     await expect.poll(pathname(page)).toBe(`${button}/playground`)
-    await page.goBack()
-    await expect.poll(pathname(page)).toBe(`${button}/variants`)
-    await page.goBack()
-    await expect.poll(pathname(page)).toBe(button)
-    await visible(heading(page, 'When to use'))
+    await visible(link(tabs(page), 'Playground'))
+  })
+
+  test('[LAB-03] an old Variants link opens the Playground, keeping its values', async () => {
+    const page = await open(`${button}/variants?label=Cast+off`)
+    await expect.poll(pathname(page)).toBe(`${button}/playground`)
+    await expect
+      .poll(() => new URL(page.url()).searchParams.get('label'))
+      .toBe('Cast off')
+    await expect
+      .poll(() => link(tabs(page), 'Playground').getAttribute('aria-current'))
+      .toBe('page')
+    await expect.poll(() => link(tabs(page), 'Variants').count()).toBe(0)
   })
 
   test('[LAB-03] the tabs switch from the keyboard, and the current one is announced', async () => {
-    const page = await open(button)
-    const overview = link(tabs(page), 'Overview')
-    await visible(overview)
-    await overview.focus()
+    const page = await open(`${button}/playground`)
+    const playground = link(tabs(page), 'Playground')
+    await visible(playground)
+    await playground.focus()
     await page.keyboard.press('Tab')
     expect(
-      await link(tabs(page), 'Variants').evaluate(
+      await link(tabs(page), 'Breakdown').evaluate(
         (element) => element === document.activeElement,
       ),
     ).toBe(true)
     await page.keyboard.press('Enter')
-    await expect.poll(pathname(page)).toBe(`${button}/variants`)
+    await expect.poll(pathname(page)).toBe(`${button}/breakdown`)
     await expect
-      .poll(() => link(tabs(page), 'Variants').getAttribute('aria-current'))
+      .poll(() => link(tabs(page), 'Breakdown').getAttribute('aria-current'))
       .toBe('page')
-    expect(await overview.getAttribute('aria-current')).toBeNull()
-    await page.keyboard.press('Tab')
-    await page.keyboard.press('Enter')
-    await expect.poll(pathname(page)).toBe(`${button}/playground`)
-    await expect
-      .poll(() => link(tabs(page), 'Playground').getAttribute('aria-current'))
-      .toBe('page')
+    expect(await playground.getAttribute('aria-current')).toBeNull()
   })
 
   test('[LAB-03] an unknown component or system says Page not found, with the list kept', async () => {
@@ -268,27 +274,26 @@ function scenarios(start: () => Promise<RunningStudio>) {
       .toBe(`Page not found — Lab — ${STUDIO}`)
     // The way back stays in the Lab.
     await link(page, 'View components').click()
-    await expect.poll(pathname(page), { timeout: 30_000 }).toBe(button)
+    await expect
+      .poll(pathname(page), { timeout: 30_000 })
+      .toBe(`${button}/playground`)
   })
 
-  test('[LAB-04] Overview shows the guide, Source and Props, and links to Systems and back', async () => {
-    const page = await open(button)
-    await visible(heading(page, 'When to use'))
-    await visible(page.getByText('For actions on the dock.'))
-    await visible(heading(page, 'Source'))
-    await visible(page.getByText("Harbor's own button, drawn for the docks."))
-    await visible(page.getByRole('button', { name: /^Props/ }))
-    // At the Systems page's reading width, not the bench's.
-    const guide = await heading(page, 'When to use').boundingBox()
-    expect(guide?.width).toBeLessThanOrEqual(768)
-    await link(page, 'Open in Systems').click()
+  test('[LAB-04] the Systems component page’s Open in Lab opens the Playground', async () => {
+    const page = await open(`/systems/${HARBOR}/components/button`)
+    await visible(heading(page, 'Examples'))
+    await link(page, 'Open in Lab').click()
+    await expect
+      .poll(pathname(page), { timeout: 30_000 })
+      .toBe(`${button}/playground`)
+    await expect
+      .poll(() => link(tabs(page), 'Playground').getAttribute('aria-current'))
+      .toBe('page')
+    // The component's own address never enters the history.
+    await page.goBack()
     await expect
       .poll(pathname(page), { timeout: 30_000 })
       .toBe(`/systems/${HARBOR}/components/button`)
-    await visible(heading(page, 'Examples'))
-    await link(page, 'Open in Lab').click()
-    await expect.poll(pathname(page), { timeout: 30_000 }).toBe(button)
-    await visible(link(tabs(page), 'Overview'))
   })
 }
 

@@ -1045,19 +1045,7 @@
     },
     "tabs": {
       "label": "Component tabs",
-      "overview": "Overview",
-      "variants": "Variants",
       "playground": "Playground"
-    },
-    "overview": {
-      "openInSystems": "Open in Systems"
-    },
-    "variants": {
-      "copy": "Copy code",
-      "copyFor": "Copy code for {name}",
-      "copied": "Code copied",
-      "copyFailed": "The code wasn’t copied",
-      "copyBlocked": "Your browser blocked the clipboard. Open Show code and copy the text yourself."
     },
     "playground": {
       "stage": "{name} in the playground",
