@@ -2,14 +2,17 @@
 // Reset and Save at the end of the Breakdown's inspector. Save names where
 // the changes go (a new experiment from the original component, a copy of
 // someone else's experiment, or the experiment's own file) and counts them.
+// Saving needs the local dev server, so the deployed site shows Reset alone.
 const props = defineProps<{
   pending: number
   saveAs: 'experiment' | 'mine' | 'file'
-  /** Whether saving is offered here; until then Save stays disabled. */
+  /** Whether you may save here (registered, locally); else it is disabled. */
   canSave: boolean
+  saving?: boolean
 }>()
 const emit = defineEmits<{ reset: []; save: [] }>()
 const { t } = useI18n()
+const local = import.meta.dev
 
 const text = computed(() =>
   props.saveAs === 'experiment'
@@ -39,11 +42,13 @@ const label = computed(() =>
     />
   </UTooltip>
   <UButton
+    v-if="local"
     color="neutral"
     variant="solid"
     size="sm"
     class="shrink-0 rounded-full"
     :aria-label="label"
+    :loading="saving"
     :disabled="!canSave || !pending"
     @click="emit('save')"
   >

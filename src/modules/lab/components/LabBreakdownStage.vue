@@ -54,6 +54,7 @@ const props = defineProps<{
   /** Where Save puts the changes; until `canSave`, it stays disabled. */
   saveAs?: 'experiment' | 'mine' | 'file'
   canSave?: boolean
+  saving?: boolean
 }>()
 /** The selected piece's node ID. */
 const selected = defineModel<string | null>('selected', { default: null })
@@ -514,6 +515,7 @@ defineExpose({ boxes })
             :pending="changes.pending.value"
             :save-as="saveAs ?? 'experiment'"
             :can-save="canSave ?? false"
+            :saving="saving"
             @reset="changes.reset()"
             @save="emit('save')"
           />

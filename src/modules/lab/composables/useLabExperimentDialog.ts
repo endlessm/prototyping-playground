@@ -1,3 +1,4 @@
+import type { RequestedChange } from '../experiments/save'
 import type { ExperimentRequest } from '../utils/experiments'
 
 export interface ExperimentDialog {
@@ -7,6 +8,18 @@ export interface ExperimentDialog {
   title: string
   description: string
   name?: string
+  /** A Breakdown's changes, written into the experiment it makes. */
+  changes?: RequestedChange[]
+  /** Called once it is made, before it opens. */
+  onMade?: (made: MadeExperimentReply) => void
+}
+
+/** What the dev server answers once it made the experiment. */
+export interface MadeExperimentReply {
+  prototype: string
+  artifact: string
+  saved?: number
+  skipped?: unknown[]
 }
 
 /**

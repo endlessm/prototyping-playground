@@ -1161,6 +1161,29 @@
       "frame": "{piece} in {name}",
       "notShown": "Not shown with this content",
       "error": "Couldn’t render"
+    },
+    "save": {
+      "saving": "Saving",
+      "saved": "Saved {count} change | Saved {count} changes",
+      "savedTo": "Written into {file}.",
+      "skipped": "{count} change is to a piece inside another file and wasn’t saved. | {count} changes are to pieces inside other files and weren’t saved.",
+      "failed": "Couldn’t save your changes",
+      "stale": "Discard your unsaved changes to pick up the new version, then make them again.",
+      "loading": "Loading the experiment’s Breakdown…",
+      "unreadable": "The structure of {name} can’t be read.",
+      "dialog": {
+        "experimentTitle": "Save as experiment",
+        "experimentDescription": "Starts a new experiment from {name} with your changes, in your “{name} experiments” prototype.",
+        "mineTitle": "Save as my experiment",
+        "mineDescription": "Copies {name} into your own “{component} experiments” prototype, with your changes.",
+        "save": "Save experiment"
+      },
+      "leave": {
+        "title": "Discard unsaved changes?",
+        "description": "Your knob changes on this Breakdown aren’t saved. Leaving discards them.",
+        "keep": "Keep editing",
+        "discard": "Discard and leave"
+      }
     }
   }
 }

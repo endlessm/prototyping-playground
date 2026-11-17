@@ -76,5 +76,12 @@ export function useBreakdownChanges() {
     valueOf,
     reset: () => void (changes.value = {}),
     all: () => Object.values(changes.value).map((change) => ({ ...change })),
+    /** Keeps only these changes pending, as a save leaves the unsaved ones. */
+    keepOnly: (kept: Pick<BreakdownChange, 'node' | 'slot' | 'family'>[]) => {
+      const keys = new Set(kept.map((change) => keyOf(change.node, change)))
+      changes.value = Object.fromEntries(
+        Object.entries(changes.value).filter(([key]) => keys.has(key)),
+      )
+    },
   }
 }

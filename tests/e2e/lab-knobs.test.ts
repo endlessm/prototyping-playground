@@ -4,8 +4,9 @@
 // colour…), Reset and Save with the count of unsaved changes. Moving a knob
 // restyles the piece in the preview at once, without reloading it; hovering
 // a knob draws what it changes in the knob's colour. On the original
-// component Save reads "Save as experiment" and does nothing yet. On the
-// real Endless Studios button, against the dev server and the static build.
+// component Save reads "Save as experiment"; the deployed site, which can't
+// save, shows Reset alone. On the real Endless Studios button, against the
+// dev server and the static build.
 import { cpSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs'
 import path from 'node:path'
 import type { FrameLocator, Locator, Page } from 'playwright'
@@ -71,7 +72,7 @@ async function ready(page: Page) {
   await visible(piece(page, BUTTON))
 }
 
-function scenarios(start: () => Promise<RunningStudio>) {
+function scenarios(start: () => Promise<RunningStudio>, local: boolean) {
   const newPage = useBrowser()
   let studio: RunningStudio
   beforeAll(async () => {
@@ -233,29 +234,36 @@ function scenarios(start: () => Promise<RunningStudio>) {
     const save = toolbar(page).getByRole('button', {
       name: /^Save as experiment/,
     })
-    await visible(save)
-    expect(await save.isDisabled()).toBe(true)
+    const reset = toolbar(page).getByRole('button', {
+      name: 'Discard unsaved changes',
+    })
+    await visible(reset)
+    if (local) {
+      await visible(save)
+      expect(await save.isDisabled()).toBe(true)
+    } else expect(await save.count()).toBe(0)
     await knob(page, 'Corners').focus()
     await page.keyboard.press('ArrowRight')
     await knob(page, 'Space between items').focus()
     await page.keyboard.press('ArrowLeft')
-    await expect.poll(() => save.textContent()).toContain('2')
-    expect(await save.getAttribute('aria-label')).toBe(
-      'Save as experiment, 2 unsaved changes',
-    )
-    // Back where it started is no change.
-    await page.keyboard.press('ArrowRight')
-    await expect
-      .poll(() => save.getAttribute('aria-label'))
-      .toBe('Save as experiment, 1 unsaved change')
+    if (local) {
+      await expect.poll(() => save.textContent()).toContain('2')
+      expect(await save.getAttribute('aria-label')).toBe(
+        'Save as experiment, 2 unsaved changes',
+      )
+      // Back where it started is no change.
+      await page.keyboard.press('ArrowRight')
+      await expect
+        .poll(() => save.getAttribute('aria-label'))
+        .toBe('Save as experiment, 1 unsaved change')
+    }
 
-    const reset = toolbar(page).getByRole('button', {
-      name: 'Discard unsaved changes',
-    })
+    await expect.poll(() => reset.isDisabled()).toBe(false)
     await reset.click()
-    await expect
-      .poll(() => save.getAttribute('aria-label'))
-      .toBe('Save as experiment')
+    if (local)
+      await expect
+        .poll(() => save.getAttribute('aria-label'))
+        .toBe('Save as experiment')
     await expect.poll(() => radius(page)).toBe('6px')
     expect(await reset.isDisabled()).toBe(true)
 
@@ -289,9 +297,9 @@ function scenarios(start: () => Promise<RunningStudio>) {
 }
 
 describe('in the studio running locally', { timeout: 180_000 }, () => {
-  scenarios(() => startDevServer(ENV))
+  scenarios(() => startDevServer(ENV), true)
 })
 
 describe('the deployed site', { timeout: 180_000 }, () => {
-  scenarios(() => startStaticSite('/', ENV))
+  scenarios(() => startStaticSite('/', ENV), false)
 })

@@ -71,4 +71,23 @@ describe('unsaved changes', () => {
     expect(changes.all()).toEqual([])
     expect(changes.overrides.value).toEqual({})
   })
+
+  test('after a save, only the changes left unsaved stay pending', () => {
+    const changes = useBreakdownChanges()
+    changes.set('root>UButton', corners, 'xl')
+    changes.set(
+      'root>StudioSidebar>USidebar',
+      { ...corners, slot: 'root' },
+      'none',
+    )
+    changes.keepOnly([
+      { node: 'root>StudioSidebar>USidebar', slot: 'root', family: 'corners' },
+    ])
+    expect(changes.pending.value).toBe(1)
+    expect(changes.overrides.value).toEqual({
+      'root>StudioSidebar>USidebar': { root: 'rounded-none' },
+    })
+    changes.keepOnly([])
+    expect(changes.pending.value).toBe(0)
+  })
 })

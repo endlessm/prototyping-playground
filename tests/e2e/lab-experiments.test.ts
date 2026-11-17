@@ -93,6 +93,9 @@ const preview = (scope: Page | Locator, title: string) =>
   scope.frameLocator(`iframe[title="${title}"]`)
 const button = (scope: Page | Locator, name: string) =>
   scope.getByRole('button', { name, exact: true })
+// An experiment's page shows its Breakdown, the root card live.
+const stagePreview = (page: Page, title: string) =>
+  preview(page.locator('[data-lab-experiment-stage]'), `${title} broken down`)
 
 // Starts the studio once for a block, warmed up on the Experiments tab.
 function useStudio(start: () => Promise<RunningStudio>) {
@@ -144,11 +147,7 @@ function listedScenarios({ newPage, url }: ReturnType<typeof useStudio>) {
     await expect
       .poll(() => new URL(page.url()).pathname)
       .toBe(`/${experiments}/${ROUNDER}`)
-    await visible(
-      preview(page.locator('[data-lab-experiment-stage]'), 'Rounder').getByText(
-        'Invite the team',
-      ),
-    )
+    await visible(stagePreview(page, 'Rounder').getByText('Invite the team'))
     await expect
       .poll(() => page.title())
       .toContain('Rounder — Experiments — Button — Lab')
@@ -205,9 +204,13 @@ describe('in the studio running locally, as Ben', { timeout: 180_000 }, () => {
     const stage = page.locator('[data-lab-experiment-stage]')
     // The Default example's button, centred on a stage as tall as the
     // Playground's.
-    await visible(preview(stage, 'Softer corners').getByText('Invite Learners'))
-    const frame = await stage.locator('iframe').boundingBox()
-    const inside = await preview(stage, 'Softer corners')
+    await visible(
+      stagePreview(page, 'Softer corners').getByText('Invite Learners'),
+    )
+    const frame = await stage
+      .locator('iframe[title="Softer corners broken down"]')
+      .boundingBox()
+    const inside = await stagePreview(page, 'Softer corners')
       .getByText('Invite Learners')
       .boundingBox()
     expect(frame!.height).toBeGreaterThanOrEqual(160)
@@ -267,11 +270,7 @@ describe('in the studio running locally, as Ben', { timeout: 180_000 }, () => {
     )
     expect(readFileSync(copy, 'utf8')).not.toContain(ROUNDER)
     await visible(page.getByText('Ben Okafor'))
-    await visible(
-      preview(page.locator('[data-lab-experiment-stage]'), 'Rounder').getByText(
-        'Invite the team',
-      ),
-    )
+    await visible(stagePreview(page, 'Rounder').getByText('Invite the team'))
   })
 })
 

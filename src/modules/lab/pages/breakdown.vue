@@ -1,17 +1,25 @@
 <script setup lang="ts">
+import { knobTheme } from '../../../../tooling/preview/knobs'
 import LabBreakdownStage from '../components/LabBreakdownStage.vue'
 import { useBreakdownChanges } from '../composables/useBreakdownChanges'
 import { useLabComponent } from '../composables/useLabComponent'
+import { useLabExperimentDialog } from '../composables/useLabExperimentDialog'
+import { useLeaveGuard } from '../composables/useLeaveGuard'
 import { controlFor, readValues, stageProps } from '../utils/playground'
+import { useSavedToast } from '../composables/useSavedToast'
+import { requestedChanges } from '../utils/saving'
 
 // Breakdown: the component drawn as the tree of pieces it is built from,
 // its root live with the same values the Playground opens with (its
 // Default example's), so it never starts empty. Whether the canvas shows
-// the breakdown or the component alone lives in the address. A component
-// without a component file, or one whose structure can't be read, says
-// why.
+// the breakdown or the component alone lives in the address. The original
+// never changes: Save as experiment keeps the knobs' changes as a new
+// experiment, and leaving with changes asks first. A component without a
+// component file, or one whose structure can't be read, says why.
 const { component, system, stem, data, reload } = useLabComponent()
 const { t } = useI18n()
+const { me } = useMe()
+const savedToast = useSavedToast()
 const route = useRoute()
 const router = useRouter()
 
@@ -30,14 +38,33 @@ const selected = ref<string | null>(null)
 // Knob changes are kept for this component only, and only in memory.
 const changes = useBreakdownChanges()
 watch(() => component.value.breakdown, changes.reset)
-const theme = computed(() => ({
-  colors: system.value.colors,
-  // The theme's own text sizes (`--text-body`), which aren't colours.
-  textSizes: system.value.tokens.flatMap(({ name }) => {
-    const size = /^--text-([a-z0-9]+)$/.exec(name)?.[1]
-    return size ? [size] : []
-  }),
-}))
+useLeaveGuard(changes)
+const theme = computed(() => knobTheme(system.value))
+const canSave = computed(() =>
+  Boolean(import.meta.dev && me.value.key && component.value.source),
+)
+const open = useLabExperimentDialog()
+function saveAsExperiment() {
+  open({
+    request: {
+      action: 'create',
+      system: system.value.id,
+      component: component.value.slug,
+    },
+    systemId: system.value.id,
+    component: component.value.slug,
+    title: t('lab.save.dialog.experimentTitle'),
+    description: t('lab.save.dialog.experimentDescription', {
+      name: component.value.title,
+    }),
+    changes: requestedChanges(changes.all()),
+    // The changes are kept in the experiment now, so leaving doesn't ask.
+    onMade: (made) => {
+      changes.reset()
+      savedToast(made)
+    },
+  })
+}
 const mode = computed({
   get: () => (route.query.view === 'component' ? 'component' : 'breakdown'),
   set: (next: 'breakdown' | 'component') =>
@@ -90,6 +117,9 @@ const mode = computed({
       :props="props"
       :changes="changes"
       :theme="theme"
+      save-as="experiment"
+      :can-save="canSave"
+      @save="saveAsExperiment"
     />
   </Suspense>
 </template>

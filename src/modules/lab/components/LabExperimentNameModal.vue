@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import type { FormError, FormSubmitEvent } from '@nuxt/ui'
 import { refreshManifest } from '../../../../app/composables/useManifest'
+import type { RequestedChange } from '../experiments/save'
+import type { MadeExperimentReply } from '../composables/useLabExperimentDialog'
 import type { ExperimentRequest } from '../utils/experiments'
 import { labAddress } from '../utils/lab'
 
 // Names a new experiment, or the copy of one, and asks the Lab's handler
-// on the dev server to make it; then opens it. The server's refusals (not
-// joined, a name you already use) show in the dialog. Opened through
-// useOverlay, only while the studio runs locally.
+// on the dev server to make it, with a Breakdown's changes written into it
+// when it is given some (Save as experiment, Save as my experiment); then
+// opens it. The server's refusals (not joined, a name you already use) show
+// in the dialog. Opened through useOverlay, only while the studio runs
+// locally.
 const props = defineProps<{
   /** What to make: a new experiment of a component, or a copy of one. */
   request: ExperimentRequest
@@ -17,6 +21,8 @@ const props = defineProps<{
   title: string
   description: string
   name?: string
+  changes?: RequestedChange[]
+  onMade?: (made: MadeExperimentReply) => void
 }>()
 const emit = defineEmits<{ close: [] }>()
 const { t } = useI18n()
@@ -37,7 +43,7 @@ async function make(event: FormSubmitEvent<typeof state>) {
   saving.value = true
   failure.value = ''
   try {
-    const made = await requestJson<{ prototype: string; artifact: string }>(
+    const made = await requestJson<MadeExperimentReply>(
       `${base}_studio/modules/lab/experiments`,
       {
         method: 'POST',
@@ -45,11 +51,13 @@ async function make(event: FormSubmitEvent<typeof state>) {
         body: JSON.stringify({
           ...props.request,
           name: event.data.name.trim(),
+          ...(props.changes && { changes: props.changes }),
         }),
       },
     )
     // Opened at once, before the dev server's own push arrives.
     await refreshManifest()
+    props.onMade?.(made)
     emit('close')
     await navigateTo(
       labAddress(
@@ -107,17 +115,19 @@ async function make(event: FormSubmitEvent<typeof state>) {
           form="lab-experiment"
           :loading="saving"
           :label="
-            creating
-              ? t(
-                  saving
-                    ? 'lab.experiments.dialog.creating'
-                    : 'lab.experiments.dialog.create',
-                )
-              : t(
-                  saving
-                    ? 'lab.experiments.dialog.duplicating'
-                    : 'lab.experiments.dialog.duplicate',
-                )
+            changes
+              ? t(saving ? 'lab.save.saving' : 'lab.save.dialog.save')
+              : creating
+                ? t(
+                    saving
+                      ? 'lab.experiments.dialog.creating'
+                      : 'lab.experiments.dialog.create',
+                  )
+                : t(
+                    saving
+                      ? 'lab.experiments.dialog.duplicating'
+                      : 'lab.experiments.dialog.duplicate',
+                  )
           "
         />
       </div>
