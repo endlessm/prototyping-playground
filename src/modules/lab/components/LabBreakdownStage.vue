@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import type {
   HostBody,
+  KnobHighlight,
   NodeBoxes,
   PreviewMessage,
   PreviewProps,
 } from '../../../../tooling/preview/protocol'
 import type { BreakdownNode } from '../../../../tooling/systems/breakdown'
+import type { KnobTheme } from '../../../../tooling/preview/knobs'
+import type { BreakdownChanges } from '../composables/useBreakdownChanges'
+import LabBreakdownInspector from './LabBreakdownInspector.vue'
+import LabBreakdownSave from './LabBreakdownSave.vue'
 import SystemPreviewFrame from '../../systems/components/SystemPreviewFrame.vue'
 import LabBreakdownCard from './LabBreakdownCard.vue'
 import LabBreakdownToolbar from './LabBreakdownToolbar.vue'
@@ -40,13 +45,23 @@ const props = defineProps<{
   name: string
   /** What the preview mounts the file with, as plain JSON. */
   props?: PreviewProps
+  /** The knobs' unsaved changes, kept by the page. */
+  changes: BreakdownChanges
+  /** The system's colours and text sizes the knobs offer. */
+  theme: KnobTheme
+  /** Where Save puts the changes; until `canSave`, it stays disabled. */
+  saveAs?: 'experiment' | 'mine' | 'file'
+  canSave?: boolean
 }>()
 /** The selected piece's node ID. */
 const selected = defineModel<string | null>('selected', { default: null })
 const mode = defineModel<'breakdown' | 'component'>('mode', {
   default: 'breakdown',
 })
-const emit = defineEmits<{ nodes: [nodes: Record<string, NodeBoxes>] }>()
+const emit = defineEmits<{
+  nodes: [nodes: Record<string, NodeBoxes>]
+  save: []
+}>()
 const { t } = useI18n()
 
 const hovered = ref<string | null>(null)
@@ -58,8 +73,29 @@ function heard(message: PreviewMessage) {
   emit('nodes', message.nodes)
 }
 const messages = computed<HostBody[]>(() => [
-  { kind: 'highlight', hover: hovered.value, selected: selected.value },
+  // A hovered knob's own highlight replaces the selection's outline.
+  {
+    kind: 'highlight',
+    hover: hovered.value,
+    selected: knobLit.value ? null : selected.value,
+  },
+  ...knobMessages.value,
 ])
+
+// The knobs' messages: the unsaved changes and the hovered knob's area.
+const knobLit = ref<KnobHighlight | null>(null)
+const overrideMessages = computed<HostBody[]>(() => [
+  { kind: 'overrides', overrides: props.changes.overrides.value },
+])
+const knobMessages = computed<HostBody[]>(() => [
+  ...overrideMessages.value,
+  { kind: 'knob', knob: knobLit.value },
+])
+const slotClasses = computed(() =>
+  Object.fromEntries(
+    Object.entries(boxes.value).map(([id, found]) => [id, found.classes]),
+  ),
+)
 
 const nodes = computed(() => treeNodes(props.tree))
 const selectedNode = computed(
@@ -427,6 +463,7 @@ defineExpose({ boxes })
               :artifact="artifact"
               :title="t('lab.breakdown.component', { name })"
               :props="props.props"
+              :messages="overrideMessages"
               :min-height="160"
               :error-height="200"
               :loading-text="t('lab.stage.loading')"
@@ -448,7 +485,25 @@ defineExpose({ boxes })
         @toggle="toggle"
       >
         <template #inspector>
-          <slot name="inspector" :node="selectedNode" />
+          <LabBreakdownInspector
+            v-if="selectedNode"
+            :key="selectedNode.id"
+            :node="selectedNode"
+            :classes="slotClasses"
+            :measured="Object.keys(boxes).length > 0"
+            :theme="theme"
+            :changes="changes"
+            @highlight="knobLit = $event"
+          />
+        </template>
+        <template v-if="selectedNode || changes.pending.value" #actions>
+          <LabBreakdownSave
+            :pending="changes.pending.value"
+            :save-as="saveAs ?? 'experiment'"
+            :can-save="canSave ?? false"
+            @reset="changes.reset()"
+            @save="emit('save')"
+          />
         </template>
       </LabBreakdownToolbar>
     </div>

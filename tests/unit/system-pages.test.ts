@@ -18,6 +18,7 @@ const harbor: SystemCatalog = {
   status: 'active',
   folder: 'src/systems/harbor',
   colorModes: ['light'],
+  colors: [],
   summary: null,
   guidance: null,
   code: null,

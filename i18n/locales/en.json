@@ -1130,6 +1130,32 @@
         "duplicating": "Duplicating",
         "cancel": "Cancel"
       }
+    },
+    "knobs": {
+      "inspector": "Knobs for {name}",
+      "none": "Nothing to adjust on this piece",
+      "pixels": "{value} px",
+      "families": {
+        "corners": "Corners",
+        "padding": "Padding",
+        "paddingX": "Horizontal padding",
+        "paddingY": "Vertical padding",
+        "gap": "Space between items",
+        "textSize": "Text size",
+        "weight": "Weight",
+        "fill": "Fill",
+        "textColor": "Text color",
+        "ring": "Ring",
+        "size": "Size"
+      },
+      "colors": "{label} colors",
+      "color": "{label}: {value}",
+      "semantic": "Theme roles",
+      "reset": "Discard unsaved changes",
+      "save": "Save",
+      "saveAsExperiment": "Save as experiment",
+      "saveAsMine": "Save as my experiment",
+      "pending": "{count} unsaved change | {count} unsaved changes"
     }
   }
 }

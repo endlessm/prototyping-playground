@@ -147,6 +147,8 @@ export interface SystemCatalog {
   /** Repository-relative, with forward slashes. */
   folder: string
   colorModes: ('light' | 'dark')[]
+  /** Nuxt UI's theme colour names (`primary`, `neutral`…), for the knobs. */
+  colors: string[]
   summary: string | null
   guidance: string | null
   code: string | null
@@ -334,6 +336,7 @@ export function systemCatalog(
     status: spec.status,
     folder,
     colorModes: spec.colorModes,
+    colors: spec.app.nuxtUi?.colors ?? [],
     summary: text(spec.overview?.summary),
     guidance: text(spec.overview?.guidance),
     code: text(spec.overview?.code),

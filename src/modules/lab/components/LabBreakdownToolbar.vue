@@ -1,8 +1,9 @@
 <script setup lang="ts">
 // The Breakdown's toolbar, a pill at the bottom centre of the canvas: zoom
 // out, the zoom as a percentage, zoom in; the selected piece's name and,
-// after it, room for that piece's controls (the `inspector` slot); then
-// the button that switches between the component alone and its breakdown.
+// after it, room for that piece's knobs (the `inspector` slot); Reset and
+// Save while the breakdown shows (the `actions` slot); then the button that
+// switches between the component alone and its breakdown.
 defineProps<{
   zoom: number
   mode: 'breakdown' | 'component'
@@ -50,11 +51,15 @@ const { t } = useI18n()
     <template v-if="selected && mode === 'breakdown'">
       <USeparator orientation="vertical" class="h-5" />
       <span
-        class="max-w-48 truncate px-2 text-xs font-semibold text-highlighted"
+        class="max-w-48 shrink-0 truncate px-2 text-xs font-semibold text-highlighted"
         :aria-label="`${t('lab.breakdown.selected')}: ${selected}`"
         >{{ selected }}</span
       >
       <slot name="inspector" />
+    </template>
+    <template v-if="mode === 'breakdown' && $slots.actions">
+      <USeparator orientation="vertical" class="h-5" />
+      <slot name="actions" />
     </template>
     <USeparator orientation="vertical" class="h-5" />
     <UButton

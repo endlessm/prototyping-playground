@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import LabBreakdownStage from '../components/LabBreakdownStage.vue'
+import { useBreakdownChanges } from '../composables/useBreakdownChanges'
 import { useLabComponent } from '../composables/useLabComponent'
 import { controlFor, readValues, stageProps } from '../utils/playground'
 
@@ -25,6 +26,18 @@ const props = computed(() => {
 })
 
 const selected = ref<string | null>(null)
+
+// Knob changes are kept for this component only, and only in memory.
+const changes = useBreakdownChanges()
+watch(() => component.value.breakdown, changes.reset)
+const theme = computed(() => ({
+  colors: system.value.colors,
+  // The theme's own text sizes (`--text-body`), which aren't colours.
+  textSizes: system.value.tokens.flatMap(({ name }) => {
+    const size = /^--text-([a-z0-9]+)$/.exec(name)?.[1]
+    return size ? [size] : []
+  }),
+}))
 const mode = computed({
   get: () => (route.query.view === 'component' ? 'component' : 'breakdown'),
   set: (next: 'breakdown' | 'component') =>
@@ -75,6 +88,8 @@ const mode = computed({
       :artifact="component.breakdown"
       :name="component.title"
       :props="props"
+      :changes="changes"
+      :theme="theme"
     />
   </Suspense>
 </template>
