@@ -20,7 +20,7 @@ type UiObject = Record<string, unknown>
 
 // Highlights are drawn in the studio's blue, the same for every system.
 const HOVER =
-  'outline: 2px solid rgb(59 130 246 / 0.55); outline-offset: 1px; background: rgb(59 130 246 / 0.08);'
+  'outline: 2px dashed rgb(59 130 246); outline-offset: 1px; background: rgb(59 130 246 / 0.12);'
 const SELECTED = 'outline: 2px solid rgb(37 99 235); outline-offset: 1px;'
 
 // The node ID a component was rendered under: the hook its parent's

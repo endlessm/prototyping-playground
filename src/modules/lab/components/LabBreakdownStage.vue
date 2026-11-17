@@ -142,8 +142,12 @@ const view = computed(() => views[mode.value])
 const { width: viewportWidth, height: viewportHeight } =
   useElementSize(viewport)
 
-// The breakdown opens fitted to the canvas's width (never below half
-// size, so the cards stay readable), with the root at the top.
+const COMPONENT_WIDTH = 560
+// The toolbar's height and its room from the canvas's bottom edge.
+const TOOLBAR = 72
+
+// The breakdown opens fitted to the canvas, above the toolbar (never below
+// half size, so the cards stay readable), with the root at the top.
 watchEffect(() => {
   const { width, height } = {
     width: viewportWidth.value,
@@ -154,7 +158,11 @@ watchEffect(() => {
     const zoom = clampZoom(
       Math.max(
         0.5,
-        Math.min(1, (width - 2 * CANVAS_PADDING) / layout.value.width),
+        Math.min(
+          1,
+          (width - 2 * CANVAS_PADDING) / layout.value.width,
+          (height - 2 * CANVAS_PADDING - TOOLBAR) / layout.value.height,
+        ),
       ),
     )
     const root = layout.value.cards[0]!
@@ -173,7 +181,6 @@ watchEffect(() => {
     })
   }
 })
-const COMPONENT_WIDTH = 560
 
 function zoomTo(
   next: number,
