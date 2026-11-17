@@ -7,7 +7,9 @@
 // It asks the studio to open another studio address (navigate), so links in a
 // view go through the studio's history, and passes on the studio's keyboard
 // shortcuts pressed while it has focus (shortcut). A playground's component
-// that changes one of its own props says so (update).
+// that changes one of its own props says so (update). For a Breakdown, the
+// document reports where each piece's elements are (nodes) and the studio
+// says which piece to highlight (highlight).
 // Imported by both sides, so it imports nothing of either.
 import { isResourceId } from '../identity/resource-id.ts'
 
@@ -41,7 +43,42 @@ export type PreviewProps = Record<string, unknown>
  * replacing the last ones whole: a key left out takes the component's default.
  */
 export type HostMessage = Envelope &
-  ({ kind: 'configure' } | { kind: 'props'; props: PreviewProps })
+  (
+    | { kind: 'configure' }
+    | { kind: 'props'; props: PreviewProps }
+    | {
+        /**
+         * The Breakdown pieces to draw an outline around, by node ID (a
+         * theme slot's ID ends in `#<slot>`), or none.
+         */
+        kind: 'highlight'
+        hover: string | null
+        selected: string | null
+      }
+  )
+
+/** A host message's own fields, without the envelope. */
+export type HostBody = HostMessage extends infer M
+  ? M extends HostMessage
+    ? Omit<M, keyof Envelope>
+    : never
+  : never
+
+/** Where an element is, in the document's coordinates, in CSS pixels. */
+export interface NodeBox {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+/** Where a Breakdown piece shows: its elements and its theme slots. */
+export interface NodeBoxes {
+  /** Its own elements: one, several for a fragment or a `v-for`, or none. */
+  boxes: NodeBox[]
+  /** For a Nuxt UI piece: each `data-slot` element inside it, by slot. */
+  slots: Record<string, NodeBox[]>
+}
 
 /**
  * The studio commands a preview passes on while it has focus: the source,
@@ -88,6 +125,14 @@ export type PreviewMessage = Envelope &
         kind: 'update'
         prop: string
         value: unknown
+      }
+    | {
+        /**
+         * Where every Breakdown piece rendered now shows, by node ID; sent
+         * whenever a piece mounts, updates, unmounts or changes size.
+         */
+        kind: 'nodes'
+        nodes: Record<string, NodeBoxes>
       }
   )
 
@@ -180,10 +225,63 @@ const PROP_NAME = /^[A-Za-z_$][\w$]{0,127}$/
 const propName = (value: unknown): value is string =>
   typeof value === 'string' && PROP_NAME.test(value) && value !== '__proto__'
 
+const MAX_NODE_ID = 512
+/** A Breakdown node's ID: its path of tags, files (`>`) and slots (`#`). */
+export const isBreakdownNodeId = (value: unknown): value is string =>
+  typeof value === 'string' &&
+  value.length > 0 &&
+  value.length <= MAX_NODE_ID &&
+  value !== '__proto__' &&
+  !/\s/.test(value) &&
+  !CONTROL.test(value)
+const nodeOrNone = (value: unknown) =>
+  value === null || isBreakdownNodeId(value)
+
+const MAX_REPORTED_NODES = 4096
+const MAX_BOXES = 1024
+const finite = (value: unknown) =>
+  typeof value === 'number' && Number.isFinite(value)
+const isBox = (value: unknown) =>
+  record(value) &&
+  finite(value.x) &&
+  finite(value.y) &&
+  finite(value.width) &&
+  finite(value.height)
+const isBoxes = (value: unknown) =>
+  Array.isArray(value) && value.length <= MAX_BOXES && value.every(isBox)
+const ownKeys = (value: Record<string, unknown>) => Object.keys(value)
+function isNodeBoxes(value: unknown) {
+  return (
+    record(value) &&
+    isBoxes(value.boxes) &&
+    record(value.slots) &&
+    ownKeys(value.slots).every(
+      (slot) => propName(slot) && isBoxes(value.slots[slot]),
+    )
+  )
+}
+function isReportedNodes(value: unknown) {
+  if (!record(value) || Object.getPrototypeOf(value) !== Object.prototype)
+    return false
+  const ids = ownKeys(value)
+  return (
+    ids.length <= MAX_REPORTED_NODES &&
+    ids.every((id) => isBreakdownNodeId(id) && isNodeBoxes(value[id]))
+  )
+}
+
 export function isHostMessage(value: unknown): value is HostMessage {
   if (!isEnvelope(value)) return false
-  if (value.kind === 'configure') return true
-  return value.kind === 'props' && isPreviewProps(value.props)
+  switch (value.kind) {
+    case 'configure':
+      return true
+    case 'props':
+      return isPreviewProps(value.props)
+    case 'highlight':
+      return nodeOrNone(value.hover) && nodeOrNone(value.selected)
+    default:
+      return false
+  }
 }
 
 export function isPreviewMessage(value: unknown): value is PreviewMessage {
@@ -211,6 +309,8 @@ export function isPreviewMessage(value: unknown): value is PreviewMessage {
       return SHORTCUTS.includes(value.action as PreviewShortcut)
     case 'update':
       return propName(value.prop) && isPreviewValue(value.value)
+    case 'nodes':
+      return isReportedNodes(value.nodes)
     default:
       return false
   }
