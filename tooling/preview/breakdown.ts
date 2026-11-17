@@ -175,5 +175,15 @@ export function breakdownPlugin(options: {
         follow,
       })
     },
+    // A copy lives under a name no file has, so a change to its real file
+    // reaches it only through here: it is read again and hot-updated in
+    // the documents that show it.
+    async hotUpdate({ file }) {
+      if (!file.endsWith('.vue')) return
+      const copy = this.environment.moduleGraph.getModuleById(
+        posix(breakdownFile(path.resolve(file))),
+      )
+      if (copy) await this.environment.reloadModule(copy)
+    },
   }
 }
