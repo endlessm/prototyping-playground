@@ -8,7 +8,9 @@
 // view's `system` options reach the system's app factory, and a state's
 // `system` overrides them option by option. A component's playground mounts
 // its component file with the props the studio sends, applied in place, and
-// tells the studio when the component changes one itself. A
+// tells the studio when the component changes one itself. A Breakdown
+// mounts the same file instrumented, with `$lab` (`./breakdown.ts`), and
+// reports where its pieces are. A
 // lo-fi view is drawn in grayscale with a handwritten font. Links to studio
 // addresses and the studio's shortcuts go to the studio, so a view's links
 // use its history. It imports nothing of the studio's app but plain
@@ -27,6 +29,7 @@ import {
   type PreviewState,
 } from '../protocol.ts'
 import { COMPILE_ROUTE, PREVIEW_ROUTE } from '../constants.ts'
+import { createBreakdown, type Breakdown } from './breakdown.ts'
 import { EXAMPLE, PLAYGROUND_STAGE, type ExampleChoice } from './example.ts'
 import { THEME_QUERY } from '../theme.ts'
 import { PROTOTYPE_SCOPE, type PrototypeScope } from './navigation.ts'
@@ -54,6 +57,8 @@ interface View {
   example: string | null
   /** A component's playground, rendered with the props the studio sends. */
   playground: boolean
+  /** Its file instrumented for the Breakdown, reporting its pieces. */
+  breakdown: boolean
   /** None while the view is empty. */
   load: (() => Promise<ViewModule>) | null
 }
@@ -187,7 +192,10 @@ function declaredProps(component: Component) {
 // A playground's listener for a prop the component changes itself; prop
 // names never hold a colon, so these keys never clash with a prop.
 const LISTENER = 'onUpdate:'
-const isListener = (key: string) => key.startsWith(LISTENER)
+// The Breakdown's vnode hooks on the mounted component are the runtime's
+// too, never props the studio sent.
+const isListener = (key: string) =>
+  key.startsWith(LISTENER) || key.startsWith('onVnode')
 
 const describe = (error: unknown) =>
   error instanceof Error ? error.stack || error.message : String(error)
@@ -232,6 +240,8 @@ export function mountPreview({ create, views }: MountOptions) {
           ),
         )
       : {}
+  // The shown Breakdown's runtime, which finds and outlines its pieces.
+  let breakdown: Breakdown | null = null
   // Each view file's newest `states` and `system`, from its hot updates.
   const latestExports = new Map<string, ViewModule>()
   // When the latest attempt asked for its view's code: changes made before
@@ -299,6 +309,8 @@ export function mountPreview({ create, views }: MountOptions) {
   async function show(id: string | null) {
     const attempt = ++render
     artifact = id
+    breakdown?.dispose()
+    breakdown = null
     status('loading', attempt)
     lifecycle('current')
     if (shown) shown.box.inert = true
@@ -378,6 +390,12 @@ export function mountPreview({ create, views }: MountOptions) {
       }
       if (attempt !== render) return
     }
+    if (view.breakdown) {
+      breakdown = createBreakdown((nodes) => {
+        if (attempt === render) post({ kind: 'nodes', nodes })
+      })
+      Object.assign(props, breakdown.rootHooks)
+    }
     const box = document.createElement('div')
     box.hidden = true
     box.classList.toggle('lofi-view', view.lofi)
@@ -389,6 +407,7 @@ export function mountPreview({ create, views }: MountOptions) {
     let failed = ''
     const app = create({ component, props, system })
     app.provide(PROTOTYPE_SCOPE, scope(id, view))
+    if (breakdown) app.config.globalProperties.$lab = breakdown.api
     const example: ExampleChoice | null =
       view.example === null ? null : { name: view.example, found: false }
     if (example) app.provide(EXAMPLE, example)
@@ -448,13 +467,18 @@ export function mountPreview({ create, views }: MountOptions) {
     )
       return
     if (event.data.kind === 'props') return applyProps(event.data)
+    if (event.data.kind === 'highlight')
+      return breakdown?.highlight(event.data.hover, event.data.selected)
     const next = event.data.artifact
     // Keep the address current, so a reload shows the same view.
     const url = new URL(location.href)
     url.searchParams.set('artifact', next)
     history.replaceState(history.state, '', url)
     if (next !== artifact || state === 'error') void show(next)
-    else post({ kind: 'status', state, render, detail: '' })
+    else {
+      post({ kind: 'status', state, render, detail: '' })
+      breakdown?.report()
+    }
   })
 
   // A playground's new props replace its current ones in place, so the

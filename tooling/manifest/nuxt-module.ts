@@ -235,9 +235,10 @@ declare module '${MANIFEST_MODULE}' {
       baseURL: base,
       prototypesDir: path.resolve(root, prototypesFolder),
       // Each view, then each of its named states; then the system's own
-      // examples, components' playgrounds and Overview content. The build
-      // leaves out the playground of a component file that doesn't compile,
-      // so one broken file can't stop the site; its Playground says why.
+      // examples, components' playgrounds and Breakdowns, and Overview
+      // content. The build leaves out the playground and Breakdown of a
+      // component file that doesn't compile, so one broken file can't stop
+      // the site; its Playground says why.
       views: () => {
         const { manifest, artifacts } = read()
         const own = document.system
@@ -246,13 +247,14 @@ declare module '${MANIFEST_MODULE}' {
                 ({ file, playground }) =>
                   nuxt.options.dev || !playground || !fileCompileProblem(file),
               )
-              .map(({ id, file, example, playground }) => ({
+              .map(({ id, file, example, playground, breakdown }) => ({
                 id,
                 file,
                 prototype: '',
                 path: '',
                 ...(example === undefined ? {} : { example }),
                 ...(playground ? { playground } : {}),
+                ...(breakdown ? { breakdown } : {}),
               }))
           : []
         const views = manifest.prototypes

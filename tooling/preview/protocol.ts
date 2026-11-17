@@ -251,13 +251,11 @@ const isBoxes = (value: unknown) =>
   Array.isArray(value) && value.length <= MAX_BOXES && value.every(isBox)
 const ownKeys = (value: Record<string, unknown>) => Object.keys(value)
 function isNodeBoxes(value: unknown) {
+  if (!record(value) || !isBoxes(value.boxes)) return false
+  const { slots } = value
   return (
-    record(value) &&
-    isBoxes(value.boxes) &&
-    record(value.slots) &&
-    ownKeys(value.slots).every(
-      (slot) => propName(slot) && isBoxes(value.slots[slot]),
-    )
+    record(slots) &&
+    ownKeys(slots).every((slot) => propName(slot) && isBoxes(slots[slot]))
   )
 }
 function isReportedNodes(value: unknown) {

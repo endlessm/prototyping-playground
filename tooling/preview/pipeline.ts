@@ -14,6 +14,7 @@ import type { InstalledSystem } from '../systems/registry.ts'
 import { importGuard } from '../checks/imports.ts'
 import { loadRegistry } from '../modules/registry.ts'
 import { standInNames } from './stand-ins.ts'
+import { breakdownFile, breakdownPlugin } from './breakdown.ts'
 
 import {
   COMPILE_ROUTE,
@@ -53,6 +54,8 @@ export interface PreviewView {
   example?: string
   /** A component's playground: the component file, given the host's props. */
   playground?: boolean
+  /** A Breakdown: the file instrumented with its pieces' node IDs. */
+  breakdown?: boolean
 }
 
 // A view that holds nothing but comments (a new view, before the agent
@@ -195,9 +198,10 @@ function viewsPlugin(options: PreviewOptions): Plugin {
       const entries = options.views().map((view) => {
         const { id, file } = view
         const title = path.basename(file, path.extname(file))
+        const target = view.breakdown ? breakdownFile(file) : file
         const load = emptyFile(file)
           ? 'null'
-          : `() => import(${JSON.stringify(posix(file))})`
+          : `() => import(${JSON.stringify(posix(target))})`
         const data = JSON.stringify({
           file: posix(file),
           title,
@@ -207,6 +211,7 @@ function viewsPlugin(options: PreviewOptions): Plugin {
           lofi: Boolean(view.lofi),
           example: view.example ?? null,
           playground: Boolean(view.playground),
+          breakdown: Boolean(view.breakdown),
         })
         return `${JSON.stringify(id)}: { ...${data}, load: ${load} }`
       })
@@ -286,9 +291,15 @@ async function compileError(
 // configuration, auto-imports of Vue, Nuxt UI and the stand-ins, `~/` and
 // `assets/` at the copied app source (as Nuxt's own aliases) and the
 // stand-ins' exact aliases.
-async function systemPlugins(system: InstalledSystem, root: string) {
+async function systemPlugins(
+  system: InstalledSystem,
+  root: string,
+  prototypesDir: string,
+) {
   const { app } = system.spec
-  const plugins: PluginOption[] = []
+  const plugins: PluginOption[] = [
+    breakdownPlugin({ system, root, folders: [system.dir, prototypesDir] }),
+  ]
   const aliases = Object.entries(app.aliases ?? {}).map(([name, target]) => ({
     find: new RegExp(`^${escape(name)}$`),
     replacement: posix(path.resolve(system.dir, target)),
@@ -414,7 +425,13 @@ export async function previewConfig(
     statesPlugin(options),
   ]
   if (document.system)
-    plugins.push(...(await systemPlugins(document.system, options.root)))
+    plugins.push(
+      ...(await systemPlugins(
+        document.system,
+        options.root,
+        options.prototypesDir,
+      )),
+    )
   return {
     configFile: false,
     envDir: false,
