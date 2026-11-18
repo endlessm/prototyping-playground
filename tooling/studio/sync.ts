@@ -56,9 +56,12 @@ export async function sync(root: string, _args: string[], flags: Flags) {
       canonical
         .match(/^description:\s*(.+)$/m)?.[1]
         ?.replace(/^['"]|['"]$/g, '') ?? `Read ${source}.`
-    const quotedDescription = description.includes("'")
-      ? JSON.stringify(description)
-      : `'${description}'`
+    // Quote the way Prettier's YAML formatting does, so generated adapters pass `yarn format:check`.
+    const count = (mark: string) => description.split(mark).length - 1
+    const quotedDescription =
+      count("'") > count('"')
+        ? JSON.stringify(description)
+        : `'${description.replaceAll("'", "''")}'`
     for (const harness of ['.agents', '.claude']) {
       const file = `${harness}/skills/${name}/SKILL.md`
       if (expected[file]) throw new Refusal(`Duplicate skill name: ${name}.`)

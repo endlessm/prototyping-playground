@@ -230,7 +230,9 @@ describe('context, skills and agent guidance', () => {
 
   test('[SY-164] the Skills section lists Write sample data with its references, and agents reach it from AGENTS.md', () => {
     expect(
-      catalog.skills.map(({ name, file, files }) => ({ name, file, files })),
+      catalog.skills
+        .filter(({ name }) => name === 'write-sample-data')
+        .map(({ name, file, files }) => ({ name, file, files })),
     ).toEqual([
       {
         name: 'write-sample-data',
@@ -247,6 +249,31 @@ describe('context, skills and agent guidance', () => {
     expect(read('AGENTS.md')).toContain(
       '[Write sample data](skills/write-sample-data/SKILL.md)',
     )
+  })
+
+  test('the motion and polish skills from emilkowalski/skills are listed, licensed and reached from AGENTS.md', () => {
+    const copied = [
+      'animate',
+      'animation-performance',
+      'animation-vocabulary',
+      'apple-design',
+      'break-ui',
+      'choreograph',
+      'emil-design-eng',
+      'find-animation-opportunities',
+      'improve-animations',
+      'mobile-native',
+      'remove-animations',
+      'review-animations',
+    ]
+    expect(catalog.skills.map(({ name }) => name).sort()).toEqual(
+      [...copied, 'write-sample-data'].sort(),
+    )
+    for (const name of copied) {
+      const skill = catalog.skills.find((entry) => entry.name === name)
+      expect(skill?.files).toContain('LICENSE')
+      expect(read('AGENTS.md')).toContain(`(skills/${name}/SKILL.md)`)
+    }
   })
 
   test('[SY-187] the guidance and context describe Vue views, never React ones', () => {
@@ -306,7 +333,7 @@ describe('the copied app source', () => {
   test('[SY-191] the app’s images are copied, except the two over the 750 KB asset limit', () => {
     const images = files(path.join(studios, 'assets/images'))
     // 163 at the recorded revision, less the two too large to copy.
-    expect(images).toHaveLength(161)
+    expect(images).toHaveLength(162)
     for (const image of images)
       expect(statSync(image).size, image).toBeLessThanOrEqual(750 * 1024)
     const names = images.map((image) => path.basename(image))
@@ -336,7 +363,7 @@ describe('the copied app source', () => {
   test('[SY-193] the README records the copied revision and lists every stand-in beside the app API it replaces', () => {
     const readme = read('studios/README.md')
     expect(readme).toMatch(
-      /`Endless-Game-Making-Studio\/studio` at `11517cbee`/,
+      /`Endless-Game-Making-Studio\/studio` at `4a5087452`/,
     )
     const { app } = system.spec
     const names = standInNames(path.join(DIR, app.standIns!.from))
