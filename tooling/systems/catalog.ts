@@ -18,13 +18,15 @@ import {
   kebab,
   type DocsProblem,
 } from './components.ts'
+import { exampleSeeds, type ExampleSeeds } from './example-seeds.ts'
+import { exampleSnippets } from './example-snippets.ts'
 import {
   SKILL_FILE,
   skillDescriptionProblem,
   skillNameProblem,
 } from './content-rules.ts'
 import type { SystemAssetKind, SystemIcons, SystemLibrary } from './contract.ts'
-import { exampleId, overviewId } from './preview-ids.ts'
+import { exampleId, overviewId, playgroundId } from './preview-ids.ts'
 import type { ComponentPropsDoc } from './props.ts'
 import type { InstalledSystem } from './registry.ts'
 import { isBinaryFile, isTextContent } from './text-files.ts'
@@ -89,6 +91,12 @@ export interface CatalogComponent {
   source: string | null
   /** In the examples file's order. */
   examples: CatalogExample[]
+  /**
+   * The preview document's ID for its playground, the component file
+   * mounted alone with the props the studio sends; null without a
+   * component file.
+   */
+  playground: string | null
 }
 
 export interface CatalogDocument {
@@ -364,6 +372,7 @@ export function systemCatalog(
           title: exampleTitle(name),
           id: exampleId(system.id, component.slug, name),
         })),
+        playground: source ? playgroundId(system.id, component.slug) : null,
       }
     }),
     overview: existsSync(path.join(dir, OVERVIEW_FILE))
@@ -489,21 +498,34 @@ export function skillProblems(
 
 /**
  * What a system's preview document shows besides views: each example of
- * its component pages and its own Overview content, by preview ID, with the
+ * its component pages, each component's playground (its component file,
+ * after its examples) and its own Overview content, by preview ID, with the
  * absolute path of the file it comes from.
  */
 export function systemPreviews(system: InstalledSystem) {
   const componentsDir = path.join(system.dir, 'components')
-  const entries: { id: string; file: string; example?: string }[] = []
+  const entries: {
+    id: string
+    file: string
+    example?: string
+    playground?: true
+  }[] = []
   for (const component of discoverComponents(filesIn(componentsDir))) {
-    const { examples } = component.files
-    if (!examples) continue
-    const file = path.join(componentsDir, examples)
-    for (const name of exampleNames(readFileSync(file, 'utf8')))
+    const { examples, source } = component.files
+    if (examples) {
+      const file = path.join(componentsDir, examples)
+      for (const name of exampleNames(readFileSync(file, 'utf8')))
+        entries.push({
+          id: exampleId(system.id, component.slug, name),
+          file,
+          example: name,
+        })
+    }
+    if (source)
       entries.push({
-        id: exampleId(system.id, component.slug, name),
-        file,
-        example: name,
+        id: playgroundId(system.id, component.slug),
+        file: path.join(componentsDir, source),
+        playground: true,
       })
   }
   const overview = path.join(system.dir, OVERVIEW_FILE)
@@ -549,6 +571,18 @@ export interface ComponentPageData {
   page: string | null
   /** The examples file's text, for "Show code". */
   examples: string | null
+  /**
+   * Each example's own code by its name, as the Lab's Variants show it: its
+   * block of the examples file, or the whole file when the file can't be
+   * split. Empty without an examples file.
+   */
+  snippets: Record<string, string>
+  /**
+   * The values the Lab's Playground opens with, by prop: the literal
+   * attributes of the component's tag in its Default example. Empty
+   * without an examples file or one that can't be read that way.
+   */
+  seeds: ExampleSeeds
   /** Read from the component's code; null without a component file. */
   props: ComponentPropsDoc | null
   /** Files that couldn't be read, each with why. */
@@ -557,8 +591,9 @@ export interface ComponentPageData {
 
 /**
  * What each component page shows besides the catalog, by `<system ID>/<slug>`:
- * its page and examples text and its props. Props are read with Vue's
- * component metadata tooling, loaded only here.
+ * its page and examples text, each example's own code, the Playground's
+ * seeds and its props. Props are read with Vue's component metadata
+ * tooling, loaded only here.
  */
 export async function componentPages(systems: InstalledSystem[]) {
   const pages: Record<string, ComponentPageData> = {}
@@ -577,9 +612,13 @@ export async function componentPages(systems: InstalledSystem[]) {
         }
       }
       const { doc, examples, source } = component.files
+      const page = read(doc)
+      const text = read(examples)
       const data: ComponentPageData = {
-        page: read(doc),
-        examples: read(examples),
+        page,
+        examples: text,
+        snippets: text ? exampleSnippets(text, exampleNames(text)) : {},
+        seeds: text ? exampleSeeds(text, component.slug) : {},
         props: null,
         errors,
       }

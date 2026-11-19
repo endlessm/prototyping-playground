@@ -1041,5 +1041,61 @@
     "copyFailed": "The link wasn’t copied",
     "copied": "Copied {count} open comment for your agent | Copied {count} open comments for your agent",
     "copyAgentFailed": "The comments weren’t copied"
+  },
+  "lab": {
+    "stage": {
+      "loading": "Loading component…",
+      "error": "This component couldn’t render.",
+      "blank": "Nothing shows with these values yet. Try another value in Props. Some components need content only code can give, such as a slot or a list of items."
+    },
+    "title": "Lab",
+    "viewComponents": "View components",
+    "openInLab": "Open in Lab",
+    "openSystem": "Open {name} in Systems",
+    "systemEmpty": "{name} has no components yet.",
+    "empty": {
+      "title": "No components yet",
+      "description": "Components documented in an active system show here.",
+      "systems": "View systems"
+    },
+    "nav": {
+      "components": "Components",
+      "system": "System",
+      "search": "Search components",
+      "empty": "No components yet.",
+      "noMatches": "No matching components."
+    },
+    "tabs": {
+      "label": "Component tabs",
+      "overview": "Overview",
+      "variants": "Variants",
+      "playground": "Playground"
+    },
+    "overview": {
+      "openInSystems": "Open in Systems"
+    },
+    "variants": {
+      "copy": "Copy code",
+      "copyFor": "Copy code for {name}",
+      "copied": "Code copied",
+      "copyFailed": "The code wasn’t copied",
+      "copyBlocked": "Your browser blocked the clipboard. Open Show code and copy the text yourself."
+    },
+    "playground": {
+      "stage": "{name} in the playground",
+      "props": "Props",
+      "reset": "Reset",
+      "resetDone": "Values reset",
+      "default": "Default",
+      "choose": "Choose a value",
+      "setInCode": "Set in code",
+      "required": "Required",
+      "noProps": "This component has no props to try.",
+      "noComponent": "Playground needs a component file. Add {file} next to the component to try its props here.",
+      "unreadable": "Playground can’t read the props of {name}.",
+      "tryAgain": "Try again",
+      "chooseFirst": "Choose a value for {prop} to start {name}.",
+      "codeOnly": "Playground can’t start {name}. Its required prop {prop} can only be set in code."
+    }
   }
 }

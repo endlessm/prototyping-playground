@@ -1,5 +1,6 @@
 <script setup lang="ts">
-// The heading and one-line description at the top of a system's page.
+// The heading and one-line description at the top of a system's page, with
+// any links the page adds below them.
 defineProps<{ title: string; description?: string }>()
 </script>
 
@@ -9,5 +10,6 @@ defineProps<{ title: string; description?: string }>()
       {{ title }}
     </h1>
     <p v-if="description" class="mt-2 text-muted">{{ description }}</p>
+    <slot />
   </header>
 </template>

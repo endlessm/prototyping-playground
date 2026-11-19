@@ -6,8 +6,8 @@
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
-import { compileScript, parse } from 'vue/compiler-sfc'
 import { createCheckerByJson } from 'vue-component-meta'
+import { compileProblem } from './compile.ts'
 
 export interface PropDoc {
   name: string
@@ -32,21 +32,6 @@ const VUE = path.dirname(
   createRequire(import.meta.url).resolve('vue/package.json'),
 )
 
-// Why the file can't be read as a component, or null. The metadata tooling
-// reads a broken file as one without props, so the compiler says first.
-function compileProblem(file: string, source: string) {
-  const { descriptor, errors } = parse(source, { filename: file })
-  const first = errors[0]
-  if (first) return first.message
-  try {
-    if (descriptor.script || descriptor.scriptSetup)
-      compileScript(descriptor, { id: 'props' })
-    return null
-  } catch (error) {
-    return (error as Error).message
-  }
-}
-
 /** Each file's props, or why they couldn't be read; by absolute path. */
 export async function componentProps(files: string[]) {
   const found: Record<string, PropsResult> = {}
@@ -61,6 +46,8 @@ export async function componentProps(files: string[]) {
       }
       continue
     }
+    // The metadata tooling reads a broken file as one without props, so the
+    // compiler says first.
     const problem = compileProblem(file, source)
     if (problem) found[file] = { error: `${path.basename(file)}: ${problem}` }
     else readable.push(file)
