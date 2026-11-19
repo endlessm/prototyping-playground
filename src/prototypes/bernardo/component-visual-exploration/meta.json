@@ -1,0 +1,14 @@
+{
+  "formatVersion": 1,
+  "title": "Component Visual Exploration",
+  "created": "2026-11-18",
+  "studioId": "8sq33aqfgavzrha9",
+  "ownerContributorId": "ma1xykkc2j3d2x24",
+  "systemId": "8x5spen6xtvp96a9",
+  "order": [
+    "Buttons.excalidraw",
+    "Buttons.vue",
+    "meta.json",
+    "Button Motion.vue"
+  ]
+}
