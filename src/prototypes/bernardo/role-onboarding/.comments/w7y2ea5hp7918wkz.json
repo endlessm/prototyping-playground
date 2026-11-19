@@ -1,0 +1,45 @@
+{
+  "formatVersion": 1,
+  "id": "w7y2ea5hp7918wkz",
+  "artifact": "jhvkk6z551w5yvmq",
+  "artifactTitle": "1.4 Add Org Managers",
+  "anchor": {
+    "kind": "label",
+    "label": "Label \"Role Org ManagerOrg Owner\"",
+    "at": {
+      "x": 0.3425,
+      "y": 0.2467
+    },
+    "selector": "label:nth-of-type(2)",
+    "tag": "label",
+    "path": "._app_10zb1_59 > ._backdrop_10zb1_458 > ._modal_10zb1_468 > ._dialogBody_10zb1_588 > ._stack_10zb1_211",
+    "text": "Role Org ManagerOrg Owner",
+    "box": {
+      "left": 927,
+      "top": 285,
+      "width": 438,
+      "height": 61,
+      "viewport": 2292
+    }
+  },
+  "status": "open",
+  "messages": [
+    {
+      "id": "xttmzex3sj7qawyk",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "We don't need this selector. If clicked on Add Org Manager button, we add Org Managers only",
+      "createdAt": "2026-11-16T16:18:42.982Z"
+    },
+    {
+      "id": "tp5cdnndh143v96v",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in Role Onboarding v2 (this v1 is now archived): the role selector is gone from every add modal. Each add button gives only its own role: Add Org Managers adds Org Managers, Add Org Owner adds Org Owners, and the same for Org Reviewers, Team Managers, Team Owners, Cohort Owners and Facilitators. The Org Manager's first task is now Add Org Reviewers (views 2.4 and 2.5 renamed). Files: _wire/AwardModal.vue, OrgPage.vue, TeamPage.vue, CohortPage.vue.",
+      "createdAt": "2026-11-16T16:26:31.555Z"
+    }
+  ]
+}

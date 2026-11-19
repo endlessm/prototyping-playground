@@ -8,5 +8,6 @@
   "order": [
     "Overview.vue",
     "Flows.excalidraw"
-  ]
+  ],
+  "status": "archived"
 }

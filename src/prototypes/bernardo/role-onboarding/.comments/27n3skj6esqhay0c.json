@@ -1,0 +1,45 @@
+{
+  "formatVersion": 1,
+  "id": "27n3skj6esqhay0c",
+  "artifact": "jhvkk6z551w5yvmq",
+  "artifactTitle": "1.4 Add Org Managers",
+  "anchor": {
+    "kind": "label",
+    "label": "Label \"Emails 4 Adding a role opens a modal: e…\"",
+    "at": {
+      "x": 0.7032,
+      "y": 0.2188
+    },
+    "selector": "label:nth-of-type(1)",
+    "tag": "label",
+    "path": "._app_10zb1_59 > ._backdrop_10zb1_458 > ._modal_10zb1_468 > ._dialogBody_10zb1_588 > ._stack_10zb1_211",
+    "text": "Emails 4 Adding a role opens a modal: emails as chips, the role to give (only the roles this viewer may award: for the …",
+    "box": {
+      "left": 927,
+      "top": 205,
+      "width": 438,
+      "height": 64,
+      "viewport": 2292
+    }
+  },
+  "status": "open",
+  "messages": [
+    {
+      "id": "2ye1d4c3v9tkj9x8",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "This should also show the available people that can be org managers",
+      "createdAt": "2026-11-16T16:19:31.258Z"
+    },
+    {
+      "id": "ymghj154egk0ax99",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in Role Onboarding v2 (this v1 is now archived): every add modal now lists the people in Brightwater USD who could take the role, each with a checkbox (Marcus ticked here), leaving out whoever already holds it; emails stay below for anyone not on the list. Proposal recorded in the walkthrough note: the list is the district's people who already have an Endless account (school email), and how an Organization knows its people is still open. Files: _wire/AwardModal.vue, candidatesFor in _wire/world.ts, notes.ts.",
+      "createdAt": "2026-11-16T16:26:33.837Z"
+    }
+  ]
+}
