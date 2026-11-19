@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "e5znabhvwk5tqxk5",
+  "artifact": "f5th2s6548m9k64e",
+  "artifactTitle": "Org Chart · People",
+  "anchor": {
+    "kind": "paragraph",
+    "label": "Paragraph \"Session 6 of 10 · 17 learners\"",
+    "at": {
+      "x": 0.3544,
+      "y": 0.3125
+    },
+    "selector": "ul.children > li.branch:nth-of-type(1) > ul.children > li.branch:nth-of-type(1) > article.flex.flex-col > div.flex.min-w-0 > p.text-xs.text-muted",
+    "tag": "p",
+    "path": ".children > .branch > .flex > .flex > .text-xs",
+    "text": "Session 6 of 10 · 17 learners",
+    "box": {
+      "left": 417,
+      "top": 680,
+      "width": 206,
+      "height": 16,
+      "viewport": 1328
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-18T20:38:34.410Z",
+  "messages": [
+    {
+      "id": "57aw4px1vt72gt9t",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Não precisamos de \"Session 6 of 10\"",
+      "createdAt": "2026-11-18T20:03:39.135Z"
+    },
+    {
+      "id": "hdm4371jv0kf0ffm",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in _chart/district.ts: Cohort cards now show only the learner count ('17 learners'), in the sample world and in Large district.",
+      "createdAt": "2026-11-18T20:08:16.878Z"
+    }
+  ]
+}

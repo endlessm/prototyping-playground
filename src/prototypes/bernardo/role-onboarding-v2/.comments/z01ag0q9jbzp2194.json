@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "z01ag0q9jbzp2194",
+  "artifact": "f5th2s6548m9k64e",
+  "artifactTitle": "Org Chart · People",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Brightwater Unified School District2 Te…\"",
+    "at": {
+      "x": 0.7808,
+      "y": 0.6613
+    },
+    "selector": "article.flex.items-center",
+    "tag": "article",
+    "path": ".flex > .overflow-x-auto > .tree > .branch > .flex",
+    "text": "Brightwater Unified School District2 TeamsGHMBLP",
+    "box": {
+      "left": 552,
+      "top": 309,
+      "width": 520,
+      "height": 62,
+      "viewport": 1328
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-18T20:38:53.613Z",
+  "messages": [
+    {
+      "id": "qwk6d6w52yjsnc3m",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "vamos deixar os membros embaixo para os cards não ficarem tão longos horizontalmente. também seria legal colocar uma tag pequena para mostrar o que é TEAM e o que é COHORT.",
+      "createdAt": "2026-11-18T19:51:26.900Z"
+    },
+    {
+      "id": "6pmntw43kqvfgd6n",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in _chart/PlaceCard.vue: the faces now sit under the name and detail, so the cards went from 360px to 240px wide (the Organization's from 520px to 360px). Each Team and Cohort card has a small uppercase tag next to its name: TEAM in purple, COHORT in orange. The Organization card has no tag. The '+N more' list now opens aligned to the left of the faces.",
+      "createdAt": "2026-11-18T20:00:38.395Z"
+    }
+  ]
+}

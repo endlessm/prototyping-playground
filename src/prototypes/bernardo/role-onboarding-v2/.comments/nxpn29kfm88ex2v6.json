@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "nxpn29kfm88ex2v6",
+  "artifact": "vb8trj3fnfy1k97g",
+  "artifactTitle": "Org Chart",
+  "anchor": {
+    "kind": "header",
+    "label": "Header \"Brightwater Unified School DistrictOrga…\"",
+    "at": {
+      "x": 0.4098,
+      "y": 0.4815
+    },
+    "selector": "header.flex.flex-col",
+    "tag": "header",
+    "path": ".overflow-x-auto > .tree > .branch > .flex > .flex",
+    "text": "Brightwater Unified School DistrictOrganization · 2 Teams",
+    "box": {
+      "left": 345,
+      "top": 309,
+      "width": 848,
+      "height": 108,
+      "viewport": 1328
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-18T19:47:03.720Z",
+  "messages": [
+    {
+      "id": "wkejggwft13hz5mm",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "ícones podem ser menores. aplique isso pra todos os cards.",
+      "createdAt": "2026-11-18T19:25:40.371Z"
+    },
+    {
+      "id": "9y9225y5h1e70hd7",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in _chart/TreeRoles.vue: the place icons above every group are smaller (44px to 32px).",
+      "createdAt": "2026-11-18T19:27:25.112Z"
+    }
+  ]
+}

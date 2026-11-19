@@ -1,0 +1,58 @@
+{
+  "formatVersion": 1,
+  "id": "pynmbqkjs58s2e22",
+  "artifact": "f5th2s6548m9k64e",
+  "artifactTitle": "Org Chart · People",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Cohort\"",
+    "at": {
+      "x": 0.4897,
+      "y": 0.875
+    },
+    "selector": "ul.children > li.branch:nth-of-type(1) > ul.children > li.branch:nth-of-type(1) > article.flex.flex-col > div.flex.min-w-0 > div.flex.items-start > span.inline-flex.items-center",
+    "tag": "span",
+    "path": ".branch > .flex > .flex > .flex > .inline-flex",
+    "text": "Cohort",
+    "box": {
+      "left": 566,
+      "top": 659,
+      "width": 57,
+      "height": 16,
+      "viewport": 1328
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-18T20:38:46.339Z",
+  "messages": [
+    {
+      "id": "e0emrxbx666qm0pp",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Isso poderia ficar alinhado no canto superior direito, flutuando um pouco pra fora do card. alinhe o a primeira letra da tag com a primeira linha do título do card.",
+      "createdAt": "2026-11-18T20:03:17.273Z"
+    },
+    {
+      "id": "d8emvby771jkm5c3",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in _chart/PlaceCard.vue: the tag now floats on the card's top-left corner, straddling the top border, and its first letter lines up with the title's first letter. The title gets the full width back.",
+      "createdAt": "2026-11-18T20:08:16.332Z"
+    },
+    {
+      "id": "bcac0n0dqyq9908n",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "The tag now uses the subtle variant (a thin outline in its colour) instead of soft.",
+      "createdAt": "2026-11-18T20:09:18.304Z"
+    }
+  ]
+}

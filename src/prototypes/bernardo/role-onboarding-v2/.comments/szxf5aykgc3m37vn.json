@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "szxf5aykgc3m37vn",
+  "artifact": "tqz9chqajhaj8gdk",
+  "artifactTitle": "1.3 Welcome",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"TeamsPeopleProgramsSettings\"",
+    "at": {
+      "x": 0.2449,
+      "y": 0.918
+    },
+    "selector": "div.flex.flex-col:nth-of-type(3) > div",
+    "tag": "div",
+    "path": ".flex > .flex > .mx-auto > .flex > div",
+    "text": "TeamsPeopleProgramsSettings",
+    "box": {
+      "left": 259,
+      "top": 372,
+      "width": 1088,
+      "height": 61,
+      "viewport": 1381
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-18T21:49:56.357Z",
+  "messages": [
+    {
+      "id": "z95085m93pndtn83",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Programs e Settings não precisa existir.\nTeams chama-se Teams & Cohorts",
+      "createdAt": "2026-11-18T21:43:53.711Z"
+    },
+    {
+      "id": "tagt7cvyerzd2pk8",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in Hi-Fi/_ui/OrgPage.vue: the Organization page now has two tabs, Teams & Cohorts and People. Programs and Settings are gone for every Organization role (Org Owner and Org Manager; the Org Reviewer still sees Reports only). The pencil beside the name stays for renaming. The Org Chart exploration keeps its own tabs; say if it should follow.",
+      "createdAt": "2026-11-18T21:48:15.182Z"
+    }
+  ]
+}

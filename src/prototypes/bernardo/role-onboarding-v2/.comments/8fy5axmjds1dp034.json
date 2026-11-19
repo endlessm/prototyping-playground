@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "8fy5axmjds1dp034",
+  "artifact": "tge3v77ye885gcmn",
+  "artifactTitle": "Huddle Empty State",
+  "anchor": {
+    "kind": "image",
+    "label": "Image",
+    "at": {
+      "x": 0.715,
+      "y": 0.5369
+    },
+    "selector": "span.eh-spot.eh-far:nth-of-type(3) > img",
+    "tag": "img",
+    "path": ".p-0 > .eh-root > .eh-stage > .eh-spot > img",
+    "text": "",
+    "box": {
+      "left": 483,
+      "top": 164,
+      "width": 40,
+      "height": 40,
+      "viewport": 1381
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-18T22:43:18.192Z",
+  "messages": [
+    {
+      "id": "enx46x1fn40mgcm4",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Os desenhos estão sendo cortados. seria legal se eles saíssem pra fora das bordas do círculo.",
+      "createdAt": "2026-11-18T21:53:17.908Z"
+    },
+    {
+      "id": "f0gd0byx4sdrx5e2",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in Hi-Fi/_ui/EmptyStateHuddle.vue: the drawing is no longer clipped to the circle. The white rim is now a disc behind the art, so the flag, the pencil and the screen reach past the rim instead of being cut. The figures' bodies are still clipped inside the art's own circle; they only go as far as the edge of the drawing's square.",
+      "createdAt": "2026-11-18T21:55:06.082Z"
+    }
+  ]
+}

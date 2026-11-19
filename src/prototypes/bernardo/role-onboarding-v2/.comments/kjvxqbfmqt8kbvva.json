@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "kjvxqbfmqt8kbvva",
+  "artifact": "pqdmrx2k5y9jb7et",
+  "artifactTitle": "1.4 Add Org Managers",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"People in Brightwater USD 4 Each add bu…\"",
+    "at": {
+      "x": 0.5868,
+      "y": 0.1159
+    },
+    "selector": "div:nth-of-type(3) > div > div:nth-of-type(2) > div",
+    "tag": "div",
+    "path": "._app_10zb1_59 > ._backdrop_10zb1_458 > ._modal_10zb1_468 > ._dialogBody_10zb1_588 > ._stack_10zb1_211",
+    "text": "People in Brightwater USD 4 Each add button gives one role, so the modal has no role to choose: Add Org Managers only a…",
+    "box": {
+      "left": 927,
+      "top": 205,
+      "width": 438,
+      "height": 173,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-16T16:42:27.526Z",
+  "messages": [
+    {
+      "id": "xxfktjt67ptb8kgy",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Isso deveria ser um dropdown do input invite by email. A pessoa digita e o dropdown busca de acordo com o que a pessoa digitou com a possibilidade de adicionar um email que nao está na lista",
+      "createdAt": "2026-11-16T16:35:47.154Z"
+    },
+    {
+      "id": "e5z5w6sxgqzxds3z",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in _wire/AwardModal.vue: the list is gone. One field (Name or email) takes everyone: typing opens a dropdown that searches the district's people who could take the role, by name or email, and leaves out whoever already holds it. A typed email nobody on the list has shows as 'Invite <email>' (Enter adds it too). Each pick becomes a chip. The same field serves every add modal; the flow screens open with a name half typed so the dropdown shows (1.4 'mar', 2.4 'lin', 4.4 'dan' with Ben added, 6.4 Sam's Gmail as Invite). Walkthrough notes updated.",
+      "createdAt": "2026-11-16T16:38:41.658Z"
+    }
+  ]
+}

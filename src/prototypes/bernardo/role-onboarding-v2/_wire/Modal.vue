@@ -6,7 +6,8 @@ import { useEscape } from './useEscape'
 import s from './wire.module.css'
 
 // A centered pop-up for one short task, such as renaming. Escape, the close button and the backdrop all close it.
-defineProps<{ title: string; lead?: string; width?: number }>()
+// `overflow` lets a dropdown inside the body float past its edge instead of scrolling it.
+defineProps<{ title: string; lead?: string; width?: number; overflow?: boolean }>()
 const emit = defineEmits<{ close: [] }>()
 
 const titleId = useId()
@@ -23,7 +24,7 @@ useEscape(() => emit('close'))
         </div>
         <IconButton label="Close" @click="emit('close')">×</IconButton>
       </div>
-      <div :class="[s.dialogBody, s.stack]"><slot /></div>
+      <div :class="[s.dialogBody, s.stack]" :style="overflow ? { overflow: 'visible' } : undefined"><slot /></div>
       <div v-if="$slots.footer" :class="s.dialogFooter"><slot name="footer" /></div>
     </div>
   </div>

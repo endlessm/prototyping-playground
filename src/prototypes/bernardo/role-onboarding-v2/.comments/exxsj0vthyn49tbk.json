@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "exxsj0vthyn49tbk",
+  "artifact": "pqdmrx2k5y9jb7et",
+  "artifactTitle": "1.4 Add Org Managers",
+  "anchor": {
+    "kind": "label",
+    "label": "Label \"Independent Programs open to everyone\"",
+    "at": {
+      "x": 0.1461,
+      "y": 0.0329
+    },
+    "selector": "label:nth-of-type(2)",
+    "tag": "label",
+    "path": "._backdrop_10zb1_458 > ._modal_10zb1_468 > ._dialogBody_10zb1_588 > ._stack_10zb1_211 > ._card_10zb1_398",
+    "text": "Independent Programs open to everyone",
+    "box": {
+      "left": 927,
+      "top": 366,
+      "width": 438,
+      "height": 56,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-16T17:31:11.765Z",
+  "messages": [
+    {
+      "id": "xv79tfzvc7rbe943",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "A parte de independente deve ficar fora da organização. Não sei onde colocar. me sugira um lugar que faz sentido.",
+      "createdAt": "2026-11-16T16:44:04.543Z"
+    },
+    {
+      "id": "k0dpxt1h0w4nwhxh",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Answered with a new prototype, Role Onboarding v2.1 (src/prototypes/bernardo/role-onboarding-v2-1), which leaves v2 as it is. Every educator account now comes with its own Organization and first Team (named after the person, e.g. 'Sam Rivera' and 'Sam's Team', renamed with the pencil), so Independent Teams are gone: Create a Team has no Belongs to choice and makes the Team in the Organization it's opened from, and the place switcher has no Create a Team. New flow 0 (Sign Up) lands on Grace's own Organization; flow 1 starts with her renaming it after the district (no invite from Endless). Invitees also get their own Organization and Team, listed in the switcher. The Roles Map starts with Grace's sign-up instead of the Endless Admin.",
+      "createdAt": "2026-11-16T17:11:29.289Z"
+    }
+  ]
+}

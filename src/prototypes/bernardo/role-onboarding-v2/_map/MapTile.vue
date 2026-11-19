@@ -4,16 +4,18 @@ import { roleIllustrations } from './illustrations'
 import { usePathView } from './path'
 import { useMapState } from './state'
 import { FADE, FADED, FLOATING, NOW_HALO, NOW_TINT, roleColor, roleText, SELECTED_HALO } from './look'
-import { joinStep, mapRoles, nodeTitle, type NodeId } from './story'
+import { heldRoles, joinStep, mapRoles, nodeTitle, type NodeId } from './story'
 
 // One person on the map, or a Cohort's learners as one tile: their illustration, name, role and the step they joined
 // (a story without a timeline, Explore, shows no steps).
 const props = defineProps<{ id: NodeId }>()
 
-const { story, layout, selectedId, select, mode, current } = useMapState()
+const { story, layout, selectedId, select, mode, current, at } = useMapState()
 
 const node = computed(() => story.value.nodes[props.id])
 const role = computed(() => mapRoles[node.value.role])
+/** Roles the person holds besides the tile's, by the step on show: one account can hold several. */
+const more = computed(() => heldRoles(story.value, props.id).filter((held) => held.step <= at.value).length - 1)
 const rect = computed(() => layout.value.nodes[props.id])
 const step = computed(() => joinStep(story.value, props.id))
 const title = computed(() => nodeTitle(node.value))
@@ -44,7 +46,7 @@ const edge = computed(() =>
     :class="[edge, FLOATING, FADE, { [FADED]: dim }]"
     :style="{ left: `${rect.x}px`, top: `${rect.y}px`, width: `${rect.width}px`, height: `${rect.height}px` }"
     :aria-pressed="selected"
-    :aria-label="`${title}, ${role.label}${numbered ? `, step ${step}` : ''}${now ? ', new in this step' : ''}`"
+    :aria-label="`${title}, ${role.label}${more > 0 ? `, and ${more} more ${more === 1 ? 'role' : 'roles'}` : ''}${numbered ? `, step ${step}` : ''}${now ? ', new in this step' : ''}`"
     @click="select(selected ? null : id)"
   >
     <span
@@ -71,6 +73,7 @@ const edge = computed(() =>
     <span class="mt-0.5 text-xs leading-4 font-medium whitespace-nowrap" :class="roleText[roleColor(node.role)]">
       {{ role.label }}
     </span>
+    <span v-if="more > 0" class="mt-0.5 text-xs leading-4 text-dimmed">+{{ more }} more {{ more === 1 ? 'role' : 'roles' }}</span>
   </button>
 </template>
 

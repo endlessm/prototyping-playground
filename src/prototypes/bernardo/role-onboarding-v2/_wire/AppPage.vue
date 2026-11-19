@@ -5,9 +5,12 @@ import { places, roles, type RoleKey } from './world'
 import s from './wire.module.css'
 
 // Studio pages: sidebar, top bar, content, and an optional modal over them (the overlay slot). The top bar's switcher
-// names the place on screen and the viewer's role in it, and lists every place where they hold a role, one role each.
-// The Teach group shows a level only to people who hold a role there. Create a Team, at the foot of the switcher, is
-// there for every educator: anyone can create an Independent Team, whatever roles they hold elsewhere.
+// names the place on screen and the viewer's role in it, and lists every place where they hold a role, one role each:
+// one account often holds several, at different levels and in more than one Organization or Independent Team.
+// The Teach group shows a level only to people who hold a teaching role there; a place where they are a learner
+// doesn't count. Create an Independent Team, at the foot of the switcher, is there for every educator: the switcher
+// sits above every place, so a Team made from it belongs to no Organization, whatever roles its creator holds
+// elsewhere. Org Teams are created from the Organization's Teams tab.
 const props = defineProps<{
   viewer: RoleKey
   place: string
@@ -23,7 +26,8 @@ const props = defineProps<{
 
 const role = roles[props.viewer]
 const mine = [...places[props.viewer], ...(props.extra ?? [])]
-const levels = [...new Set(mine.map((p) => p.level))]
+const order = ['Organization', 'Team', 'Cohort'] as const
+const levels = order.filter((level) => mine.some((p) => !p.learner && p.level === level))
 const label = { Organization: 'Organization', Team: 'Teams', Cohort: 'Cohorts' } as const
 const active = mine.find((p) => p.name === props.place)?.level ?? role.level
 
@@ -54,7 +58,10 @@ function closeOnLeave(event: FocusEvent) {
               <small>{{ p.role }}{{ p.independent ? ' · Independent' : '' }}</small>
             </button>
             <hr />
-            <button type="button" @click="creating = 'independent'; open = false">+ Create a Team</button>
+            <button type="button" @click="creating = 'independent'; open = false">
+              + Create an Independent Team
+              <small>Its own place, outside any Organization</small>
+            </button>
           </div>
         </div>
         <span :class="s.avatar">{{ role.person.initials }}</span>
@@ -83,6 +90,7 @@ function closeOnLeave(event: FocusEvent) {
         v-if="creating"
         :viewer="viewer"
         :where="creating"
+        :independent-only="creating === 'independent'"
         :next="createdTo"
         :flow="flow"
         :note="note"

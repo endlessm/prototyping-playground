@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "j5whv9f12w2xadc5",
+  "artifact": "tqz9chqajhaj8gdk",
+  "artifactTitle": "1.3 Welcome",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"You're now Org Owner 3 The Welcome is t…\"",
+    "at": {
+      "x": 0.4269,
+      "y": 0.494
+    },
+    "selector": "div.p-4.grid",
+    "tag": "div",
+    "path": ".flex > .flex > .mx-auto > .overflow-hidden > .p-4",
+    "text": "You're now Org Owner 3 The Welcome is the Organization's own page with a one-time card on top: the role, who added Grac…",
+    "box": {
+      "left": 259,
+      "top": 180,
+      "width": 1088,
+      "height": 168,
+      "viewport": 1381
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-18T21:53:28.868Z",
+  "messages": [
+    {
+      "id": "6t16bvg49w8aa2y0",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Algum to-do que é importante para o org Owner e eu estou esquecendo? gostaria de sugestões.",
+      "createdAt": "2026-11-18T21:45:43.966Z"
+    },
+    {
+      "id": "gaecz8d2c2xvsdr9",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Suggestions, most important first (not built yet):\n1. Add a second Org Owner (recommended, optional). The last Owner can't be removed, so with one Owner the district depends on Endless Access if Grace leaves. It's also the one thing only an Org Owner can do.\n2. Add Org Reviewers, for whoever follows the reports (principals, the board). An Org Owner can do anything an Org Manager can, so this could be optional too.\n3. Check the Organization's name. Only if Org Owners turn out to be allowed to rename it (still open).\nI'd add only #1, so the card stays at 3 steps. Tell me which ones to add.",
+      "createdAt": "2026-11-18T21:48:16.822Z"
+    }
+  ]
+}

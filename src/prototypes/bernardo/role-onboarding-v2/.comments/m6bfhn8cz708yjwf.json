@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "m6bfhn8cz708yjwf",
+  "artifact": "cg6xr79whah7sfqv",
+  "artifactTitle": "Celebrated Checklist · One ticked",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"2 of 2 done\"",
+    "at": {
+      "x": 0.8041,
+      "y": 0.6389
+    },
+    "selector": "div.flex.items-center:nth-of-type(1)",
+    "tag": "div",
+    "path": ".p-4 > .overflow-hidden > .p-0 > .relative > .flex",
+    "text": "2 of 2 done",
+    "box": {
+      "left": 612,
+      "top": 56,
+      "width": 444,
+      "height": 36,
+      "viewport": 1328
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-18T19:58:25.329Z",
+  "messages": [
+    {
+      "id": "869x4nh0s44t8v5q",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Esse contador não precisa de existir",
+      "createdAt": "2026-11-18T19:44:39.551Z"
+    },
+    {
+      "id": "014mjpy4x4cv0m6a",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in _ui/CelebrateChecklist.vue: removed the whole row above the steps, both the 'x of 2 done' counter and its progress bar. Say if you want the bar back on its own.",
+      "createdAt": "2026-11-18T19:53:20.140Z"
+    }
+  ]
+}

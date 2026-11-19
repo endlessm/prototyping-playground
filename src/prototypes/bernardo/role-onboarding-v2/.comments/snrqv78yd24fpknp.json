@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "snrqv78yd24fpknp",
+  "artifact": "pqdmrx2k5y9jb7et",
+  "artifactTitle": "1.4 Add Org Managers",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Name or email\"",
+    "at": {
+      "x": 0.4361,
+      "y": 0.3456
+    },
+    "selector": "div:nth-of-type(3) > div > div:nth-of-type(2) > div",
+    "tag": "div",
+    "path": "._app_10zb1_59 > ._backdrop_10zb1_458 > ._modal_10zb1_468 > ._dialogBody_10zb1_588 > ._stack_10zb1_211",
+    "text": "Name or email",
+    "box": {
+      "left": 927,
+      "top": 205,
+      "width": 438,
+      "height": 55,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-16T16:44:27.424Z",
+  "messages": [
+    {
+      "id": "7zp2a5893cpvcvyp",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "quando aparece o dropdown, nao é pra jogar o textbox para baixo",
+      "createdAt": "2026-11-16T16:43:06.211Z"
+    },
+    {
+      "id": "zwr4x2bx9fj10c22",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in _wire/AwardModal.vue: the dropdown now floats over the modal (absolutely positioned under the field, above the note) instead of pushing the rest down. The note field and footer stay where they are when it opens. _wire/Modal.vue gained an optional overflow prop so the dropdown can pass the body's edge without a scrollbar.",
+      "createdAt": "2026-11-16T16:44:19.373Z"
+    }
+  ]
+}

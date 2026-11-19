@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "94993sf9ntm41aaj",
+  "artifact": "pet3fantrkkkbqry",
+  "artifactTitle": "Teams Empty State · Crew Orbit",
+  "anchor": {
+    "kind": "image",
+    "label": "Image",
+    "at": {
+      "x": 0.6771,
+      "y": 0.4066
+    },
+    "selector": "span.te-rider:nth-of-type(7) > span.te-face > img",
+    "tag": "img",
+    "path": ".te-stage > .te-orbit > .te-rider > .te-face > img",
+    "text": "",
+    "box": {
+      "left": 938,
+      "top": 603,
+      "width": 49,
+      "height": 49,
+      "viewport": 1432
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-18T21:03:58.822Z",
+  "messages": [
+    {
+      "id": "6k1h8kt0p5q3wcsw",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "tem um stroke em volta do círculo que está com um gap transparente. remova esse gap.",
+      "createdAt": "2026-11-18T21:01:00.369Z"
+    },
+    {
+      "id": "3eyd7yn1wdrh2q57",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in Hi-Fi/_ui/TeamsEmptyCrewOrbit.vue: the gap is gone. The role art is a circle with a small margin inside its box, and the white ring was drawn outside the box, so the margin showed through. The faces now have a white backing instead of the outer ring, so the white rim sits tight against the circle at about the same thickness. Crew (TeamsEmptyCrew.vue) had the same gap and got the same fix.",
+      "createdAt": "2026-11-18T21:02:57.788Z"
+    }
+  ]
+}

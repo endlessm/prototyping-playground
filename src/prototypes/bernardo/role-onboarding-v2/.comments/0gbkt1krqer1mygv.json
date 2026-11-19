@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "0gbkt1krqer1mygv",
+  "artifact": "c8tzxfj4efphc3qn",
+  "artifactTitle": "Teams Empty State · Crew",
+  "anchor": {
+    "kind": "button",
+    "label": "Button \"Create a Team\"",
+    "at": {
+      "x": 0.9834,
+      "y": 0.5625
+    },
+    "selector": "div.te-action > button.rounded-md.font-medium",
+    "tag": "button",
+    "path": ".p-0 > .te-crew > .te-copy > .te-action > .rounded-md",
+    "text": "Create a Team",
+    "box": {
+      "left": 757,
+      "top": 725,
+      "width": 143,
+      "height": 32,
+      "viewport": 1432
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-18T21:01:06.315Z",
+  "messages": [
+    {
+      "id": "ae9424yx76jm5rcc",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Também adiciona um botão pra chamar pessoas para o time e muda o copy para falar disso também",
+      "createdAt": "2026-11-18T20:55:24.929Z"
+    },
+    {
+      "id": "1m3zhexgg7ab1q85",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in Hi-Fi/_ui/OrgPage.vue: the empty Teams tab now has a second button, Add Org Reviewers, beside Create a Team. It opens the same modal as the People tab's button (for an Org Owner it reads Add Org Managers). The line under the title now covers both: \"Create a Team for each school and name its Team Owner, or bring in the Org Reviewers who will follow the reports.\" The button and the line come from the page, so Crew Orbit, Preview and Path changed too (Preview has no line, so only its button). Today's empty state is unchanged.",
+      "createdAt": "2026-11-18T21:00:48.831Z"
+    }
+  ]
+}

@@ -18,7 +18,7 @@ import Tabs from './Tabs.vue'
 import TextLink from './TextLink.vue'
 import Title from './Title.vue'
 import Welcome from './Welcome.vue'
-import { ORG, people, roles, TEAM, view, type RoleKey } from './world'
+import { cohorts, ORG, people, roles, TEAM, teams, view, type RoleKey } from './world'
 import s from './wire.module.css'
 
 // The Organization's page as each Organization role sees it. Step 3 is the welcome, step 4 the role's first task (a
@@ -40,7 +40,11 @@ const tabsBy = {
 const tabs = tabsBy[props.viewer]
 const peopleFirst = (props.step === 4 || props.step === 5) && (props.viewer === 'orgOwner' || props.viewer === 'orgManager')
 const tab = ref(peopleFirst ? 'People' : tabs[0])
-const open = ref(props.step === 4 && props.viewer !== 'orgReviewer')
+// Each add button opens the modal for its own role. Step 4 opens the role's first task with the flow's next person's
+// name half typed, so the search dropdown shows: Marcus for the Org Owner, Linda for the Org Manager.
+const firstRole = props.viewer === 'orgOwner' ? 'Org Manager' : 'Org Reviewer'
+const adding = ref<string | null>(props.step === 4 && props.viewer !== 'orgReviewer' ? firstRole : null)
+const queries: Record<string, string> = { 'Org Manager': 'mar', 'Org Reviewer': 'lin' }
 const creating = ref(props.step === 6)
 const created = props.viewer === 'orgManager' && props.step === 7
 
@@ -53,16 +57,19 @@ const sections = {
   managers: owner ? (props.step === 5 ? [invited(people.marcus)] : []) : [you('orgManager')],
   reviewers: props.viewer === 'orgManager' && props.step >= 5 ? [invited(people.linda)] : [],
 }
+const holders: Record<string, { email: string }[]> = {
+  'Org Owner': sections.owners,
+  'Org Manager': sections.managers,
+  'Org Reviewer': sections.reviewers,
+}
+const scripted = (role: string) => props.step === 4 && role === firstRole
 
-// Reviewer reports: aggregated only, months on, with two Teams under way.
-const reportTeams = [
-  { name: TEAM, cohorts: 2, learners: 35, progress: 64, certificates: 12 },
-  { name: 'Northgate High CS', cohorts: 2, learners: 46, progress: 71, certificates: 19 },
-]
-const reportCohorts = [
-  { name: 'Fall Godot Club', status: 'Finished Dec 8', learners: 18, progress: 100, certificates: 12 },
-  { name: 'Winter Godot Club', status: 'Session 6 of 10', learners: 17, progress: 55, certificates: 0 },
-]
+// Reviewer reports: aggregated only, once the flows are done, with two Teams under way.
+const reportTeams = teams
+const sum = (key: 'cohorts' | 'learners' | 'certificates') => teams.reduce((total, t) => total + t[key], 0)
+const totals = { teams: teams.length, cohorts: sum('cohorts'), learners: sum('learners'), certificates: sum('certificates') }
+const reportTeam = teams.find((t) => t.name === TEAM)
+const reportCohorts = cohorts.filter((c) => c.team === TEAM)
 const programs = ['Explore: Threadbare', 'Explore: Godot', 'Core: Threadbare']
 </script>
 
@@ -86,10 +93,10 @@ const programs = ['Explore: Threadbare', 'Explore: Godot', 'Core: Threadbare']
       <template v-if="step === 3">
         <Tabs v-model="tab" :tabs="tabs" />
         <div :class="s.roStats">
-          <div><span :class="s.small">Teams</span><strong>2</strong></div>
-          <div><span :class="s.small">Cohorts</span><strong>4</strong></div>
-          <div><span :class="s.small">Learners</span><strong>81</strong></div>
-          <div><span :class="s.small">Certificates</span><strong>31</strong></div>
+          <div><span :class="s.small">Teams</span><strong>{{ totals.teams }}</strong></div>
+          <div><span :class="s.small">Cohorts</span><strong>{{ totals.cohorts }}</strong></div>
+          <div><span :class="s.small">Learners</span><strong>{{ totals.learners }}</strong></div>
+          <div><span :class="s.small">Certificates</span><strong>{{ totals.certificates }}</strong></div>
         </div>
         <table :class="s.table">
           <thead>
@@ -111,10 +118,10 @@ const programs = ['Explore: Threadbare', 'Explore: Godot', 'Core: Threadbare']
       </template>
       <template v-else>
         <div :class="s.roStats">
-          <div><span :class="s.small">Cohorts</span><strong>2</strong></div>
-          <div><span :class="s.small">Learners</span><strong>35</strong></div>
-          <div><span :class="s.small">Average progress</span><strong>64%</strong></div>
-          <div><span :class="s.small">Certificates</span><strong>12</strong></div>
+          <div><span :class="s.small">Cohorts</span><strong>{{ reportTeam?.cohorts }}</strong></div>
+          <div><span :class="s.small">Learners</span><strong>{{ reportTeam?.learners }}</strong></div>
+          <div><span :class="s.small">Average progress</span><strong>{{ reportTeam?.progress }}%</strong></div>
+          <div><span :class="s.small">Certificates</span><strong>{{ reportTeam?.certificates }}</strong></div>
         </div>
         <table :class="s.table">
           <thead>
@@ -123,7 +130,7 @@ const programs = ['Explore: Threadbare', 'Explore: Godot', 'Core: Threadbare']
           <tbody>
             <tr v-for="c in reportCohorts" :key="c.name">
               <td>{{ c.name }}</td>
-              <td>Explore: Godot</td>
+              <td>{{ c.program }}</td>
               <td>{{ c.status }}</td>
               <td>{{ c.learners }}</td>
               <td><div :class="s.roBar"><span :style="{ width: `${c.progress}%` }" /></div></td>
@@ -167,7 +174,12 @@ const programs = ['Explore: Threadbare', 'Explore: Godot', 'Core: Threadbare']
       </template>
 
       <div v-else-if="tab === 'People'" :class="s.roSections">
-        <RoleSection title="Org Owners" :people="sections.owners" :add="owner ? 'Add Org Owner' : undefined" />
+        <RoleSection
+          title="Org Owners"
+          :people="sections.owners"
+          :add="owner ? 'Add Org Owner' : undefined"
+          @add="adding = 'Org Owner'"
+        />
         <RoleSection
           title="Org Managers"
           :people="sections.managers"
@@ -175,7 +187,7 @@ const programs = ['Explore: Threadbare', 'Explore: Godot', 'Core: Threadbare']
           :remove="owner"
           :flow="flow"
           :note="owner && step === 5 ? 5 : undefined"
-          @add="open = true"
+          @add="adding = 'Org Manager'"
         />
         <RoleSection
           title="Org Reviewers"
@@ -184,7 +196,7 @@ const programs = ['Explore: Threadbare', 'Explore: Godot', 'Core: Threadbare']
           remove
           :flow="flow"
           :note="!owner && step === 5 ? 5 : undefined"
-          @add="open = true"
+          @add="adding = 'Org Reviewer'"
         />
       </div>
 
@@ -211,29 +223,17 @@ const programs = ['Explore: Threadbare', 'Explore: Godot', 'Core: Threadbare']
     </template>
 
     <template #overlay>
-      <template v-if="open">
-        <AwardModal
-          v-if="viewer === 'orgOwner'"
-          title="Add Org Managers"
-          :roles="['Org Manager', 'Org Owner']"
-          :emails="[people.marcus.email]"
-          :next="view('orgOwner', 5)"
-          :flow="1"
-          :note="4"
-          @close="open = false"
-        />
-        <AwardModal
-          v-else-if="viewer === 'orgManager'"
-          title="Add People"
-          :roles="['Org Reviewer', 'Team Owner']"
-          :off="['Team Owner']"
-          :emails="[people.linda.email]"
-          :next="view('orgManager', 5)"
-          :flow="2"
-          :note="4"
-          @close="open = false"
-        />
-      </template>
+      <AwardModal
+        v-if="adding"
+        :key="adding"
+        :role="adding"
+        :holders="holders[adding]"
+        :query="scripted(adding) ? queries[adding] : undefined"
+        :next="scripted(adding) ? view(viewer, 5) : undefined"
+        :flow="flow"
+        :note="scripted(adding) ? 4 : undefined"
+        @close="adding = null"
+      />
       <CreateTeamModal
         v-else-if="creating"
         :viewer="viewer"

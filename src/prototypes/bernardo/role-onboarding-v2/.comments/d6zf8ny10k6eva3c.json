@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "d6zf8ny10k6eva3c",
+  "artifact": "cg6xr79whah7sfqv",
+  "artifactTitle": "Celebrated Checklist · One ticked",
+  "anchor": {
+    "kind": "paragraph",
+    "label": "Paragraph \"Good look around. The district has plen…\"",
+    "at": {
+      "x": 0.1529,
+      "y": 0.6875
+    },
+    "selector": "p.ps-8.text-xs",
+    "tag": "p",
+    "path": ".p-0 > .relative > .flex > .flex > .ps-8",
+    "text": "Good look around. The district has plenty to play with.",
+    "box": {
+      "left": 628,
+      "top": 173,
+      "width": 412,
+      "height": 16,
+      "viewport": 1328
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-18T19:58:19.264Z",
+  "messages": [
+    {
+      "id": "5q3377pe3cw258nt",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Essas frases não precisam de existir",
+      "createdAt": "2026-11-18T19:44:30.136Z"
+    },
+    {
+      "id": "3g2m8r3y9p6y18n0",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in _ui/celebrate.ts and _ui/CelebrateChecklist.vue: the cheer lines under each ticked step are gone, along with the list that held them. Also applies to 1.3 Welcome, which shares this checklist.",
+      "createdAt": "2026-11-18T19:53:19.533Z"
+    }
+  ]
+}

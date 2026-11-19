@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "yzcbgxses3bx3jyj",
+  "artifact": "vv27b9tmca4wg50y",
+  "artifactTitle": "Celebrated Checklist · Nothing ticked",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Add Org Managers to run the district da…\"",
+    "at": {
+      "x": 0.2883,
+      "y": 0.9917
+    },
+    "selector": "div.relative.flex-1",
+    "tag": "div",
+    "path": ".overflow-hidden > .p-4 > .overflow-hidden > .flex > .relative",
+    "text": "Add Org Managers to run the district day to dayCheck the Programs the district can runAdd Org Managers to run the distr…",
+    "box": {
+      "left": 612,
+      "top": 56,
+      "width": 444,
+      "height": 120,
+      "viewport": 1328
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-18T20:55:36.893Z",
+  "messages": [
+    {
+      "id": "2yt2fh66q24a3e3q",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "ajuste a altura",
+      "createdAt": "2026-11-18T20:38:14.544Z"
+    },
+    {
+      "id": "mjp1hg66pbx5nc39",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in _ui/CelebrateChecklist.vue: the steps now share the box's full height, so the empty strip under the last step is gone; the box still lines up with the text on the left.",
+      "createdAt": "2026-11-18T20:40:56.353Z"
+    }
+  ]
+}

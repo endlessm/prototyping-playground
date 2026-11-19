@@ -1,0 +1,58 @@
+{
+  "formatVersion": 1,
+  "id": "6n95pxhfg0h8zbkr",
+  "artifact": "c8tzxfj4efphc3qn",
+  "artifactTitle": "Teams Empty State · Crew",
+  "anchor": {
+    "kind": "element",
+    "label": "Element <span.te-hub-pulse>",
+    "at": {
+      "x": 0.6924,
+      "y": 0.3843
+    },
+    "selector": "span.te-hub-pulse",
+    "tag": "span",
+    "path": ".te-crew > .te-stage > .te-hub > .te-hub-tile > .te-hub-pulse",
+    "text": "",
+    "box": {
+      "left": 773,
+      "top": 513,
+      "width": 109,
+      "height": 109,
+      "viewport": 1432
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-18T21:24:57.372Z",
+  "messages": [
+    {
+      "id": "7djrb3jyxmxvhp76",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "crie uma nova versão dessa view com uma nova ilustração que se assemelhe mais a time, ao invés de jogar.",
+      "createdAt": "2026-11-18T21:03:51.342Z"
+    },
+    {
+      "id": "vy2sdp025n2xbypf",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in a new view, Teams Empty State v2 (same folder): the Crew layout with a new Team illustration in the middle tile, three people shoulder to shoulder (_ui/illustrations/place-team-group.svg) instead of the game pad. The original view is unchanged, so you can compare them.",
+      "createdAt": "2026-11-18T21:08:38.599Z"
+    },
+    {
+      "id": "zp3n7xkza9f4626s",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "A second take, as a new state of this view, Crew Huddle (Hi-Fi/_ui/TeamsEmptyCrewHuddle.vue): the Crew layout with the middle tile redrawn as five hands coming in from every side and stacking, each sleeve in a different colour. Every few seconds the hands press together and spring apart. Three people side by side is already the Cohort's illustration, so this one says Team through the gesture instead. Crew, Crew Orbit and Teams Empty State v2 are unchanged, and the game pad stays the Team's illustration everywhere else.",
+      "createdAt": "2026-11-18T21:13:51.394Z"
+    }
+  ]
+}

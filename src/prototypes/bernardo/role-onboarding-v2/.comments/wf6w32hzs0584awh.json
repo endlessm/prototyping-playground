@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "wf6w32hzs0584awh",
+  "artifact": "vv27b9tmca4wg50y",
+  "artifactTitle": "Celebrated Checklist · Nothing ticked",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Add Org Managers to run the district da…\"",
+    "at": {
+      "x": 0.0473,
+      "y": 0.9333
+    },
+    "selector": "div.relative.flex-1",
+    "tag": "div",
+    "path": ".overflow-hidden > .p-4 > .overflow-hidden > .flex > .relative",
+    "text": "Add Org Managers to run the district day to dayCheck the Programs the district can runAdd Org Managers to run the distr…",
+    "box": {
+      "left": 612,
+      "top": 56,
+      "width": 444,
+      "height": 120,
+      "viewport": 1328
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-18T20:55:30.973Z",
+  "messages": [
+    {
+      "id": "qhqhcfzejhfk2wqs",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "a animação precisa de mais POP!",
+      "createdAt": "2026-11-18T20:38:27.858Z"
+    },
+    {
+      "id": "8acfxkye948v8cxd",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in _ui/CelebrateChecklist.vue: on the last tick the box now squashes, bounces past its size and settles with a green glow off its edge; three thicker rings pulse out instead of two; each white check spins and pops in as the wave reaches it; the confetti from that last checkbox is bigger. Every single tick also pops harder (bigger overshoot with a little twist).",
+      "createdAt": "2026-11-18T20:40:57.087Z"
+    }
+  ]
+}

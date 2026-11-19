@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" width="48" height="48">
+  <clipPath id="team-clip"><path d="M14.5 13h19c6.6 0 10.6 5.2 11.3 12.4l.7 8.3c.4 4.6-4.4 7-7.8 3.8L33 33H15l-4.7 4.5c-3.4 3.2-8.2.8-7.8-3.8l.7-8.3C3.9 18.2 7.9 13 14.5 13z"/></clipPath>
+  <rect x="9.4" y="10.4" width="9.6" height="6" rx="2.6" fill="#ca3500"/>
+  <rect x="29" y="10.4" width="9.6" height="6" rx="2.6" fill="#ca3500"/>
+  <path d="M14.5 13h19c6.6 0 10.6 5.2 11.3 12.4l.7 8.3c.4 4.6-4.4 7-7.8 3.8L33 33H15l-4.7 4.5c-3.4 3.2-8.2.8-7.8-3.8l.7-8.3C3.9 18.2 7.9 13 14.5 13z" fill="#dd5200"/>
+  <g clip-path="url(#team-clip)"><path d="M14.5 13h19c6.6 0 10.6 5.2 11.3 12.4l.7 8.3c.4 4.6-4.4 7-7.8 3.8L33 33H15l-4.7 4.5c-3.4 3.2-8.2.8-7.8-3.8l.7-8.3C3.9 18.2 7.9 13 14.5 13z" fill="#ff6900" transform="translate(0 -1.8)"/></g>
+  <path d="M14.5 13h19c3.7 0 6.6 1.6 8.5 4.3H6c1.9-2.7 4.8-4.3 8.5-4.3z" fill="#ffb86a"/>
+  <path d="M12.4 15h6.2" fill="none" stroke="#ffffff" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+  <circle cx="14" cy="25.4" r="5.2" fill="#dd5200"/>
+  <circle cx="14" cy="24.8" r="4" fill="#ffffff"/>
+  <circle cx="14" cy="24.8" r="2" fill="#e2e8f0"/>
+  <rect x="20.9" y="20.2" width="2.6" height="1.4" rx=".7" fill="#dd5200"/>
+  <rect x="24.5" y="20.2" width="2.6" height="1.4" rx=".7" fill="#dd5200"/>
+  <circle cx="33" cy="22.2" r="2.9" fill="#dd5200"/>
+  <circle cx="38" cy="27.2" r="2.9" fill="#dd5200"/>
+  <circle cx="28" cy="27.2" r="2.9" fill="#dd5200"/>
+  <circle cx="33" cy="21.6" r="2.7" fill="#6556f0"/>
+  <circle cx="38" cy="26.6" r="2.7" fill="#f6339a"/>
+  <circle cx="28" cy="26.6" r="2.7" fill="#1d293d"/>
+  <circle cx="32.2" cy="20.8" r=".8" fill="#ffffff" opacity=".5"/>
+  <circle cx="37.2" cy="25.8" r=".8" fill="#ffffff" opacity=".5"/>
+  <circle cx="27.2" cy="25.8" r=".8" fill="#ffffff" opacity=".35"/>
+</svg>

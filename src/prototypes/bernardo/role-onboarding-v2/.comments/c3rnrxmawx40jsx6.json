@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "c3rnrxmawx40jsx6",
+  "artifact": "htrx8eamccfkqmbj",
+  "artifactTitle": "Org Chart · Large district",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Fall Robotics 202618 learners\"",
+    "at": {
+      "x": 0.3101,
+      "y": 0.5185
+    },
+    "selector": "div.place-text.cohort-text:nth-of-type(1)",
+    "tag": "div",
+    "path": ".divide-y > li > .pb-2 > .place > .place-text",
+    "text": "Fall Robotics 202618 learners",
+    "box": {
+      "left": 303,
+      "top": 470,
+      "width": 974,
+      "height": 54,
+      "viewport": 1381
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-18T21:37:35.040Z",
+  "messages": [
+    {
+      "id": "gpvv1z8fggms3baq",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "ao centro do cartão, vamos colocar numero de progresso e status. vamos manter algo mais visual.",
+      "createdAt": "2026-11-18T21:24:50.932Z"
+    },
+    {
+      "id": "fmza5w6j8p5vd7qe",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done: each Cohort row now shows its run in the middle (new _chart/CohortRun.vue): a progress ring with the average % beside it, and the status as the app's badge (Starts… blue, Session N of 10 green, Finished grey; the ring takes the same colour). The faces column keeps a fixed width so rings and badges line up row to row. Data comes from the sample world's cohorts and is generated for Large district (district.ts).",
+      "createdAt": "2026-11-18T21:35:00.897Z"
+    }
+  ]
+}

@@ -17,7 +17,7 @@ import Subtitle from './Subtitle.vue'
 import Tabs from './Tabs.vue'
 import Title from './Title.vue'
 import Welcome from './Welcome.vue'
-import { cohort, COHORT, ORG, people, PROGRAM, roles, TEAM, view, type RoleKey } from './world'
+import { cohort, COHORT, cohorts, ORG, people, PROGRAM, roles, TEAM, view, WINTER_COHORT, type RoleKey } from './world'
 import s from './wire.module.css'
 
 // The Team's page as each Team role sees it. Step 3 is the welcome, step 4 the first task (a modal), step 5 after it.
@@ -29,11 +29,16 @@ const owner = props.viewer === 'teamOwner'
 
 const tabs = owner ? ['Cohorts', 'People', 'Reports', 'Settings'] : ['Cohorts', 'People']
 const tab = ref(owner && props.step > 3 ? 'People' : tabs[0])
-const open = ref(props.step === 4)
+const open = ref(props.step === 4 && !owner)
+// Each add button opens the modal for its own role. Step 4 opens Add Team Managers with Ben added and Daniel's name
+// half typed, so the search dropdown shows.
+const adding = ref<string | null>(props.step === 4 && owner ? 'Team Manager' : null)
+const scripted = (role: string) => props.step === 4 && role === 'Team Manager'
 
 // Aisha arrives at a Team Marcus has just created, so it has no Cohorts yet. By the time Ben accepts, Daniel (the
 // other Team Manager) has created Winter Godot Club, and Ben sees it too: a Team Manager sees every Cohort in the Team.
-const list = owner ? [] : [{ name: 'Winter Godot Club', owners: 'Daniel Reyes', status: 'Session 2 of 10', learners: 17 }]
+const winter = cohorts.find((c) => c.name === WINTER_COHORT)
+const list = owner || !winter ? [] : [{ ...winter, owners: winter.owners.join(', ') }]
 
 const me = { ...roles[props.viewer].person, you: true }
 const invited = (p: (typeof people)[keyof typeof people]) => ({ ...p, invited: true })
@@ -41,6 +46,7 @@ const sections = {
   owners: owner ? [me] : [people.aisha],
   managers: owner ? (props.step === 5 ? [invited(people.ben), invited(people.daniel)] : []) : [people.daniel, me],
 }
+const holders: Record<string, { email: string }[]> = { 'Team Owner': sections.owners, 'Team Manager': sections.managers }
 </script>
 
 <template>
@@ -85,7 +91,12 @@ const sections = {
     </template>
 
     <div v-else-if="tab === 'People'" :class="s.roSections">
-      <RoleSection title="Team Owners" :people="sections.owners" :add="owner ? 'Add Team Owner' : undefined" @add="open = true" />
+      <RoleSection
+        title="Team Owners"
+        :people="sections.owners"
+        :add="owner ? 'Add Team Owner' : undefined"
+        @add="adding = 'Team Owner'"
+      />
       <RoleSection
         title="Team Managers"
         :people="sections.managers"
@@ -93,7 +104,7 @@ const sections = {
         :remove="owner"
         :flow="flow"
         :note="owner && step === 5 ? 5 : undefined"
-        @add="open = true"
+        @add="adding = 'Team Manager'"
       />
     </div>
 
@@ -112,18 +123,20 @@ const sections = {
     </div>
 
     <template #overlay>
-      <template v-if="open && step === 4">
-        <AwardModal
-          v-if="owner"
-          title="Add Team Managers"
-          :roles="['Team Manager', 'Team Owner']"
-          :emails="[people.ben.email, people.daniel.email]"
-          :next="view('teamOwner', 5)"
-          :flow="flow"
-          :note="4"
-          @close="open = false"
-        />
-        <Modal v-else title="Create a Cohort" :width="460" @close="open = false">
+      <AwardModal
+        v-if="adding"
+        :key="adding"
+        :role="adding"
+        :holders="holders[adding]"
+        :picked="scripted(adding) ? [people.ben.email] : undefined"
+        :query="scripted(adding) ? 'dan' : undefined"
+        :next="scripted(adding) ? view('teamOwner', 5) : undefined"
+        :flow="flow"
+        :note="scripted(adding) ? 4 : undefined"
+        @close="adding = null"
+      />
+      <template v-else-if="open && step === 4">
+        <Modal title="Create a Cohort" :width="460" @close="open = false">
           <Field label="Cohort name">
             <template #note><Marker :flow="flow" :n="4" /></template>
             <Input :value="COHORT" active />

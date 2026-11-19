@@ -1,0 +1,50 @@
+{
+  "formatVersion": 1,
+  "id": "ggnmx8b12qp1b8ep",
+  "artifact": "htrx8eamccfkqmbj",
+  "artifactTitle": "Org Chart · Large district",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Session 1 of 10\"",
+    "at": {
+      "x": 0.1528,
+      "y": 0.7083
+    },
+    "selector": "div.flex.items-center > span.font-medium.inline-flex",
+    "tag": "span",
+    "path": ".pb-2 > .place > .place-run > .flex > .font-medium",
+    "text": "Session 1 of 10",
+    "box": {
+      "left": 997,
+      "top": 533,
+      "width": 144,
+      "height": 24,
+      "viewport": 1381
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-18T21:41:26.875Z",
+  "messages": [
+    {
+      "id": "jt6s41asdvt3a9e8",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Use termos do filtro de Status",
+      "createdAt": "2026-11-18T21:37:53.284Z",
+      "editedAt": "2026-11-18T21:38:33.622Z"
+    },
+    {
+      "id": "6edwbqfaxc3x7p7e",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done: the badge now uses the Status filter's words (Under way, Upcoming, Finished), from one shared list in district.ts so the badge and the filter can't drift apart. The exact detail (Session 1 of 10, Starts Mar 2, 2027, Finished Dec 8) moved to the badge's tooltip. Changed in _chart/CohortRun.vue and StructureList.vue.",
+      "createdAt": "2026-11-18T21:39:24.678Z"
+    }
+  ]
+}

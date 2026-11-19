@@ -21,7 +21,7 @@ const name = computed(() => story.value.places[props.place]?.name ?? '')
 const programs = computed(() =>
   shelfPrograms(story.value).map((program) => ({
     ...program,
-    cohorts: cohortsRunning(story.value, program.name, shown.value.places).length,
+    cohorts: cohortsRunning(story.value, program.name, shown.value.places, props.place).length,
   })),
 )
 const sizes = {

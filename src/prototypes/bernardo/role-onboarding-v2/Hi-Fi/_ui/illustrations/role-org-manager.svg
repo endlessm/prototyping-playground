@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" width="48" height="48">
+  <clipPath id="org-manager-clip"><circle cx="24" cy="24" r="21"/></clipPath>
+  <circle cx="24" cy="24" r="21" fill="#d0ccfa"/>
+  <g clip-path="url(#org-manager-clip)">
+  <g transform="translate(0 0)">
+  <path d="M8 48v-5c0-7.5 7-13 16-13s16 5.5 16 13v5z" fill="#9a91f5"/>
+  <path d="M19.4 30.7c.8 2.6 2.4 4.1 4.6 4.1s3.8-1.5 4.6-4.1c-1.4-.5-3-.7-4.6-.7s-3.2.2-4.6.7z" fill="#e7e5fc"/>
+  <path d="M20.9 30.3c.6 1.9 1.6 2.9 3.1 2.9s2.5-1 3.1-2.9c-1-.2-2-.3-3.1-.3s-2.1.1-3.1.3z" fill="#9c4f00"/>
+  <rect x="21" y="24" width="6" height="7.5" rx="2" fill="#9c4f00"/>
+  <path d="M21 25h6v2.6c-1.8 1.3-4.2 1.3-6 0z" fill="#7c3f00"/>
+  <circle cx="16.7" cy="20.6" r="1.6" fill="#9c4f00"/>
+  <circle cx="31.3" cy="20.6" r="1.6" fill="#9c4f00"/>
+  <circle cx="24" cy="19.5" r="7.5" fill="#9c4f00"/>
+  <circle cx="24" cy="10.3" r="4.2" fill="#1d293d"/>
+  <path d="M16.4 19.6c0-5 3.3-8.2 7.6-8.2s7.6 3.2 7.6 8.2c-4.2-.3-8.4-1.8-10.8-4.3-.8 2.1-2.4 3.5-4.4 4.3z" fill="#1d293d"/>
+  <path d="M21.5 9.7c.3-1.3 1.3-2.2 2.6-2.4M19.6 14.3c1.2-1 2.7-1.5 4.3-1.5" fill="none" stroke="#45556c" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  </g>
+  <rect x="28.5" y="26.5" width="16" height="20" rx="2.4" fill="#ca6f14"/>
+  <rect x="28.5" y="26.5" width="16" height="18.8" rx="2.4" fill="#e48626"/>
+  <rect x="30.3" y="29" width="12.4" height="15" rx="1.2" fill="#ffffff"/>
+  <path d="M40.4 44l2.3-2.3v1.1c0 .7-.5 1.2-1.2 1.2z" fill="#cad5e2"/>
+  <rect x="32.5" y="25" width="8" height="4.4" rx="1.4" fill="#1d293d"/>
+  <circle cx="36.5" cy="26.6" r=".8" fill="#90a1b9"/>
+  <rect x="31.8" y="32.2" width="2.2" height="2.2" rx=".6" fill="#6556f0"/>
+  <rect x="31.8" y="36.3" width="2.2" height="2.2" rx=".6" fill="#6556f0"/>
+  <rect x="32.15" y="40.75" width="1.5" height="1.5" rx=".35" fill="none" stroke="#9a91f5" stroke-width=".7"/>
+  <path d="M32.3 33.3l.5.5.8-1M32.3 37.4l.5.5.8-1" fill="none" stroke="#ffffff" stroke-width="0.45" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="35.2" y="32.5" width="6" height="1.6" rx=".8" fill="#b9b2f8"/>
+  <rect x="35.2" y="36.6" width="6" height="1.6" rx=".8" fill="#b9b2f8"/>
+  <rect x="35.2" y="40.7" width="4" height="1.6" rx=".8" fill="#d0ccfa"/>
+</svg>

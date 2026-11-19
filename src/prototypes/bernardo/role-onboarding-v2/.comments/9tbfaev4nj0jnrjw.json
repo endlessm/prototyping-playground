@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "9tbfaev4nj0jnrjw",
+  "artifact": "tqz9chqajhaj8gdk",
+  "artifactTitle": "1.3 Welcome",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Check the Programs the district can run\"",
+    "at": {
+      "x": 0.1628,
+      "y": 0.8676
+    },
+    "selector": "span.line-through.transition-colors",
+    "tag": "span",
+    "path": ".relative > .flex > .flex > .relative > .line-through",
+    "text": "Check the Programs the district can run",
+    "box": {
+      "left": 777,
+      "top": 285,
+      "width": 263,
+      "height": 17,
+      "viewport": 1381
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-18T21:53:31.591Z",
+  "messages": [
+    {
+      "id": "n3tmwhq4v6ds5y7r",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Cria um opcional para criar uma equipe.",
+      "createdAt": "2026-11-18T21:45:01.386Z"
+    },
+    {
+      "id": "tntzfd5pb0vqhrj2",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done: the Programs step became 'Create a Team yourself' with an Optional badge (world.ts: firstSteps and a new optionalSteps). Clicking its words opens Create a Team on the page, and its checkbox still ticks it. Optional steps don't hold back the green 'all done' wave: ticking Add Org Managers alone completes the card. Changed in WelcomeCard.vue and CelebrateChecklist.vue.",
+      "createdAt": "2026-11-18T21:48:15.934Z"
+    }
+  ]
+}

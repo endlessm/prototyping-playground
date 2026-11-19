@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "rvcqxfpw926gxkz3",
+  "artifact": "tge3v77ye885gcmn",
+  "artifactTitle": "Huddle Empty State",
+  "anchor": {
+    "kind": "element",
+    "label": "Element <span.eh-orbit>",
+    "at": {
+      "x": 0.6137,
+      "y": 0.411
+    },
+    "selector": "span.eh-orbit:nth-of-type(3)",
+    "tag": "span",
+    "path": ".p-0 > .eh-root > .eh-stage > .eh-orbits > .eh-orbit",
+    "text": "",
+    "box": {
+      "left": 380,
+      "top": -127,
+      "width": 607,
+      "height": 607,
+      "viewport": 1381
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-18T21:52:44.502Z",
+  "messages": [
+    {
+      "id": "fyesjeegchhx1wcc",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Círculos do background devem se alinhar com as ilustrações.",
+      "createdAt": "2026-11-18T21:40:44.357Z"
+    },
+    {
+      "id": "kpdbqjdh9tf1f83r",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in Hi-Fi/_ui/EmptyStateHuddle.vue: each ring now has the radius of its own pair of figures (106, 180 and 244 px from the tile), so its line runs through the middle of both, and a ring hides together with its figures on narrow cards. The stage is 36 px taller so the nearest ring closes around the tile, and the wider rings fade out instead of being cut. This reaches every screen that uses the huddle: all seven role states here and Crew Huddle in Teams Empty State.",
+      "createdAt": "2026-11-18T21:52:14.911Z"
+    }
+  ]
+}

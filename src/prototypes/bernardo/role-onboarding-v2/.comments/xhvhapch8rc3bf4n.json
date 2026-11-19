@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "xhvhapch8rc3bf4n",
+  "artifact": "65r7b97rmvkz35yq",
+  "artifactTitle": "1.3 Welcome",
+  "anchor": {
+    "kind": "button",
+    "label": "Button \"Brightwater Unified School District Org…\"",
+    "at": {
+      "x": 0.6864,
+      "y": 0.8548
+    },
+    "selector": "button",
+    "tag": "button",
+    "path": "._page_10zb1_3 > ._app_10zb1_59 > ._topBar_10zb1_74 > ._teamSwitcher_10zb1_84 > ._teamButton_10zb1_87",
+    "text": "Brightwater Unified School District Org Owner▾",
+    "box": {
+      "left": 892,
+      "top": 41,
+      "width": 284,
+      "height": 31,
+      "viewport": 2292
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-16T17:58:25.160Z",
+  "messages": [
+    {
+      "id": "h4yk2ba3dcbzr037",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Deixe explícito que \"Create Team\" nesse nível de navegação é criar um team independente.",
+      "createdAt": "2026-11-16T17:31:03.635Z"
+    },
+    {
+      "id": "q3nz7mgerbwz0d1b",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in _wire/AppPage.vue and _wire/CreateTeamModal.vue (shared by every view with the place switcher). The switcher item now reads '+ Create an Independent Team' with the hint 'Its own place, outside any Organization'. It opens a modal titled 'Create an Independent Team' with no 'Belongs to' choice, only a note: the Team belongs to no Organization, uses the Programs open to everyone, and you are its Team Owner. For Org Owners and Org Managers it adds that District Teams are created from the Teams tab. Create a Team on the Teams tab is unchanged.",
+      "createdAt": "2026-11-16T17:35:08.309Z"
+    }
+  ]
+}

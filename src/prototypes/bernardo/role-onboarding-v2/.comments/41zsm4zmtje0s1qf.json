@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "41zsm4zmtje0s1qf",
+  "artifact": "tge3v77ye885gcmn",
+  "artifactTitle": "Huddle Empty State",
+  "anchor": {
+    "kind": "element",
+    "label": "Element <span.eh-hub-pulse>",
+    "at": {
+      "x": 0.5625,
+      "y": 0.6345
+    },
+    "selector": "section.flex.flex-col:nth-of-type(2) > div.overflow-hidden.rounded-2xl > div.p-0 > div.eh-root > div.eh-stage:nth-of-type(1) > span.eh-hub:nth-of-type(7) > span.eh-hub-body > span.eh-hub-pulse:nth-of-type(1)",
+    "tag": "span",
+    "path": ".eh-root > .eh-stage > .eh-hub > .eh-hub-body > .eh-hub-pulse",
+    "text": "",
+    "box": {
+      "left": 635,
+      "top": 557,
+      "width": 96,
+      "height": 96,
+      "viewport": 1381
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-18T21:49:25.109Z",
+  "messages": [
+    {
+      "id": "rz55dxxp4c97d8pq",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Vamos fazer um outro ícone para cohort. Algo relacionado à sala de aula.",
+      "createdAt": "2026-11-18T21:41:10.422Z"
+    },
+    {
+      "id": "p3mwk50yy2vd5z8s",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in Hi-Fi/_ui/EmptyStateHuddle.vue: the tile now takes a hub, and Cohorts get a classroom instead of the stacked hands: a board with chalk writing above three desks with empty chairs. The board drops in, the seats come up and the chalk writes; on each pulse the seats hop and the lesson is wiped and written again. It shows wherever a Cohort is the place: No Cohorts yet (Team Owner, Team Manager) and No learners yet (Cohort Owner, Facilitator). Teams keep the hands. The choice per role is in _ui/emptyStates.ts.",
+      "createdAt": "2026-11-18T21:52:15.602Z"
+    }
+  ]
+}

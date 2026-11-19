@@ -71,7 +71,7 @@ export type StoryEvent =
       place: PlaceId
       /** The arrow's verb before the role: "invites as" Team Owner. */
       verb: string
-      /** The role the actor awards it as, when it isn't their tile's role: Ben adds Sofia as a Cohort Owner. */
+      /** The role the actor awards it as, when it isn't their tile's role: Ben invites Sofia as a Cohort Owner. */
       byRole?: MapRoleKey
       caption: string
     }
@@ -213,9 +213,9 @@ export const brightwater: Story = {
       node: 'sofia',
       role: 'cohortOwner',
       place: 'cohort',
-      verb: 'adds as',
+      verb: 'invites as',
       byRole: roleNamed(roles.cohortOwner.byRole),
-      caption: `${who('teamManager')} adds ${who('cohortOwner')} as a second Cohort Owner`,
+      caption: `${who('teamManager')} invites ${who('cohortOwner')} as a second Cohort Owner`,
     },
     {
       kind: 'award',

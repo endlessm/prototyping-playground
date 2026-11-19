@@ -1,0 +1,46 @@
+{
+  "formatVersion": 1,
+  "id": "hj7ab6ztzvzbstya",
+  "artifact": "f5th2s6548m9k64e",
+  "artifactTitle": "Org Chart · People",
+  "anchor": {
+    "kind": "list",
+    "label": "List \"Winter Godot ClubCohortSession 6 of 10 …\"",
+    "at": {
+      "x": 0.4859,
+      "y": 0.557
+    },
+    "selector": "ul.children > li.branch:nth-of-type(1) > ul.children",
+    "tag": "ul",
+    "path": ".tree > .branch > .children > .branch > .children",
+    "text": "Winter Godot ClubCohortSession 6 of 10 · 17 learnersDRSpring Game MakersCohortStarts Mar 2, 2027 · 5 learnersBCSLSR",
+    "box": {
+      "left": 400,
+      "top": 589,
+      "width": 496,
+      "height": 158,
+      "viewport": 1328
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-18T20:06:59.673Z",
+  "sentToAgent": {
+    "by": {
+      "contributor": "ma1xykkc2j3d2x24"
+    },
+    "at": "2026-11-18T20:05:39.229Z"
+  },
+  "messages": [
+    {
+      "id": "8nsr5s2vg8rm9fkr",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Vamos adicionar alguns cards que estão mais escondidos que representam os cohorts que já terminaram. Quando clicar, mostra os que já fecharam.",
+      "createdAt": "2026-11-18T20:05:39.229Z"
+    }
+  ]
+}

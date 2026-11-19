@@ -36,7 +36,11 @@ const owner = props.viewer === 'teamManager' || props.viewer === 'cohortOwner'
 
 const tabs = owner ? ['Learners', 'Sessions', 'People', 'Reports', 'Settings'] : ['Learners', 'Sessions']
 const tab = ref(props.step > 3 && props.viewer !== 'facilitator' ? 'People' : 'Learners')
-const open = ref(props.step === 4)
+const open = ref(props.step === 4 && props.viewer === 'facilitator')
+// Each add button opens the modal for its own role. Sofia's step 4 opens Invite Facilitators with Sam's email typed:
+// he comes from outside the district, so the dropdown offers to invite the email.
+const adding = ref<string | null>(props.step === 4 && props.viewer === 'cohortOwner' ? 'Facilitator' : null)
+const scripted = (role: string) => props.step === 4 && props.viewer === 'cohortOwner' && role === 'Facilitator'
 
 const me = { ...roles[props.viewer].person, you: true }
 const invited = (p: (typeof people)[keyof typeof people]) => ({ ...p, invited: true })
@@ -45,6 +49,7 @@ const sections = {
     props.viewer === 'teamManager' ? [me] : props.viewer === 'cohortOwner' ? [people.ben, me] : [people.ben, people.sofia],
   facilitators: props.viewer === 'cohortOwner' && props.step === 5 ? [invited(people.sam)] : [],
 }
+const holders: Record<string, { email: string }[]> = { 'Cohort Owner': sections.owners, Facilitator: sections.facilitators }
 const joined = props.viewer === 'facilitator' && props.step === 5 ? learners : []
 const link = `endlessstudios.com/join?code=${cohort.code}`
 
@@ -118,7 +123,7 @@ const gained = {
     </section>
 
     <div v-else-if="tab === 'People'" :class="s.roSections">
-      <RoleSection title="Cohort Owners" :people="sections.owners" add="Add Cohort Owner" @add="open = true" />
+      <RoleSection title="Cohort Owners" :people="sections.owners" add="Add Cohort Owner" @add="adding = 'Cohort Owner'" />
       <RoleSection
         title="Facilitators"
         :people="sections.facilitators"
@@ -126,7 +131,7 @@ const gained = {
         remove
         :flow="flow"
         :note="viewer === 'cohortOwner' && step === 5 ? 5 : undefined"
-        @add="open = true"
+        @add="adding = 'Facilitator'"
       />
     </div>
 
@@ -143,18 +148,20 @@ const gained = {
     </div>
 
     <template #overlay>
-      <template v-if="open">
-        <AwardModal
-          v-if="viewer === 'cohortOwner'"
-          title="Invite Facilitators"
-          :roles="['Facilitator', 'Cohort Owner']"
-          :emails="[people.sam.email]"
-          :next="view('cohortOwner', 5)"
-          :flow="flow"
-          :note="4"
-          @close="open = false"
-        />
-        <Modal v-else-if="viewer === 'facilitator'" title="Add Learners" :width="480" @close="open = false">
+      <AwardModal
+        v-if="adding"
+        :key="adding"
+        :role="adding"
+        :title="adding === 'Facilitator' ? 'Invite Facilitators' : undefined"
+        :holders="holders[adding]"
+        :query="scripted(adding) ? people.sam.email : undefined"
+        :next="scripted(adding) ? view('cohortOwner', 5) : undefined"
+        :flow="flow"
+        :note="scripted(adding) ? 4 : undefined"
+        @close="adding = null"
+      />
+      <template v-else-if="open">
+        <Modal v-if="viewer === 'facilitator'" title="Add Learners" :width="480" @close="open = false">
           <div :class="s.row">
             <span :class="s.label">Join link</span>
             <Marker :flow="flow" :n="4" />

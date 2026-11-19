@@ -9,12 +9,15 @@ import Modal from './Modal.vue'
 import { createsOrgTeams, INDIE_TEAM, ORG, TEAM, type RoleKey } from './world'
 import s from './wire.module.css'
 
-// Create a Team, from the Organization's Teams tab or from "Create a Team" in the place switcher. Everyone can create
-// an Independent Team; only the Organization's roles that create Teams also get the Organization as a choice. Org
-// Owners and Org Managers can name the new Team's owners right away, since they award Team Owner.
+// Create a Team, from the Organization's Teams tab or from "Create an Independent Team" in the place switcher.
+// Everyone can create an Independent Team; only the Organization's roles that create Teams also get the Organization
+// as a choice. Org Owners and Org Managers can name the new Team's owners right away, since they award Team Owner.
+// From the switcher, which sits above every place, the Team can only be Independent, so the modal says so instead of
+// offering a choice.
 const props = defineProps<{
   viewer: RoleKey
   where?: 'org' | 'independent'
+  independentOnly?: boolean
   next?: string
   name?: string
   owners?: string[]
@@ -24,7 +27,7 @@ const props = defineProps<{
 const emit = defineEmits<{ close: [] }>()
 
 const navigate = usePrototypeNavigate()
-const canOrg = createsOrgTeams.includes(props.viewer)
+const canOrg = !props.independentOnly && createsOrgTeams.includes(props.viewer)
 const where = ref(canOrg ? (props.where ?? 'org') : 'independent')
 const awardsOwners = props.viewer === 'orgOwner' || props.viewer === 'orgManager'
 
@@ -35,12 +38,19 @@ function create() {
 </script>
 
 <template>
-  <Modal title="Create a Team" :width="480" @close="emit('close')">
+  <Modal :title="independentOnly ? 'Create an Independent Team' : 'Create a Team'" :width="480" @close="emit('close')">
     <Field label="Team name">
       <template v-if="flow !== undefined && note" #note><Marker :flow="flow" :n="note" /></template>
       <Input :value="name ?? (where === 'org' ? TEAM : INDIE_TEAM)" active />
     </Field>
-    <div :class="[s.stack, s.tight]">
+    <p v-if="independentOnly" :class="s.small">
+      This Team stands on its own and belongs to no Organization. It uses the Programs open to everyone, and you are its
+      Team Owner.
+      <template v-if="createsOrgTeams.includes(viewer)">
+        To create a Team in {{ ORG }}, use Create a Team on its Teams tab.
+      </template>
+    </p>
+    <div v-else :class="[s.stack, s.tight]">
       <span :class="s.label">Belongs to</span>
       <label v-if="canOrg" :class="[s.card, s.row, where === 'org' && s.selected]" style="padding: 10px 12px">
         <input v-model="where" type="radio" value="org" :class="s.checkbox" />

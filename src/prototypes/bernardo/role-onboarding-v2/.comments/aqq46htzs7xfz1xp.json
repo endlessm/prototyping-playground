@@ -1,0 +1,45 @@
+{
+  "formatVersion": 1,
+  "id": "aqq46htzs7xfz1xp",
+  "artifact": "tqz9chqajhaj8gdk",
+  "artifactTitle": "1.3 Welcome",
+  "anchor": {
+    "kind": "paragraph",
+    "label": "Paragraph \"Alex Kim added you on Nov 12. Welcome t…\"",
+    "at": {
+      "x": 0.1556,
+      "y": 0.75
+    },
+    "selector": "p.text-sm.text-muted:nth-of-type(2)",
+    "tag": "p",
+    "path": ".mx-auto > .overflow-hidden > .p-4 > .col-span-5 > .text-sm",
+    "text": "Alex Kim added you on Nov 12. Welcome to Brightwater Unified School District.",
+    "box": {
+      "left": 283,
+      "top": 240,
+      "width": 415,
+      "height": 40,
+      "viewport": 1381
+    }
+  },
+  "status": "open",
+  "messages": [
+    {
+      "id": "3jgcvrs10ff0r35h",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Não fale sobre quem chamou. Dê uma informação breve sobre o cargo da pessoa. \"As an Org Owner you...\"",
+      "createdAt": "2026-11-18T21:52:40.971Z"
+    },
+    {
+      "id": "y2t9ryjnp5cswc3p",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done: the line no longer says who added the person. It says what the role is for, starting 'As an Org Owner you…'. One line per role lives in _wire/world.ts (roleBriefs), so every role's card follows the same pattern. Org Owner: 'As an Org Owner you lead the district on Endless Access: you choose who runs it with you, and you can do everything an Org Manager does.'",
+      "createdAt": "2026-11-18T22:45:04.786Z"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "bkam8y9b3p6kjyr0",
+  "artifact": "cg6xr79whah7sfqv",
+  "artifactTitle": "Celebrated Checklist · One ticked",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"All set! Brightwater is ready for its f…\"",
+    "at": {
+      "x": 0.9414,
+      "y": 0.5556
+    },
+    "selector": "div.flex.items-center:nth-of-type(2)",
+    "tag": "div",
+    "path": ".p-4 > .overflow-hidden > .p-0 > .relative > .flex",
+    "text": "All set! Brightwater is ready for its first Team.",
+    "box": {
+      "left": 612,
+      "top": 201,
+      "width": 444,
+      "height": 45,
+      "viewport": 1328
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-18T19:58:50.550Z",
+  "messages": [
+    {
+      "id": "4p3d5f3e5bgg53xv",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Ao invés de essa sessão aparecer, quero uma animação nesse quadro que funciona como um pulso combinado com uma onda que deixa ele com o fundo verde e os itens brancos. o pulso vai aumentar radialmente do checkbox que a pessoa clicou por ultimo. se ela desclicar algum ícone, o processo contrário acontece.",
+      "createdAt": "2026-11-18T19:46:53.990Z"
+    },
+    {
+      "id": "90wwgcnqaz3kvt1s",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in _ui/CelebrateChecklist.vue: the 'All set!' row is gone (and its confetti). Ticking the last step now sends two pulse rings and a green wave out from that checkbox; the box turns green and the steps turn white as the wave reaches them. Unticking any step pulls the wave back into that checkbox. With reduced motion it switches instantly. While here, the strike-through now covers steps that wrap to two lines.",
+      "createdAt": "2026-11-18T19:53:20.795Z"
+    }
+  ]
+}
