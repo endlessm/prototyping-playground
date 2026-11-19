@@ -208,7 +208,9 @@ describe('on the dev server', () => {
         .locator('img[src*="github.com/benok"], :text-is("BO")')
         .count(),
     ).toBeGreaterThan(0)
-    await visible(bens.getByText(/ ago$|^now$|^yesterday$/))
+    await visible(
+      bens.getByText(/ ago$|^now$|^yesterday$|^last (week|month|year)$/),
+    )
 
     await popover
       .getByRole('textbox', { name: 'Reply' })

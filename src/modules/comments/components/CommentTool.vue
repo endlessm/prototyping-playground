@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   useManifest,
+  usePrototypeArtifacts,
   type ManifestArtifact,
   type ManifestPrototype,
 } from '../../../../app/composables/useManifest'
@@ -22,7 +23,13 @@ import { agentText } from '../agentText'
 import { useCommentAccess } from '../composables/useCommentAccess'
 import { useCommentAuthors } from '../composables/useCommentAuthors'
 import { useCommentThreads } from '../composables/useCommentThreads'
-import { threadNumbers, type Anchor, type CommentThread } from '../threads'
+import {
+  mayDeleteThread,
+  threadNumbers,
+  type Anchor,
+  type CommentThread,
+} from '../threads'
+import type { CommentGroup } from '../utils/commentGroup'
 import CommentComposer from './CommentComposer.vue'
 import CommentDeleteModal from './CommentDeleteModal.vue'
 import CommentList from './CommentList.vue'
@@ -31,7 +38,7 @@ import CommentThreadPopover from './CommentThreadPopover.vue'
 import CommentToolbar from './CommentToolbar.vue'
 
 // The comment tool over an artifact page, drawn in the studio's overlay: the
-// toolbar, numbered pins on what was commented, the composer, a thread's
+// toolbar (in the page's top bar), numbered pins on what was commented, the composer, a thread's
 // popover and the list of every comment. The page's surface says what is
 // under the pointer and where each anchor is now; the tool asks again
 // whenever the surface says things may have moved, so pins follow
@@ -47,6 +54,8 @@ const props = defineProps<{
     state?: { id: string; title: string; view: string }
   }
   surface: ArtifactSurface | null
+  /** The end of the page's top bar, where the toolbar sits. */
+  toolbar: HTMLElement | null
 }>()
 
 const { t } = useI18n()
@@ -56,12 +65,14 @@ const overlay = useOverlay()
 const toast = useStudioToast()
 const authorOf = await useCommentAuthors()
 const manifest = await useManifest()
+const artifacts = await usePrototypeArtifacts(() => props.prototype.id)
 const {
   threads,
   create,
   reply,
   resolve,
   reopen,
+  sendToAgent,
   edit,
   deleteMessage,
   deleteThread,
@@ -108,29 +119,97 @@ watch(openId, (id) => {
 })
 
 const KINDS = ['view', 'document', 'diagram', 'canvas']
-const kind = computed(() =>
-  t(
-    `comments.kinds.${KINDS.includes(props.artifact.type) ? props.artifact.type : 'other'}`,
-  ),
-)
+const kindOf = (type: string) =>
+  t(`comments.kinds.${KINDS.includes(type) ? type : 'other'}`)
+const kind = computed(() => kindOf(props.artifact.type))
 const wholeLabel = computed(() => t('comments.whole', { kind: kind.value }))
+// The list names whole-file threads of other files by their own kind.
+const fileOf = (artifact: string) => {
+  const owner = owners.value.get(artifact)
+  return owner ? owner.file : null
+}
 const labelOf = (thread: CommentThread) =>
   thread.anchor.kind === 'artifact'
-    ? wholeLabel.value
+    ? t('comments.whole', {
+        kind: kindOf(fileOf(thread.artifact)?.type ?? props.artifact.type),
+      })
     : (thread.anchor.label ?? thread.anchor.kind)
 
-// A view's threads are numbered together, all its named states included,
-// so the list never repeats a number; pins show the state on screen only.
-const family = computed(() => {
-  const view = props.artifact.state?.view ?? props.artifact.id
-  return new Set([view, ...(props.artifact.states ?? []).map(({ id }) => id)])
+// Which file each artifact ID belongs to: a named state to its view, every
+// other artifact to itself. A view's threads are numbered together, all its
+// named states included, so a file's group never repeats a number; pins
+// show the state on screen only.
+const owners = computed(() => {
+  const map = new Map<
+    string,
+    { file: ManifestArtifact; state?: { id: string; title: string } }
+  >()
+  for (const file of artifacts.value) {
+    map.set(file.id, { file })
+    for (const state of file.states ?? []) map.set(state.id, { file, state })
+  }
+  return map
 })
+const fileId = computed(() => props.artifact.state?.view ?? props.artifact.id)
+const groupOf = (thread: CommentThread) =>
+  owners.value.get(thread.artifact)?.file.id ??
+  // Before the artifact list arrives, the page still knows its own file.
+  ((props.artifact.states ?? []).some(({ id }) => id === thread.artifact) ||
+  thread.artifact === props.artifact.id
+    ? fileId.value
+    : `removed:${thread.artifact}`)
 const familyThreads = computed(() =>
-  threads.value.filter(({ artifact }) => family.value.has(artifact)),
+  threads.value.filter((thread) => groupOf(thread) === fileId.value),
 )
-const numbers = computed(() => threadNumbers(familyThreads.value))
+// Every thread of the prototype, by file: the open file first, then the
+// rest in file-tree order, then comments on files removed since.
+const groups = computed<CommentGroup[]>(() => {
+  const byFile = new Map<string, CommentThread[]>()
+  for (const thread of threads.value) {
+    const key = groupOf(thread)
+    byFile.set(key, [...(byFile.get(key) ?? []), thread])
+  }
+  const order = [
+    fileId.value,
+    ...artifacts.value.map(({ id }) => id).filter((id) => id !== fileId.value),
+    ...[...byFile.keys()].filter((key) => key.startsWith('removed:')),
+  ]
+  return order.flatMap((key): CommentGroup[] => {
+    const list = byFile.get(key)
+    if (!list?.length) return []
+    const file = artifacts.value.find(({ id }) => id === key)
+    const path = (file?.path ?? '').split('/').slice(0, -1).join('/')
+    if (key === fileId.value || file)
+      return [
+        {
+          id: key,
+          title: file?.title ?? props.artifact.title,
+          folder: path,
+          kind: kindOf(file?.type ?? props.artifact.type),
+          current: key === fileId.value,
+          removed: false,
+          threads: list,
+        },
+      ]
+    return [
+      {
+        id: key,
+        title: list[0]!.artifactTitle,
+        folder: '',
+        kind: kindOf('other'),
+        current: false,
+        removed: true,
+        threads: list,
+      },
+    ]
+  })
+})
+const numbers = computed(
+  () =>
+    new Map(groups.value.flatMap((group) => [...threadNumbers(group.threads)])),
+)
 const openCount = computed(
-  () => familyThreads.value.filter(({ status }) => status === 'open').length,
+  () => threads.value.filter(({ status }) => status === 'open').length,
 )
 // The threads on the page's own targets; a whole-file thread has no pin.
 const pinned = computed(() =>
@@ -153,9 +232,15 @@ const placed = computed(() =>
   ),
 )
 const chosen = computed(
-  () => familyThreads.value.find(({ id }) => id === openId.value) ?? null,
+  () =>
+    threads.value.find(
+      ({ id, artifact }) => id === openId.value && owners.value.has(artifact),
+    ) ??
+    familyThreads.value.find(({ id }) => id === openId.value) ??
+    null,
 )
-// A thread opens on its own state: a link to it from another one goes there.
+// A thread opens on its own file and state: a link to it from another one
+// goes there.
 const current = computed(() =>
   chosen.value?.artifact === props.artifact.id ? chosen.value : null,
 )
@@ -176,7 +261,8 @@ watch(
 const elsewhere = (thread: CommentThread) =>
   thread.artifact === props.artifact.id
     ? undefined
-    : props.artifact.states?.find(({ id }) => id === thread.artifact)?.title
+    : (owners.value.get(thread.artifact)?.state?.title ??
+      props.artifact.states?.find(({ id }) => id === thread.artifact)?.title)
 
 // --- Where things are, in the overlay's own coordinates.
 const DRAFT = '\0draft'
@@ -349,7 +435,7 @@ async function write(action: () => Promise<unknown>) {
   }
 }
 
-const post = (body: string) =>
+const post = (body: string, send: boolean) =>
   write(async () => {
     if (!draft.value) return
     await create({
@@ -357,10 +443,12 @@ const post = (body: string) =>
       artifactTitle: props.artifact.title,
       anchor: draft.value.anchor,
       body,
+      send,
     })
     draft.value = null
     draftText.value = ''
     pinsShown.value = true
+    if (send) toast.success(t('comments.sent'))
   })
 
 function open(thread: CommentThread) {
@@ -371,11 +459,17 @@ function open(thread: CommentThread) {
 
 /** A row of the list: bring its target into view and open it. */
 function choose(thread: CommentThread) {
+  // A removed file's comments are listed only: there is no page to open.
+  if (
+    thread.artifact !== props.artifact.id &&
+    !owners.value.has(thread.artifact)
+  )
+    return
   draft.value = null
   replyText.value = ''
   if (thread.anchor.kind !== 'artifact') revealing.value = thread.id
-  // Going to another named state is a step the person can go back from;
-  // the thread opens once it shows.
+  // Going to another file or named state is a step the person can go back
+  // from; the thread opens once it shows.
   if (thread.artifact !== props.artifact.id)
     void navigateTo({
       path: addressOf(thread.artifact),
@@ -401,6 +495,14 @@ const resolveCurrent = () =>
       label: t('comments.undo'),
       onClick: () => write(() => reopen(id)),
     })
+  })
+
+/** Sends the open thread to the person's agent, or stops sending it. */
+const sendCurrent = (on: boolean) =>
+  write(async () => {
+    if (!current.value) return
+    await sendToAgent(current.value.id, on)
+    toast.success(t(on ? 'comments.sent' : 'comments.unsent'))
   })
 
 // The list follows a reopened thread to the Open tab.
@@ -437,6 +539,89 @@ async function deleteCurrent() {
     await deleteThread(thread.id)
     if (openId.value === thread.id) openId.value = null
     toast.success(t('comments.deleted'))
+  })
+}
+
+// Several threads at once, from the list. Each is its own write, so one
+// refused (someone else's comment, a file changed meanwhile) leaves the
+// others done; the toast says how many went through and why one didn't.
+const mayDelete = (thread: CommentThread) =>
+  Boolean(access.value && mayDeleteThread(access.value, thread))
+
+async function each(
+  threads: CommentThread[],
+  action: (id: string) => Promise<unknown>,
+) {
+  const done: string[] = []
+  let refusal: string | null = null
+  for (const { id } of threads)
+    try {
+      await action(id)
+      done.push(id)
+    } catch (error) {
+      refusal ??= (error as Error).message
+    }
+  if (refusal) toast.error(t('comments.failed'), refusal)
+  return done
+}
+
+/** One batch at a time, and never beside a single write. */
+async function batch(run: () => Promise<void>) {
+  if (busy.value) return
+  busy.value = true
+  try {
+    await run()
+  } finally {
+    busy.value = false
+  }
+}
+
+const resolveMany = (threads: CommentThread[]) =>
+  batch(async () => {
+    const done = await each(threads, resolve)
+    if (openId.value && done.includes(openId.value)) openId.value = null
+    if (!done.length) return
+    const resolved = threads.filter(({ id }) => done.includes(id))
+    toast.success(
+      t('comments.resolvedMany', { count: done.length }, done.length),
+      undefined,
+      {
+        label: t('comments.undo'),
+        onClick: () => batch(async () => void (await each(resolved, reopen))),
+      },
+    )
+  })
+
+const reopenMany = (threads: CommentThread[]) =>
+  batch(async () => {
+    const done = await each(threads, reopen)
+    if (done.length)
+      toast.success(
+        t('comments.reopenedMany', { count: done.length }, done.length),
+      )
+  })
+
+async function deleteMany(threads: CommentThread[]) {
+  if (busy.value || !threads.length) return
+  const [only] = threads
+  const confirmed = await overlay
+    .create(CommentDeleteModal, { destroyOnClose: true })
+    .open(
+      threads.length === 1
+        ? {
+            number: numbers.value.get(only!.id) ?? 0,
+            replies: only!.messages.length - 1,
+          }
+        : { number: 0, replies: 0, count: threads.length },
+    )
+  if (!confirmed) return
+  await batch(async () => {
+    const done = await each(threads, deleteThread)
+    if (openId.value && done.includes(openId.value)) openId.value = null
+    if (done.length)
+      toast.success(
+        t('comments.deletedMany', { count: done.length }, done.length),
+      )
   })
 }
 
@@ -500,7 +685,8 @@ async function copyForAgent() {
 const fallbackFocus = () =>
   root.value?.querySelector<HTMLElement>(
     '[data-comment-list] [role="tab"][aria-selected="true"]',
-  ) ?? root.value?.querySelector<HTMLElement>('[role="toolbar"] button:enabled')
+  ) ??
+  props.toolbar?.querySelector<HTMLElement>('[role="toolbar"] button:enabled')
 
 /** Esc backs out one step: the draft, then the thread, then comment mode. */
 function back() {
@@ -518,7 +704,9 @@ function toggle() {
 
 useEventListener(window, 'keydown', (event: KeyboardEvent) => {
   const ours = Boolean(
-    event.target instanceof Node && root.value?.contains(event.target),
+    event.target instanceof Node &&
+    (root.value?.contains(event.target) ||
+      props.toolbar?.contains(event.target)),
   )
   if (commentShortcut(event)) {
     // Outside the tool a text field keeps its keystrokes. Inside it, Ctrl+Alt
@@ -555,19 +743,16 @@ useEventListener(window, 'keydown', (event: KeyboardEvent) => {
     event.preventDefault()
 })
 
-// Room the page's own controls take at its bottom edge, kept clear.
-const inset = computed(() => props.surface?.bottomInset ?? 0)
-
 // A popover beside its point, flipped and kept inside the page and clear of
-// the list; above the toolbar when it has no point.
+// the list; at the top right, under the toolbar, when it has no point.
 const WIDTH = 320
 function beside(point: { x: number; y: number } | null, height: number) {
   const { height: tall } = size.value
   const width = size.value.width - (listOpen.value ? PANEL : 0)
   if (!point)
     return {
-      left: `${Math.max(12, width - WIDTH - 16)}px`,
-      bottom: `${72 + inset.value}px`,
+      left: `${Math.max(12, width - WIDTH - 12)}px`,
+      top: '12px',
     }
   let left = point.x + 22
   if (left + WIDTH > width - 12) left = point.x - 22 - WIDTH
@@ -707,6 +892,7 @@ const missing = computed(
       @delete-message="deleteCurrentMessage"
       @delete="deleteCurrent"
       @copy-link="copyLink"
+      @send="sendCurrent"
       @close="openId = null"
     />
 
@@ -732,7 +918,7 @@ const missing = computed(
         v-if="listOpen"
         v-model:tab="tab"
         data-comment-list
-        :threads="familyThreads"
+        :groups="groups"
         :numbers="numbers"
         :kind="kind"
         :label="labelOf"
@@ -741,24 +927,30 @@ const missing = computed(
         :elsewhere="elsewhere"
         :open-id="openId"
         :read-only="readOnly"
+        :may-delete="mayDelete"
+        :busy="busy"
         @choose="choose"
+        @resolve="resolveMany"
+        @reopen="reopenMany"
+        @delete="deleteMany"
         @whole="whole"
         @close="listOpen = false"
       />
     </Transition>
 
-    <CommentToolbar
-      :commenting="commenting"
-      :pins-shown="pinsShown"
-      :list-open="listOpen"
-      :open-count="openCount"
-      :can-point="Boolean(surface)"
-      :read-only="readOnly"
-      :inset="inset"
-      @comment="toggle"
-      @pins="pinsShown = !pinsShown"
-      @list="listOpen = !listOpen"
-      @copy="copyForAgent"
-    />
+    <Teleport v-if="toolbar" :to="toolbar">
+      <CommentToolbar
+        :commenting="commenting"
+        :pins-shown="pinsShown"
+        :list-open="listOpen"
+        :open-count="openCount"
+        :can-point="Boolean(surface)"
+        :read-only="readOnly"
+        @comment="toggle"
+        @pins="pinsShown = !pinsShown"
+        @list="listOpen = !listOpen"
+        @copy="copyForAgent"
+      />
+    </Teleport>
   </div>
 </template>

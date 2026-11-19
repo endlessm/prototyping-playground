@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "studio-comments": {
+      "command": "node",
+      "args": ["src/modules/comments/mcp.ts"]
+    }
+  }
+}

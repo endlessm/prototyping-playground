@@ -16,7 +16,8 @@ import { timeAgo } from '../utils/time'
 import CommentReadOnly from './CommentReadOnly.vue'
 
 // A thread beside its pin: who said what, Reply, Resolve or Reopen, and its
-// "…" menu (Copy link, and Delete comment for its author or an Admin). Your
+// "…" menu (Copy link, Send to agent or Stop sending to agent, and Delete
+// comment for its author or an Admin). A thread sent to the agent says so. Your
 // own messages can be edited and deleted. It offers only what the service
 // will allow, by the service's own rules; where nothing may be written, the
 // service's reason replaces the Reply field. It opens with the Reply field
@@ -43,6 +44,7 @@ const emit = defineEmits<{
   'delete-message': [message: string]
   delete: []
   'copy-link': []
+  send: [on: boolean]
   close: []
 }>()
 
@@ -73,6 +75,21 @@ const menu = computed<DropdownMenuItem[]>(() => [
     icon: 'i-lucide-link',
     onSelect: afterMenuCloses(() => emit('copy-link'), failed),
   },
+  ...(!readOnly.value && props.access?.author
+    ? [
+        props.thread.sentToAgent
+          ? {
+              label: t('comments.thread.unsend'),
+              icon: 'i-lucide-bot-off',
+              onSelect: afterMenuCloses(() => emit('send', false), failed),
+            }
+          : {
+              label: t('comments.thread.send'),
+              icon: 'i-lucide-bot',
+              onSelect: afterMenuCloses(() => emit('send', true), failed),
+            },
+      ]
+    : []),
   ...(!readOnly.value &&
   props.access &&
   mayDeleteThread(props.access, props.thread)
@@ -167,6 +184,15 @@ onMounted(() => (field.value?.textareaRef ?? root.value)?.focus())
       <span class="min-w-0 flex-1 truncate text-xs font-medium text-muted">{{
         label
       }}</span>
+      <UBadge
+        v-if="thread.sentToAgent"
+        icon="i-lucide-bot"
+        :label="t('comments.thread.sentBadge')"
+        color="info"
+        variant="soft"
+        size="sm"
+        class="shrink-0"
+      />
       <UTooltip
         v-if="thread.status === 'open' && !readOnly"
         :text="t('comments.thread.resolve')"

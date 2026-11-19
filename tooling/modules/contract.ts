@@ -293,7 +293,9 @@ export interface StudioModule {
    * artifact page while the studio runs locally, such as a comment tool. It
    * gets `prototype`, `artifact` (the open artifact or named state) and
    * `surface`, the page's ArtifactSurface (app/utils/artifactSurface.ts), or
-   * null when its page offers none. It is hidden while the page shows its
+   * null when its page offers none, and `toolbar`, the end of the page's top
+   * bar (beside the artifact's name), where it puts its controls with
+   * <Teleport>, or null before the bar is mounted. It is hidden while the page shows its
    * source, and the deployed site gets none.
    */
   artifactTool?: string

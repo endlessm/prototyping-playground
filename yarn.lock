@@ -2260,7 +2260,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@modelcontextprotocol/client@npm:^2.3.1":
+"@modelcontextprotocol/client@npm:^2.3.1, @modelcontextprotocol/client@npm:^2.4.0":
   version: 2.4.0
   resolution: "@modelcontextprotocol/client@npm:2.4.0"
   dependencies:
@@ -2284,7 +2284,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@modelcontextprotocol/server@npm:^2.3.1":
+"@modelcontextprotocol/server@npm:^2.3.1, @modelcontextprotocol/server@npm:^2.4.0":
   version: 2.4.0
   resolution: "@modelcontextprotocol/server@npm:2.4.0"
   dependencies:
@@ -13754,6 +13754,8 @@ __metadata:
     "@fontsource/comic-neue": "npm:^5.2.7"
     "@iconify-json/lucide": "npm:^1.2.145"
     "@lezer/highlight": "npm:^1.2.5"
+    "@modelcontextprotocol/client": "npm:^2.4.0"
+    "@modelcontextprotocol/server": "npm:^2.4.0"
     "@nuxt/eslint": "npm:^1.4.1"
     "@nuxt/ui": "npm:~4.8.2"
     "@nuxtjs/i18n": "npm:^10.3.0"
@@ -13786,6 +13788,7 @@ __metadata:
     vue-component-meta: "npm:~3.3.13"
     vue-tsc: "npm:^3.2.7"
     yaml: "npm:^2.8.0"
+    zod: "npm:^4.6.7"
   languageName: unknown
   linkType: soft
 
@@ -17059,7 +17062,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^4.2.0":
+"zod@npm:^4.2.0, zod@npm:^4.6.7":
   version: 4.6.7
   resolution: "zod@npm:4.6.7"
   checksum: 10c0/4ce2eb14034317b7254e347ca37b5ad591cf8333147030cf05b9b5d31692d45073f7f2747aa50cf8c6b29012194d2b22978cecc89969cf34a0d18e89d0ee7d7b

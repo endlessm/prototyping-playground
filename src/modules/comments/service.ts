@@ -148,6 +148,15 @@ function threadProblems(value: unknown, id: string): string[] {
     typeof (thread.anchor as Anchor).kind !== 'string'
   )
     problems.push('anchor needs a kind')
+  const sent = thread.sentToAgent as Record<string, unknown> | undefined
+  if (
+    sent !== undefined &&
+    (!sent ||
+      typeof sent !== 'object' ||
+      typeof (sent.by as Author | undefined)?.contributor !== 'string' ||
+      typeof sent.at !== 'string')
+  )
+    problems.push('sentToAgent needs who sent it and when')
   if (
     !Array.isArray(thread.messages) ||
     !thread.messages.length ||
@@ -236,6 +245,7 @@ export function serializeThread(thread: CommentThread) {
     status: thread.status,
     ...(thread.resolvedBy && { resolvedBy: thread.resolvedBy }),
     ...(thread.resolvedAt && { resolvedAt: thread.resolvedAt }),
+    ...(thread.sentToAgent && { sentToAgent: thread.sentToAgent }),
     messages: thread.messages,
   }
   return `${JSON.stringify(ordered, null, 2)}\n`
@@ -363,6 +373,8 @@ export interface NewThread {
   artifactTitle: string
   anchor: unknown
   body: unknown
+  /** Send it to the person's agent as it is posted. */
+  send?: unknown
 }
 
 const LARGEST_SOURCE = 2 * 1024 * 1024
@@ -436,10 +448,37 @@ export function createThread(
         : '',
     anchor,
     status: 'open',
+    ...(request.send === true && { sentToAgent: sentBy(author) }),
     messages: [message(author, body, taken)],
   }
   writeAtomically(path.join(folder, `${id}.json`), serializeThread(thread))
   return thread
+}
+
+/** Who sent a thread to their agent, and when; only people send. */
+function sentBy(author: Author) {
+  if (author.agent)
+    throw new CommentRefusal(
+      'Only people send comments to their agent. Reply to the comment instead.',
+    )
+  return { by: author, at: new Date().toISOString() }
+}
+
+/**
+ * Sends a thread to the asker's agent, or stops sending it. Sending twice,
+ * or stopping a thread that wasn't sent, is fine.
+ */
+export function sendThread(
+  context: CommentsContext,
+  actor: CommentsActor,
+  request: { thread: string; send: boolean },
+) {
+  const author = authorOf(context, actor)
+  const sent = request.send ? sentBy(author) : undefined
+  return update(context, request.thread, (thread) => {
+    if (!sent) delete thread.sentToAgent
+    else thread.sentToAgent ??= sent
+  })
 }
 
 /** Re-reads the thread, applies `change` to what is there now, writes it. */

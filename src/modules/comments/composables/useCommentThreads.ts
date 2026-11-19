@@ -60,10 +60,13 @@ export function useCommentThreads(prototypeId: () => string) {
       artifactTitle: string
       anchor: unknown
       body: string
+      send: boolean
     }) => send({ action: 'create', prototype: prototypeId(), ...request }),
     reply: (thread: string, body: string) =>
       send({ action: 'reply', thread, body }),
     resolve: (thread: string) => send({ action: 'resolve', thread }),
+    sendToAgent: (thread: string, on: boolean) =>
+      send({ action: 'send', thread, send: on }),
     reopen: (thread: string) => send({ action: 'reopen', thread }),
     edit: (thread: string, message: string, body: string) =>
       send({ action: 'edit', thread, message, body }),

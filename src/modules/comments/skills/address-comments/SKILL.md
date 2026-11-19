@@ -16,6 +16,8 @@ Comments are people's feedback, kept beside the work: each one is a thread pinne
 
    Add `--resolved` for the resolved ones, `--json` for the stored threads with each one's file, address and number. A person may instead paste the same text from **Copy for agent**.
 
+   When the `studio-comments` MCP server is connected, its tools do the same with the same text: `list_comments` (`awaiting: true` for the open comments a person sent you and wrote last), `show_comment`, `reply_to_comment`, `resolve_comment` and `reopen_comment`. When the person asks you to watch for comments, call `watch_comments`, act on what it returns as below, then call it again; a timeout just means calling it again. It returns only comments people sent you; the others are for people unless the person asks you to work on them.
+
 2. Find each target in code from its heading's label and its locator lines, under the file's `File`:
    - a view: `State` (the named state it is on) and `Path` (the element's place in the page);
    - a document: `Heading` (the nearest heading), `Embed` (an embedded file, commented on as a whole) and `Quote` (the words the person selected, in views too);

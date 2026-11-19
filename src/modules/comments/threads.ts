@@ -48,6 +48,11 @@ export interface CommentThread {
   status: 'open' | 'resolved'
   resolvedBy?: Author
   resolvedAt?: string
+  /**
+   * Set when a person sent it to their agent: the agent watching for
+   * comments gets it while it is open and a person wrote last.
+   */
+  sentToAgent?: { by: Author; at: string }
   messages: CommentMessage[]
 }
 

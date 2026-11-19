@@ -10,14 +10,15 @@ import {
   reopenThread,
   replyToThread,
   resolveThread,
+  sendThread,
   type CommentsContext,
 } from '../service.ts'
 
 // POST, the page's requests, each `{ "action": … }` with its fields:
-// `create` (prototype, artifact, artifactTitle, anchor, body), `reply`
+// `create` (prototype, artifact, artifactTitle, anchor, body, send), `reply`
 // (thread, body), `resolve` (thread, reply?), `reopen` (thread), `edit`
 // (thread, message, body), `delete-message` (thread, message), `delete`
-// (thread), and `access` (prototype): what the asker may do there. The dev
+// (thread), `send` (thread, send: whether it goes to the asker's agent), and `access` (prototype): what the asker may do there. The dev
 // server resolves who is asking; the page never names an author. Reading is
 // the build data. Refusals answer with the service's sentence.
 export default (({ root, contributorsFolder, me, method, body }) => {
@@ -47,6 +48,12 @@ export default (({ root, contributorsFolder, me, method, body }) => {
         artifactTitle: String(request.artifactTitle ?? ''),
         anchor: request.anchor,
         body: request.body,
+        send: request.send,
+      })
+    case 'send':
+      return sendThread(context, actor, {
+        thread,
+        send: request.send === true,
       })
     case 'reply':
       return replyToThread(context, actor, { thread, body: request.body })

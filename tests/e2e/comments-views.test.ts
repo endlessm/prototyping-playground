@@ -46,6 +46,7 @@ const env = {
 const REVIEW = 'rvw0000000000c01'
 const FULL = 'sta0000000000c01'
 const EMPTY = 'stb0000000000c01'
+const CANVAS = 'rvwc000000000c01'
 const ADA = 'ada0000000000001'
 
 const address = (studio: RunningStudio, artifact: string) =>
@@ -116,6 +117,7 @@ type StoredThread = {
   status: string
   anchor: Record<string, unknown>
   resolvedBy?: { contributor: string; agent?: boolean }
+  sentToAgent?: { by: { contributor: string }; at: string }
   messages: { body: string; author: { contributor: string; agent?: boolean } }[]
 }
 function stored(): StoredThread[] {
@@ -527,6 +529,54 @@ describe('on the dev server', () => {
     expect(await hint(page).isVisible()).toBe(false)
   })
 
+  test('[CM-76] a comment is posted for people or sent to the agent, and sending can be changed from its menu', async () => {
+    const page = await newPage()
+    await open(page, studio)
+    // Enter posts without sending.
+    await comment(page, view(page).getByTestId('invite'), 'Only for Ben.')
+    expect(stored()[0]).not.toHaveProperty('sentToAgent')
+
+    // Send to agent posts and sends.
+    await view(page).getByTestId('deadline').click()
+    await expect.poll(() => composer(page).isVisible()).toBe(true)
+    await page.keyboard.type('Agent, fix this.')
+    await composer(page).getByRole('button', { name: 'Send to agent' }).click()
+    await expect
+      .poll(
+        () =>
+          stored().find(
+            ({ messages }) => messages[0]?.body === 'Agent, fix this.',
+          )?.sentToAgent,
+      )
+      .toMatchObject({ by: { contributor: ADA } })
+    await expect.poll(() => thread(page, 2).isVisible()).toBe(false)
+    await pin(page, 2).click()
+    await expect
+      .poll(() => thread(page, 2).getByText('Sent to agent').isVisible())
+      .toBe(true)
+
+    // The first one is sent later, from its menu, and then not.
+    await pin(page, 1).click()
+    await thread(page, 1).getByRole('button', { name: 'More' }).click()
+    await page.getByRole('menuitem', { name: 'Send to agent' }).click()
+    await expect
+      .poll(
+        () =>
+          stored().find(({ messages }) => messages[0]?.body === 'Only for Ben.')
+            ?.sentToAgent,
+      )
+      .toBeTruthy()
+    await thread(page, 1).getByRole('button', { name: 'More' }).click()
+    await page.getByRole('menuitem', { name: 'Stop sending to agent' }).click()
+    await expect
+      .poll(
+        () =>
+          stored().find(({ messages }) => messages[0]?.body === 'Only for Ben.')
+            ?.sentToAgent,
+      )
+      .toBeUndefined()
+  })
+
   test('[CM-7] Esc cancels the draft, then closes the thread, then leaves comment mode', async () => {
     const page = await newPage()
     await open(page, studio)
@@ -624,14 +674,14 @@ describe('on the dev server', () => {
     expect(await row(page, 'Which deadline?').count()).toBe(0)
 
     // The list sits over the page: the view keeps its size, and the
-    // toolbar moves left of the list.
+    // toolbar stays in the bar above the page, clear of the list.
     expect(await frame.boundingBox()).toEqual(before)
     const [bar, panel] = await Promise.all([
       toolbar(page).boundingBox(),
       list(page).boundingBox(),
     ])
     expect(panel!.width).toBeCloseTo(340, 0)
-    expect(bar!.x + bar!.width).toBeLessThanOrEqual(panel!.x)
+    expect(bar!.y + bar!.height).toBeLessThanOrEqual(panel!.y)
 
     // The bottom paragraph is out of sight until its row is chosen.
     expect(await pin(page, 2).count()).toBe(0)
@@ -667,6 +717,86 @@ describe('on the dev server', () => {
     await sees(view(page), 'No students yet')
     await expect.poll(() => thread(page, 2).isVisible()).toBe(true)
     await expect.poll(() => pin(page, 2).isVisible()).toBe(true)
+  })
+
+  test('[CM-77] Select in the list resolves, reopens and deletes several comments at once', async () => {
+    seed({ anchor: ANCHORS.invite, messages: ['First of three.'] })
+    seed({ anchor: ANCHORS.deadline, messages: ['Second of three.'] })
+    seed({ anchor: { kind: 'artifact' }, messages: ['Third of three.'] })
+    const page = await newPage()
+    await open(page, studio, FULL)
+    await allComments(page).click()
+    await expect.poll(() => row(page, 'Third of three.').isVisible()).toBe(true)
+
+    await list(page).getByRole('button', { name: 'Select' }).click()
+    await row(page, 'First of three.').click()
+    await row(page, 'Second of three.').click()
+    expect(
+      await row(page, 'First of three.').getAttribute('aria-pressed'),
+    ).toBe('true')
+    // Choosing a row selects it rather than opening it.
+    expect(await page.getByRole('dialog', { name: /^Comment / }).count()).toBe(
+      0,
+    )
+    await expect
+      .poll(() => list(page).getByRole('status').textContent())
+      .toContain('2 selected')
+
+    await list(page)
+      .getByRole('button', { name: 'Resolve', exact: true })
+      .click()
+    const statusOf = (body: string) =>
+      stored().find(({ messages }) => messages[0]?.body === body)?.status
+    await expect.poll(() => statusOf('First of three.')).toBe('resolved')
+    await expect.poll(() => statusOf('Second of three.')).toBe('resolved')
+    expect(statusOf('Third of three.')).toBe('open')
+
+    await tab(page, 'Resolved').click()
+    await list(page).getByRole('checkbox', { name: 'Select all' }).click()
+    await list(page)
+      .getByRole('button', { name: 'Reopen', exact: true })
+      .click()
+    await expect.poll(() => statusOf('First of three.')).toBe('open')
+
+    await tab(page, 'Open').click()
+    await row(page, 'First of three.').click()
+    await row(page, 'Third of three.').click()
+    await list(page)
+      .getByRole('button', { name: 'Delete', exact: true })
+      .click()
+    const confirm = page.getByRole('dialog', { name: 'Delete 2 comments?' })
+    await expect.poll(() => confirm.isVisible()).toBe(true)
+    await confirm.getByRole('button', { name: 'Delete 2 comments' }).click()
+    await expect.poll(() => stored().length).toBe(1)
+    expect(stored()[0]!.messages[0]!.body).toBe('Second of three.')
+  })
+
+  test('[CM-71] the list shows every comment of the prototype grouped by file, the open one first, and choosing one on another file goes there', async () => {
+    seed({ anchor: ANCHORS.invite, messages: ['On the view.'] })
+    seed({
+      artifact: CANVAS,
+      anchor: { kind: 'artifact' },
+      messages: ['On the canvas.'],
+    })
+    const page = await newPage()
+    await open(page, studio, FULL)
+    await expect
+      .poll(() => allComments(page).getAttribute('aria-label'))
+      .toBe('All comments, 2 open')
+    await allComments(page).click()
+
+    const groups = list(page).getByRole('region')
+    await expect.poll(() => groups.count()).toBe(2)
+    expect(await groups.nth(0).getByRole('heading').textContent()).toContain(
+      'this view',
+    )
+    const board = list(page).getByRole('region', { name: /Board.*canvas/ })
+    expect(await board.getByText('On the canvas.').isVisible()).toBe(true)
+    expect(await board.textContent()).toContain('The whole canvas')
+
+    await row(page, 'On the canvas.').click()
+    await expect.poll(() => page.url()).toContain(`/artifacts/${CANVAS}`)
+    await expect.poll(() => thread(page, 1).isVisible()).toBe(true)
   })
 
   test('[CM-17] “Comment on the whole view” comments without pointing, listed with no pin', async () => {

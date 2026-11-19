@@ -6,14 +6,14 @@ This README is the contract for the thread format, the tool's behaviour and the 
 
 ## Behavior
 
-Every artifact page gets a toolbar in its bottom-right corner, 16 px from the edges. A surface may name room its page's own controls take along the bottom (`bottomInset`), and the toolbar and a thread without a pin sit that much higher: on a canvas, clear of the save status and Excalidraw's controls. A page whose type offers no [artifact surface](../../../app/utils/artifactSurface.ts), or hasn't offered it yet (a canvas that failed to load, a view waiting for its system to be rebuilt), still lists its comments and takes whole-file ones; only Comment rests, since there is nothing to point at:
+Every artifact page has a slim top bar with the artifact's name on the left; the comment toolbar sits at its right end, so nothing floats over the page. A page whose type offers no [artifact surface](../../../app/utils/artifactSurface.ts), or hasn't offered it yet (a canvas that failed to load, a view waiting for its system to be rebuilt), still lists its comments and takes whole-file ones; only Comment rests, since there is nothing to point at:
 
 - **Comment** turns comment mode on and off. The shortcut is ⌥⌘M on Apple computers and Ctrl+Alt+M elsewhere (`commentShortcut` in `app/utils/shortcuts.ts`). It works while a view has focus, because the preview document passes it on as the `comment` shortcut. It is ignored while a text field outside the tool has focus.
 - **Hide comments** hides every pin, and **Show comments** shows them again. Comment mode shows them while it lasts.
-- **All comments** opens the list, and shows how many threads are open (its name says so too: "All comments, 2 open").
+- **All comments** opens the list, and shows how many of the prototype's threads are open (its name says so too: "All comments, 2 open").
 - **Copy for agent** copies the open comments of the open file (a view's with all its named states') as [agent text](#agent-text), with "Target not found" for each target the page can't find right now, and says so: "Copied 3 open comments for your agent". It rests while nothing is open.
 
-In comment mode a hint at the top says how to comment and how to stop. Hovering outlines what a click would comment on, labelled the way an agent reads it (`Button "Invite students"`). A click opens a composer beside that spot, focused, with "Enter to post" (Shift+Enter for a new line). No click reaches the page. Selecting text in a page whose surface offers `selection()` (views and documents) opens the composer with the text quoted, with the pin at the selection's end: in a view the anchor is the element that holds the whole selection, with the selected text as its `quote`; in a document it is a text-quote selector. The quote shows in the composer, the thread and the list.
+In comment mode a hint at the top says how to comment and how to stop. Hovering outlines what a click would comment on, labelled the way an agent reads it (`Button "Invite students"`). A click opens a composer beside that spot, focused, with "Enter to post, ⌘Enter to post and send to your agent" (Ctrl+Enter elsewhere; Shift+Enter for a new line). Two buttons post it: **Comment** keeps it for people, and **Send to agent** also hands it to the agent watching for comments ([The MCP server](#the-mcp-server)), so the person decides each time. No click reaches the page. Selecting text in a page whose surface offers `selection()` (views and documents) opens the composer with the text quoted, with the pin at the selection's end: in a view the anchor is the element that holds the whole selection, with the selected text as its `quote`; in a document it is a text-quote selector. The quote shows in the composer, the thread and the list.
 
 While reading, with comment mode off, text selected in a document offers a **Comment** button just above the selection's end ("Comment on the selected text" to screen readers), once the selection is made with the pointer or the keys. It opens the composer with the quote, as in comment mode, and goes when the selection does. The button is the tool's own, driven by the surface's `selection()`; a view's selection lives in its preview document, which the tool never listens to outside comment mode, so views don't offer it.
 
@@ -23,20 +23,23 @@ A posted comment becomes a numbered pin in Nuxt UI's `info` colour on its target
 
 - Each message shows its author's name, picture (from the contributor profile: their own image, their GitHub photo or their initials) and time, and "Edited" once changed. An agent's messages show as "<first name>'s agent" with an "Agent" badge.
 - **Resolve** closes the thread with the toast "Comment resolved", whose **Undo** reopens it. A resolved thread says "Resolved by <name>", with **Reopen**; reopening moves the list to the Open tab.
-- The **…** menu holds **Copy link** (the address with `?comment=<id>`, on the thread's own named state; toast "Link copied") and, for the thread's author or an Admin, **Delete comment**, which asks first and deletes the thread with its replies (toast "Comment deleted").
+- A thread sent to the agent says "Sent to agent" beside its label, and its row in the list has a bot icon. The **…** menu offers **Send to agent** for a thread that isn't, and **Stop sending to agent** for one that is (toasts "Sent to your agent", "No longer sent to your agent"), to whoever may write there.
+- The **…** menu also holds **Copy link** (the address with `?comment=<id>`, on the thread's own named state; toast "Link copied") and, for the thread's author or an Admin, **Delete comment**, which asks first and deletes the thread with its replies (toast "Comment deleted").
 - Your own messages have **Message actions**: **Edit** (in place; Enter saves, Esc puts it back) and **Delete**. The first message is the comment itself, so it is edited, or goes with Delete comment.
 
 The page offers only what the service will allow, using the service's own rules (`mayChangeMessage` and `mayDeleteThread` in `threads.ts`), and asks the service (`access`) whether the person may write on the prototype at all. Where it may not (someone unregistered, an archived prototype), threads and the list can still be read, and the service's sentence replaces the Reply field, the list's "Comment on the whole …" and, in the toolbar, Comment, which becomes **Read-only** with the reason; for someone unregistered it links to the Manual's "How do I join the team?". The comment shortcut does nothing there.
 
 ### The list
 
-**All comments** opens a 340 px panel over the right of the page. It never resizes the page; pins under it are hidden, popovers stay clear of it and the toolbar moves left of it.
+**All comments** opens a 340 px panel over the right of the page. It never resizes the page; pins under it are hidden and popovers stay clear of it.
 
-- **Open** and **Resolved** tabs, each with its count.
+- **Open** and **Resolved** tabs, each with its count across the prototype.
+- Every thread of the prototype, grouped by file, each group a section named by its heading: the file's title, its kind ("this view" for the open file) and its folders. The open file comes first, then the others in file-tree order, then comments on files removed since, under their stored `artifactTitle` and "removed file"; those rows can't be chosen. A view's group holds its named states' threads. A file with nothing on the tab is left out. Each group is numbered on its own, as its pins are.
 - Each row shows the thread's number, its target's label, the quote, the first message, the author's name and picture, the time and the number of replies. A thread whose target the page can't find says "Target not found" and stays listed.
-- A view's list holds the threads of the view and of every named state; a row on another state names that state. Pins show only the state on screen.
-- Choosing a row asks the surface to `reveal` its target (scrolling it into view) and opens the thread. A row on another state goes to that state first, as a step the person can go back from.
-- **Comment on the whole view** (document, diagram or canvas, by the artifact's type) opens the composer for a comment on the whole file, `{ "kind": "artifact" }`. It is listed only and has no pin; its thread opens above the toolbar.
+- A row on a named state other than the one on screen names that state. Pins show only the state on screen. Only the open page can tell a target is gone, so other files' rows never say "Target not found".
+- Choosing a row asks the surface to `reveal` its target (scrolling it into view) and opens the thread. A row on another file or state goes there first, as a step the person can go back from.
+- **Select** in the list's header turns rows into toggles (`aria-pressed`, with a checkbox icon) on the tab on screen; **Done** or Esc ends it. A bar at the bottom says how many are selected ("2 selected", a status), offers **Select all**, and acts on the selection: **Resolve** on the Open tab, **Reopen** on the Resolved tab, and **Delete**, which asks first ("Delete 2 comments?") and is offered only when the person may delete every selected thread (its author or an Admin; otherwise it rests with the reason). Each thread is its own write, so one refused leaves the others done, and the toast gives the count ("2 comments resolved", with Undo, "2 comments reopened", "2 comments deleted") and the first refusal. Threads on removed files can be selected. While someone can't write there, Select isn't offered.
+- **Comment on the whole view** (document, diagram or canvas, by the open artifact's type) opens the composer for a comment on the whole file, `{ "kind": "artifact" }`. It is listed only and has no pin; its thread opens at the page's top right, under the toolbar.
 
 ### The address
 
@@ -51,9 +54,9 @@ The open thread is the address's `comment` parameter (`…/artifacts/<id>?commen
 
 Esc backs out one step at a time: it cancels a draft, then closes an open thread, then leaves comment mode. It counts when pressed in the tool, in the page, or with nothing in particular focused, and not while another studio dialog or menu is open.
 
-A thread's number is its place among the artifact's threads in creation order, resolved ones included, computed on display and never stored. For a view, "the artifact's threads" are the view's and all its named states' together, so the list, which shows every state, never repeats a number. Pins show only for the state on screen.
+A thread's number is its place among the artifact's threads in creation order, resolved ones included, computed on display and never stored. For a view, "the artifact's threads" are the view's and all its named states' together, so a file's group in the list, which shows every state, never repeats a number. Pins show only for the state on screen.
 
-Open pages update at once when a thread file changes, whoever changed it: the page, `yarn comments` or a Git pull.
+Open pages update at once when a thread file changes, whoever changed it: the page, `yarn comments`, the MCP server or a Git pull.
 
 ## Agent text
 
@@ -77,6 +80,20 @@ It ends with the commands to reply and resolve (or reopen, for resolved threads)
 
 It writes as the agent of the contributor your Git identity resolves to (`agent: true`). Refusals go to standard error with exit status 1, in the same sentence the page shows. Reading needs no registration. Editing and deleting are the page's only: agents never change people's messages.
 
+## The MCP server
+
+`mcp.ts` is a local stdio MCP server, `studio-comments`, for agents that take the comments people send them as they are written, modelled on Agentation's. The studio's `.mcp.json` declares it (`node src/modules/comments/mcp.ts`, also `yarn comments:mcp`); the agent starts it and it stops with the agent. It reads and writes the thread files through `commands.ts` and `service.ts`, as the command does, so there is no second store, no port and nothing for the page to call: sending a comment is a field in its file.
+
+Only threads a person sent reach the agent. A thread **waits on the agent** (`awaitsAgent` in `commands.ts`) while it is sent, open, and a person wrote its last message: sending it, or a person's reply after the agent's. The agent's reply, resolving it or no longer sending it ends the wait. `yarn comments` and `list_comments` without `awaiting` still list every comment, sent or not. It is worked out from the file every time and never stored.
+
+Tools, each taking the same `scope` as the command's argument (a prototype folder or an address; the prototypes you own when left out):
+
+- `list_comments` (`status`, `awaiting`) and `show_comment`: the agent text the command prints.
+- `reply_to_comment`, `resolve_comment` (with an optional last `reply`) and `reopen_comment`: writes as your agent, refused in the same sentences.
+- `watch_comments` (`timeoutSeconds`, 120 by default and at most 300; `batchWindowSeconds`, 5 by default): polls the scope every second until threads wait on the agent that this server hasn't handed over yet, gathers what else arrives within the window, and returns them as agent text. A thread is handed over with its last message, so it comes back when a person writes again. Threads already waiting come at once, so comments posted while the agent worked are never missed. On a timeout it says so, and the agent calls it again.
+
+The server's instructions describe watch mode (watch, act on each comment as the skill says, reply, watch again, leave comments open) and point to the `address-comments` skill.
+
 ## Where comments are kept
 
 Each thread is one file, `<prototype>/.comments/<id>.json`, named by its permanent ID. Dot folders are hidden from the manifest, the file tree and identity tooling; thread files are not artifacts.
@@ -95,6 +112,7 @@ interface CommentThread {
   status: 'open' | 'resolved'
   resolvedBy?: Author
   resolvedAt?: string // ISO time
+  sentToAgent?: { by: Author; at: string } // sent to its sender's agent
   messages: {
     id: string // permanent resource ID
     author: Author
@@ -133,10 +151,11 @@ A view re-finds a target on every render: by the selector, then by the same tag 
 
 One Node module, `service.ts`, holds every rule and every write; the dev-server handler (`server/threads.ts`) and the command use it. Each write re-reads the thread file just before writing, applies itself to the current content and replaces the file atomically (a temporary file renamed over it), so a reply from the page and a resolve from an agent can't overwrite each other.
 
-Operations: create, reply, resolve, reopen, edit a message, delete a message, delete a thread, and `access` (what the asker may do on a prototype, for the page). The rules:
+Operations: create (sent to the agent or not), send or stop sending, reply, resolve, reopen, edit a message, delete a message, delete a thread, and `access` (what the asker may do on a prototype, for the page). The rules:
 
 - anyone may read;
 - a registered contributor may create (on a target or on the whole file), reply, resolve and reopen on any prototype that isn't archived, other people's included;
+- only people send a thread to their agent or stop sending it; agents can't;
 - only a message's author edits or deletes it, writing the same way it was written: a person doesn't change their agent's messages, and an agent never changes a person's. The command offers no edit or delete, so agents' messages stay as written. The first message can't be deleted on its own: it goes with its thread;
 - a thread is deleted by the author of its first message or an Admin (`admins` in `studio.config.json`, through `tooling/contributors/roles.ts`);
 - an archived prototype's comments are read-only;
@@ -155,8 +174,8 @@ Each refusal is a sentence saying what to do, and the page (as an error toast, o
 ## Ownership
 
 - `module.ts` declares the module: its tool, its handler and its build data (every prototype's threads in development, nothing for the build).
-- `threads.ts` is the format, shared by the browser and Node; `service.ts` the rules and writes; `server/threads.ts` the page's writes; `agentText.ts` the agent text, for the page and the command; `cli.ts` the command (`yarn comments`); `skills/address-comments/` the agents' skill, routed from `AGENTS.md` by `yarn studio sync`.
-- `components/CommentTool.vue` is the tool over the page (`CommentToolbar`, `CommentPin`, `CommentComposer`, `CommentThreadPopover`, `CommentList`, `CommentReadOnly`, `CommentDeleteModal`); `composables/` read threads, authors and what the person may do, and give focus back. Its text is under `comments` in `i18n/locales/en.json`.
+- `threads.ts` is the format, shared by the browser and Node; `service.ts` the rules and writes; `server/threads.ts` the page's writes; `agentText.ts` the agent text, for the page and the command; `commands.ts` what the command and the MCP server do; `cli.ts` the command (`yarn comments`); `mcp.ts` the MCP server; `skills/address-comments/` the agents' skill, routed from `AGENTS.md` by `yarn studio sync`.
+- `components/CommentTool.vue` is the tool over the page (`CommentToolbar`, `CommentPin`, `CommentComposer`, `CommentThreadPopover`, `CommentList`, `CommentReadOnly`, `CommentDeleteModal`); `utils/commentGroup.ts` is one file's group in the list; `composables/` read threads, authors and what the person may do, and give focus back. Its text is under `comments` in `i18n/locales/en.json`.
 - The surfaces are their file types' own: views in the prototypes module (`src/modules/prototypes/types/view/viewSurface.ts`), documents and diagrams in theirs (`documentSurface.ts`, `diagramSurface.ts`), sharing `app/utils/domSurface.ts` for pages in the studio's own DOM. Nothing outside this folder imports the comments module. The look and copy follow the Comments prototype (`src/prototypes/bernardo/comments`).
 
 The deployed site gets no tool, no handler and no thread: the build data is empty and the tool list is empty in the build. The tool's interface strings sit in the shared locale file with every module's, so they ship; threads never do.

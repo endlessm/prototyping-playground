@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { onApple } from '../../../../app/utils/shortcuts'
 import { useFocusReturn } from '../composables/useFocusReturn'
 
 // Writing a new comment beside the spot that was clicked: it opens focused,
-// Enter posts and Shift+Enter starts a new line. Closing it gives focus
+// Enter posts and Shift+Enter starts a new line. Posting keeps it for people;
+// Send to agent (⌘Enter, Ctrl+Enter elsewhere) also hands it to the agent
+// watching for comments, so the person decides each time. Closing it gives focus
 // back to where it came from.
 const props = defineProps<{
   label: string
@@ -13,7 +16,7 @@ const props = defineProps<{
   /** On the whole file rather than a spot in it. */
   whole?: boolean
 }>()
-const emit = defineEmits<{ post: [body: string]; cancel: [] }>()
+const emit = defineEmits<{ post: [body: string, send: boolean]; cancel: [] }>()
 
 const { t } = useI18n()
 const text = defineModel<string>({ default: '' })
@@ -24,8 +27,10 @@ useFocusReturn(root, () => props.fallback?.())
 function onKey(event: KeyboardEvent) {
   if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return
   event.preventDefault()
-  if (text.value.trim()) emit('post', text.value)
+  if (text.value.trim())
+    emit('post', text.value, onApple() ? event.metaKey : event.ctrlKey)
 }
+const sendKey = computed(() => (onApple() ? '⌘Enter' : 'Ctrl+Enter'))
 onMounted(() => field.value?.textareaRef?.focus())
 </script>
 
@@ -62,16 +67,26 @@ onMounted(() => field.value?.textareaRef?.focus())
       :aria-label="t('comments.composer.field')"
       @keydown="onKey"
     />
+    <p class="text-xs text-muted">
+      {{ t('comments.composer.enter', { key: sendKey }) }}
+    </p>
     <div class="flex items-center gap-2">
-      <span class="flex-1 text-xs text-muted">{{
-        t('comments.composer.enter')
-      }}</span>
       <UButton
         color="neutral"
         variant="ghost"
         size="sm"
         :label="t('comments.composer.cancel')"
+        class="mr-auto"
         @click="emit('cancel')"
+      />
+      <UButton
+        icon="i-lucide-bot"
+        color="neutral"
+        variant="outline"
+        size="sm"
+        :label="t('comments.composer.send')"
+        :disabled="!text.trim() || posting"
+        @click="emit('post', text, true)"
       />
       <UButton
         color="info"
@@ -79,7 +94,7 @@ onMounted(() => field.value?.textareaRef?.focus())
         :label="t('comments.composer.post')"
         :loading="posting"
         :disabled="!text.trim()"
-        @click="emit('post', text)"
+        @click="emit('post', text, false)"
       />
     </div>
   </div>

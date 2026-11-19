@@ -2,8 +2,7 @@
 import { shortcutLabel } from '../../../../app/utils/shortcuts'
 import CommentReadOnly from './CommentReadOnly.vue'
 
-// The tool's controls in the page's bottom-right corner, left of the list
-// while it is open. Copy for agent copies the open comments as agent text,
+// The tool's controls at the end of the page's top bar. Copy for agent copies the open comments as agent text,
 // so it rests while there are none. Where the person can't write, Comment
 // gives way to "Read-only", which says why.
 defineProps<{
@@ -16,8 +15,6 @@ defineProps<{
   canPoint: boolean
   /** The service's reason the person can't comment here, or null. */
   readOnly: { reason: string; join: boolean } | null
-  /** Room the page's own controls take at its bottom edge. */
-  inset: number
 }>()
 const emit = defineEmits<{ comment: []; pins: []; list: []; copy: [] }>()
 
@@ -30,20 +27,15 @@ const shortcut = shortcutLabel('comment')
     role="toolbar"
     :aria-label="t('comments.toolbar.label')"
     data-comment-ui
-    :style="{
-      right: `${16 + (listOpen ? 340 : 0)}px`,
-      bottom: `${16 + inset}px`,
-    }"
-    class="pointer-events-auto absolute flex items-center gap-1 rounded-full border border-default bg-default p-1 shadow-lg"
+    class="flex items-center gap-0.5"
   >
-    <UPopover v-if="readOnly" :content="{ side: 'top', align: 'end' }">
+    <UPopover v-if="readOnly" :content="{ side: 'bottom', align: 'end' }">
       <UButton
         icon="i-lucide-lock"
         :label="t('comments.readOnly.label')"
         color="neutral"
         variant="ghost"
-        size="sm"
-        class="rounded-full"
+        size="xs"
       />
       <template #content>
         <div data-comment-ui class="w-72 p-1.5">
@@ -57,8 +49,7 @@ const shortcut = shortcutLabel('comment')
         :label="t('comments.toolbar.comment')"
         :color="commenting ? 'info' : 'neutral'"
         :variant="commenting ? 'soft' : 'ghost'"
-        size="sm"
-        class="rounded-full"
+        size="xs"
         :aria-pressed="commenting"
         :disabled="!canPoint"
         aria-keyshortcuts="Meta+Alt+M Control+Alt+M"
@@ -79,8 +70,7 @@ const shortcut = shortcutLabel('comment')
         :aria-pressed="!pinsShown"
         color="neutral"
         variant="ghost"
-        size="sm"
-        class="rounded-full"
+        size="xs"
         @click="emit('pins')"
       />
     </UTooltip>
@@ -95,8 +85,7 @@ const shortcut = shortcutLabel('comment')
         :aria-pressed="listOpen"
         :color="listOpen ? 'info' : 'neutral'"
         :variant="listOpen ? 'soft' : 'ghost'"
-        size="sm"
-        class="rounded-full"
+        size="xs"
         @click="emit('list')"
       >
         <template v-if="openCount" #trailing>
@@ -112,8 +101,7 @@ const shortcut = shortcutLabel('comment')
         :aria-label="t('comments.toolbar.copy')"
         color="neutral"
         variant="ghost"
-        size="sm"
-        class="rounded-full"
+        size="xs"
         :disabled="!openCount"
         @click="emit('copy')"
       />

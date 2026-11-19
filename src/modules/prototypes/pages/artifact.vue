@@ -38,12 +38,14 @@ const page = computed(() => {
 })
 
 // Modules' tools over the page, such as comments: only while the studio
-// runs locally (the build's list is empty), given the page's surface.
+// runs locally (the build's list is empty), given the page's surface and the
+// top bar's end, where they put their controls.
 const toolComponents = tools.map((tool) => ({
   id: tool.id,
   component: defineAsyncComponent(tool.component),
 }))
 const surface = provideArtifactSurface()
+const toolbar = useTemplateRef<HTMLElement>('toolbar')
 
 const rendered = useTemplateRef<HTMLElement>('rendered')
 const { source, toggle } = useSourceMode(rendered)
@@ -62,52 +64,65 @@ useHead({
     :artifacts="artifacts"
     :not-found="!artifact"
   >
-    <!-- The rendered page stays alive, hidden and inert, while its source
-         is open, and keeps updating. -->
-    <div
-      v-show="!source"
-      ref="rendered"
-      tabindex="-1"
-      :inert="source || undefined"
-      class="relative h-full min-h-0 outline-none"
-    >
-      <ArtifactUnavailable
-        v-if="artifact?.unavailable"
-        class="m-4 sm:m-6"
-        :unavailable="artifact.unavailable"
-        @source="toggle"
-      />
-      <!-- A crash in one file's page stays inside it. Keyed like the page,
-           so moving between artifacts of the same type keeps both in place. -->
-      <AppFileBoundary v-else :key="`${prototype?.id}:${artifact?.type}`">
-        <component
-          :is="page"
-          v-if="page && prototype && artifact"
-          :prototype="prototype"
-          :artifact="artifact"
-        />
-      </AppFileBoundary>
-      <!-- Gone while the source is open, so their shortcuts rest too. -->
-      <template
-        v-if="!source && prototype && artifact && !artifact.unavailable"
+    <div class="flex h-full min-h-0 flex-col">
+      <!-- A slim bar over the page: the open artifact's name, and the tools'
+         controls at its end, so nothing floats over the page itself. -->
+      <div
+        class="flex h-10 shrink-0 items-center gap-3 border-b border-default px-4"
       >
-        <component
-          :is="tool.component"
-          v-for="tool in toolComponents"
-          :key="tool.id"
-          :prototype="prototype"
-          :artifact="artifact"
-          :surface="surface"
+        <p class="min-w-0 flex-1 truncate text-sm font-medium text-highlighted">
+          {{ artifact?.title }}
+        </p>
+        <div ref="toolbar" class="flex shrink-0 items-center" />
+      </div>
+      <!-- The rendered page stays alive, hidden and inert, while its source
+         is open, and keeps updating. -->
+      <div
+        v-show="!source"
+        ref="rendered"
+        tabindex="-1"
+        :inert="source || undefined"
+        class="relative min-h-0 flex-1 outline-none"
+      >
+        <ArtifactUnavailable
+          v-if="artifact?.unavailable"
+          class="m-4 sm:m-6"
+          :unavailable="artifact.unavailable"
+          @source="toggle"
         />
-      </template>
+        <!-- A crash in one file's page stays inside it. Keyed like the page,
+           so moving between artifacts of the same type keeps both in place. -->
+        <AppFileBoundary v-else :key="`${prototype?.id}:${artifact?.type}`">
+          <component
+            :is="page"
+            v-if="page && prototype && artifact"
+            :prototype="prototype"
+            :artifact="artifact"
+          />
+        </AppFileBoundary>
+        <!-- Gone while the source is open, so their shortcuts rest too. -->
+        <template
+          v-if="!source && prototype && artifact && !artifact.unavailable"
+        >
+          <component
+            :is="tool.component"
+            v-for="tool in toolComponents"
+            :key="tool.id"
+            :prototype="prototype"
+            :artifact="artifact"
+            :surface="surface"
+            :toolbar="toolbar"
+          />
+        </template>
+      </div>
+      <ArtifactSource
+        v-if="ArtifactSource && source && prototype && artifact"
+        :key="artifact.id"
+        class="min-h-0 flex-1 overflow-auto p-4 sm:p-6"
+        :prototype="prototype"
+        :artifact="artifact"
+        @done="toggle"
+      />
     </div>
-    <ArtifactSource
-      v-if="ArtifactSource && source && prototype && artifact"
-      :key="artifact.id"
-      class="p-4 sm:p-6"
-      :prototype="prototype"
-      :artifact="artifact"
-      @done="toggle"
-    />
   </PrototypeViewer>
 </template>

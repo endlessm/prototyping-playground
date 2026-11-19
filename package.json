@@ -24,6 +24,7 @@
     "component-docs": "node tooling/studio/cli.ts component-docs",
     "canvas": "node src/modules/canvas/cli.ts",
     "comments": "node src/modules/comments/cli.ts",
+    "comments:mcp": "node src/modules/comments/mcp.ts",
     "postinstall": "node tooling/check-node.ts && husky && nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
@@ -76,6 +77,8 @@
     "yaml": "^2.8.0"
   },
   "devDependencies": {
+    "@modelcontextprotocol/client": "^2.4.0",
+    "@modelcontextprotocol/server": "^2.4.0",
     "@nuxt/eslint": "^1.4.1",
     "@types/node": "^22.18.0",
     "@types/react": "^19",
@@ -90,7 +93,8 @@
     "typescript": "^5.9.3",
     "vitest": "^4.1.4",
     "vue-component-meta": "~3.3.13",
-    "vue-tsc": "^3.2.7"
+    "vue-tsc": "^3.2.7",
+    "zod": "^4.6.7"
   },
   "lint-staged": {
     "**/*.{js,mjs,ts,vue,css}": [
