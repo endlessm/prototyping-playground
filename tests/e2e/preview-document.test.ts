@@ -131,16 +131,22 @@ function scenarios(
     const page = await newPage()
     await page.goto(`${studio.url}prototypes/${TRACER}/artifacts/${HOME}`)
     await preview(page, 'Home')
-    // Edge to edge beside the navigation, as in React: no strip, no button.
+    // Edge to edge beside the navigation, under the page's slim bar (the
+    // view's name and the tools' controls): no strip, no button.
     const area = page
       .locator('[id$="-panel-prototype-artifact"] [data-slot="body"]')
       .first()
     const box = (await page.locator('iframe[title="Home"]').boundingBox())!
     const fill = (await area.boundingBox())!
+    const bar = (await area
+      .locator(':scope > div > :first-child')
+      .boundingBox())!
     expect(Math.abs(box.x - fill.x)).toBeLessThan(1)
-    expect(Math.abs(box.y - fill.y)).toBeLessThan(1)
+    expect(Math.abs(box.y - (bar.y + bar.height))).toBeLessThan(1)
     expect(Math.abs(box.width - fill.width)).toBeLessThan(1)
-    expect(Math.abs(box.height - fill.height)).toBeLessThan(1)
+    expect(Math.abs(box.y + box.height - (fill.y + fill.height))).toBeLessThan(
+      1,
+    )
     expect(await area.getByRole('link').count()).toBe(0)
     // The Comments tool's toolbar floats over the view; it is no strip.
     expect(

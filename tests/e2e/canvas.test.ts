@@ -332,7 +332,8 @@ describe('a canvas in the studio running locally', () => {
     // React's hint is painted under Excalidraw and never seen; none here.
     await page.waitForTimeout(1000)
     expect(await message(page).count()).toBe(0)
-    // Edge to edge beside the navigation: no padding, border or "…" menu.
+    // Edge to edge beside the navigation, under the page's slim bar (the
+    // canvas's name and the tools' controls): no padding, border or "…" menu.
     expect(
       await canvas(page).evaluate(
         (node) => getComputedStyle(node).borderTopWidth,
@@ -340,10 +341,15 @@ describe('a canvas in the studio running locally', () => {
     ).toBe('0px')
     const area = (await artifactArea(page).boundingBox())!
     const box = (await canvas(page).boundingBox())!
+    const bar = (await artifactArea(page)
+      .locator(':scope > div > :first-child')
+      .boundingBox())!
     expect(Math.abs(box.x - area.x)).toBeLessThan(1)
-    expect(Math.abs(box.y - area.y)).toBeLessThan(1)
+    expect(Math.abs(box.y - (bar.y + bar.height))).toBeLessThan(1)
     expect(Math.abs(box.width - area.width)).toBeLessThan(1)
-    expect(Math.abs(box.height - area.height)).toBeLessThan(1)
+    expect(Math.abs(box.y + box.height - (area.y + area.height))).toBeLessThan(
+      1,
+    )
     expect(
       await page.getByRole('button', { name: 'File actions' }).count(),
     ).toBe(0)
