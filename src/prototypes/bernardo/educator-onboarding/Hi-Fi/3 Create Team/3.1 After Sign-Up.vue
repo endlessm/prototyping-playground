@@ -1,5 +1,6 @@
 <!-- @studio-id vv1g7jwrbnx5sjr6 -->
 <script setup lang="ts">
+import CircularLoading from '~/components/Generic/CircularLoading.vue'
 import AppPage from '../_ui/AppPage.vue'
 import Lead from '../_ui/Lead.vue'
 import Logic from '../_ui/Logic.vue'
@@ -15,7 +16,7 @@ const routes = [
 <template>
   <AppPage team="Maya's Team">
     <div :class="[s.stack, s.tight]" style="align-items: center; padding: 110px 0 30px">
-      <UIcon name="i-lucide-loader-circle" class="size-8 text-orange-600 animate-spin motion-reduce:animate-none" />
+      <CircularLoading />
       <Subtitle>Setting up your space…</Subtitle>
       <Lead>This takes a second.</Lead>
     </div>

@@ -1,5 +1,6 @@
 <!-- @studio-id hx8cj5m2mbdf111m -->
 <script setup lang="ts">
+import CircularLoading from '~/components/Generic/CircularLoading.vue'
 import AuthPage from '../_ui/AuthPage.vue'
 import Logic from '../_ui/Logic.vue'
 import Subtitle from '../_ui/Subtitle.vue'
@@ -12,7 +13,7 @@ import s from '../_ui/ui.module.css'
 <template>
   <AuthPage :header="false" centered>
     <div :class="[s.stack, s.tight]" style="align-items: center">
-      <UIcon name="i-lucide-loader-circle" class="size-8 text-orange-600 animate-spin motion-reduce:animate-none" />
+      <CircularLoading />
       <Subtitle>Signing you in…</Subtitle>
     </div>
     <Logic

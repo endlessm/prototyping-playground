@@ -1,6 +1,6 @@
 # Endless Studios frontend sources
 
-Copied unchanged from `Endless-Game-Making-Studio/studio` at `11517cbee`, under `frontend/app/`, keeping that folder layout so `~/` imports resolve here. The app's locale files, `frontend/i18n/locales/en.json` and `es.json`, are copied unchanged at the same revision to `../i18n/locales/`, mirroring `frontend/i18n/` beside `frontend/app/`. Every image under `assets/images/` is copied unchanged, except `bg-threadbare.png` (2.1 MB) and `banner-img.png` (1.1 MB), which are over the studio's 750 KB asset limit and used only by `Dashboard/LauncherBanner*.vue`.
+Copied unchanged from `Endless-Game-Making-Studio/studio` at `4a5087452`, under `frontend/app/`, keeping that folder layout so `~/` imports resolve here. The app's locale files, `frontend/i18n/locales/en.json` and `es.json`, are copied unchanged at the same revision to `../i18n/locales/`, mirroring `frontend/i18n/` beside `frontend/app/`. Every image under `assets/images/` is copied unchanged, except `bg-threadbare.png` (2.1 MB) and `banner-img.png` (1.1 MB), which are over the studio's 750 KB asset limit and used only by `Dashboard/LauncherBanner*.vue`.
 
 Adapted: `assets/css/main.css` drops the floating-vue stylesheet, imports Tailwind with `source(none)` and scans only this system's sources (`components/`, `../runtime/`, `../nuxt-ui.config.ts`; the studio's preview build adds the prototypes' views), and names the Fontsource variable fonts (`'Inter Variable'`, `'Figtree Variable'`) before the app's own names. `base.css` and `modals.css` are unchanged: the preview document is the screen's own page, so the app's `html` and `body` rules apply as they do in the app. The page colour the app's layout (`layouts/new.vue`) gives `<body>`, `bg-slate-50`, is set in the system's own `../styles/studios.css`. `nuxt-shims.ts` is not an app file: it registers the stand-ins below for auto-import.
 
@@ -26,6 +26,8 @@ Implemented in `../runtime/`, installed by `createStudiosApp`, never copied:
 | `components/Generic/InfiniteScroll.vue` | `runtime/InfiniteScroll.vue`: renders the given items. The original needs `@vueuse/core`, which isn't a dependency here, and aliasing that package would also replace Nuxt UI's copy |
 | `vue-i18n` | `runtime/nuxt-app.ts` (`useI18n`) |
 | `utils/dashboardRoute.ts`, `graphql_schemas/notifications.js` | `runtime/app-modules.ts`: the constants copied components use. The originals import `vue-router` and `graphql-request`, which Studio's dependency check refuses in a system's .ts and .js files |
+| `useSvgSymbolsContainer` (`composables/useSvgSymbolsContainer.ts`) | `runtime/svg-symbols.ts`: the same symbol sharing, reading the element without `@vueuse/core` |
+| `~/assets/images/loader/endless-loader.svg?component` (nuxt-svgo) | `runtime/endless-loader-svg.ts`: the copied SVG file rendered as one `<svg>` component, for `Generic/CircularLoading` |
 | `StudioLayout.vue` (`components/App/`) | `runtime/AppShell.vue`, used by the `shell` option: the same frame around the copied sidebar, top bar and footer, without the global modals and onboarding |
 
 A stand-in is registered in one place:

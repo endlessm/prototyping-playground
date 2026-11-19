@@ -1,0 +1,948 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-6 -6 466 194">
+  <style>
+    .el-base {
+      fill: #ff6b00;
+      opacity: 0.2;
+    }
+    .el-beam {
+      fill: none;
+      stroke: #ff6b00;
+      stroke-width: 56;
+      stroke-linecap: butt;
+      animation-duration: 2.4s;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+    .el-g1 {
+      stroke-dasharray: 6 94;
+      opacity: 1;
+    }
+    .el-g2 {
+      stroke-dasharray: 6.7 93.3;
+      opacity: 0.5;
+    }
+    .el-g3 {
+      stroke-dasharray: 7.4 92.6;
+      opacity: 0.333;
+    }
+    .el-g4 {
+      stroke-dasharray: 8.1 91.9;
+      opacity: 0.25;
+    }
+    .el-g5 {
+      stroke-dasharray: 8.8 91.2;
+      opacity: 0.2;
+    }
+    .el-g6 {
+      stroke-dasharray: 9.5 90.5;
+      opacity: 0.167;
+    }
+    .el-g7 {
+      stroke-dasharray: 10.3 89.7;
+      opacity: 0.143;
+    }
+    .el-g8 {
+      stroke-dasharray: 11 89;
+      opacity: 0.125;
+    }
+    .el-g9 {
+      stroke-dasharray: 11.7 88.3;
+      opacity: 0.111;
+    }
+    .el-g10 {
+      stroke-dasharray: 12.4 87.6;
+      opacity: 0.1;
+    }
+    .el-g11 {
+      stroke-dasharray: 13.1 86.9;
+      opacity: 0.091;
+    }
+    .el-g12 {
+      stroke-dasharray: 13.8 86.2;
+      opacity: 0.083;
+    }
+    .el-g13 {
+      stroke-dasharray: 14.5 85.5;
+      opacity: 0.077;
+    }
+    .el-g14 {
+      stroke-dasharray: 15.2 84.8;
+      opacity: 0.071;
+    }
+    .el-g15 {
+      stroke-dasharray: 15.9 84.1;
+      opacity: 0.067;
+    }
+    .el-g16 {
+      stroke-dasharray: 16.6 83.4;
+      opacity: 0.063;
+    }
+    .el-g17 {
+      stroke-dasharray: 17.4 82.6;
+      opacity: 0.059;
+    }
+    .el-g18 {
+      stroke-dasharray: 18.1 81.9;
+      opacity: 0.056;
+    }
+    .el-g19 {
+      stroke-dasharray: 18.8 81.2;
+      opacity: 0.053;
+    }
+    .el-g20 {
+      stroke-dasharray: 19.5 80.5;
+      opacity: 0.05;
+    }
+    .el-g21 {
+      stroke-dasharray: 20.2 79.8;
+      opacity: 0.048;
+    }
+    .el-g22 {
+      stroke-dasharray: 20.9 79.1;
+      opacity: 0.045;
+    }
+    .el-g23 {
+      stroke-dasharray: 21.6 78.4;
+      opacity: 0.043;
+    }
+    .el-g24 {
+      stroke-dasharray: 22.3 77.7;
+      opacity: 0.042;
+    }
+    .el-g25 {
+      stroke-dasharray: 23 77;
+      opacity: 0.04;
+    }
+    .el-g26 {
+      stroke-dasharray: 23.7 76.3;
+      opacity: 0.038;
+    }
+    .el-g27 {
+      stroke-dasharray: 24.5 75.5;
+      opacity: 0.037;
+    }
+    .el-g28 {
+      stroke-dasharray: 25.2 74.8;
+      opacity: 0.036;
+    }
+    .el-g29 {
+      stroke-dasharray: 25.9 74.1;
+      opacity: 0.034;
+    }
+    .el-g30 {
+      stroke-dasharray: 26.6 73.4;
+      opacity: 0.033;
+    }
+    .el-g31 {
+      stroke-dasharray: 27.3 72.7;
+      opacity: 0.032;
+    }
+    .el-g32 {
+      stroke-dasharray: 28 72;
+      opacity: 0.031;
+    }
+    .el-d.el-g1 {
+      animation-name: el-endless-d-g1;
+    }
+    @keyframes el-endless-d-g1 {
+      from {
+        stroke-dashoffset: 45.7;
+      }
+      to {
+        stroke-dashoffset: -54.3;
+      }
+    }
+    .el-u.el-g1 {
+      animation-name: el-endless-u-g1;
+    }
+    @keyframes el-endless-u-g1 {
+      from {
+        stroke-dashoffset: 27.4;
+      }
+      to {
+        stroke-dashoffset: -72.6;
+      }
+    }
+    .el-d.el-g2 {
+      animation-name: el-endless-d-g2;
+    }
+    @keyframes el-endless-d-g2 {
+      from {
+        stroke-dashoffset: 46.4;
+      }
+      to {
+        stroke-dashoffset: -53.6;
+      }
+    }
+    .el-u.el-g2 {
+      animation-name: el-endless-u-g2;
+    }
+    @keyframes el-endless-u-g2 {
+      from {
+        stroke-dashoffset: 28.1;
+      }
+      to {
+        stroke-dashoffset: -71.9;
+      }
+    }
+    .el-d.el-g3 {
+      animation-name: el-endless-d-g3;
+    }
+    @keyframes el-endless-d-g3 {
+      from {
+        stroke-dashoffset: 47.1;
+      }
+      to {
+        stroke-dashoffset: -52.9;
+      }
+    }
+    .el-u.el-g3 {
+      animation-name: el-endless-u-g3;
+    }
+    @keyframes el-endless-u-g3 {
+      from {
+        stroke-dashoffset: 28.8;
+      }
+      to {
+        stroke-dashoffset: -71.2;
+      }
+    }
+    .el-d.el-g4 {
+      animation-name: el-endless-d-g4;
+    }
+    @keyframes el-endless-d-g4 {
+      from {
+        stroke-dashoffset: 47.8;
+      }
+      to {
+        stroke-dashoffset: -52.2;
+      }
+    }
+    .el-u.el-g4 {
+      animation-name: el-endless-u-g4;
+    }
+    @keyframes el-endless-u-g4 {
+      from {
+        stroke-dashoffset: 29.5;
+      }
+      to {
+        stroke-dashoffset: -70.5;
+      }
+    }
+    .el-d.el-g5 {
+      animation-name: el-endless-d-g5;
+    }
+    @keyframes el-endless-d-g5 {
+      from {
+        stroke-dashoffset: 48.5;
+      }
+      to {
+        stroke-dashoffset: -51.5;
+      }
+    }
+    .el-u.el-g5 {
+      animation-name: el-endless-u-g5;
+    }
+    @keyframes el-endless-u-g5 {
+      from {
+        stroke-dashoffset: 30.2;
+      }
+      to {
+        stroke-dashoffset: -69.8;
+      }
+    }
+    .el-d.el-g6 {
+      animation-name: el-endless-d-g6;
+    }
+    @keyframes el-endless-d-g6 {
+      from {
+        stroke-dashoffset: 49.2;
+      }
+      to {
+        stroke-dashoffset: -50.8;
+      }
+    }
+    .el-u.el-g6 {
+      animation-name: el-endless-u-g6;
+    }
+    @keyframes el-endless-u-g6 {
+      from {
+        stroke-dashoffset: 30.9;
+      }
+      to {
+        stroke-dashoffset: -69.1;
+      }
+    }
+    .el-d.el-g7 {
+      animation-name: el-endless-d-g7;
+    }
+    @keyframes el-endless-d-g7 {
+      from {
+        stroke-dashoffset: 50;
+      }
+      to {
+        stroke-dashoffset: -50;
+      }
+    }
+    .el-u.el-g7 {
+      animation-name: el-endless-u-g7;
+    }
+    @keyframes el-endless-u-g7 {
+      from {
+        stroke-dashoffset: 31.7;
+      }
+      to {
+        stroke-dashoffset: -68.3;
+      }
+    }
+    .el-d.el-g8 {
+      animation-name: el-endless-d-g8;
+    }
+    @keyframes el-endless-d-g8 {
+      from {
+        stroke-dashoffset: 50.7;
+      }
+      to {
+        stroke-dashoffset: -49.3;
+      }
+    }
+    .el-u.el-g8 {
+      animation-name: el-endless-u-g8;
+    }
+    @keyframes el-endless-u-g8 {
+      from {
+        stroke-dashoffset: 32.4;
+      }
+      to {
+        stroke-dashoffset: -67.6;
+      }
+    }
+    .el-d.el-g9 {
+      animation-name: el-endless-d-g9;
+    }
+    @keyframes el-endless-d-g9 {
+      from {
+        stroke-dashoffset: 51.4;
+      }
+      to {
+        stroke-dashoffset: -48.6;
+      }
+    }
+    .el-u.el-g9 {
+      animation-name: el-endless-u-g9;
+    }
+    @keyframes el-endless-u-g9 {
+      from {
+        stroke-dashoffset: 33.1;
+      }
+      to {
+        stroke-dashoffset: -66.9;
+      }
+    }
+    .el-d.el-g10 {
+      animation-name: el-endless-d-g10;
+    }
+    @keyframes el-endless-d-g10 {
+      from {
+        stroke-dashoffset: 52.1;
+      }
+      to {
+        stroke-dashoffset: -47.9;
+      }
+    }
+    .el-u.el-g10 {
+      animation-name: el-endless-u-g10;
+    }
+    @keyframes el-endless-u-g10 {
+      from {
+        stroke-dashoffset: 33.8;
+      }
+      to {
+        stroke-dashoffset: -66.2;
+      }
+    }
+    .el-d.el-g11 {
+      animation-name: el-endless-d-g11;
+    }
+    @keyframes el-endless-d-g11 {
+      from {
+        stroke-dashoffset: 52.8;
+      }
+      to {
+        stroke-dashoffset: -47.2;
+      }
+    }
+    .el-u.el-g11 {
+      animation-name: el-endless-u-g11;
+    }
+    @keyframes el-endless-u-g11 {
+      from {
+        stroke-dashoffset: 34.5;
+      }
+      to {
+        stroke-dashoffset: -65.5;
+      }
+    }
+    .el-d.el-g12 {
+      animation-name: el-endless-d-g12;
+    }
+    @keyframes el-endless-d-g12 {
+      from {
+        stroke-dashoffset: 53.5;
+      }
+      to {
+        stroke-dashoffset: -46.5;
+      }
+    }
+    .el-u.el-g12 {
+      animation-name: el-endless-u-g12;
+    }
+    @keyframes el-endless-u-g12 {
+      from {
+        stroke-dashoffset: 35.2;
+      }
+      to {
+        stroke-dashoffset: -64.8;
+      }
+    }
+    .el-d.el-g13 {
+      animation-name: el-endless-d-g13;
+    }
+    @keyframes el-endless-d-g13 {
+      from {
+        stroke-dashoffset: 54.2;
+      }
+      to {
+        stroke-dashoffset: -45.8;
+      }
+    }
+    .el-u.el-g13 {
+      animation-name: el-endless-u-g13;
+    }
+    @keyframes el-endless-u-g13 {
+      from {
+        stroke-dashoffset: 35.9;
+      }
+      to {
+        stroke-dashoffset: -64.1;
+      }
+    }
+    .el-d.el-g14 {
+      animation-name: el-endless-d-g14;
+    }
+    @keyframes el-endless-d-g14 {
+      from {
+        stroke-dashoffset: 54.9;
+      }
+      to {
+        stroke-dashoffset: -45.1;
+      }
+    }
+    .el-u.el-g14 {
+      animation-name: el-endless-u-g14;
+    }
+    @keyframes el-endless-u-g14 {
+      from {
+        stroke-dashoffset: 36.6;
+      }
+      to {
+        stroke-dashoffset: -63.4;
+      }
+    }
+    .el-d.el-g15 {
+      animation-name: el-endless-d-g15;
+    }
+    @keyframes el-endless-d-g15 {
+      from {
+        stroke-dashoffset: 55.6;
+      }
+      to {
+        stroke-dashoffset: -44.4;
+      }
+    }
+    .el-u.el-g15 {
+      animation-name: el-endless-u-g15;
+    }
+    @keyframes el-endless-u-g15 {
+      from {
+        stroke-dashoffset: 37.3;
+      }
+      to {
+        stroke-dashoffset: -62.7;
+      }
+    }
+    .el-d.el-g16 {
+      animation-name: el-endless-d-g16;
+    }
+    @keyframes el-endless-d-g16 {
+      from {
+        stroke-dashoffset: 56.3;
+      }
+      to {
+        stroke-dashoffset: -43.7;
+      }
+    }
+    .el-u.el-g16 {
+      animation-name: el-endless-u-g16;
+    }
+    @keyframes el-endless-u-g16 {
+      from {
+        stroke-dashoffset: 38;
+      }
+      to {
+        stroke-dashoffset: -62;
+      }
+    }
+    .el-d.el-g17 {
+      animation-name: el-endless-d-g17;
+    }
+    @keyframes el-endless-d-g17 {
+      from {
+        stroke-dashoffset: 57.1;
+      }
+      to {
+        stroke-dashoffset: -42.9;
+      }
+    }
+    .el-u.el-g17 {
+      animation-name: el-endless-u-g17;
+    }
+    @keyframes el-endless-u-g17 {
+      from {
+        stroke-dashoffset: 38.8;
+      }
+      to {
+        stroke-dashoffset: -61.2;
+      }
+    }
+    .el-d.el-g18 {
+      animation-name: el-endless-d-g18;
+    }
+    @keyframes el-endless-d-g18 {
+      from {
+        stroke-dashoffset: 57.8;
+      }
+      to {
+        stroke-dashoffset: -42.2;
+      }
+    }
+    .el-u.el-g18 {
+      animation-name: el-endless-u-g18;
+    }
+    @keyframes el-endless-u-g18 {
+      from {
+        stroke-dashoffset: 39.5;
+      }
+      to {
+        stroke-dashoffset: -60.5;
+      }
+    }
+    .el-d.el-g19 {
+      animation-name: el-endless-d-g19;
+    }
+    @keyframes el-endless-d-g19 {
+      from {
+        stroke-dashoffset: 58.5;
+      }
+      to {
+        stroke-dashoffset: -41.5;
+      }
+    }
+    .el-u.el-g19 {
+      animation-name: el-endless-u-g19;
+    }
+    @keyframes el-endless-u-g19 {
+      from {
+        stroke-dashoffset: 40.2;
+      }
+      to {
+        stroke-dashoffset: -59.8;
+      }
+    }
+    .el-d.el-g20 {
+      animation-name: el-endless-d-g20;
+    }
+    @keyframes el-endless-d-g20 {
+      from {
+        stroke-dashoffset: 59.2;
+      }
+      to {
+        stroke-dashoffset: -40.8;
+      }
+    }
+    .el-u.el-g20 {
+      animation-name: el-endless-u-g20;
+    }
+    @keyframes el-endless-u-g20 {
+      from {
+        stroke-dashoffset: 40.9;
+      }
+      to {
+        stroke-dashoffset: -59.1;
+      }
+    }
+    .el-d.el-g21 {
+      animation-name: el-endless-d-g21;
+    }
+    @keyframes el-endless-d-g21 {
+      from {
+        stroke-dashoffset: 59.9;
+      }
+      to {
+        stroke-dashoffset: -40.1;
+      }
+    }
+    .el-u.el-g21 {
+      animation-name: el-endless-u-g21;
+    }
+    @keyframes el-endless-u-g21 {
+      from {
+        stroke-dashoffset: 41.6;
+      }
+      to {
+        stroke-dashoffset: -58.4;
+      }
+    }
+    .el-d.el-g22 {
+      animation-name: el-endless-d-g22;
+    }
+    @keyframes el-endless-d-g22 {
+      from {
+        stroke-dashoffset: 60.6;
+      }
+      to {
+        stroke-dashoffset: -39.4;
+      }
+    }
+    .el-u.el-g22 {
+      animation-name: el-endless-u-g22;
+    }
+    @keyframes el-endless-u-g22 {
+      from {
+        stroke-dashoffset: 42.3;
+      }
+      to {
+        stroke-dashoffset: -57.7;
+      }
+    }
+    .el-d.el-g23 {
+      animation-name: el-endless-d-g23;
+    }
+    @keyframes el-endless-d-g23 {
+      from {
+        stroke-dashoffset: 61.3;
+      }
+      to {
+        stroke-dashoffset: -38.7;
+      }
+    }
+    .el-u.el-g23 {
+      animation-name: el-endless-u-g23;
+    }
+    @keyframes el-endless-u-g23 {
+      from {
+        stroke-dashoffset: 43;
+      }
+      to {
+        stroke-dashoffset: -57;
+      }
+    }
+    .el-d.el-g24 {
+      animation-name: el-endless-d-g24;
+    }
+    @keyframes el-endless-d-g24 {
+      from {
+        stroke-dashoffset: 62;
+      }
+      to {
+        stroke-dashoffset: -38;
+      }
+    }
+    .el-u.el-g24 {
+      animation-name: el-endless-u-g24;
+    }
+    @keyframes el-endless-u-g24 {
+      from {
+        stroke-dashoffset: 43.7;
+      }
+      to {
+        stroke-dashoffset: -56.3;
+      }
+    }
+    .el-d.el-g25 {
+      animation-name: el-endless-d-g25;
+    }
+    @keyframes el-endless-d-g25 {
+      from {
+        stroke-dashoffset: 62.7;
+      }
+      to {
+        stroke-dashoffset: -37.3;
+      }
+    }
+    .el-u.el-g25 {
+      animation-name: el-endless-u-g25;
+    }
+    @keyframes el-endless-u-g25 {
+      from {
+        stroke-dashoffset: 44.4;
+      }
+      to {
+        stroke-dashoffset: -55.6;
+      }
+    }
+    .el-d.el-g26 {
+      animation-name: el-endless-d-g26;
+    }
+    @keyframes el-endless-d-g26 {
+      from {
+        stroke-dashoffset: 63.4;
+      }
+      to {
+        stroke-dashoffset: -36.6;
+      }
+    }
+    .el-u.el-g26 {
+      animation-name: el-endless-u-g26;
+    }
+    @keyframes el-endless-u-g26 {
+      from {
+        stroke-dashoffset: 45.1;
+      }
+      to {
+        stroke-dashoffset: -54.9;
+      }
+    }
+    .el-d.el-g27 {
+      animation-name: el-endless-d-g27;
+    }
+    @keyframes el-endless-d-g27 {
+      from {
+        stroke-dashoffset: 64.2;
+      }
+      to {
+        stroke-dashoffset: -35.8;
+      }
+    }
+    .el-u.el-g27 {
+      animation-name: el-endless-u-g27;
+    }
+    @keyframes el-endless-u-g27 {
+      from {
+        stroke-dashoffset: 45.9;
+      }
+      to {
+        stroke-dashoffset: -54.1;
+      }
+    }
+    .el-d.el-g28 {
+      animation-name: el-endless-d-g28;
+    }
+    @keyframes el-endless-d-g28 {
+      from {
+        stroke-dashoffset: 64.9;
+      }
+      to {
+        stroke-dashoffset: -35.1;
+      }
+    }
+    .el-u.el-g28 {
+      animation-name: el-endless-u-g28;
+    }
+    @keyframes el-endless-u-g28 {
+      from {
+        stroke-dashoffset: 46.6;
+      }
+      to {
+        stroke-dashoffset: -53.4;
+      }
+    }
+    .el-d.el-g29 {
+      animation-name: el-endless-d-g29;
+    }
+    @keyframes el-endless-d-g29 {
+      from {
+        stroke-dashoffset: 65.6;
+      }
+      to {
+        stroke-dashoffset: -34.4;
+      }
+    }
+    .el-u.el-g29 {
+      animation-name: el-endless-u-g29;
+    }
+    @keyframes el-endless-u-g29 {
+      from {
+        stroke-dashoffset: 47.3;
+      }
+      to {
+        stroke-dashoffset: -52.7;
+      }
+    }
+    .el-d.el-g30 {
+      animation-name: el-endless-d-g30;
+    }
+    @keyframes el-endless-d-g30 {
+      from {
+        stroke-dashoffset: 66.3;
+      }
+      to {
+        stroke-dashoffset: -33.7;
+      }
+    }
+    .el-u.el-g30 {
+      animation-name: el-endless-u-g30;
+    }
+    @keyframes el-endless-u-g30 {
+      from {
+        stroke-dashoffset: 48;
+      }
+      to {
+        stroke-dashoffset: -52;
+      }
+    }
+    .el-d.el-g31 {
+      animation-name: el-endless-d-g31;
+    }
+    @keyframes el-endless-d-g31 {
+      from {
+        stroke-dashoffset: 67;
+      }
+      to {
+        stroke-dashoffset: -33;
+      }
+    }
+    .el-u.el-g31 {
+      animation-name: el-endless-u-g31;
+    }
+    @keyframes el-endless-u-g31 {
+      from {
+        stroke-dashoffset: 48.7;
+      }
+      to {
+        stroke-dashoffset: -51.3;
+      }
+    }
+    .el-d.el-g32 {
+      animation-name: el-endless-d-g32;
+    }
+    @keyframes el-endless-d-g32 {
+      from {
+        stroke-dashoffset: 67.7;
+      }
+      to {
+        stroke-dashoffset: -32.3;
+      }
+    }
+    .el-u.el-g32 {
+      animation-name: el-endless-u-g32;
+    }
+    @keyframes el-endless-u-g32 {
+      from {
+        stroke-dashoffset: 49.4;
+      }
+      to {
+        stroke-dashoffset: -50.6;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .el-beam {
+        animation: none !important;
+      }
+      .el-rm {
+        animation: el-endless-rm 2.4s ease-in-out infinite !important;
+        opacity: 1;
+      }
+    }
+    @keyframes el-endless-rm {
+      0%,
+      100% {
+        opacity: 0.45;
+      }
+      50% {
+        opacity: 1;
+      }
+    }
+  </style>
+  <defs>
+    <clipPath id="clip">
+      <path d="M334.597 42.5408C391.047 42.5408 421.929 65.5938 421.929 100.02C421.929 134.447 397.773 156.631 338.889 156.631C305.184 156.631 264.712 136.465 224.017 113.569L204.366 130.087L203.995 130.402C249.964 156.54 299.638 182.008 345.161 182.008C393.407 182.008 453.992 158.484 453.992 98.3824C453.992 38.2809 390.139 0 338.154 0C215.689 0 132.814 146.73 67.9626 146.73C54.3123 146.73 28.4394 141.817 28.4394 114.222C28.4394 86.6284 49.4266 74.5685 80.2264 74.5685C96.0224 74.5685 115.293 81.922 136.792 92.7743L156.904 75.7513C127.524 60.2503 100.116 48.7363 77.4947 48.7363C12.3463 48.7363 0 93.7337 0 118.044C0 142.354 15.3504 181.628 68.499 181.628C173.17 181.628 236.569 42.5326 334.597 42.5326V42.5408Z"/>
+    </clipPath>
+    <mask id="mask" maskUnits="userSpaceOnUse" x="-6" y="-6" width="466" height="194">
+      <path fill="#fff" d="M334.597 42.5408C391.047 42.5408 421.929 65.5938 421.929 100.02C421.929 134.447 397.773 156.631 338.889 156.631C305.184 156.631 264.712 136.465 224.017 113.569L204.366 130.087L203.995 130.402C249.964 156.54 299.638 182.008 345.161 182.008C393.407 182.008 453.992 158.484 453.992 98.3824C453.992 38.2809 390.139 0 338.154 0C215.689 0 132.814 146.73 67.9626 146.73C54.3123 146.73 28.4394 141.817 28.4394 114.222C28.4394 86.6284 49.4266 74.5685 80.2264 74.5685C96.0224 74.5685 115.293 81.922 136.792 92.7743L156.904 75.7513C127.524 60.2503 100.116 48.7363 77.4947 48.7363C12.3463 48.7363 0 93.7337 0 118.044C0 142.354 15.3504 181.628 68.499 181.628C173.17 181.628 236.569 42.5326 334.597 42.5326V42.5408Z"/>
+      <path fill="#000" d="M224.017 113.569L203.995 130.402L136.792 92.7743L156.904 75.7513Z"/>
+      <path fill="#000" d="M338.154 0C215.689 0 132.814 146.73 67.9626 146.73L68.499 181.628C173.17 181.628 236.569 42.5326 334.597 42.5326Z"/>
+    </mask>
+    <path id="drop" pathLength="81.7" d="M110 68 C98.7 64.3 92.7 60.2 79 62 C65.3 63.8 38.8 70 28 79 C17.2 88 14 104.2 14 116 C14 127.8 19 142 28 150 C37 158 51 165.3 68 164 C85 162.7 111.3 152.3 130 142 C148.7 131.7 158.3 118.3 180 102 C201.7 85.7 234 57.5 260 44 C286 30.5 311.5 21.2 336 21 C360.5 20.8 390 30 407 43 C424 56 437.5 80.8 438 99 C438.5 117.2 426 140.3 410 152 C394 163.7 363.7 168.5 342 169 C320.3 169.5 301.3 162.8 280 155"/>
+    <path id="under" pathLength="18.3" d="M280 155 C258.7 147.2 230.7 130.8 214 122 C197.3 113.2 191.2 108.3 180 102 C168.8 95.7 158.7 89.7 147 84 C135.3 78.3 121.3 71.7 110 68"/>
+  </defs>
+  <path class="el-base el-rm" d="M334.597 42.5408C391.047 42.5408 421.929 65.5938 421.929 100.02C421.929 134.447 397.773 156.631 338.889 156.631C305.184 156.631 264.712 136.465 224.017 113.569L204.366 130.087L203.995 130.402C249.964 156.54 299.638 182.008 345.161 182.008C393.407 182.008 453.992 158.484 453.992 98.3824C453.992 38.2809 390.139 0 338.154 0C215.689 0 132.814 146.73 67.9626 146.73C54.3123 146.73 28.4394 141.817 28.4394 114.222C28.4394 86.6284 49.4266 74.5685 80.2264 74.5685C96.0224 74.5685 115.293 81.922 136.792 92.7743L156.904 75.7513C127.524 60.2503 100.116 48.7363 77.4947 48.7363C12.3463 48.7363 0 93.7337 0 118.044C0 142.354 15.3504 181.628 68.499 181.628C173.17 181.628 236.569 42.5326 334.597 42.5326V42.5408Z"/>
+  <g clip-path="url(#clip)">
+    <use class="el-beam el-d el-g1" href="#drop"/>
+    <use class="el-beam el-d el-g2" href="#drop"/>
+    <use class="el-beam el-d el-g3" href="#drop"/>
+    <use class="el-beam el-d el-g4" href="#drop"/>
+    <use class="el-beam el-d el-g5" href="#drop"/>
+    <use class="el-beam el-d el-g6" href="#drop"/>
+    <use class="el-beam el-d el-g7" href="#drop"/>
+    <use class="el-beam el-d el-g8" href="#drop"/>
+    <use class="el-beam el-d el-g9" href="#drop"/>
+    <use class="el-beam el-d el-g10" href="#drop"/>
+    <use class="el-beam el-d el-g11" href="#drop"/>
+    <use class="el-beam el-d el-g12" href="#drop"/>
+    <use class="el-beam el-d el-g13" href="#drop"/>
+    <use class="el-beam el-d el-g14" href="#drop"/>
+    <use class="el-beam el-d el-g15" href="#drop"/>
+    <use class="el-beam el-d el-g16" href="#drop"/>
+    <use class="el-beam el-d el-g17" href="#drop"/>
+    <use class="el-beam el-d el-g18" href="#drop"/>
+    <use class="el-beam el-d el-g19" href="#drop"/>
+    <use class="el-beam el-d el-g20" href="#drop"/>
+    <use class="el-beam el-d el-g21" href="#drop"/>
+    <use class="el-beam el-d el-g22" href="#drop"/>
+    <use class="el-beam el-d el-g23" href="#drop"/>
+    <use class="el-beam el-d el-g24" href="#drop"/>
+    <use class="el-beam el-d el-g25" href="#drop"/>
+    <use class="el-beam el-d el-g26" href="#drop"/>
+    <use class="el-beam el-d el-g27" href="#drop"/>
+    <use class="el-beam el-d el-g28" href="#drop"/>
+    <use class="el-beam el-d el-g29" href="#drop"/>
+    <use class="el-beam el-d el-g30" href="#drop"/>
+    <use class="el-beam el-d el-g31" href="#drop"/>
+    <use class="el-beam el-d el-g32" href="#drop"/>
+  </g>
+  <g mask="url(#mask)">
+    <use class="el-beam el-u el-g1" href="#under"/>
+    <use class="el-beam el-u el-g2" href="#under"/>
+    <use class="el-beam el-u el-g3" href="#under"/>
+    <use class="el-beam el-u el-g4" href="#under"/>
+    <use class="el-beam el-u el-g5" href="#under"/>
+    <use class="el-beam el-u el-g6" href="#under"/>
+    <use class="el-beam el-u el-g7" href="#under"/>
+    <use class="el-beam el-u el-g8" href="#under"/>
+    <use class="el-beam el-u el-g9" href="#under"/>
+    <use class="el-beam el-u el-g10" href="#under"/>
+    <use class="el-beam el-u el-g11" href="#under"/>
+    <use class="el-beam el-u el-g12" href="#under"/>
+    <use class="el-beam el-u el-g13" href="#under"/>
+    <use class="el-beam el-u el-g14" href="#under"/>
+    <use class="el-beam el-u el-g15" href="#under"/>
+    <use class="el-beam el-u el-g16" href="#under"/>
+    <use class="el-beam el-u el-g17" href="#under"/>
+    <use class="el-beam el-u el-g18" href="#under"/>
+    <use class="el-beam el-u el-g19" href="#under"/>
+    <use class="el-beam el-u el-g20" href="#under"/>
+    <use class="el-beam el-u el-g21" href="#under"/>
+    <use class="el-beam el-u el-g22" href="#under"/>
+    <use class="el-beam el-u el-g23" href="#under"/>
+    <use class="el-beam el-u el-g24" href="#under"/>
+    <use class="el-beam el-u el-g25" href="#under"/>
+    <use class="el-beam el-u el-g26" href="#under"/>
+    <use class="el-beam el-u el-g27" href="#under"/>
+    <use class="el-beam el-u el-g28" href="#under"/>
+    <use class="el-beam el-u el-g29" href="#under"/>
+    <use class="el-beam el-u el-g30" href="#under"/>
+    <use class="el-beam el-u el-g31" href="#under"/>
+    <use class="el-beam el-u el-g32" href="#under"/>
+  </g>
+</svg>

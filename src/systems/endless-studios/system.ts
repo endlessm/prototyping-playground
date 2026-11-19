@@ -73,6 +73,7 @@ export default {
       '~/composables/useStreamingGraphQLQuery.js': 'runtime/streaming-graphql.ts',
       '~/composables/useBackendError': 'runtime/composables.ts',
       '~/components/Generic/InfiniteScroll.vue': 'runtime/InfiniteScroll.vue',
+      '~/assets/images/loader/endless-loader.svg?component': 'runtime/endless-loader-svg.ts',
       '~/utils/dashboardRoute': 'runtime/app-modules.ts',
       '~/graphql_schemas/notifications': 'runtime/app-modules.ts',
     },

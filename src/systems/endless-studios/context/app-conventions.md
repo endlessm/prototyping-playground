@@ -38,7 +38,7 @@ A hi-fi view is a screen of the real app. Settle four things before any markup:
    - Enrollment: `EnrollmentModal`, `JoinConfirmationModal`, `JoinSuccessCard`. See [Programs](programs.md).
    - Gating: `RestrictedButton`, `KIDChallengeModal`, `RestrictedPartnerInfoModal` ([Gated actions](#gated-actions)).
    - Leader analytics: `AnalyticsKPI`, `DateRangePicker`.
-   - Generic: `MarkdownBody` (sanitised Markdown shown as prose), `ProgressLollipop`, `SvgSymbol`, `YoutubePlayer`. `InfiniteScroll` imports fine, but a stand-in answers it: it renders the given items and the empty slot, and loads no more.
+   - Generic: `MarkdownBody` (sanitised Markdown shown as prose), `ProgressLollipop`, `YoutubePlayer`. `InfiniteScroll` imports fine, but a stand-in answers it: it renders the given items and the empty slot, and loads no more.
 
 ## Colour
 
@@ -83,6 +83,7 @@ Colour is a role, and a component takes it through its `color` prop. The roles a
 - **Forms.** Use `UForm` with one state object and a schema, and put each field in a `UFormField` ([Form](../components/form/form.md)).
 - **Toasts.** A toast reports an outcome that isn't on screen: a save or create that closes its panel, a copy to the clipboard, a server error. It has a title only, with `color` `success` or `error`. When the result shows where the person acted, the change on screen is the feedback. A field's error stays on the field.
 - **Alerts.** A condition that stays true while the person is on the page is an alert ([Alert](../components/alert/alert.md)).
+- **Loading.** A loading state centred on the screen or in a section is the Endless Loader, the animated infinity mark: `Generic/CircularLoading` (`import CircularLoading from '~/components/Generic/CircularLoading.vue'`). Set its width with `size` (24, 32, 56, 96 or 160; 56 by default); the height follows. Pass `label` only when a more specific name than "Loading" helps. It handles reduced motion itself. Don't draw a spinning `i-lucide-loader*` icon or a custom spinner for these states; a button's own `loading` prop stays as it is.
 
 ## Navigation and tabs
 

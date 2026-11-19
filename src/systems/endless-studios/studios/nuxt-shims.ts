@@ -5,3 +5,4 @@ export { navigateTo, useRouter, useRoute } from '../runtime/navigation';
 export { useNuxtApp, useI18n, useGraphQLQuery, useState } from '../runtime/nuxt-app';
 export { useStore } from '../runtime/store';
 export { useNotificationsCount } from '../runtime/composables';
+export { useSvgSymbolsContainer } from '../runtime/svg-symbols';
