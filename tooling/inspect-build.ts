@@ -133,6 +133,13 @@ export function inspectBuild(directory: string, basePath = '/') {
         readFileSync(path.join(root, file), 'utf8'),
       ))
         check(reference, file)
+    } else if (/(^|\/)studio-manifest\/index\.[^/]+\.json$/.test(file)) {
+      // Every prototype picture the manifest names.
+      const { prototypes } = JSON.parse(
+        readFileSync(path.join(root, file), 'utf8'),
+      ) as { prototypes?: { thumbnail?: { url?: unknown } }[] }
+      for (const { thumbnail } of prototypes ?? [])
+        if (typeof thumbnail?.url === 'string') check(thumbnail.url, file)
     }
   }
   if (missing.length)

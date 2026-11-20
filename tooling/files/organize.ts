@@ -26,6 +26,15 @@ import { posix, PROTOTYPES_FOLDER, treeFiles } from '../manifest/build.ts'
 import type { ModulePrototypeFolder } from '../modules/contract.ts'
 import { CONFIG_FILE } from '../modules/registry.ts'
 import { registeredSystems } from '../studio/systems.ts'
+import { systemsFolder } from '../systems/registry.ts'
+import {
+  prototypeFingerprint,
+  systemVersion,
+} from '../thumbnails/fingerprint.ts'
+import {
+  readThumbnailRecord,
+  writeThumbnailRecord,
+} from '../thumbnails/record.ts'
 import { heldFiles } from './deletion.ts'
 import { localDate, slugify, systemFor, titleProblem } from './prototypes.ts'
 import {
@@ -231,6 +240,41 @@ export function createOrganizer(options: OrganizeOptions) {
     return ids
   }
 
+  /** The installed folder of the system with this permanent ID. */
+  function systemDir(systemId: string | null) {
+    const key = registeredSystems(root, readConfig().systems).find(
+      ({ studioId }) => studioId === systemId,
+    )?.key
+    return key ? { dir: path.resolve(root, systemsFolder(), key) } : null
+  }
+
+  /**
+   * The copy's picture, which came with its files. A duplicate's new IDs
+   * change its fingerprint but not what it shows, so it stays current when
+   * the original's was; a rebuild copy's reads stale until it is rebuilt.
+   */
+  function carryThumbnail(
+    original: string,
+    copy: string,
+    systemId: string | null,
+    rebuild: boolean,
+  ) {
+    const record = readThumbnailRecord(copy)
+    if (!record) return
+    if (rebuild) {
+      writeThumbnailRecord(copy, { ...record, fingerprint: '' })
+      return
+    }
+    const version = systemVersion(systemDir(systemId))
+    if (
+      record.fingerprint === prototypeFingerprint(original, systemId, version)
+    )
+      writeThumbnailRecord(copy, {
+        ...record,
+        fingerprint: prototypeFingerprint(copy, systemId, version),
+      })
+  }
+
   return {
     /**
      * A new title, and the folder renamed to match it. The permanent link
@@ -288,7 +332,7 @@ export function createOrganizer(options: OrganizeOptions) {
      * copy's own permanent links point at the copy. Another `system` (a
      * folder name or ID, or null for none) makes a rebuild copy: it keeps
      * the original's system until an agent rebuilds it. An archived
-     * prototype's copy is active.
+     * prototype's copy is active. Its picture comes along.
      */
     async duplicate(request: {
       prototype: unknown
@@ -372,6 +416,7 @@ export function createOrganizer(options: OrganizeOptions) {
               sourcePrototypeId: meta.studioId,
             }
           writeJson(path.join(copy, META), copied)
+          carryThumbnail(dir, copy, source, target !== source)
           return {
             id: copied.studioId as string,
             folder: display(copy),

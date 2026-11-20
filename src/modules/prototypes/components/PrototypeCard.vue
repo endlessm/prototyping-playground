@@ -5,8 +5,9 @@ import type { ManifestPrototype } from '../../../../app/composables/useManifest'
 import { firstName, makerOf, PROTOTYPE_ICON } from '../utils/gallery'
 import PrototypeMenu from './PrototypeMenu.vue'
 
-// A prototype's card in the gallery: its icon and title, who made it (photo
-// and first name) and when. It opens the prototype.
+// A prototype's card in the gallery: the picture of its first view (or a
+// placeholder of the same size), its title, who made it (photo and first
+// name) and when. It opens the prototype.
 const props = defineProps<{ prototype: ManifestPrototype }>()
 const manifest = await useManifest()
 const maker = computed(() => makerOf(manifest.value, props.prototype))
@@ -18,6 +19,7 @@ const maker = computed(() => makerOf(manifest.value, props.prototype))
     :icon="PROTOTYPE_ICON"
     :title="prototype.title"
     :archived="prototype.status === 'archived'"
+    :image="prototype.thumbnail?.url ?? null"
   >
     <template #meta>
       <ContributorAvatar
