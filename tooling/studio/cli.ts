@@ -43,6 +43,8 @@ interface Command {
   run: (root: string, args: string[], flags: Flags) => Promise<void> | void
   /** A shared change: `always` applies right away, `yes` with --yes. */
   shared?: 'always' | 'yes'
+  /** False for a command whose --yes leaves guidance alone: no sync after. */
+  changesGuidance?: false
 }
 
 const COMMANDS: Record<string, Command> = {
@@ -136,6 +138,18 @@ const COMMANDS: Record<string, Command> = {
       'after writing files directly: give the files of your prototype the permanent IDs they are missing',
     run: identify,
   },
+  thumbnails: {
+    usage:
+      'thumbnails [src/prototypes/<contributor>/<prototype>…] [--missing] [--stale] [--yes] [--json]',
+    summary:
+      "take the gallery picture of your prototypes' first view; without folders, every prototype you may change",
+    // Loaded only when run: it brings Vite and the preview pipeline.
+    async run(root, args, flags) {
+      const { thumbnails } = await import('./thumbnails.ts')
+      await thumbnails(root, args, flags)
+    },
+    changesGuidance: false,
+  },
   'identity-audit': {
     usage: 'identity-audit [--json]',
     summary:
@@ -224,6 +238,8 @@ const SWITCHES = new Set([
   '--json',
   '--no-system',
   '--restore-prototypes',
+  '--missing',
+  '--stale',
 ])
 const VALUES = new Set([
   '--tagline',
@@ -299,6 +315,7 @@ try {
     await command.run(ROOT, args, flags)
     if (
       name !== 'sync' &&
+      command.changesGuidance !== false &&
       (command.shared === 'always' ||
         flags.yes ||
         flags.apply ||

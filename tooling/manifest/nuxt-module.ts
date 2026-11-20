@@ -6,10 +6,14 @@
 // the build emits the manifest as files and builds the preview documents
 // beside the app.
 import { createHash } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, statSync } from 'node:fs'
-import { readFile } from 'node:fs/promises'
-import type { IncomingMessage, ServerResponse } from 'node:http'
-import { createServer as createNetServer } from 'node:net'
+import {
+  copyFileSync,
+  createReadStream,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+} from 'node:fs'
 import path from 'node:path'
 import {
   addTemplate,
@@ -17,54 +21,43 @@ import {
   addVitePlugin,
   defineNuxtModule,
 } from 'nuxt/kit'
-import {
-  build as viteBuild,
-  createServer,
-  type Plugin,
-  type ViteDevServer,
-} from 'vite'
+import { build as viteBuild, type Plugin } from 'vite'
 import { readContributors } from '../contributors/profiles.ts'
 import { identityFileTypes } from '../identity/file-types.ts'
 import { createRefreshQueue } from '../live/refresh-queue.ts'
 import { sameOrigin } from '../modules/nuxt-module.ts'
 import { loadRegistry } from '../modules/registry.ts'
 import {
-  NO_SYSTEM,
+  documentViews,
+  previewDocumentServers,
+  type ChangedFile,
+} from '../preview/dev-documents.ts'
+import {
   PREVIEW_ROUTE,
   previewConfig,
   previewDocuments,
   type PreviewDocument,
   type PreviewOptions,
-  VIEWS_RESOLVED,
-  viewsSignature,
   vueUpdatesFromOwnModules,
 } from '../preview/pipeline.ts'
-import { registerWatcher } from '../files/watchers.ts'
-import {
-  systemContentProblems,
-  systemDocsReport,
-  systemPreviews,
-} from '../systems/catalog.ts'
-import { fileCompileProblem } from '../systems/compile.ts'
+import { systemContentProblems, systemDocsReport } from '../systems/catalog.ts'
 import { loadSystems, systemsFolder } from '../systems/registry.ts'
 import { moduleChecks } from '../checks/module-checks.ts'
 import { serveSystemAssets } from '../systems/serve-assets.ts'
+import { thumbnailImage } from '../thumbnails/record.ts'
 import {
   buildManifest,
   forDeploy,
   PROTOTYPES_FOLDER,
+  THUMBNAILS_ROUTE,
   type BuiltManifest,
   type FileTypeReader,
 } from './build.ts'
 
 const MANIFEST_MODULE = 'virtual:studio-manifest'
 const MANIFEST_ROUTE = '_studio/manifest/'
-
-/** A file whose content changed, with when (milliseconds since 1970). */
-interface ChangedFile {
-  file: string
-  at: number
-}
+// Locally, each prototype's picture is read from its own folder.
+const THUMBNAILS_DEV_ROUTE = '_studio/thumbnails/'
 
 export default defineNuxtModule({
   meta: { name: 'studio-manifest' },
@@ -119,6 +112,10 @@ export default defineNuxtModule({
         fileTypes: readers,
         defaultSystem: defaultSystem(),
         contributors: readContributors(root, contributorsFolder).contributors,
+        // Locally from the prototype's folder; the build copies each picture
+        // beside the site. The version makes a new picture a new address.
+        thumbnailUrl: (id, version) =>
+          `${base}${nuxt.options.dev ? THUMBNAILS_DEV_ROUTE : THUMBNAILS_ROUTE}${id}.jpg?v=${version}`,
       })
     // The deployed site leaves archived prototypes and systems out
     // entirely: they aren't listed, built or bundled.
@@ -234,51 +231,8 @@ declare module '${MANIFEST_MODULE}' {
       workDir,
       baseURL: base,
       prototypesDir: path.resolve(root, prototypesFolder),
-      // Each view, then each of its named states; then the system's own
-      // examples, components' playgrounds and Overview content. The build
-      // leaves out the playground of a component file that doesn't compile,
-      // so one broken file can't stop the site; its Playground says why.
-      views: () => {
-        const { manifest, artifacts } = read()
-        const own = document.system
-          ? systemPreviews(document.system)
-              .filter(
-                ({ file, playground }) =>
-                  nuxt.options.dev || !playground || !fileCompileProblem(file),
-              )
-              .map(({ id, file, example, playground }) => ({
-                id,
-                file,
-                prototype: '',
-                path: '',
-                ...(example === undefined ? {} : { example }),
-                ...(playground ? { playground } : {}),
-              }))
-          : []
-        const views = manifest.prototypes
-          .filter(({ systemId }) => (systemId ?? NO_SYSTEM) === document.key)
-          .flatMap(({ id: prototype }) =>
-            (artifacts[prototype] ?? [])
-              .filter(({ type }) => type === 'view')
-              .flatMap((view) => {
-                const shared = {
-                  file: path.resolve(root, view.file),
-                  prototype,
-                  path: view.path,
-                  lofi: view.lofi === true,
-                }
-                return [
-                  { id: view.id, ...shared },
-                  ...(view.states ?? []).map((state) => ({
-                    id: state.id,
-                    ...shared,
-                    state: state.title,
-                  })),
-                ]
-              }),
-          )
-        return [...views, ...own]
-      },
+      views: () =>
+        documentViews(document, read(), root, Boolean(nuxt.options.dev)),
     })
 
     // The static build serves the preview documents from `_preview/`,
@@ -300,11 +254,32 @@ declare module '${MANIFEST_MODULE}' {
             await previewConfig(document, preview(document), 'build'),
           )
       })
+      // Each published prototype's committed picture, as
+      // `_thumbnails/<prototype-id>.jpg`. The manifest names only pictures
+      // that exist, so a prototype without one shows its placeholder. They
+      // are copied once the build has cleared its folder.
+      const pictures = path.join(nuxt.options.buildDir, 'studio-thumbnails')
+      nuxt.options.nitro.publicAssets.push({
+        dir: pictures,
+        baseURL: `/${THUMBNAILS_ROUTE}`,
+        maxAge: 0,
+      })
+      nuxt.hook('build:before', () => {
+        rmSync(pictures, { recursive: true, force: true })
+        mkdirSync(pictures, { recursive: true })
+        for (const { id, folder, thumbnail } of read().manifest.prototypes)
+          if (thumbnail)
+            copyFileSync(
+              thumbnailImage(path.resolve(root, folder)),
+              path.join(pictures, `${id}.jpg`),
+            )
+      })
     }
 
-    const previews = previewPlugin(documents, preview, base, (close) =>
-      nuxt.hook('close', close),
-    )
+    // In development each preview document has its own Vite server,
+    // started on its first request and stopped with the studio's.
+    const previews = previewDocumentServers(documents, preview, base)
+    nuxt.hook('close', previews.close)
     addVitePlugin(
       manifestPlugin(read, base, {
         root,
@@ -441,6 +416,36 @@ function manifestPlugin(
         res.end(JSON.stringify(list ?? { error: 'Not found' }))
       })
 
+      // Each prototype's picture, from its folder, by the prototype's ID.
+      server.middlewares.use(`${base}${THUMBNAILS_DEV_ROUTE}`, (req, res) => {
+        if (req.method !== 'GET' || !sameOrigin(req.headers)) {
+          res.statusCode = 403
+          res.end()
+          return
+        }
+        const id = /^\/([0-9a-z]+)\.jpg$/.exec(
+          (req.url ?? '').split('?')[0]!,
+        )?.[1]
+        const prototype = read().manifest.prototypes.find(
+          (entry) => entry.id === id && entry.thumbnail,
+        )
+        if (!prototype) {
+          res.statusCode = 404
+          res.end()
+          return
+        }
+        res.setHeader('Content-Type', 'image/jpeg')
+        res.setHeader('Cache-Control', 'no-cache')
+        createReadStream(
+          thumbnailImage(path.resolve(live.root, prototype.folder)),
+        )
+          .on('error', () => {
+            if (!res.headersSent) res.statusCode = 404
+            res.end()
+          })
+          .pipe(res)
+      })
+
       // Pushes the manifest, with every artifact list, when it changes.
       let revision = revisionOf(read())
       const files = new Set<string>()
@@ -508,115 +513,4 @@ function manifestPlugin(
       })
     },
   }
-}
-
-function freePort() {
-  return new Promise<number>((resolve, reject) => {
-    const server = createNetServer()
-    server.unref()
-    server.on('error', reject)
-    server.listen(0, '127.0.0.1', () => {
-      const { port } = server.address() as { port: number }
-      server.close(() => resolve(port))
-    })
-  })
-}
-
-// In development each preview document has its own Vite server, started on
-// its first request and stopped with the studio's. When content changes,
-// each running document reloads its views module if its views did, and
-// hears of the change, so a view that failed can try again.
-function previewPlugin(
-  documents: PreviewDocument[],
-  options: (document: PreviewDocument) => PreviewOptions,
-  base: string,
-  onClose: (close: () => Promise<void>) => void,
-) {
-  const servers = new Map<string, Promise<ViteDevServer>>()
-  // What each running document's views module was built from.
-  const signatures = new Map<string, string>()
-  const prefix = `${base}${PREVIEW_ROUTE}`
-  onClose(async () => {
-    for (const pending of servers.values()) await (await pending).close()
-    servers.clear()
-  })
-  const serverOf = (document: PreviewDocument) => {
-    let server = servers.get(document.key)
-    if (!server) {
-      signatures.set(document.key, viewsSignature(options(document).views()))
-      server = freePort()
-        .then((hmrPort) =>
-          previewConfig(document, { ...options(document), hmrPort }, 'serve'),
-        )
-        .then(createServer)
-        .then((started) => {
-          // So a whole prototype's folder can be renamed or trashed.
-          registerWatcher(started.watcher)
-          return started
-        })
-      servers.set(document.key, server)
-    }
-    return server
-  }
-  async function handle(
-    req: IncomingMessage,
-    res: ServerResponse,
-    next: () => void,
-  ) {
-    const url = new URL(req.url ?? '/', 'http://localhost')
-    const [key, ...rest] = url.pathname.slice(prefix.length).split('/')
-    const document = documents.find((entry) => entry.key === key)
-    if (!document) return next()
-    if (!rest.length) {
-      res.writeHead(301, { location: `${prefix}${key}/${url.search}` }).end()
-      return
-    }
-    const server = await serverOf(document)
-    const page = rest.join('/')
-    if (page === '' || page === 'index.html') {
-      // Vite's addresses are relative to the document's base.
-      const html = await server.transformIndexHtml(
-        `/${url.search}`,
-        await readFile(path.join(server.config.root, 'index.html'), 'utf8'),
-      )
-      res.setHeader('Content-Type', 'text/html; charset=utf-8')
-      res.setHeader('Cache-Control', 'no-store')
-      res.end(html)
-      return
-    }
-    server.middlewares(req, res, next)
-  }
-  async function changed(files: ChangedFile[]) {
-    for (const document of documents) {
-      const pending = servers.get(document.key)
-      if (!pending) continue
-      const server = await pending
-      const signature = viewsSignature(options(document).views())
-      if (signature !== signatures.get(document.key)) {
-        signatures.set(document.key, signature)
-        const views = server.moduleGraph.getModuleById(VIEWS_RESOLVED)
-        if (views) await server.reloadModule(views)
-      }
-      // A document's own watcher can lose a file that was removed and
-      // written again, and then keep serving its old compiled copy. The
-      // studio's watcher passes each change on, so the document's server
-      // drops that copy and sends the hot update itself.
-      for (const { file } of files)
-        server.watcher.emit(existsSync(file) ? 'change' : 'unlink', file)
-      server.ws.send({ type: 'custom', event: 'studio:file', data: { files } })
-    }
-  }
-  const plugin: Plugin = {
-    name: 'studio-preview-documents',
-    configureServer(server) {
-      server.middlewares.use((req, res, next) => {
-        if (!req.url?.startsWith(prefix)) return next()
-        handle(req, res, next).catch((error: Error) => {
-          res.statusCode = 500
-          res.end(error.message)
-        })
-      })
-    },
-  }
-  return { plugin, changed }
 }
