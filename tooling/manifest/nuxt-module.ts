@@ -22,6 +22,7 @@ import {
   defineNuxtModule,
 } from 'nuxt/kit'
 import { build as viteBuild, type Plugin } from 'vite'
+import { resolveIdentity } from '../contributors/identity.ts'
 import { readContributors } from '../contributors/profiles.ts'
 import { identityFileTypes } from '../identity/file-types.ts'
 import { createRefreshQueue } from '../live/refresh-queue.ts'
@@ -44,6 +45,7 @@ import { systemContentProblems, systemDocsReport } from '../systems/catalog.ts'
 import { loadSystems, systemsFolder } from '../systems/registry.ts'
 import { moduleChecks } from '../checks/module-checks.ts'
 import { serveSystemAssets } from '../systems/serve-assets.ts'
+import { createAutoCapture } from '../thumbnails/auto.ts'
 import { thumbnailImage } from '../thumbnails/record.ts'
 import {
   buildManifest,
@@ -280,6 +282,32 @@ declare module '${MANIFEST_MODULE}' {
     // started on its first request and stopped with the studio's.
     const previews = previewDocumentServers(documents, preview, base)
     nuxt.hook('close', previews.close)
+    // Pictures of the running contributor's changed prototypes, taken
+    // through this server's own preview documents.
+    let studioUrl: string | null = null
+    let contributor: string | null | undefined
+    const contributors = () =>
+      readContributors(root, contributorsFolder).contributors
+    const autoCapture = createAutoCapture({
+      root,
+      prototypesFolder,
+      configFile: registry.configFile,
+      systems,
+      read,
+      contributors,
+      // Resolving runs Git, so it happens once, on the first capture.
+      contributor: () =>
+        (contributor ??= resolveIdentity(root, contributors()).key),
+      studioUrl: () => studioUrl,
+      logger: {
+        info: (message) => console.log(message),
+        warn: (message) => console.warn(`Warning: ${message}`),
+      },
+    })
+    nuxt.hook('listen', (_server, listener) => {
+      studioUrl = new URL(base, listener.url).href
+    })
+    nuxt.hook('close', autoCapture.close)
     addVitePlugin(
       manifestPlugin(read, base, {
         root,
@@ -290,7 +318,10 @@ declare module '${MANIFEST_MODULE}' {
           path.resolve(root, contributorsFolder),
           registry.configFile,
         ],
-        changed: previews.changed,
+        changed: (files) => {
+          autoCapture.changed(files)
+          return previews.changed(files)
+        },
         textTypes: new Set(
           fileTypes.filter((type) => type.text).map((type) => type.id),
         ),
