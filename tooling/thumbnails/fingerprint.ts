@@ -50,7 +50,9 @@ function* contentFiles(dir: string, prefix = ''): Generator<string> {
 const versions = new Map<string, { time: number; version: string }>()
 
 /** The system's package version, as its `package.json` says now. */
-export function systemVersion(system: InstalledSystem | null | undefined) {
+export function systemVersion(
+  system: Pick<InstalledSystem, 'dir'> | null | undefined,
+) {
   if (!system) return ''
   const file = path.join(system.dir, 'package.json')
   try {
