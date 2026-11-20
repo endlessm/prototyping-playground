@@ -319,7 +319,10 @@ declare module '${MANIFEST_MODULE}' {
           registry.configFile,
         ],
         changed: (files) => {
-          autoCapture.changed(files)
+          // The browser tests' dev servers turn pictures off, so a capture
+          // never competes with the scenario for the machine.
+          if (process.env.STUDIO_THUMBNAILS !== 'off')
+            autoCapture.changed(files)
           return previews.changed(files)
         },
         textTypes: new Set(

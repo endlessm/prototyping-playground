@@ -81,6 +81,7 @@ export async function startDevServer(
   // in the same checkout keeps running and keeps its record.
   const child = run(['dev', '--port', String(port), '--host', host], {
     STUDIO_RUNTIME_DIR: mkdtempSync(path.join(os.tmpdir(), 'studio-runtime-')),
+    STUDIO_THUMBNAILS: 'off',
     ...env,
     STUDIO_BUILD_DIR: '.nuxt-e2e',
   })
