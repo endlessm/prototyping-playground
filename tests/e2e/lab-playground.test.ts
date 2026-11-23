@@ -547,13 +547,12 @@ function scenarios(
     await expect.poll(query(page)).toEqual({ tone: 'loud' })
   })
 
-  test('[LAB-05] an overlay in the stage closes with Escape, its dial follows and the keyboard comes back to the studio', async () => {
+  test('[LAB-05] an overlay starts open, closes with Escape, its dial follows and the keyboard comes back to the studio', async () => {
     const page = await open(playground('sheet'))
-    const on = dial(page, 'open').getByRole('radio', { name: 'On' })
-    await visible(on)
-    await on.click()
+    // Closed, an overlay shows nothing, so it opens without changing the address.
     await visible(stage(page).getByRole('dialog', { name: 'Sheet' }))
-    await expect.poll(query(page)).toEqual({ open: 'true' })
+    expect(query(page)()).toEqual({})
+    await expect.poll(() => isOn(page, 'open')).toBe('true')
     await expect
       .poll(() => page.evaluate(() => document.activeElement?.tagName))
       .toBe('IFRAME')
@@ -565,18 +564,26 @@ function scenarios(
 
     await page.keyboard.press('Escape')
     await expect.poll(() => stage(page).getByRole('dialog').count()).toBe(0)
-    await expect.poll(query(page)).toEqual({})
+    await expect.poll(query(page)).toEqual({ open: 'false' })
     await expect.poll(() => isOn(page, 'open')).toBe('false')
     await expect
-      .poll(() => on.evaluate((element) => element === document.activeElement))
+      .poll(() =>
+        dial(page, 'open').evaluate((element) =>
+          element.contains(document.activeElement),
+        ),
+      )
       .toBe(true)
+
+    await dial(page, 'open').getByRole('radio', { name: 'On' }).click()
+    await visible(stage(page).getByRole('dialog', { name: 'Sheet' }))
+    await expect.poll(query(page)).toEqual({})
   })
 
   test('[LAB-05] its close button closes it too, with Inspect off, and the open dial follows', async () => {
-    const page = await open(`${playground('sheet')}?open=true`)
+    const page = await open(playground('sheet'))
     await inspect(page).click()
     await stage(page).getByRole('button', { name: 'Close' }).click()
-    await expect.poll(query(page)).toEqual({})
+    await expect.poll(query(page)).toEqual({ open: 'false' })
     await expect.poll(() => isOn(page, 'open')).toBe('false')
   })
 
