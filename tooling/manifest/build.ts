@@ -519,7 +519,8 @@ export function forDeploy(
     (prototype.systemId !== null && archivedSystems.has(prototype.systemId))
   const kept = manifest.prototypes.filter((prototype) => !leftOut(prototype))
   const keptIds = new Set(kept.map(({ id }) => id))
-  const labVersions = manifest.labVersions?.filter(({ prototype }) =>
+  const { labVersions: versions, ...rest } = manifest
+  const labVersions = versions?.filter(({ prototype }) =>
     keptIds.has(prototype),
   )
   const left = {
@@ -558,10 +559,9 @@ export function forDeploy(
     built: {
       ...built,
       manifest: {
+        ...rest,
         prototypes: kept,
         systems: manifest.systems.filter(({ id }) => !archivedSystems.has(id)),
-        defaultSystem: manifest.defaultSystem,
-        contributors: manifest.contributors,
         ...(labVersions?.length ? { labVersions } : {}),
       },
       artifacts: Object.fromEntries(

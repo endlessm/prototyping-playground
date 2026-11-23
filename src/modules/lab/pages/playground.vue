@@ -60,9 +60,9 @@ import { versionById } from '../utils/versions'
 // back to the dials.
 // Hovering a dial shows on the stage what it changes. Inspect (on by
 // default) selects an element on the stage: its box model, and the prop
-// dials that change it. Locally an app component's code sits beside the
-// stage: the app's original, read-only, where Inspect jumps to the selected
-// element's code; the deployed site shows it too. Other components, such as
+// dials that change it. An app component's code sits beside the stage,
+// locally and on the deployed site: the app's original, read-only, where
+// Inspect jumps to the selected element's code. Other components, such as
 // Nuxt UI's, have no code there: their only file is the system's catalog
 // page around them. Locally, for someone registered, New version copies the
 // original into their own versions and opens it (`?version=<view id>`):
@@ -77,6 +77,7 @@ const local = import.meta.dev
 const manifest = await useManifest()
 const { me } = useMe()
 const toast = useStudioToast()
+const versionsUrl = `${useRuntimeConfig().app.baseURL}_studio/modules/lab/versions`
 
 // --- The version open, locally ---
 
@@ -196,7 +197,7 @@ async function newVersion() {
   creating.value = true
   try {
     const created = await requestJson<{ artifact: string; path: string }>(
-      `${useRuntimeConfig().app.baseURL}_studio/modules/lab/versions`,
+      versionsUrl,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

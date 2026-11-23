@@ -223,7 +223,7 @@ async function create(
       meta.systemId === system.id &&
       meta.status !== 'archived',
   )
-  let starter: string | null = null
+  let firstView: string | null = null
   if (!home) {
     const created = createPrototype(
       {
@@ -236,7 +236,7 @@ async function create(
       { title: name, system: system.id },
     )
     home = access.prototypeOf(created.id)
-    starter = created.artifact
+    firstView = created.artifact
   }
   const refusal = access.refusalFor(home.contributor, home.meta)
   if (refusal) throw fail(403, refusal.message)
@@ -251,9 +251,9 @@ async function create(
   const release = identityLock(root)
   try {
     // A new prototype's empty starting view becomes the first version.
-    const starting = starter ? path.join(home.dir, 'Prototype.vue') : null
+    const starting = firstView ? path.join(home.dir, 'Prototype.vue') : null
     const artifact =
-      starter ??
+      firstView ??
       newStudioId(
         identitiesInUse(
           auditIdentities(root, fileTypes, {
