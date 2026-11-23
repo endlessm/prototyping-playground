@@ -59,7 +59,7 @@ useHead({
   <div v-if="!component" class="mx-auto w-full max-w-3xl px-4 py-6">
     <AppNotFound to="/lab" label="lab.viewComponents" />
   </div>
-  <div v-else class="mx-auto w-full max-w-5xl px-4 py-6">
+  <div v-else class="w-full px-4 py-6">
     <header class="mb-4">
       <h1 class="text-3xl font-semibold tracking-tight text-highlighted">
         {{ component.title }}
