@@ -12,7 +12,7 @@
 // stage while there is one. Node only.
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
-import type { Plugin } from 'vite'
+import type { Plugin, ViteDevServer } from 'vite'
 import { appCopy, appFile, type AppFile } from '../systems/app-copy.ts'
 import { frontmatter, genericAppComponents } from '../systems/catalog.ts'
 import { discoverComponents } from '../systems/components.ts'
@@ -109,11 +109,20 @@ export function versionStages(dir: string, drafts: Drafts | null) {
     return draft && existsSync(draft) ? draft : stage.file
   }
 
+  let server: ViteDevServer | undefined
+  /** Loads the version's stand-in again, as when its file was renamed. */
+  const reloadWrapper = (artifact: string) => {
+    const module = server?.moduleGraph.getModuleById(`${WRAPPER}${artifact}`)
+    if (module) void server!.reloadModule(module)
+  }
+
   function frameOf(stage: VersionStage, frame: string) {
     const address = posix(
       path.join(dir, FOLDER, stage.artifact, path.basename(frame)),
     )
+    const before = stages.get(address)
     stages.set(address, { ...stage, frame })
+    if (before && before.file !== stage.file) reloadWrapper(stage.artifact)
     return address
   }
 
@@ -164,26 +173,27 @@ export function versionStages(dir: string, drafts: Drafts | null) {
       if (stage.generic) return genericFrame(posix(stage.original))
       return readFileSync(stage.frame, 'utf8')
     },
-    configureServer(server) {
+    configureServer(dev) {
+      server = dev
       if (!drafts) return
-      server.watcher.add(drafts.dir)
+      dev.watcher.add(drafts.dir)
       // A draft appearing or going away switches the stage to it or back.
       const switched = (file: string) => {
         const origin = drafts.originOf(path.resolve(file))
         if (!origin) return
         for (const stage of stages.values())
           if (path.resolve(stage.file) === origin) {
-            const module = server.moduleGraph.getModuleById(
+            const module = dev.moduleGraph.getModuleById(
               `${WRAPPER}${stage.artifact}`,
             )
-            if (module) void server.reloadModule(module)
+            if (module) void dev.reloadModule(module)
           }
       }
-      server.watcher.on('add', switched)
-      server.watcher.on('unlink', switched)
-      server.httpServer?.once('close', () => {
-        server.watcher.off('add', switched)
-        server.watcher.off('unlink', switched)
+      dev.watcher.on('add', switched)
+      dev.watcher.on('unlink', switched)
+      dev.httpServer?.once('close', () => {
+        dev.watcher.off('add', switched)
+        dev.watcher.off('unlink', switched)
       })
     },
   }
