@@ -14,7 +14,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import type { Plugin } from 'vite'
 import { appCopy, appFile, type AppFile } from '../systems/app-copy.ts'
-import { frontmatter } from '../systems/catalog.ts'
+import { frontmatter, genericAppComponents } from '../systems/catalog.ts'
 import { discoverComponents } from '../systems/components.ts'
 import type { InstalledSystem } from '../systems/registry.ts'
 import { posix, treeFiles } from '../manifest/build.ts'
@@ -29,37 +29,52 @@ export interface VersionStage {
   specifier: string
   /** The original's file, absolute. */
   original: string
+  /**
+   * An app component no page presents: its frame is the original alone,
+   * so the version's stage mounts the version in a frame of its own.
+   */
+  generic?: boolean
 }
 
 /**
  * The system's app components by slug: the frame (the component file,
- * absolute), the copied app file it presents and that file, absolute.
+ * absolute), the copied app file it presents and that file, absolute. An
+ * app component no page presents (`generic`) has the original as its frame,
+ * as its playground does.
  */
 export function appComponents(system: InstalledSystem) {
   const found = new Map<
     string,
-    { frame: string; app: AppFile; original: string }
+    { frame: string; app: AppFile; original: string; generic?: true }
   >()
   const copy = appCopy(system)
   if (!copy) return found
   const dir = path.join(system.dir, 'components')
-  if (!existsSync(dir)) return found
-  for (const component of discoverComponents(treeFiles(dir))) {
+  const documented: { slug: string; app: AppFile | null }[] = []
+  const pages = existsSync(dir) ? discoverComponents(treeFiles(dir)) : []
+  for (const component of pages) {
     const { doc, source } = component.files
-    if (!doc || !source) continue
     let declared: unknown
     try {
-      declared = frontmatter(readFileSync(path.join(dir, doc), 'utf8'))?.app
+      declared = doc
+        ? frontmatter(readFileSync(path.join(dir, doc), 'utf8'))?.app
+        : undefined
     } catch {
-      continue
+      declared = undefined
     }
     const app = appFile(system, copy, declared)
-    if (app && 'file' in app)
+    const file = app && 'file' in app ? app.file : null
+    documented.push({ slug: component.slug, app: file })
+    if (file && doc && source)
       found.set(component.slug, {
         frame: path.join(dir, source),
-        app: app.file,
-        original: path.join(system.dir, copy.folder, app.file.path),
+        app: file,
+        original: path.join(system.dir, copy.folder, file.path),
       })
+  }
+  for (const { slug, app } of genericAppComponents(system, copy, documented)) {
+    const original = path.join(system.dir, copy.folder, app.path)
+    found.set(slug, { frame: original, app, original, generic: true })
   }
   return found
 }
@@ -143,7 +158,11 @@ export function versionStages(dir: string, drafts: Drafts | null) {
       }
       if (id.includes('?')) return
       const stage = stageAt(id)
-      if (stage) return readFileSync(stage.frame, 'utf8')
+      if (!stage) return
+      // The original alone: a frame that only renders it, so the swap
+      // below gives the version the Playground's props unchanged.
+      if (stage.generic) return genericFrame(posix(stage.original))
+      return readFileSync(stage.frame, 'utf8')
     },
     configureServer(server) {
       if (!drafts) return
@@ -171,6 +190,18 @@ export function versionStages(dir: string, drafts: Drafts | null) {
 
   return { frameOf, shownFile, plugin }
 }
+
+// The frame of a version of an app component no page presents: the
+// original, which the swap turns into the version, with every prop and
+// listener the Playground gives the frame falling through to it.
+const genericFrame = (original: string) => `<script setup>
+import Original from ${JSON.stringify(original)}
+</script>
+
+<template>
+  <Original />
+</template>
+`
 
 // Stands in for the original in the frame: renders the version with what
 // the frame gives it, plus the props the version declares that the

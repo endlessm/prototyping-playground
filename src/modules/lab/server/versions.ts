@@ -200,9 +200,11 @@ async function create(
   if (!component || !copy)
     throw fail(404, 'Only an app component has versions.')
   const original = appOriginal(system, copy, component.app)
+  const catalog = systemCatalog(system, root)
   const title =
-    systemCatalog(system, root).components.find((entry) => entry.slug === slug)
-      ?.title ?? slug
+    [...catalog.components, ...catalog.appComponents].find(
+      (entry) => entry.slug === slug,
+    )?.title ?? slug
 
   // Who is working: only registered contributors make versions.
   const { contributors } = readContributors(root, context.contributorsFolder)

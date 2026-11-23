@@ -305,6 +305,7 @@ declare module '${MANIFEST_MODULE}' {
                   file: path.resolve(root, view.file),
                   specifier: component.app.specifier,
                   original: component.original,
+                  ...(component.generic ? { generic: true } : {}),
                 },
               },
             ]
