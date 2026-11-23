@@ -49,6 +49,7 @@ import { fileCompileProblem } from '../systems/compile.ts'
 import { loadSystems, systemsFolder } from '../systems/registry.ts'
 import { moduleChecks } from '../checks/module-checks.ts'
 import { serveSystemAssets } from '../systems/serve-assets.ts'
+import { draftsDir } from '../files/drafts-folder.ts'
 import {
   buildManifest,
   forDeploy,
@@ -234,6 +235,8 @@ declare module '${MANIFEST_MODULE}' {
       workDir,
       baseURL: base,
       prototypesDir: path.resolve(root, prototypesFolder),
+      // A component's playground shows its unsaved draft, locally.
+      draftsDir: nuxt.options.dev ? draftsDir(root) : undefined,
       // Each view, then each of its named states; then the system's own
       // examples, components' playgrounds and Overview content. The build
       // leaves out the playground of a component file that doesn't compile,

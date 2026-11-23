@@ -10,6 +10,11 @@ export interface ImportPolicy {
   prototypesDir: string
   system: InstalledSystem | null
   modules: { id: string; dir: string; library: string }[]
+  /**
+   * The file a draft stands in for (`../files/drafts-folder.ts`), checked
+   * in its place; null for any other file.
+   */
+  origin?: (file: string) => string | null
 }
 
 const within = (file: string, dir: string) => {
@@ -224,7 +229,7 @@ export function importGuard(policy: ImportPolicy): Plugin {
     enforce: 'pre',
     transform(source, id) {
       if (id.includes('?') || !/\.(vue|css|[cm]?[jt]s)$/.test(id)) return
-      const problems = sourceProblems(source, id, policy)
+      const problems = sourceProblems(source, policy.origin?.(id) ?? id, policy)
       if (problems.length) this.error(problems.join('\n'))
     },
     async resolveId(id) {

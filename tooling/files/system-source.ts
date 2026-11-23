@@ -128,10 +128,13 @@ export function systemAccess(options: SystemSourceOptions) {
   return { systemOf, refusalFor }
 }
 
-export function createSystemSourceService(options: SystemSourceOptions) {
-  const { root } = options
+/**
+ * A system's source file by its address, when the source route may reach
+ * it: an ordinary file inside the system's folder. Throws `not_found`
+ * otherwise. Shared with the drafts of `./system-drafts.ts`.
+ */
+export function systemFiles(options: SystemSourceOptions) {
   const { systemOf, refusalFor } = systemAccess(options)
-
   async function locate(address: SystemFileAddress) {
     const { system, config } = await systemOf(address.system)
     if (!system || !reachable(system, address.path)) throw notFound()
@@ -141,6 +144,12 @@ export function createSystemSourceService(options: SystemSourceOptions) {
       throw notFound()
     return { system, file, config }
   }
+  return { systemOf, refusalFor, locate }
+}
+
+export function createSystemSourceService(options: SystemSourceOptions) {
+  const { root } = options
+  const { systemOf, refusalFor, locate } = systemFiles(options)
 
   const display = (file: string) => posix(path.relative(root, file))
 

@@ -13,6 +13,7 @@ import type { InlineConfig, Plugin, PluginOption, ViteDevServer } from 'vite'
 import type { InstalledSystem } from '../systems/registry.ts'
 import { importGuard } from '../checks/imports.ts'
 import { loadRegistry } from '../modules/registry.ts'
+import { draftMap, systemDraftsDir } from '../files/drafts-folder.ts'
 import { standInNames } from './stand-ins.ts'
 
 import {
@@ -94,6 +95,19 @@ export interface PreviewOptions {
   hmrPort?: number
   /** The views this document renders, read when its views module loads. */
   views: () => PreviewView[]
+  /**
+   * Development only: the drafts folder (`../files/drafts-folder.ts`). A
+   * component's playground renders its file's draft while there is one.
+   */
+  draftsDir?: string
+}
+
+// The system's drafts in development: their folder, the draft standing in
+// for a file and the file a draft stands in for.
+function documentDrafts(document: PreviewDocument, options: PreviewOptions) {
+  if (!document.system || !options.draftsDir) return null
+  const dir = systemDraftsDir(options.draftsDir, document.key)
+  return { dir, ...draftMap(document.system.dir, dir) }
 }
 
 export function previewDocuments(systems: InstalledSystem[]) {
@@ -118,6 +132,7 @@ async function importDefault(file: string) {
 // Writes the document's page, entry module and stylesheet. Paths in them are
 // relative, so they work from the work folder in development and the build.
 function writeEntry(document: PreviewDocument, options: PreviewOptions) {
+  const drafts = documentDrafts(document, options)
   const dir = path.join(options.workDir, document.key)
   mkdirSync(dir, { recursive: true })
   const relative = (file: string) => {
@@ -136,7 +151,10 @@ function writeEntry(document: PreviewDocument, options: PreviewOptions) {
       writeFileSync(
         path.join(dir, 'preview.css'),
         // The system's own files (its examples and overview), and the views.
-        `@import '${systemFile(app.stylesheet)}';\n@source '${relative(document.system!.dir)}';\n@source '${relative(options.prototypesDir)}';\n`,
+        `@import '${systemFile(app.stylesheet)}';\n@source '${relative(document.system!.dir)}';\n@source '${relative(options.prototypesDir)}';\n${
+          // Drafts are Git-ignored, which Tailwind skips unless it is told.
+          drafts ? `@source '${relative(drafts.dir)}';\n` : ''
+        }`,
       )
       lines.push(`import './preview.css'`)
     }
@@ -184,7 +202,10 @@ export const VIEWS_RESOLVED = `\0${VIEWS_MODULE}`
 // development the module accepts its own updates: it changes the one object
 // the runtime holds and tells it, so new, renamed and emptied views reach an
 // open document without a reload.
-function viewsPlugin(options: PreviewOptions): Plugin {
+function viewsPlugin(
+  options: PreviewOptions,
+  drafts: ReturnType<typeof documentDrafts>,
+): Plugin {
   return {
     name: 'studio-preview-views',
     resolveId(id) {
@@ -193,7 +214,10 @@ function viewsPlugin(options: PreviewOptions): Plugin {
     load(id) {
       if (id !== VIEWS_RESOLVED) return
       const entries = options.views().map((view) => {
-        const { id, file } = view
+        const { id } = view
+        // A playground shows its component's draft, which nothing else does.
+        const draft = view.playground ? drafts?.draftOf(view.file) : null
+        const file = draft && existsSync(draft) ? draft : view.file
         const title = path.basename(file, path.extname(file))
         const load = emptyFile(file)
           ? 'null'
@@ -225,6 +249,54 @@ export default views
 `
     },
   }
+}
+
+// Development only: a component's draft on its playground. The views module
+// loads again when a draft appears or goes away, so the stage switches to
+// it or back to the saved file; edits to a draft are its own hot updates.
+// A draft's relative imports resolve from the file it stands in for, and
+// the import guard checks it as that file (`importGuard`'s `origin`).
+// Tailwind scans the drafts, but only regenerates the stylesheet when one
+// of the files it already knew changes, so a draft's new classes reload it.
+function draftsPlugin(
+  drafts: NonNullable<ReturnType<typeof documentDrafts>>,
+  stylesheet: string,
+) {
+  return {
+    name: 'studio-preview-drafts',
+    apply: 'serve',
+    enforce: 'pre',
+    async resolveId(source, importer, options) {
+      if (!importer || !source.startsWith('.')) return
+      const origin = drafts.originOf(importer.split('?')[0]!)
+      if (origin)
+        return this.resolve(source, origin, { ...options, skipSelf: true })
+    },
+    configureServer(server) {
+      server.watcher.add(drafts.dir)
+      const restyle = () => {
+        for (const css of server.moduleGraph.getModulesByFile(stylesheet) ?? [])
+          void server.reloadModule(css)
+      }
+      const added = (file: string) => {
+        if (!drafts.originOf(path.resolve(file))) return
+        const views = server.moduleGraph.getModuleById(VIEWS_RESOLVED)
+        if (views) void server.reloadModule(views)
+        restyle()
+      }
+      const edited = (file: string) => {
+        if (drafts.originOf(path.resolve(file))) restyle()
+      }
+      server.watcher.on('add', added)
+      server.watcher.on('unlink', added)
+      server.watcher.on('change', edited)
+      server.httpServer?.once('close', () => {
+        server.watcher.off('add', added)
+        server.watcher.off('unlink', added)
+        server.watcher.off('change', edited)
+      })
+    },
+  } satisfies Plugin
 }
 
 // Development only: the compiler's message and location for a view that
@@ -394,6 +466,7 @@ export async function previewConfig(
   mode: 'serve' | 'build',
 ): Promise<InlineConfig> {
   const dir = writeEntry(document, options)
+  const drafts = mode === 'serve' ? documentDrafts(document, options) : null
   const registry = await loadRegistry(options.root, {
     modulesFolder: process.env.STUDIO_MODULES || undefined,
     configFile: process.env.STUDIO_CONFIG || undefined,
@@ -402,6 +475,7 @@ export async function previewConfig(
     importGuard({
       root: options.root,
       prototypesDir: options.prototypesDir,
+      origin: drafts?.originOf,
       system: document.system,
       modules: registry.enabled
         .filter(({ spec }) => spec.library)
@@ -409,10 +483,12 @@ export async function previewConfig(
     }),
     vue({ include: [/\.vue$/] }),
     vueUpdatesFromOwnModules(),
-    viewsPlugin(options),
+    viewsPlugin(options, drafts),
     compilePlugin(options),
     statesPlugin(options),
   ]
+  if (drafts)
+    plugins.push(draftsPlugin(drafts, posix(path.join(dir, 'preview.css'))))
   if (document.system)
     plugins.push(...(await systemPlugins(document.system, options.root)))
   return {
