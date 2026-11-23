@@ -5,15 +5,15 @@
 // live in the address, so a reload or a shared link restores them, a value
 // that no longer fits is ignored, and Reset clears them. Components the
 // panel can't start say why. Hovering a dial shows what it changes on the
-// stage, and Inspect selects an element there. Locally the component's code
-// sits beside the stage as a draft only the stage renders, with class dials
-// for the selected element, Save and Discard. On a disposable copy of
+// stage, and Inspect selects an element there. Locally an app component's
+// code sits beside the stage: the app's original, read-only, where Inspect
+// marks the selected element's code; other components show no code. On a
+// disposable copy of
 // `tests/fixtures/systems-area` with an Endless Studios-like button and
 // components that each need a message, against the dev server and the
 // static build.
 import {
   cpSync,
-  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -221,7 +221,9 @@ defineProps<{ label?: string }>()
 <template><span>{{ label }}</span></template>
 `,
 )
-// Its own spacing, radius and size classes, for Inspect's class dials.
+// An app component: the app's own pill, copied into Harbor's app source with
+// the copy's record, and the system's component page around it, whose page
+// names it. Its own spacing, radius and size classes are for Inspect.
 const PILL = `<script setup lang="ts">
 defineProps<{ label?: string }>()
 </script>
@@ -232,7 +234,24 @@ defineProps<{ label?: string }>()
   </span>
 </template>
 `
-write('components/pill/pill.vue', PILL)
+write('app/components/Dock/DockPill.vue', PILL)
+write(
+  'app/README.md',
+  '---\nrepository: harbor/dock\nrevision: 0a1b2c3\nroot: web/app\n---\n\n# Dock app sources\n',
+)
+write(
+  'components/pill/pill.vue',
+  `<script setup lang="ts">
+import DockPill from '~/components/Dock/DockPill.vue'
+defineProps<{ label?: string }>()
+</script>
+<template><DockPill :label="label" /></template>
+`,
+)
+write(
+  'components/pill/pill.md',
+  '---\ntitle: Pill\ndescription: A small tag.\napp: components/Dock/DockPill.vue\n---\n\n## When to use\n\nAlways.\n',
+)
 // Edited on disk while its playground is open.
 const BUOY = (word: string) => `<script setup lang="ts">
 defineProps<{ name?: string }>()
@@ -262,12 +281,11 @@ const ENV = {
   STUDIO_CONTRIBUTORS: 'tests/fixtures/contributors',
   STUDIO_GITHUB: '',
 }
-// Locally, as Ben, who maintains Harbor and so may change its files; the
-// drafts stay in the disposable copy.
-const DRAFTS = path.join(content, 'drafts')
+// Locally, as Ben, who maintains Harbor and so may change its files; any
+// draft stays in the disposable copy.
 const BEN = {
   ...ENV,
-  STUDIO_DRAFTS_DIR: posix(DRAFTS),
+  STUDIO_DRAFTS_DIR: posix(path.join(content, 'drafts')),
   GIT_CONFIG_COUNT: '2',
   GIT_CONFIG_KEY_0: 'user.name',
   GIT_CONFIG_VALUE_0: 'Ben Okafor',
@@ -282,8 +300,7 @@ afterAll(() => {
 const playground = (slug: string) => `lab/${HARBOR}/${slug}/playground`
 const harborFile = (file: string) =>
   path.join(content, 'systems', 'harbor', file)
-const PILL_FILE = 'components/pill/pill.vue'
-const pillDraft = () => path.join(DRAFTS, HARBOR, PILL_FILE)
+const PILL_FILE = 'app/components/Dock/DockPill.vue'
 
 async function visible(locator: { isVisible: () => Promise<boolean> }) {
   await expect.poll(() => locator.isVisible(), { timeout: 45_000 }).toBe(true)
@@ -710,36 +727,48 @@ function scenarios(
   )
 
   test.runIf(local)(
-    '[LAB-07] the code sits beside the stage as a draft: the stage renders it, the file waits for Save',
+    '[LAB-07] an app component’s code is its app file, read-only, saying it is the app’s original; other components show none',
     async () => {
       const page = await open(playground('pill'))
-      const editor = page.getByRole('region', { name: 'Code of pill.vue' })
-      await visible(editor.getByText('All changes saved'))
+      const editor = page.getByRole('region', { name: 'Code of DockPill.vue' })
+      await visible(editor.getByText('Read-only'))
+      await visible(
+        editor.getByText(
+          'This is the app’s original. Make a new version to change it.',
+        ),
+      )
+      await visible(
+        editor.getByText('web/app/components/Dock/DockPill.vue at 0a1b2c3'),
+      )
       await visible(stage(page).getByText('Label'))
+      expect(
+        await editor.getByRole('button', { name: 'Save', exact: true }).count(),
+      ).toBe(0)
       await editor.getByText('{{ label }}').click()
       await page.keyboard.press('End')
       await page.keyboard.type(' ahoy')
-      await visible(stage(page).getByText('Label ahoy'))
-      await visible(editor.getByText('Unsaved changes in pill.vue'))
-      expect(readFileSync(harborFile(PILL_FILE), 'utf8')).toBe(PILL)
-      await expect.poll(() => existsSync(pillDraft())).toBe(true)
-
-      await page.keyboard.press('ControlOrMeta+s')
-      await visible(editor.getByText('All changes saved'))
       await expect
-        .poll(() => readFileSync(harborFile(PILL_FILE), 'utf8'))
-        .toContain('{{ label }}</em> ahoy')
-      await expect.poll(() => existsSync(pillDraft())).toBe(false)
-      writeFileSync(harborFile(PILL_FILE), PILL)
+        .poll(() => editor.locator('.cm-content').textContent())
+        .not.toContain('ahoy')
+      expect(readFileSync(harborFile(PILL_FILE), 'utf8')).toBe(PILL)
+
+      // A component without an app file shows no code.
+      const button = await open(playground('button'))
+      await visible(
+        stage(button).getByRole('button', { name: 'Moor the boat' }),
+      )
+      expect(
+        await button.getByRole('region', { name: /^Code of/ }).count(),
+      ).toBe(0)
     },
   )
 
   test.runIf(local)(
-    '[LAB-07] Inspect jumps to the element’s code, its class dials rewrite the draft, and Discard brings the file back',
+    '[LAB-07] Inspect jumps to the element’s code in the original, which offers no class dials',
     async () => {
       const page = await open(playground('pill'))
-      const editor = page.getByRole('region', { name: 'Code of pill.vue' })
-      await visible(editor.getByText('All changes saved'))
+      const editor = page.getByRole('region', { name: 'Code of DockPill.vue' })
+      await visible(editor.getByText('Read-only'))
       const pill = stage(page).locator('span.inline-flex')
       // Harbor's stylesheet isn't Tailwind: the pill has no padding to click.
       await pill.dispatchEvent('click')
@@ -750,52 +779,13 @@ function scenarios(
       await expect
         .poll(() => editor.locator('.cm-studio-marked').count())
         .toBe(4)
-      await expect
-        .poll(() =>
-          page
-            .locator('[data-lab-dial^="element:"]')
-            .evaluateAll((rows) =>
-              rows.map((row) => (row as HTMLElement).dataset.labDial),
-            ),
-        )
-        .toEqual([
-          'element:Spacing',
-          'element:Spacing.gap',
-          'element:Spacing.paddingX',
-          'element:Spacing.paddingY',
-          'element:Radius',
-          'element:Radius.radius',
-        ])
-      // Hovering a spacing dial shows its space and size.
-      await page.locator('[data-lab-dial="element:Spacing.paddingX"]').hover()
-      await expect
-        .poll(() => stageLabel(page).textContent())
-        .toMatch(/^Spacing › paddingX = px-3 · \d+px$/)
-
-      await page
-        .locator('[data-lab-dial="element:Spacing.paddingX"] [role="slider"]')
-        .focus()
-      await page.keyboard.press('ArrowRight')
-      await visible(editor.getByText('Unsaved changes in pill.vue'))
-      await expect
-        .poll(() =>
-          existsSync(pillDraft()) ? readFileSync(pillDraft(), 'utf8') : '',
-        )
-        .toContain('class="inline-flex gap-2 rounded-lg px-3.5 py-1"')
+      expect(await page.locator('[data-lab-dial^="element:"]').count()).toBe(0)
+      await visible(
+        page.getByText(
+          'Class dials change a version. Make a new version to change this element’s classes.',
+        ),
+      )
       expect(readFileSync(harborFile(PILL_FILE), 'utf8')).toBe(PILL)
-      // The stage renders the draft.
-      await expect.poll(() => pill.getAttribute('class')).toContain('px-3.5')
-
-      await editor.getByRole('button', { name: 'Discard', exact: true }).click()
-      await page
-        .getByRole('dialog')
-        .getByRole('button', { name: 'Discard', exact: true })
-        .click()
-      await visible(editor.getByText('All changes saved'))
-      await expect.poll(() => existsSync(pillDraft())).toBe(false)
-      await expect
-        .poll(() => pill.getAttribute('class'))
-        .toBe('inline-flex gap-2 rounded-lg px-3 py-1')
     },
   )
 
@@ -811,7 +801,7 @@ function scenarios(
       const width = async () =>
         Math.round(
           (await page
-            .getByRole('region', { name: 'Code of pill.vue' })
+            .getByRole('region', { name: 'Code of DockPill.vue' })
             .boundingBox())!.width,
         )
       const before = await width()
