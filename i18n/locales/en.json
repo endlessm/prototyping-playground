@@ -1143,7 +1143,8 @@
       "original": "Show original",
       "created": "{name} created",
       "createFailed": "The version wasn’t created",
-      "missing": "This version no longer exists. The app’s original is shown instead."
+      "missing": "This version no longer exists. The app’s original is shown instead.",
+      "readOnlyDeployed": "Versions are read-only here. Run the studio locally to make your own."
     }
   }
 }

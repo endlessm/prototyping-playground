@@ -11,6 +11,7 @@ import { useOriginalSource } from '../composables/useOriginalSource'
 import type { PlaygroundCode } from '../composables/usePlaygroundDraft'
 import { useStageInspector } from '../composables/useStageInspector'
 import { useVersionDraft } from '../composables/useVersionDraft'
+import { useVersionText } from '../composables/useVersionText'
 import { refreshManifest } from '../../../../app/composables/useManifest'
 import { requestJson } from '../../../../app/utils/studioRequest'
 import {
@@ -68,7 +69,8 @@ import { versionById } from '../utils/versions'
 // original into their own versions and opens it (`?version=<view id>`):
 // the stage shows the version in the original's frame, the dials add the
 // props the version declares, and the editor edits it as a draft, with the
-// selected element's class dials that rewrite it.
+// selected element's class dials that rewrite it. On the deployed site a
+// version opens read-only, with the text the build shipped for it.
 const { component, system, stem, data, reload } = useLabComponent()
 const { t } = useI18n()
 const route = useRoute()
@@ -79,10 +81,10 @@ const { me } = useMe()
 const toast = useStudioToast()
 const versionsUrl = `${useRuntimeConfig().app.baseURL}_studio/modules/lab/versions`
 
-// --- The version open, locally ---
+// --- The version open ---
 
 const versionId = computed(() =>
-  local && typeof route.query.version === 'string' ? route.query.version : null,
+  typeof route.query.version === 'string' ? route.query.version : null,
 )
 const version = computed(() => {
   const found = versionId.value
@@ -96,13 +98,13 @@ const version = computed(() => {
 const versionMissing = computed(() =>
   Boolean(versionId.value && !version.value),
 )
+const versionAddress = () =>
+  version.value
+    ? { prototype: version.value.prototype, artifact: version.value.id }
+    : null
 const versionCode = local
-  ? useVersionDraft(() =>
-      version.value
-        ? { prototype: version.value.prototype, artifact: version.value.id }
-        : null,
-    )
-  : null
+  ? useVersionDraft(versionAddress)
+  : useVersionText(versionAddress)
 // The address keeps the open version beside the props' values.
 const kept = (): Record<string, string> =>
   versionId.value ? { version: versionId.value } : {}
@@ -163,8 +165,9 @@ function update(name: string, value: unknown) {
 watch(
   () => [propsDoc.value, route.query] as const,
   ([loaded, query]) => {
-    // A version's own props come a moment later.
-    if (!loaded || (version.value && !versionCode?.props.value)) return
+    // A version's own props come a moment later; the deployed site doesn't
+    // know them.
+    if (!loaded || (local && version.value && !versionCode.props.value)) return
     const clean: Record<string, string> = {
       ...kept(),
       ...writeQuery(controls.value, values.value),

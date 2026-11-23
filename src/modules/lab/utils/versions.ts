@@ -1,5 +1,8 @@
+import { manifestFile } from '../../../../app/composables/useManifest'
+import { requestJson } from '../../../../app/utils/studioRequest'
 import type {
   Manifest,
+  ManifestArtifact,
   ManifestContributor,
   ManifestLabVersion,
   ManifestPrototype,
@@ -15,8 +18,10 @@ export {
 // someone's "<Component> versions" prototype, each holding a
 // `@lab-version <system> <component> <revision>` marker. Plain functions,
 // so every Lab page that lists, opens or compares versions reads them the
-// same way. A version's text is its view's file, read through the file
-// service locally (`composables/useVersionDraft.ts`).
+// same way. A version's text is its view's file: `versionText` reads it
+// through the file service locally and from the file the build ships beside
+// the manifest on the deployed site; the Playground edits it locally through
+// `composables/useVersionDraft.ts`.
 
 /** A version with its prototype and whose it is. */
 export interface LabVersion extends ManifestLabVersion {
@@ -61,3 +66,45 @@ export const olderRevision = (
   version: Pick<ManifestLabVersion, 'revision'>,
   current: string | null,
 ) => Boolean(version.revision && current && version.revision !== current)
+
+/**
+ * A version's view as its prototype's artifact list has it (its title, its
+ * path, and on the deployed site where its text is), or null when the list
+ * doesn't hold it. `manifest` is `useManifest()`'s, which says where each
+ * prototype's list is.
+ */
+export async function versionArtifact(
+  manifest: { artifacts: Record<string, string> },
+  version: Pick<ManifestLabVersion, 'prototype' | 'id'>,
+): Promise<ManifestArtifact | null> {
+  const listed = manifest.artifacts[version.prototype]
+  if (!listed) return null
+  const response = await fetch(manifestFile(listed))
+  if (!response.ok) throw new Error('This version failed to load.')
+  const list = (await response.json()) as ManifestArtifact[]
+  return list.find(({ id }) => id === version.id) ?? null
+}
+
+/**
+ * A version's text, as its file holds it (markers included; strip them with
+ * `withoutStudioMarkers`). Locally from the dev server's file service; on
+ * the deployed site from the text the build ships beside the manifest for
+ * every view holding a version marker. Throws a message a person can read.
+ */
+export async function versionText(
+  manifest: { artifacts: Record<string, string> },
+  version: Pick<ManifestLabVersion, 'prototype' | 'id'>,
+): Promise<string> {
+  if (import.meta.dev) {
+    const url = `${useRuntimeConfig().app.baseURL}_studio/files/source`
+    const reply = await requestJson<{ content: string }>(
+      `${url}?${new URLSearchParams({ prototype: version.prototype, artifact: version.id })}`,
+    )
+    return reply.content
+  }
+  const artifact = await versionArtifact(manifest, version)
+  if (!artifact?.text) throw new Error('This version is not on this site.')
+  const response = await fetch(manifestFile(artifact.text))
+  if (!response.ok) throw new Error('This version failed to load.')
+  return response.text()
+}
