@@ -1138,7 +1138,8 @@
       "readOnly": "This is the app’s original. Make a new version to change it.",
       "readOnlyDeployed": "This is the app’s original. Run the studio locally to make a new version.",
       "from": "{path} at {revision}",
-      "classDials": "Class dials change a version. Make a new version to change this element’s classes."
+      "classDials": "Class dials change a version. Make a new version to change this element’s classes.",
+      "classDialsDeployed": "Class dials change a version. Run the studio locally to make a new version."
     },
     "versions": {
       "new": "New version",
