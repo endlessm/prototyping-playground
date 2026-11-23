@@ -1,14 +1,25 @@
-// Playground: a designer tries a component's props with controls built
+// Playground: a designer tries a component's props with DialKit dials built
 // from its `defineProps`, seeded from its Default example or a sample so it
 // never opens empty, and the real component file updates in the system's
 // preview document without the frame reloading. Changed values
 // live in the address, so a reload or a shared link restores them, a value
 // that no longer fits is ignored, and Reset clears them. Components the
-// panel can't start say why. On a disposable copy of
+// panel can't start say why. Hovering a dial shows what it changes on the
+// stage, and Inspect selects an element there. Locally the component's code
+// sits beside the stage as a draft only the stage renders, with class dials
+// for the selected element, Save and Discard. On a disposable copy of
 // `tests/fixtures/systems-area` with an Endless Studios-like button and
 // components that each need a message, against the dev server and the
 // static build.
-import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
 import path from 'node:path'
 import type { FrameLocator, Page } from 'playwright'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
@@ -210,6 +221,18 @@ defineProps<{ label?: string }>()
 <template><span>{{ label }}</span></template>
 `,
 )
+// Its own spacing, radius and size classes, for Inspect's class dials.
+const PILL = `<script setup lang="ts">
+defineProps<{ label?: string }>()
+</script>
+<template>
+  <span class="inline-flex gap-2 rounded-lg px-3 py-1">
+    <b class="size-4">*</b>
+    <em class="not-italic">{{ label }}</em>
+  </span>
+</template>
+`
+write('components/pill/pill.vue', PILL)
 // Edited on disk while its playground is open.
 const BUOY = (word: string) => `<script setup lang="ts">
 defineProps<{ name?: string }>()
@@ -228,7 +251,7 @@ writeFileSync(
     systems: ['attic', 'harbor', 'lantern'],
     defaultSystem: HARBOR,
     admins: ['ada0000000000001'],
-    systemMaintainers: {},
+    systemMaintainers: { [HARBOR]: ['ben0000000000002'] },
   }),
 )
 
@@ -239,12 +262,28 @@ const ENV = {
   STUDIO_CONTRIBUTORS: 'tests/fixtures/contributors',
   STUDIO_GITHUB: '',
 }
+// Locally, as Ben, who maintains Harbor and so may change its files; the
+// drafts stay in the disposable copy.
+const DRAFTS = path.join(content, 'drafts')
+const BEN = {
+  ...ENV,
+  STUDIO_DRAFTS_DIR: posix(DRAFTS),
+  GIT_CONFIG_COUNT: '2',
+  GIT_CONFIG_KEY_0: 'user.name',
+  GIT_CONFIG_VALUE_0: 'Ben Okafor',
+  GIT_CONFIG_KEY_1: 'user.email',
+  GIT_CONFIG_VALUE_1: 'ben@endless.example',
+}
 
 afterAll(() => {
   rmSync(content, { recursive: true, force: true })
 })
 
 const playground = (slug: string) => `lab/${HARBOR}/${slug}/playground`
+const harborFile = (file: string) =>
+  path.join(content, 'systems', 'harbor', file)
+const PILL_FILE = 'components/pill/pill.vue'
+const pillDraft = () => path.join(DRAFTS, HARBOR, PILL_FILE)
 
 async function visible(locator: { isVisible: () => Promise<boolean> }) {
   await expect.poll(() => locator.isVisible(), { timeout: 45_000 }).toBe(true)
@@ -253,10 +292,32 @@ const stage = (page: Page): FrameLocator =>
   page.frameLocator('iframe[data-preview-frame]')
 const query = (page: Page) => () =>
   Object.fromEntries(new URL(page.url()).searchParams)
+// One prop's dial, in the Props panel DialKit draws.
+const dial = (page: Page, name: string) =>
+  page.locator(`[data-lab-dial="props:${name}"]`)
+const text = (page: Page, name: string) => dial(page, name).getByRole('textbox')
 const select = async (page: Page, name: string, option: string) => {
-  await page.getByRole('combobox', { name, exact: true }).click()
+  await dial(page, name).getByRole('button').click()
   await page.getByRole('option', { name: option, exact: true }).click()
 }
+// A boolean dial is a pair of radios, Off and On.
+const turn = (page: Page, name: string, on: boolean) =>
+  dial(page, name)
+    .getByRole('radio', { name: on ? 'On' : 'Off', exact: true })
+    .click()
+const isOn = (page: Page, name: string) =>
+  dial(page, name)
+    .getByRole('radio', { name: 'On', exact: true })
+    .getAttribute('aria-checked')
+const stageLabel = (page: Page) => page.locator('[data-lab-stage-label]')
+const inspect = (page: Page) =>
+  page.getByRole('switch', { name: 'Inspect', exact: true })
+const markedDials = (page: Page) => () =>
+  page
+    .locator('[data-lab-marked]')
+    .evaluateAll((rows) =>
+      rows.map((row) => (row as HTMLElement).dataset.labDial),
+    )
 
 function scenarios(
   start: () => Promise<RunningStudio>,
@@ -284,7 +345,7 @@ function scenarios(
     return page
   }
 
-  test('[LAB-05] changing the controls updates the button in place, without reloading the frame', async () => {
+  test('[LAB-05] changing the dials updates the button in place, without reloading the frame', async () => {
     const page = await open(playground('button'))
     const button = stage(page).locator('button')
     await visible(stage(page).getByRole('button', { name: 'Moor the boat' }))
@@ -301,11 +362,9 @@ function scenarios(
     await expect.poll(() => button.getAttribute('data-variant')).toBe('outline')
     await select(page, 'size', 'lg')
     await expect.poll(() => button.getAttribute('data-size')).toBe('lg')
-    await page
-      .getByRole('textbox', { name: 'label', exact: true })
-      .fill('Cast off')
+    await text(page, 'label').fill('Cast off')
     await expect.poll(() => button.textContent()).toBe('Cast off')
-    await page.getByRole('switch', { name: 'loading', exact: true }).click()
+    await turn(page, 'loading', true)
     await expect.poll(() => button.textContent()).toBe('Loading')
     expect(await button.isDisabled()).toBe(true)
 
@@ -333,13 +392,9 @@ function scenarios(
     await visible(alert.getByRole('button', { name: 'Dismiss' }))
     expect(await alert.getAttribute('data-color')).toBe('warning')
     expect(query(page)()).toEqual({})
-    const title = page.getByRole('textbox', { name: 'title', exact: true })
+    const title = text(page, 'title')
     expect(await title.inputValue()).toBe('Storm due at dusk')
-    expect(
-      await page
-        .getByRole('switch', { name: 'dismissible', exact: true })
-        .getAttribute('aria-checked'),
-    ).toBe('true')
+    expect(await isOn(page, 'dismissible')).toBe('true')
 
     await title.fill('Fog by morning')
     await visible(alert.getByText('Fog by morning'))
@@ -357,16 +412,16 @@ function scenarios(
     await expect.poll(query(page)).toEqual({})
     await expect.poll(() => alert.getAttribute('data-color')).toBe('warning')
     await visible(alert.getByText('Storm due at dusk'))
+    // The dials follow the address back.
+    await expect
+      .poll(() => dial(page, 'color').getByRole('button').textContent())
+      .toContain('warning')
   })
 
   test('[LAB-05] a text prop with nothing to start from shows a sample from its name', async () => {
     const page = await open(playground('tag'))
     await visible(stage(page).getByText('Label', { exact: true }))
-    expect(
-      await page
-        .getByRole('textbox', { name: 'label', exact: true })
-        .inputValue(),
-    ).toBe('Label')
+    await expect.poll(() => text(page, 'label').inputValue()).toBe('Label')
     expect(query(page)()).toEqual({})
     expect(await page.getByText(/^Nothing shows/).count()).toBe(0)
   })
@@ -383,21 +438,25 @@ function scenarios(
     await visible(row)
     expect(await row.textContent()).toContain('ui')
     expect(await row.textContent()).toContain('{ base?: string')
+    expect(await dial(page, 'ui').count()).toBe(0)
   })
 
-  test('[LAB-05] each control is labelled with its prop and described by the prop’s description, shown under it', async () => {
+  test('[LAB-05] each dial is labelled from its prop and described by its name and description, shown under it', async () => {
     const page = await open(playground('button'))
-    const color = page.getByRole('combobox', { name: 'color', exact: true })
+    const color = dial(page, 'color').getByRole('button')
     await visible(color)
+    expect(await color.textContent()).toContain('Color')
     await visible(page.getByText('A semantic role from the theme.'))
-    expect(
-      await color.evaluate((element) =>
-        (element.getAttribute('aria-describedby') ?? '')
-          .split(' ')
-          .map((id) => document.getElementById(id)?.textContent?.trim())
-          .join(' '),
-      ),
-    ).toContain('A semantic role from the theme.')
+    await expect
+      .poll(() =>
+        color.evaluate((element) =>
+          (element.getAttribute('aria-describedby') ?? '')
+            .split(' ')
+            .map((id) => document.getElementById(id)?.textContent?.trim())
+            .join(' '),
+        ),
+      )
+      .toBe('color · A semantic role from the theme.')
   })
 
   test('[LAB-05] a stage where nothing shows says why it may be blank', async () => {
@@ -412,7 +471,7 @@ function scenarios(
     expect(await button.getByText(/^Nothing shows/).count()).toBe(0)
   })
 
-  test('[LAB-05] the stage stays in view while the controls scroll, on wide and narrow screens', async () => {
+  test('[LAB-05] the stage stays in view while the dials scroll, on wide and narrow screens', async () => {
     for (const size of [
       { width: 1280, height: 600 },
       { width: 390, height: 700 },
@@ -421,7 +480,10 @@ function scenarios(
       await page.setViewportSize(size)
       const frame = page.locator('iframe[data-preview-frame]')
       await visible(stage(page).getByRole('button', { name: 'Moor the boat' }))
-      await page.getByText('Set in code').scrollIntoViewIfNeeded()
+      await page
+        .getByRole('listitem')
+        .filter({ hasText: 'Set in code' })
+        .scrollIntoViewIfNeeded()
       await expect
         .poll(async () => {
           const box = await frame.boundingBox()
@@ -442,11 +504,9 @@ function scenarios(
     expect(await button.getAttribute('data-color')).toBe('error')
     expect(await button.getAttribute('data-size')).toBe('md')
     expect(await button.isDisabled()).toBe(false)
-    expect(
-      await page
-        .getByRole('combobox', { name: 'color', exact: true })
-        .textContent(),
-    ).toContain('error')
+    await expect
+      .poll(() => dial(page, 'color').getByRole('button').textContent())
+      .toContain('error')
 
     await page.reload()
     await expect.poll(() => button.textContent()).toBe('Ahoy')
@@ -487,12 +547,11 @@ function scenarios(
     await expect.poll(query(page)).toEqual({ tone: 'loud' })
   })
 
-  test('[LAB-05] an overlay in the stage closes with Escape, its control follows and the keyboard comes back to the studio', async () => {
+  test('[LAB-05] an overlay in the stage closes with Escape, its dial follows and the keyboard comes back to the studio', async () => {
     const page = await open(playground('sheet'))
-    const control = page.getByRole('switch', { name: 'open', exact: true })
-    await visible(control)
-    await control.focus()
-    await page.keyboard.press('Space')
+    const on = dial(page, 'open').getByRole('radio', { name: 'On' })
+    await visible(on)
+    await on.click()
     await visible(stage(page).getByRole('dialog', { name: 'Sheet' }))
     await expect.poll(query(page)).toEqual({ open: 'true' })
     await expect
@@ -507,25 +566,18 @@ function scenarios(
     await page.keyboard.press('Escape')
     await expect.poll(() => stage(page).getByRole('dialog').count()).toBe(0)
     await expect.poll(query(page)).toEqual({})
-    expect(await control.getAttribute('aria-checked')).toBe('false')
+    await expect.poll(() => isOn(page, 'open')).toBe('false')
     await expect
-      .poll(() =>
-        control.evaluate((element) => element === document.activeElement),
-      )
+      .poll(() => on.evaluate((element) => element === document.activeElement))
       .toBe(true)
   })
 
-  test('[LAB-05] its close button closes it too, and the open control follows', async () => {
+  test('[LAB-05] its close button closes it too, with Inspect off, and the open dial follows', async () => {
     const page = await open(`${playground('sheet')}?open=true`)
+    await inspect(page).click()
     await stage(page).getByRole('button', { name: 'Close' }).click()
     await expect.poll(query(page)).toEqual({})
-    await expect
-      .poll(() =>
-        page
-          .getByRole('switch', { name: 'open', exact: true })
-          .getAttribute('aria-checked'),
-      )
-      .toBe('false')
+    await expect.poll(() => isOn(page, 'open')).toBe('false')
   })
 
   test('[LAB-05] Reset keeps the keyboard where it was and says it worked', async () => {
@@ -546,15 +598,20 @@ function scenarios(
     ).toBe(true)
   })
 
-  test('[LAB-05] without a prop the panel can change, there is no Reset; while the stage can’t start, the controls are disabled', async () => {
+  test('[LAB-05] without a prop the panel can change, there is no Reset; while the stage can’t start, the dials are disabled', async () => {
     const gauge = await open(playground('gauge'))
-    await visible(gauge.getByText('Set in code'))
+    await visible(
+      gauge.getByRole('listitem').filter({ hasText: 'Set in code' }),
+    )
     expect(await gauge.getByRole('button', { name: 'Reset' }).count()).toBe(0)
 
     const dialog = await open(playground('dialog'))
-    const title = dialog.getByRole('textbox', { name: 'title', exact: true })
-    await visible(title)
-    expect(await title.isDisabled()).toBe(true)
+    await visible(dial(dialog, 'title'))
+    expect(
+      await dial(dialog, 'title').evaluate(
+        (element) => element.closest('[inert]') !== null,
+      ),
+    ).toBe(true)
     expect(
       await dialog
         .getByRole('button', { name: 'Reset', exact: true })
@@ -565,20 +622,55 @@ function scenarios(
   test('[LAB-05] a value that makes the component throw shows its error on the stage, and another value brings it back', async () => {
     const page = await open(`${playground('meter')}?level=3`)
     await visible(stage(page).getByText('Level 3'))
-    const level = page.getByRole('spinbutton', { name: 'level', exact: true })
+    const level = text(page, 'level')
     await level.fill('11')
-    await level.press('Enter')
     const alert = page
       .getByRole('alert')
       .filter({ hasText: 'This component couldn’t render.' })
     await visible(alert)
     expect(await alert.textContent()).toContain('The meter only goes to 10.')
-    // The controls stay usable while the stage shows the error.
+    // The dials stay usable while the stage shows the error.
     await level.fill('5')
-    await level.press('Enter')
     await visible(stage(page).getByText('Level 5'))
     await expect.poll(() => alert.count()).toBe(0)
     await expect.poll(query(page)).toEqual({ level: '5' })
+  })
+
+  test('[LAB-06] hovering a dial shows on the stage what it changes', async () => {
+    const page = await open(playground('button'))
+    await visible(stage(page).getByRole('button', { name: 'Moor the boat' }))
+    await dial(page, 'label').hover()
+    await expect
+      .poll(() => stageLabel(page).textContent())
+      .toBe('Props › label = Moor the boat')
+    // A dial for something without text of its own outlines the component.
+    await dial(page, 'size').hover()
+    await expect
+      .poll(() => stageLabel(page).textContent())
+      .toBe('Props › size = md')
+    await page.mouse.move(0, 0)
+    await expect.poll(() => stageLabel(page).count()).toBe(0)
+  })
+
+  test('[LAB-06] Inspect selects an element instead of using it, marks the dials that change it, and Escape clears it', async () => {
+    const page = await open(`${playground('sheet')}?open=true`)
+    expect(await inspect(page).getAttribute('aria-checked')).toBe('true')
+    await stage(page).getByRole('button', { name: 'Close' }).click()
+    // The click selected the button; the sheet is still open.
+    await expect
+      .poll(() => stageLabel(page).textContent())
+      .toMatch(/^<button> · \d+×\d+$/)
+    expect(await stage(page).getByRole('dialog').count()).toBe(1)
+    await visible(
+      page.getByRole('status').filter({ hasText: /^Selected <button>/ }),
+    )
+
+    const button = await open(playground('button'))
+    await stage(button).getByRole('button', { name: 'Moor the boat' }).click()
+    await expect.poll(markedDials(button)).toEqual(['props:label'])
+    await button.keyboard.press('Escape')
+    await expect.poll(() => stageLabel(button).count()).toBe(0)
+    await expect.poll(markedDials(button)).toEqual([])
   })
 
   test.runIf(local)(
@@ -589,17 +681,149 @@ function scenarios(
       write('components/buoy/buoy.vue', BUOY('Marker'))
       await visible(stage(page).getByText('Marker North'))
       await expect.poll(query(page)).toEqual({ name: 'North' })
-      expect(
-        await page
-          .getByRole('textbox', { name: 'name', exact: true })
-          .inputValue(),
-      ).toBe('North')
+      await expect.poll(() => text(page, 'name').inputValue()).toBe('North')
+    },
+  )
+
+  test.runIf(!local)(
+    '[LAB-07] the deployed site has no code editor and no class dials',
+    async () => {
+      const page = await open(playground('pill'))
+      await visible(stage(page).getByText('Label'))
+      // Harbor's stylesheet isn't Tailwind: the pill has no padding to click.
+      await stage(page).locator('span.inline-flex').dispatchEvent('click')
+      await expect
+        .poll(() => stageLabel(page).textContent())
+        .toMatch(/^<span> inline-flex/)
+      expect(await page.getByRole('region', { name: /^Code of/ }).count()).toBe(
+        0,
+      )
+      expect(await page.locator('[data-lab-dial^="element:"]').count()).toBe(0)
+    },
+  )
+
+  test.runIf(local)(
+    '[LAB-07] the code sits beside the stage as a draft: the stage renders it, the file waits for Save',
+    async () => {
+      const page = await open(playground('pill'))
+      const editor = page.getByRole('region', { name: 'Code of pill.vue' })
+      await visible(editor.getByText('All changes saved'))
+      await visible(stage(page).getByText('Label'))
+      await editor.getByText('{{ label }}').click()
+      await page.keyboard.press('End')
+      await page.keyboard.type(' ahoy')
+      await visible(stage(page).getByText('Label ahoy'))
+      await visible(editor.getByText('Unsaved changes in pill.vue'))
+      expect(readFileSync(harborFile(PILL_FILE), 'utf8')).toBe(PILL)
+      await expect.poll(() => existsSync(pillDraft())).toBe(true)
+
+      await page.keyboard.press('ControlOrMeta+s')
+      await visible(editor.getByText('All changes saved'))
+      await expect
+        .poll(() => readFileSync(harborFile(PILL_FILE), 'utf8'))
+        .toContain('{{ label }}</em> ahoy')
+      await expect.poll(() => existsSync(pillDraft())).toBe(false)
+      writeFileSync(harborFile(PILL_FILE), PILL)
+    },
+  )
+
+  test.runIf(local)(
+    '[LAB-07] Inspect jumps to the element’s code, its class dials rewrite the draft, and Discard brings the file back',
+    async () => {
+      const page = await open(playground('pill'))
+      const editor = page.getByRole('region', { name: 'Code of pill.vue' })
+      await visible(editor.getByText('All changes saved'))
+      const pill = stage(page).locator('span.inline-flex')
+      // Harbor's stylesheet isn't Tailwind: the pill has no padding to click.
+      await pill.dispatchEvent('click')
+      await expect
+        .poll(() => stageLabel(page).textContent())
+        .toMatch(/^<span> inline-flex gap-2 rounded-lg px-3 py-1 · /)
+      // The whole element block, opening tag to closing tag.
+      await expect
+        .poll(() => editor.locator('.cm-studio-marked').count())
+        .toBe(4)
+      await expect
+        .poll(() =>
+          page
+            .locator('[data-lab-dial^="element:"]')
+            .evaluateAll((rows) =>
+              rows.map((row) => (row as HTMLElement).dataset.labDial),
+            ),
+        )
+        .toEqual([
+          'element:Spacing',
+          'element:Spacing.gap',
+          'element:Spacing.paddingX',
+          'element:Spacing.paddingY',
+          'element:Radius',
+          'element:Radius.radius',
+        ])
+      // Hovering a spacing dial shows its space and size.
+      await page.locator('[data-lab-dial="element:Spacing.paddingX"]').hover()
+      await expect
+        .poll(() => stageLabel(page).textContent())
+        .toMatch(/^Spacing › paddingX = px-3 · \d+px$/)
+
+      await page
+        .locator('[data-lab-dial="element:Spacing.paddingX"] [role="slider"]')
+        .focus()
+      await page.keyboard.press('ArrowRight')
+      await visible(editor.getByText('Unsaved changes in pill.vue'))
+      await expect
+        .poll(() =>
+          existsSync(pillDraft()) ? readFileSync(pillDraft(), 'utf8') : '',
+        )
+        .toContain('class="inline-flex gap-2 rounded-lg px-3.5 py-1"')
+      expect(readFileSync(harborFile(PILL_FILE), 'utf8')).toBe(PILL)
+      // The stage renders the draft.
+      await expect.poll(() => pill.getAttribute('class')).toContain('px-3.5')
+
+      await editor.getByRole('button', { name: 'Discard', exact: true }).click()
+      await page
+        .getByRole('dialog')
+        .getByRole('button', { name: 'Discard', exact: true })
+        .click()
+      await visible(editor.getByText('All changes saved'))
+      await expect.poll(() => existsSync(pillDraft())).toBe(false)
+      await expect
+        .poll(() => pill.getAttribute('class'))
+        .toBe('inline-flex gap-2 rounded-lg px-3 py-1')
+    },
+  )
+
+  test.runIf(local)(
+    '[LAB-07] the bar between the code and the stage resizes from the keyboard and remembers its width',
+    async () => {
+      const page = await open(playground('pill'))
+      await page.setViewportSize({ width: 1700, height: 900 })
+      const bar = page.getByRole('separator', {
+        name: 'Resize the code editor',
+      })
+      await visible(bar)
+      const width = async () =>
+        Math.round(
+          (await page
+            .getByRole('region', { name: 'Code of pill.vue' })
+            .boundingBox())!.width,
+        )
+      const before = await width()
+      await bar.focus()
+      await page.keyboard.press('ArrowRight')
+      await expect.poll(width).toBe(before + 20)
+      await page.keyboard.press('Shift+ArrowLeft')
+      await expect.poll(width).toBe(before - 60)
+      await page.reload()
+      await visible(bar)
+      await expect.poll(width).toBe(before - 60)
+      await bar.dblclick()
+      await expect.poll(width).toBe(before)
     },
   )
 }
 
 describe('in the studio running locally', { timeout: 180_000 }, () => {
-  scenarios(() => startDevServer(ENV), { local: true })
+  scenarios(() => startDevServer(BEN), { local: true })
 })
 
 describe('on the deployed site', { timeout: 180_000 }, () => {

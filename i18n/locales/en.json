@@ -1095,7 +1095,39 @@
       "unreadable": "Playground can’t read the props of {name}.",
       "tryAgain": "Try again",
       "chooseFirst": "Choose a value for {prop} to start {name}.",
-      "codeOnly": "Playground can’t start {name}. Its required prop {prop} can only be set in code."
+      "codeOnly": "Playground can’t start {name}. Its required prop {prop} can only be set in code.",
+      "element": "Selected element",
+      "spacing": "Spacing",
+      "radius": "Radius",
+      "size": "Size",
+      "noClassDials": "{element} has no spacing, radius or size classes to change here.",
+      "elementReadOnly": "Class dials change the draft, so they need permission to change this system.",
+      "selected": "Selected {element}",
+      "selectionCleared": "Selection cleared"
+    },
+    "inspect": {
+      "toggle": "Inspect",
+      "hint": "Click an element on the stage to see its box, its code and the dials that change it. Press Escape to clear.",
+      "clear": "Clear selection"
+    },
+    "editor": {
+      "label": "Code of {file}",
+      "loading": "Loading code",
+      "readOnly": "Read-only",
+      "saving": "Saving",
+      "unsaved": "Unsaved changes in {file}",
+      "allSaved": "All changes saved",
+      "save": "Save",
+      "saveHint": "Save to the file ({shortcut})",
+      "discard": "Discard",
+      "discardDescription": "Your unsaved changes to {file} will be lost, and the playground goes back to the saved file.",
+      "saved": "{file} saved",
+      "saveFailed": "The file wasn’t saved",
+      "discardFailed": "The changes weren’t discarded",
+      "draftFailed": "The playground couldn’t show your latest change",
+      "changed": "This file changed on disk since you opened it. Save would replace that version.",
+      "keepMine": "Keep my changes",
+      "resize": "Resize the code editor"
     }
   }
 }
