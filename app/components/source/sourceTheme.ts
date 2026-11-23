@@ -58,6 +58,11 @@ const layout = EditorView.theme({
     backgroundColor:
       'color-mix(in oklab, var(--ui-bg-elevated) 70%, transparent)',
   },
+  // A range a page marks, such as the element the Lab's Inspect selected.
+  '.cm-studio-marked': {
+    backgroundColor: 'color-mix(in oklab, var(--ui-primary) 10%, transparent)',
+    boxShadow: 'inset 2px 0 0 var(--ui-primary)',
+  },
   '.cm-activeLineGutter': {
     backgroundColor: 'transparent',
     color: 'var(--ui-text)',

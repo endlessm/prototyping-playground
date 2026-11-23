@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Asked before unsaved changes are lost. Closes with true to discard them.
-defineProps<{ path: string }>()
+// `description` replaces the default, which speaks of leaving.
+defineProps<{ path: string; description?: string }>()
 const emit = defineEmits<{ close: [discard: boolean] }>()
 const { t } = useI18n()
 </script>
@@ -8,7 +9,7 @@ const { t } = useI18n()
 <template>
   <UModal
     :title="t('source.discard.title')"
-    :description="t('source.discard.description', { path })"
+    :description="description ?? t('source.discard.description', { path })"
     :close="false"
     :dismissible="true"
     @update:open="(open: boolean) => !open && emit('close', false)"
