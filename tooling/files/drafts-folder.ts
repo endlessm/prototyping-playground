@@ -25,6 +25,15 @@ export function systemDraftsDir(drafts: string, systemId: string) {
   return dir
 }
 
+/**
+ * The drafts of the Lab's versions, which are views in prototypes: each at
+ * its view's path inside the prototypes folder (`draftMap(prototypesDir,
+ * dir)`). Made with the folder's `.gitignore` if missing.
+ */
+export function versionDraftsDir(drafts: string) {
+  return systemDraftsDir(drafts, 'lab-versions')
+}
+
 /** Whether `file` is `dir` or inside it. */
 export function within(file: string, dir: string) {
   const relative = path.relative(dir, file)

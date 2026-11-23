@@ -14,6 +14,11 @@ import type {
 } from '../modules/contract.ts'
 import { PLAIN_TEXT } from '../modules/registry.ts'
 import type { InstalledSystem } from '../systems/registry.ts'
+import {
+  readVersionMarker,
+  type VersionMarker,
+} from '../systems/app-versions.ts'
+import { versionStageId } from '../systems/preview-ids.ts'
 
 export const PROTOTYPES_FOLDER = 'src/prototypes'
 
@@ -86,6 +91,21 @@ export interface Manifest {
   /** The system new prototypes start with. */
   defaultSystem: string | null
   contributors: ManifestContributor[]
+  /**
+   * Every version of an app component (the Lab's New version), across
+   * prototypes; left out when there is none.
+   */
+  labVersions?: ManifestLabVersion[]
+}
+
+/** A version of an app component: a view holding a `@lab-version` marker. */
+export interface ManifestLabVersion extends VersionMarker {
+  /** The view's permanent ID. */
+  id: string
+  /** Its prototype's permanent ID. */
+  prototype: string
+  /** The preview document's ID for its stage in the Lab's Playground. */
+  stage: string
 }
 
 export interface ManifestArtifact {
@@ -101,6 +121,8 @@ export interface ManifestArtifact {
   states?: ManifestState[]
   /** Drawn in grayscale with a handwritten font. */
   lofi?: true
+  /** A view that is a version of an app component: what its marker names. */
+  labVersion?: VersionMarker
   /**
    * Set when the artifact can't open: its type belongs to a module that is
    * turned off. Its source can still be opened locally.
@@ -278,6 +300,7 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
   const prototypes: ManifestPrototype[] = []
   const artifacts: Record<string, ManifestArtifact[]> = {}
   const owners = new Map<string, string>()
+  const labVersions: ManifestLabVersion[] = []
 
   for (const contributor of directories(base))
     for (const name of directories(path.join(base, contributor))) {
@@ -411,6 +434,16 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
             delete artifact.states
         }
         if (type.fidelity?.isLofi(source)) artifact.lofi = true
+        const version = type.id === 'view' ? readVersionMarker(source) : null
+        if (version) {
+          artifact.labVersion = version
+          labVersions.push({
+            id: artifactId,
+            prototype: id,
+            stage: versionStageId(artifactId),
+            ...version,
+          })
+        }
         artifacts[id].push(artifact)
       }
     }
@@ -435,6 +468,7 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
           ...(avatar ? { avatar } : {}),
         }),
       ),
+      ...(labVersions.length ? { labVersions } : {}),
     },
     artifacts,
     problems,
@@ -484,6 +518,10 @@ export function forDeploy(
     Boolean(prototype.systemMissing) ||
     (prototype.systemId !== null && archivedSystems.has(prototype.systemId))
   const kept = manifest.prototypes.filter((prototype) => !leftOut(prototype))
+  const keptIds = new Set(kept.map(({ id }) => id))
+  const labVersions = manifest.labVersions?.filter(({ prototype }) =>
+    keptIds.has(prototype),
+  )
   const left = {
     prototypes: manifest.prototypes.filter(leftOut),
     systems: manifest.systems.filter(({ id }) => archivedSystems.has(id)),
@@ -520,9 +558,11 @@ export function forDeploy(
     built: {
       ...built,
       manifest: {
-        ...manifest,
         prototypes: kept,
         systems: manifest.systems.filter(({ id }) => !archivedSystems.has(id)),
+        defaultSystem: manifest.defaultSystem,
+        contributors: manifest.contributors,
+        ...(labVersions?.length ? { labVersions } : {}),
       },
       artifacts: Object.fromEntries(
         kept.map(({ id }) => [id, built.artifacts[id] ?? []]),

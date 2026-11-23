@@ -50,6 +50,7 @@ import { loadSystems, systemsFolder } from '../systems/registry.ts'
 import { moduleChecks } from '../checks/module-checks.ts'
 import { serveSystemAssets } from '../systems/serve-assets.ts'
 import { draftsDir } from '../files/drafts-folder.ts'
+import { appComponents } from '../preview/lab-versions.ts'
 import {
   buildManifest,
   forDeploy,
@@ -280,7 +281,35 @@ declare module '${MANIFEST_MODULE}' {
                 ]
               }),
           )
-        return [...views, ...own]
+        // Each version of an app component, on its component's frame.
+        const frames = document.system
+          ? appComponents(document.system)
+          : new Map()
+        const versions = (manifest.labVersions ?? [])
+          .filter(({ system }) => system === document.key)
+          .flatMap((version) => {
+            const component = frames.get(version.component)
+            const view = artifacts[version.prototype]?.find(
+              ({ id }) => id === version.id,
+            )
+            if (!component || !view) return []
+            return [
+              {
+                id: version.stage,
+                file: component.frame,
+                prototype: version.prototype,
+                path: view.path,
+                playground: true,
+                labVersion: {
+                  artifact: version.id,
+                  file: path.resolve(root, view.file),
+                  specifier: component.app.specifier,
+                  original: component.original,
+                },
+              },
+            ]
+          })
+        return [...views, ...own, ...versions]
       },
     })
 
