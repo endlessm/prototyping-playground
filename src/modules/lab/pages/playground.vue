@@ -12,7 +12,7 @@ import type { PlaygroundCode } from '../composables/usePlaygroundDraft'
 import { useStageInspector } from '../composables/useStageInspector'
 import { useVersionDraft } from '../composables/useVersionDraft'
 import { useVersionCopy } from '../composables/useVersionCopy'
-import { useVersionText } from '../composables/useVersionText'
+import { useVersionCode } from '../composables/useVersionText'
 import { refreshManifest } from '../../../../app/composables/useManifest'
 import { requestJson } from '../../../../app/utils/studioRequest'
 import {
@@ -50,7 +50,12 @@ import {
   writeQuery,
   type ControlValue,
 } from '../utils/playground'
-import { isMine, olderRevision, versionById } from '../utils/versions'
+import {
+  changesAddress,
+  isMine,
+  olderRevision,
+  versionById,
+} from '../utils/versions'
 
 // Playground: the real component file on the stage, beside DialKit dials
 // built from its props and seeded from its Default example, so it opens
@@ -105,7 +110,7 @@ const versionAddress = () =>
     : null
 const versionCode = local
   ? useVersionDraft(versionAddress)
-  : useVersionText(versionAddress)
+  : useVersionCode(versionAddress)
 // The address keeps the open version beside the props' values.
 const kept = (): Record<string, string> =>
   versionId.value ? { version: versionId.value } : {}
@@ -667,6 +672,14 @@ const editorWidth = useLocalStorage('design-studio:lab-editor-width', 0)
                   icon="i-lucide-arrow-left"
                   :label="t('lab.versions.original')"
                   @click="openOriginal"
+                />
+                <UButton
+                  size="xs"
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-lucide-file-diff"
+                  :label="t('lab.changes.view')"
+                  :to="changesAddress(system.id, component.slug, version.id)"
                 />
               </template>
             </template>

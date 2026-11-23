@@ -1180,6 +1180,33 @@
         "open": "Open in Playground",
         "changes": "Changes"
       }
+    },
+    "changes": {
+      "tab": "Changes",
+      "view": "Changes",
+      "heading": "Changes in {name}",
+      "compared": "Compared with {path} at {revision}",
+      "openPlayground": "Open in Playground",
+      "copy": "Copy changes",
+      "copied": "Changes copied",
+      "copyFailed": "The changes weren’t copied",
+      "copyBlocked": "Your browser blocked the clipboard. Use Download file instead.",
+      "download": "Download file",
+      "added": "{n} line added | {n} lines added",
+      "removed": "{n} line removed | {n} lines removed",
+      "unsaved": "Includes changes not saved yet",
+      "none": "No changes yet. This version matches the original.",
+      "loading": "Loading changes",
+      "failed": "This version’s file couldn’t be read. Open it in the Playground to check that it still exists.",
+      "missing": "This version no longer exists.",
+      "noOriginal": "{name} isn’t an app component, so it has no versions to compare.",
+      "olderTitle": "Made from an older original",
+      "older": "This version was made from the original at {made}. The studio’s copy has been refreshed to {current} since, so these changes also undo what changed in the app meanwhile.",
+      "label": "Changes in {file}",
+      "originalLine": "Original line",
+      "versionLine": "Version line",
+      "change": "Change",
+      "code": "Code"
     }
   }
 }

@@ -85,28 +85,52 @@ export async function versionArtifact(
   return list.find(({ id }) => id === version.id) ?? null
 }
 
+/** A version's text, and whether it holds edits not saved yet. */
+export interface VersionText {
+  text: string
+  unsaved: boolean
+}
+
 /**
- * A version's text, as its file holds it (markers included; strip them with
- * `withoutStudioMarkers`). Locally from the dev server's file service; on
- * the deployed site from the text the build ships beside the manifest for
- * every view holding a version marker. Throws a message a person can read.
+ * A version's whole text, as its file holds it (markers included; strip them
+ * with `withoutStudioMarkers`): the one reader every Lab page uses. Locally
+ * from the dev server's file service, or with `draft` its unsaved draft when
+ * the Playground left one (what its stage shows); nothing is written. On the
+ * deployed site from the text the build ships beside the manifest for every
+ * view holding a version marker. `base` is the site's base address. Throws a
+ * message a person can read.
  */
 export async function versionText(
   manifest: { artifacts: Record<string, string> },
   version: Pick<ManifestLabVersion, 'prototype' | 'id'>,
-): Promise<string> {
+  { base, draft = false }: { base: string; draft?: boolean },
+): Promise<VersionText> {
   if (import.meta.dev) {
-    const url = `${useRuntimeConfig().app.baseURL}_studio/files/source`
-    const reply = await requestJson<{ content: string }>(
-      `${url}?${new URLSearchParams({ prototype: version.prototype, artifact: version.id })}`,
-    )
-    return reply.content
+    const at = { prototype: version.prototype, artifact: version.id }
+    const [file, saved] = await Promise.all([
+      requestJson<{ content: string }>(
+        `${base}_studio/files/source?${new URLSearchParams(at)}`,
+      ),
+      draft
+        ? requestJson<{ draft: string | null }>(
+            `${base}_studio/modules/lab/versions`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'read-draft', ...at }),
+            },
+          ).catch(() => ({ draft: null }))
+        : { draft: null },
+    ])
+    return saved.draft === null || saved.draft === file.content
+      ? { text: file.content, unsaved: false }
+      : { text: saved.draft, unsaved: true }
   }
   const artifact = await versionArtifact(manifest, version)
   if (!artifact?.text) throw new Error('This version is not on this site.')
   const response = await fetch(manifestFile(artifact.text))
   if (!response.ok) throw new Error('This version failed to load.')
-  return response.text()
+  return { text: await response.text(), unsaved: false }
 }
 
 /** Whether a version is yours: its prototype's owner is you. */
@@ -131,9 +155,6 @@ export const mayChangeVersion = (
   Boolean(me.key) &&
   (me.role === 'admin' || isMine(version, me))
 
-/** A version's Changes page, beside its component's Versions tab. */
-export const changesAddress = (
-  system: string,
-  component: string,
-  version: string,
-) => `/lab/${system}/${component}/versions/${version}/changes`
+/** A version's Changes: `/lab/<system id>/<slug>/versions/<view id>/changes`. */
+export const changesAddress = (system: string, component: string, id: string) =>
+  `/lab/${system}/${component}/versions/${encodeURIComponent(id)}/changes`
