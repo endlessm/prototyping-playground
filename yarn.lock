@@ -8262,7 +8262,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dialkit@npm:2.2.1":
+"dialkit@npm:^2.2.1":
   version: 2.2.1
   resolution: "dialkit@npm:2.2.1"
   peerDependencies:
@@ -13798,7 +13798,7 @@ __metadata:
     "@vueuse/core": "npm:^14.2.1"
     "@vueuse/nuxt": "npm:^14.2.1"
     codemirror-lang-mermaid: "npm:^0.5.0"
-    dialkit: "npm:2.2.1"
+    dialkit: "npm:^2.2.1"
     eslint: "npm:^10.4.0"
     eslint-config-prettier: "npm:^10.1.5"
     eslint-plugin-prettier: "npm:^5.4.1"
