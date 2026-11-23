@@ -76,11 +76,12 @@ describe('Lab addresses and tabs', () => {
     expect(tabAt('/lab/hrbr/button/nope', 'hrbr', 'button')).toBeUndefined()
   })
 
-  test('the tabs read Overview, Variants, Playground', () => {
+  test('the tabs read Overview, Variants, Playground, Versions', () => {
     expect(LAB_TABS.map(({ id }) => id)).toEqual([
       'overview',
       'variants',
       'playground',
+      'versions',
     ])
   })
 })

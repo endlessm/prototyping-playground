@@ -26,6 +26,7 @@ export default {
             { path: '', file: 'pages/overview.vue' },
             { path: 'variants', file: 'pages/variants.vue' },
             { path: 'playground', file: 'pages/playground.vue' },
+            { path: 'versions', file: 'pages/versions.vue' },
             { path: ':tab(.*)', file: 'pages/missing.vue' },
           ],
         },

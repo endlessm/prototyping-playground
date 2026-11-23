@@ -305,6 +305,7 @@ declare module '${MANIFEST_MODULE}' {
                   file: path.resolve(root, view.file),
                   specifier: component.app.specifier,
                   original: component.original,
+                  ...(component.generic ? { generic: true } : {}),
                 },
               },
             ]
@@ -421,9 +422,13 @@ function manifestPlugin(
       const built = read()
       const names: Record<string, string> = {}
       for (const [prototype, artifacts] of Object.entries(built.artifacts)) {
-        // The text of the files a page reads (documents) ships beside them.
+        // The text of the files a page reads (documents, and the Lab's
+        // versions of app components) ships beside them.
         const list = artifacts.map((artifact) => {
-          if (artifact.unavailable || !live.textTypes.has(artifact.type))
+          if (
+            artifact.unavailable ||
+            !(live.textTypes.has(artifact.type) || artifact.labVersion)
+          )
             return artifact
           const text = readFileSync(path.resolve(live.root, artifact.file))
           const name = `text/${artifact.id}.${hash(text.toString('utf8'))}.txt`

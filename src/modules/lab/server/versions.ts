@@ -6,6 +6,13 @@
 //        versions" prototype (made with the component's system on your
 //        first version) as a new view holding its permanent ID and its
 //        `@lab-version` marker → { prototype, artifact, path }
+//   POST { action: "copy", prototype, artifact }
+//        copies a version, yours or someone else's, into your own
+//        "<Component> versions" prototype as a new version, keeping its
+//        marker (Save as my version, Duplicate) → as for create
+//   POST { action: "dates", versions: [{ prototype, artifact }] }
+//        when each version's file last changed, as `YYYY-MM-DD` on this
+//        computer → { dates: { [artifact]: string } }
 //   POST { action: "read-draft", prototype, artifact }
 //        the version's unsaved draft → { draft: string | null }
 //   POST { action: "write-draft", prototype, artifact, content }
@@ -26,6 +33,7 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from 'node:fs'
 import path from 'node:path'
@@ -58,6 +66,8 @@ import { appCopy, appOriginal } from '../../../../tooling/systems/app-copy.ts'
 import {
   readVersionMarker,
   versionMarker,
+  withoutStudioMarkers,
+  type VersionMarker,
 } from '../../../../tooling/systems/app-versions.ts'
 import { systemCatalog } from '../../../../tooling/systems/catalog.ts'
 import { systemsFolder } from '../../../../tooling/systems/registry.ts'
@@ -89,16 +99,18 @@ export default (async ({ root, contributorsFolder, method, body }) => {
     fileTypes,
   })
 
+  const context = {
+    root,
+    prototypesFolder,
+    contributorsFolder: contributors,
+    configFile,
+    fileTypes,
+    access,
+  }
   try {
-    if (request.action === 'create')
-      return await create(request, {
-        root,
-        prototypesFolder,
-        contributorsFolder: contributors,
-        configFile,
-        fileTypes,
-        access,
-      })
+    if (request.action === 'create') return await create(request, context)
+    if (request.action === 'copy') return await copy(request, context)
+    if (request.action === 'dates') return { dates: dates(request, access) }
 
     // The other actions are about one version.
     const found = access.prototypeOf(String(request.prototype ?? ''))
@@ -182,27 +194,99 @@ function nextName(dir: string) {
   return `Version ${Math.max(0, ...taken) + 1}.vue`
 }
 
+/** An active system by its permanent ID, as the file service finds it. */
+async function activeSystem(context: CreateContext, id: string) {
+  const { system } = await systemAccess({
+    root: context.root,
+    systemsFolder: systemsFolder(),
+    configFile: context.configFile,
+  }).systemOf(id)
+  if (!system || system.spec.status !== 'active')
+    throw fail(404, 'This system isn’t installed or is archived.')
+  return system
+}
+
+/** A component's title on its system's pages, or its slug. */
+function titleOf(
+  system: Awaited<ReturnType<typeof activeSystem>>,
+  root: string,
+  slug: string,
+) {
+  const catalog = systemCatalog(system, root)
+  return (
+    [...catalog.components, ...catalog.appComponents].find(
+      (entry) => entry.slug === slug,
+    )?.title ?? slug
+  )
+}
+
 async function create(
   request: Record<string, unknown>,
   context: CreateContext,
 ) {
-  const { root, access, fileTypes } = context
-  const { system } = await systemAccess({
-    root,
-    systemsFolder: systemsFolder(),
-    configFile: context.configFile,
-  }).systemOf(String(request.system ?? ''))
-  if (!system || system.spec.status !== 'active')
-    throw fail(404, 'This system isn’t installed or is archived.')
+  const system = await activeSystem(context, String(request.system ?? ''))
   const slug = String(request.component ?? '')
   const component = appComponents(system).get(slug)
   const copy = appCopy(system)
   if (!component || !copy)
     throw fail(404, 'Only an app component has versions.')
   const original = appOriginal(system, copy, component.app)
-  const title =
-    systemCatalog(system, root).components.find((entry) => entry.slug === slug)
-      ?.title ?? slug
+  return addVersion(context, {
+    marker: { system: system.id, component: slug, revision: original.revision },
+    title: titleOf(system, context.root, slug),
+    source: original.source,
+  })
+}
+
+// A copy keeps the version's marker, so it is still compared against the
+// app revision its first version was made from.
+async function copy(request: Record<string, unknown>, context: CreateContext) {
+  const { access } = context
+  const found = access.prototypeOf(String(request.prototype ?? ''))
+  const { file } = access.artifactOf(found.dir, String(request.artifact ?? ''))
+  const source = readFileSync(file, 'utf8')
+  const marker = readVersionMarker(source)
+  if (!marker) throw fail(400, 'This view isn’t a version of an app component.')
+  const system = await activeSystem(context, marker.system)
+  return addVersion(context, {
+    marker,
+    title: titleOf(system, context.root, marker.component),
+    source: withoutStudioMarkers(source),
+  })
+}
+
+/** When each version's file last changed, on this computer's calendar. */
+function dates(
+  request: Record<string, unknown>,
+  access: ReturnType<typeof fileAccess>,
+) {
+  const asked = Array.isArray(request.versions) ? request.versions : []
+  const found: Record<string, string> = {}
+  for (const entry of asked.slice(0, 500) as Record<string, unknown>[]) {
+    try {
+      const home = access.prototypeOf(String(entry.prototype ?? ''))
+      const artifact = String(entry.artifact ?? '')
+      const changed = statSync(access.artifactOf(home.dir, artifact).file).mtime
+      const day = (value: number) => String(value).padStart(2, '0')
+      found[artifact] =
+        `${changed.getFullYear()}-${day(changed.getMonth() + 1)}-${day(changed.getDate())}`
+    } catch {
+      // Gone since the list was read: it simply has no date.
+    }
+  }
+  return found
+}
+
+/**
+ * Writes a new version (`source` under its two markers) into your own
+ * "<Component> versions" prototype for the system, made on your first.
+ */
+async function addVersion(
+  context: CreateContext,
+  version: { marker: VersionMarker; title: string; source: string },
+) {
+  const { root, access, fileTypes } = context
+  const system = version.marker.system
 
   // Who is working: only registered contributors make versions.
   const { contributors } = readContributors(root, context.contributorsFolder)
@@ -215,12 +299,12 @@ async function create(
     )
 
   // Your own "<Component> versions" prototype for this system, or a new one.
-  const name = `${title} versions`
+  const name = `${version.title} versions`
   let home = [...access.prototypes()].find(
     ({ contributor, meta }) =>
       contributor === me.key &&
       meta.title === name &&
-      meta.systemId === system.id &&
+      meta.systemId === system &&
       meta.status !== 'archived',
   )
   let firstView: string | null = null
@@ -233,7 +317,7 @@ async function create(
         configFile: context.configFile,
         fileTypes,
       },
-      { title: name, system: system.id },
+      { title: name, system },
     )
     home = access.prototypeOf(created.id)
     firstView = created.artifact
@@ -243,11 +327,7 @@ async function create(
 
   const view = fileTypes.find(({ id }) => id === VIEW)
   if (!view) throw fail(500, 'No installed module provides views.')
-  const marker = versionMarker({
-    system: system.id,
-    component: slug,
-    revision: original.revision,
-  })
+  const marker = versionMarker(version.marker)
   const release = identityLock(root)
   try {
     // A new prototype's empty starting view becomes the first version.
@@ -265,7 +345,7 @@ async function create(
     const file = path.join(home.dir, nextName(home.dir))
     writeFileSync(
       file,
-      view.identity.write(`${marker}\n${original.source}`, artifact),
+      view.identity.write(`${marker}\n${version.source}`, artifact),
       { flag: 'wx' },
     )
     if (starting && existsSync(starting)) rmSync(starting)
