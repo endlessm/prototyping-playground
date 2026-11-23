@@ -5,9 +5,10 @@
 // live in the address, so a reload or a shared link restores them, a value
 // that no longer fits is ignored, and Reset clears them. Components the
 // panel can't start say why. Hovering a dial shows what it changes on the
-// stage, and Inspect selects an element there. Locally an app component's
-// code sits beside the stage: the app's original, read-only, where Inspect
-// marks the selected element's code; other components show no code. On a
+// stage, and Inspect selects an element there. An app component's code
+// sits beside the stage: the app's original, read-only, where Inspect
+// marks the selected element's code, on the deployed site too, which
+// offers no New version; other components show no code. On a
 // disposable copy of
 // `tests/fixtures/systems-area` with an Endless Studios-like button and
 // components that each need a message, against the dev server and the
@@ -710,18 +711,26 @@ function scenarios(
   )
 
   test.runIf(!local)(
-    '[LAB-07] the deployed site has no code editor and no class dials',
+    '[LAB-07] the deployed site shows the original read-only, without New version or class dials',
     async () => {
       const page = await open(playground('pill'))
       await visible(stage(page).getByText('Label'))
+      const editor = page.getByRole('region', { name: 'Code of DockPill.vue' })
+      await visible(editor.getByText('Read-only'))
+      await visible(
+        editor.getByText('web/app/components/Dock/DockPill.vue at 0a1b2c3'),
+      )
+      expect(
+        await editor.getByRole('button', { name: 'New version' }).count(),
+      ).toBe(0)
+      expect(
+        await editor.getByRole('button', { name: 'Save', exact: true }).count(),
+      ).toBe(0)
       // Harbor's stylesheet isn't Tailwind: the pill has no padding to click.
       await stage(page).locator('span.inline-flex').dispatchEvent('click')
       await expect
         .poll(() => stageLabel(page).textContent())
         .toMatch(/^<span> inline-flex/)
-      expect(await page.getByRole('region', { name: /^Code of/ }).count()).toBe(
-        0,
-      )
       expect(await page.locator('[data-lab-dial^="element:"]').count()).toBe(0)
     },
   )

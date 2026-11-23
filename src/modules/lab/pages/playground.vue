@@ -8,7 +8,11 @@ import LabPlaygroundEditor from '../components/LabPlaygroundEditor.vue'
 import LabPlaygroundStage from '../components/LabPlaygroundStage.vue'
 import { useLabComponent } from '../composables/useLabComponent'
 import { useOriginalSource } from '../composables/useOriginalSource'
+import type { PlaygroundCode } from '../composables/usePlaygroundDraft'
 import { useStageInspector } from '../composables/useStageInspector'
+import { useVersionDraft } from '../composables/useVersionDraft'
+import { refreshManifest } from '../../../../app/composables/useManifest'
+import { requestJson } from '../../../../app/utils/studioRequest'
 import {
   areaBoxes,
   boxModel,
@@ -44,6 +48,7 @@ import {
   writeQuery,
   type ControlValue,
 } from '../utils/playground'
+import { versionById } from '../utils/versions'
 
 // Playground: the real component file on the stage, beside DialKit dials
 // built from its props and seeded from its Default example, so it opens
@@ -55,23 +60,74 @@ import {
 // back to the dials.
 // Hovering a dial shows on the stage what it changes. Inspect (on by
 // default) selects an element on the stage: its box model, and the prop
-// dials that change it. Locally an app component's code sits beside the
-// stage: the app's original, read-only, where Inspect jumps to the selected
-// element's code. Other components, such as Nuxt UI's, have no code there:
-// their only file is the system's catalog page around them. The code is a
-// `PlaygroundCode`, so an editable draft can take the original's place, and
-// with it the selected element's class dials that rewrite the draft.
+// dials that change it. An app component's code sits beside the stage,
+// locally and on the deployed site: the app's original, read-only, where
+// Inspect jumps to the selected element's code. Other components, such as
+// Nuxt UI's, have no code there: their only file is the system's catalog
+// page around them. Locally, for someone registered, New version copies the
+// original into their own versions and opens it (`?version=<view id>`):
+// the stage shows the version in the original's frame, the dials add the
+// props the version declares, and the editor edits it as a draft, with the
+// selected element's class dials that rewrite it.
 const { component, system, stem, data, reload } = useLabComponent()
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const local = import.meta.dev
+const manifest = await useManifest()
+const { me } = useMe()
+const toast = useStudioToast()
+const versionsUrl = `${useRuntimeConfig().app.baseURL}_studio/modules/lab/versions`
+
+// --- The version open, locally ---
+
+const versionId = computed(() =>
+  local && typeof route.query.version === 'string' ? route.query.version : null,
+)
+const version = computed(() => {
+  const found = versionId.value
+    ? versionById(manifest.value, versionId.value)
+    : null
+  return found?.system === system.value.id &&
+    found.component === component.value.slug
+    ? found
+    : null
+})
+const versionMissing = computed(() =>
+  Boolean(versionId.value && !version.value),
+)
+const versionCode = local
+  ? useVersionDraft(() =>
+      version.value
+        ? { prototype: version.value.prototype, artifact: version.value.id }
+        : null,
+    )
+  : null
+// The address keeps the open version beside the props' values.
+const kept = (): Record<string, string> =>
+  versionId.value ? { version: versionId.value } : {}
+
+// The props the version declares that its frame doesn't come after the
+// frame's own.
+const propsDoc = computed(() => {
+  const own = data.value?.props
+  const added = version.value ? versionCode?.props.value : null
+  if (!own || !added) return own ?? null
+  const names = new Set(own.props.map(({ name }) => name))
+  return {
+    ...own,
+    props: [
+      ...own.props,
+      ...added.props.filter(({ name }) => !names.has(name)),
+    ],
+  }
+})
 
 const controls = computed(() => {
   const loaded = data.value
   return (
-    loaded?.props?.props.map((prop) =>
-      controlFor(prop, loaded.seeds[prop.name]),
+    propsDoc.value?.props.map((prop) =>
+      controlFor(prop, loaded?.seeds[prop.name]),
     ) ?? []
   )
 })
@@ -86,12 +142,14 @@ const inspector = useStageInspector(inspecting)
 function change(name: string, value: ControlValue | undefined) {
   const next = changeValue(controls.value, values.value, name, value)
   inspector.recordChangesFor(name)
-  void router.replace({ query: writeQuery(controls.value, next) })
+  void router.replace({
+    query: { ...kept(), ...writeQuery(controls.value, next) },
+  })
 }
 const wasReset = ref(false)
 function reset() {
   wasReset.value = true
-  void router.replace({ query: {} })
+  void router.replace({ query: kept() })
 }
 // A prop the component changed itself, such as a modal closed with Escape:
 // its dial follows, as if the person had set it.
@@ -103,10 +161,14 @@ function update(name: string, value: unknown) {
 // An address holding props the component lacks or values that don't fit is
 // rewritten without them, so passing the link on doesn't carry them along.
 watch(
-  () => [data.value?.props, route.query] as const,
+  () => [propsDoc.value, route.query] as const,
   ([loaded, query]) => {
-    if (!loaded) return
-    const clean = writeQuery(controls.value, values.value)
+    // A version's own props come a moment later.
+    if (!loaded || (version.value && !versionCode?.props.value)) return
+    const clean: Record<string, string> = {
+      ...kept(),
+      ...writeQuery(controls.value, values.value),
+    }
     const keys = Object.keys(query)
     const same =
       keys.length === Object.keys(clean).length &&
@@ -116,11 +178,48 @@ watch(
   { immediate: true },
 )
 
-// --- The code, locally ---
+// --- The code ---
 
 const original = computed(() => data.value?.original ?? null)
-const draft = local ? useOriginalSource(() => original.value) : null
-const showsCode = computed(() => Boolean(draft && original.value))
+const originalCode = useOriginalSource(() => original.value)
+const draft = computed<PlaygroundCode>(() =>
+  version.value && versionCode ? versionCode : originalCode,
+)
+const showsCode = computed(() => Boolean(original.value))
+
+// New version: offered locally to someone registered, on the original.
+const offersVersion = computed(
+  () => local && Boolean(me.value.key) && !version.value && showsCode.value,
+)
+const creating = ref(false)
+async function newVersion() {
+  if (creating.value) return
+  creating.value = true
+  try {
+    const created = await requestJson<{ artifact: string; path: string }>(
+      versionsUrl,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'create',
+          system: system.value.id,
+          component: component.value.slug,
+        }),
+      },
+    )
+    await refreshManifest()
+    toast.success(t('lab.versions.created', { name: created.path }))
+    await router.push({ query: { version: created.artifact } })
+  } catch (error) {
+    toast.error(t('lab.versions.createFailed'), (error as Error).message)
+  } finally {
+    creating.value = false
+  }
+}
+function openOriginal() {
+  void router.push({ query: writeQuery(controls.value, values.value) })
+}
 
 // --- Inspect: the selected element in the code ---
 
@@ -148,15 +247,17 @@ function chainOf(element: Element) {
 const pinned = ref<number | null>(null)
 let rewriting = false
 watch(inspector.selected, () => (pinned.value = null))
-if (draft)
-  watch(draft.code, () => {
+watch(
+  () => draft.value.code.value,
+  () => {
     if (!rewriting) pinned.value = null
-  })
+  },
+)
 
 const source = computed(() => {
   void inspector.version.value
   const element = inspector.selected.value
-  const code = showsCode.value ? draft?.code.value : ''
+  const code = showsCode.value ? draft.value.code.value : ''
   if (!element || !code) return null
   if (pinned.value !== null) {
     const attribute = attributeAt(code, pinned.value)
@@ -187,7 +288,7 @@ const folders = computed(() => ({
 // its own, only locally, and only for someone who may change the system.
 const elementDials = computed(() => {
   const found = source.value
-  if (!draft?.editable.value || !found?.attribute || found.depth !== 0)
+  if (!draft.value.editable.value || !found?.attribute || found.depth !== 0)
     return []
   return classDials(found.attribute.tokens)
 })
@@ -276,8 +377,9 @@ function dialsChanged(panel: string, dialed: Record<string, DialValue>) {
     return
   }
   const found = source.value
-  if (!draft || !found?.attribute) return
-  let code = draft.code.value
+  const target = draft.value.code
+  if (!found?.attribute) return
+  let code = target.value
   let attribute = found.attribute
   for (const dial of elementDials.value) {
     const value = valueAt(dialed, `${folders.value[dial.folder]}.${dial.key}`)
@@ -287,10 +389,10 @@ function dialsChanged(panel: string, dialed: Record<string, DialValue>) {
     code = rewriteToken(code, attribute, dial.token, token)
     attribute = attributeAt(code, attribute.start) ?? attribute
   }
-  if (code === draft.code.value) return
+  if (code === target.value) return
   pinned.value = found.attribute.start
   rewriting = true
-  draft.code.value = code
+  target.value = code
   void nextTick(() => (rewriting = false))
 }
 
@@ -432,7 +534,7 @@ const editorWidth = useLocalStorage('design-studio:lab-editor-width', 0)
     </template>
   </i18n-t>
   <div
-    v-else-if="!data?.props"
+    v-else-if="!propsDoc"
     role="alert"
     class="space-y-2 rounded-3xl border border-default p-4 text-sm"
   >
@@ -470,6 +572,13 @@ const editorWidth = useLocalStorage('design-studio:lab-editor-width', 0)
         @click="inspector.clear()"
       />
     </div>
+    <p
+      v-if="versionMissing"
+      role="alert"
+      class="rounded-3xl border border-default p-4 text-sm text-muted"
+    >
+      {{ t('lab.versions.missing') }}
+    </p>
     <p role="status" class="sr-only">{{ announced }}</p>
     <div
       class="grid items-start gap-6"
@@ -484,14 +593,36 @@ const editorWidth = useLocalStorage('design-studio:lab-editor-width', 0)
           : undefined
       "
     >
-      <template v-if="draft && showsCode">
+      <template v-if="showsCode">
         <!-- Beside the stage on wide screens; under it otherwise. -->
         <div
           class="order-last h-[28rem] min-w-0 lg:col-span-2 xl:sticky xl:top-4 xl:order-none xl:col-span-1 xl:h-[min(75vh,48rem)]"
         >
-          <LabPlaygroundEditor :draft="draft" :highlight="editorHighlight">
-            <!-- The original's actions go in #actions (New version). -->
-            <template v-if="original" #notice>
+          <LabPlaygroundEditor
+            :key="version?.id ?? 'original'"
+            :draft="draft"
+            :highlight="editorHighlight"
+          >
+            <template #actions>
+              <UButton
+                v-if="offersVersion"
+                size="xs"
+                icon="i-lucide-git-branch-plus"
+                :label="t('lab.versions.new')"
+                :loading="creating"
+                @click="newVersion"
+              />
+              <UButton
+                v-else-if="version"
+                size="xs"
+                color="neutral"
+                variant="ghost"
+                icon="i-lucide-arrow-left"
+                :label="t('lab.versions.original')"
+                @click="openOriginal"
+              />
+            </template>
+            <template v-if="original && !version" #notice>
               <span class="mt-1 block truncate font-mono">
                 {{
                   t('lab.original.from', {
@@ -531,9 +662,9 @@ const editorWidth = useLocalStorage('design-studio:lab-editor-width', 0)
         </i18n-t>
         <Suspense v-else>
           <LabPlaygroundStage
-            :key="component.playground"
+            :key="version?.stage ?? component.playground"
             :system-id="system.id"
-            :artifact="component.playground"
+            :artifact="version?.stage ?? component.playground"
             :title="t('lab.playground.stage', { name: component.title })"
             :props="props"
             :boxes="overlay.boxes"
@@ -590,12 +721,7 @@ const editorWidth = useLocalStorage('design-studio:lab-editor-width', 0)
           @hover="hover"
         />
         <p
-          v-if="
-            draft &&
-            showsCode &&
-            inspector.selected.value &&
-            !elementDials.length
-          "
+          v-if="showsCode && inspector.selected.value && !elementDials.length"
           class="px-1 text-xs text-muted"
         >
           {{
