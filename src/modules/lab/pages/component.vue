@@ -7,7 +7,7 @@ import {
   type SystemCatalog,
 } from '../../systems/composables/useSystemCatalog'
 import { stemOf } from '../../../../tooling/systems/components'
-import { tabAt } from '../utils/lab'
+import { labComponents, tabAt } from '../utils/lab'
 
 // The bench: the open component's title, description and tab bar, kept on
 // screen while its tabs change. It gives the component to the tab pages
@@ -19,7 +19,7 @@ const studio = useStudioConfig()
 const { pages, reload } = await useComponentPages()
 
 const component = computed(() =>
-  props.system.components.find(
+  labComponents(props.system).find(
     ({ slug }) => slug === String(route.params.component),
   ),
 )

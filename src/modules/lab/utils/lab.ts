@@ -32,6 +32,39 @@ export function tabAt(path: string, systemId: string, slug: string) {
 }
 
 /**
+ * Every component the Lab lists for a system: its pages, in the Systems
+ * navigation's order, then the app components no page presents.
+ */
+export const labComponents = (
+  system: Pick<SystemCatalog, 'components' | 'appComponents'>,
+) => [...system.components, ...system.appComponents]
+
+/** The list's groups, in its order. */
+export type LabGroup = 'app' | 'system'
+
+/**
+ * The list's groups, empty ones left out: the app components (those a page
+ * presents and those it doesn't, by their path in the app copy), then the
+ * system's other components, such as its Nuxt UI wrappers, in the order
+ * given.
+ */
+export function labGroups<T extends Pick<CatalogComponent, 'app'>>(
+  components: T[],
+) {
+  const app = components
+    .filter((component) => component.app)
+    .sort((a, b) => a.app!.path.localeCompare(b.app!.path, 'en'))
+  const groups: { id: LabGroup; components: T[] }[] = [
+    { id: 'app', components: app },
+    {
+      id: 'system',
+      components: components.filter((component) => !component.app),
+    },
+  ]
+  return groups.filter((group) => group.components.length > 0)
+}
+
+/**
  * The systems the Lab offers: active ones with components, the default
  * first, then by name.
  */
@@ -41,7 +74,8 @@ export const labSystems = (
 ) =>
   inSystemOrder(
     systems.filter(
-      ({ status, components }) => status === 'active' && components.length > 0,
+      (system) =>
+        system.status === 'active' && labComponents(system).length > 0,
     ),
     defaultSystem,
   )
@@ -52,7 +86,7 @@ export function labLanding(
   defaultSystem: string | null,
 ) {
   const [first] = labSystems(systems, defaultSystem)
-  return first ? labAddress(first.id, first.components[0]!.slug) : null
+  return first ? labAddress(first.id, labComponents(first)[0]!.slug) : null
 }
 
 /**

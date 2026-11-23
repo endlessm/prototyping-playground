@@ -24,6 +24,7 @@ const system = (
     components: slugs.map((slug) =>
       component(slug, slug[0]!.toUpperCase() + slug.slice(1)),
     ),
+    appComponents: [] as SystemCatalog['components'],
   }) as SystemCatalog
 
 const harbor = system('hrbr', 'Harbor', 'active', ['button', 'card'])

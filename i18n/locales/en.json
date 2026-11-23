@@ -1060,10 +1060,13 @@
     },
     "nav": {
       "components": "Components",
+      "appComponents": "App components",
       "system": "System",
       "search": "Search components",
       "empty": "No components yet.",
-      "noMatches": "No matching components."
+      "noMatches": "No matching components.",
+      "appNoPage": "No page yet. To describe it, add a page to the system’s components with {field} in its frontmatter.",
+      "appNoExamples": "No examples yet. Add a page to the system’s components with {field} in its frontmatter, then an examples file beside it."
     },
     "tabs": {
       "label": "Component tabs",

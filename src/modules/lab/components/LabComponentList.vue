@@ -1,13 +1,21 @@
 <script setup lang="ts">
 import AppSectionNav from '../../../../app/components/AppSectionNav.vue'
 import type { SystemCatalog } from '../../systems/composables/useSystemCatalog'
-import { labAddress, matchingComponents, tabAt } from '../utils/lab'
+import {
+  labAddress,
+  labComponents,
+  labGroups,
+  matchingComponents,
+  tabAt,
+} from '../utils/lab'
 
 // The Lab's section panel, titled with the open system: a system picker
 // when more than one active system has components, a search (titles and
-// addresses first, then descriptions), then the system's components in the
-// Systems navigation's order, the open one highlighted. Moving to another
-// component keeps the open tab.
+// addresses first, then descriptions), then the system's components in two
+// groups: its app components (named from their path in the app copy when no
+// page presents them), then the others in the Systems navigation's order.
+// The open one is highlighted. Moving to another component keeps the open
+// tab.
 const props = defineProps<{
   system: SystemCatalog
   /** The systems the Lab offers (`labSystems`). */
@@ -17,9 +25,14 @@ const { t } = useI18n()
 const route = useRoute()
 
 const query = ref('')
+const all = computed(() => labComponents(props.system))
 const shown = computed(() =>
-  matchingComponents(props.system.components, query.value),
+  labGroups(matchingComponents(all.value, query.value)),
 )
+const groupLabel = {
+  app: 'lab.nav.appComponents',
+  system: 'lab.nav.components',
+} as const
 const openSlug = computed(() =>
   route.params.systemId === props.system.id
     ? String(route.params.component ?? '')
@@ -77,31 +90,33 @@ function onEscape(event: KeyboardEvent) {
       />
     </div>
     <nav :aria-label="t('lab.nav.components')" class="pb-4">
-      <p class="flex h-7 items-center px-2 text-xs font-semibold text-muted">
-        {{ t('lab.nav.components') }}
-      </p>
-      <ul class="space-y-0.5">
-        <li v-for="component in shown" :key="component.slug">
-          <ULink
-            :to="labAddress(system.id, component.slug, tabPath)"
-            :title="component.description ?? undefined"
-            :aria-current="component.slug === openSlug ? 'page' : undefined"
-            :class="[
-              'flex h-7 min-w-0 items-center gap-2 rounded-md px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary',
-              component.slug === openSlug
-                ? 'bg-elevated font-medium text-highlighted'
-                : 'text-default hover:bg-elevated/50',
-            ]"
-          >
-            <UIcon
-              name="i-lucide-blocks"
-              class="size-3.5 shrink-0 text-muted"
-            />
-            <span class="truncate">{{ component.title }}</span>
-          </ULink>
-        </li>
-      </ul>
-      <p v-if="!system.components.length" class="px-2 py-1 text-xs text-muted">
+      <section v-for="group in shown" :key="group.id">
+        <p class="flex h-7 items-center px-2 text-xs font-semibold text-muted">
+          {{ t(groupLabel[group.id]) }}
+        </p>
+        <ul class="space-y-0.5">
+          <li v-for="component in group.components" :key="component.slug">
+            <ULink
+              :to="labAddress(system.id, component.slug, tabPath)"
+              :title="component.description ?? component.app?.path"
+              :aria-current="component.slug === openSlug ? 'page' : undefined"
+              :class="[
+                'flex h-7 min-w-0 items-center gap-2 rounded-md px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                component.slug === openSlug
+                  ? 'bg-elevated font-medium text-highlighted'
+                  : 'text-default hover:bg-elevated/50',
+              ]"
+            >
+              <UIcon
+                name="i-lucide-blocks"
+                class="size-3.5 shrink-0 text-muted"
+              />
+              <span class="truncate">{{ component.title }}</span>
+            </ULink>
+          </li>
+        </ul>
+      </section>
+      <p v-if="!all.length" class="px-2 py-1 text-xs text-muted">
         {{ t('lab.nav.empty') }}
       </p>
       <p
