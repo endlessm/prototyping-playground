@@ -110,9 +110,15 @@ export default {
         ),
     },
     // Each component page's Markdown, examples text and props, read from
-    // the component's code when a component page first opens.
+    // the component's code when a component page first opens, and an app
+    // component's copied app file with the copy's record (a system's app
+    // copy is one folder down, such as `studios/`).
     components: {
-      watch: [`${folder}/*/components/**`],
+      watch: [
+        `${folder}/*/components/**`,
+        `${folder}/*/*/components/**`,
+        `${folder}/*/*/README.md`,
+      ],
       load: async ({ root, dev }) =>
         componentPages(await systemsFor(root, dev)),
     },

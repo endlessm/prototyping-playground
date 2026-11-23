@@ -3,6 +3,7 @@ title: Studio sidebar
 description: The platform's main navigation, down the left of every page in Endless Studios, the same one the home page shows. Home, Play and Learning, Admin for staff, then notifications and the profile menu.
 source: The app's own components/App/StudioSidebar.vue, copied unchanged from Endless-Game-Making-Studio/studio 11517cbee and still the same on dev (44f2225). Built from Nuxt UI's USidebar and UNavigationMenu.
 docs: https://ui.nuxt.com/docs/components/sidebar
+app: components/App/StudioSidebar.vue
 ---
 
 ## When to use

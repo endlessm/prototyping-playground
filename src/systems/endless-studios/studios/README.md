@@ -1,3 +1,9 @@
+---
+repository: Endless-Game-Making-Studio/studio
+revision: 4a5087452
+root: frontend/app
+---
+
 # Endless Studios frontend sources
 
 Copied unchanged from `Endless-Game-Making-Studio/studio` at `4a5087452`, under `frontend/app/`, keeping that folder layout so `~/` imports resolve here. The app's locale files, `frontend/i18n/locales/en.json` and `es.json`, are copied unchanged at the same revision to `../i18n/locales/`, mirroring `frontend/i18n/` beside `frontend/app/`. Every image under `assets/images/` is copied unchanged, except `bg-threadbare.png` (2.1 MB) and `banner-img.png` (1.1 MB), which are over the studio's 750 KB asset limit and used only by `Dashboard/LauncherBanner*.vue`.
@@ -45,6 +51,6 @@ The app repository is private; read it with `gh api` (an account with access to 
 2. Copy each file unchanged to the same path under this folder (locale files to `../i18n/locales/`): `gh api -H 'Accept: application/vnd.github.raw' "repos/Endless-Game-Making-Studio/studio/contents/frontend/app/$FILE?ref=$REV" > "$FILE"`. Copy only what screens use, plus what those files import; copy every image except files over 750 KB, and list those above.
 3. Put the adaptations back into `assets/css/main.css` (the paragraph above) if it changed; never edit another copied file.
 4. When a copied file needs a Nuxt composable or package the runtime doesn't answer yet, add a stand-in as described above.
-5. Record the new revision in the first paragraph, then run `yarn vitest run tests/unit/endless-studios-system.test.ts tests/integration/endless-studios-app.test.ts` and open a screen that uses the new files.
+5. Record the new revision in the first paragraph and in `revision` at the top of this file (the Lab reads it there), then run `yarn vitest run tests/unit/endless-studios-system.test.ts tests/integration/endless-studios-app.test.ts` and open a screen that uses the new files.
 
 To check that the copy is unchanged, fetch a file the same way and compare it ignoring line endings (`tr -d '\r' < "$FILE" | cmp - upstream`); only `main.css` should differ.
