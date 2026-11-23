@@ -61,3 +61,7 @@ export const olderRevision = (
   version: Pick<ManifestLabVersion, 'revision'>,
   current: string | null,
 ) => Boolean(version.revision && current && version.revision !== current)
+
+/** A version's Changes: `/lab/<system id>/<slug>/versions/<view id>/changes`. */
+export const changesAddress = (system: string, component: string, id: string) =>
+  `/lab/${system}/${component}/versions/${encodeURIComponent(id)}/changes`

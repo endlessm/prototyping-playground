@@ -48,7 +48,7 @@ import {
   writeQuery,
   type ControlValue,
 } from '../utils/playground'
-import { versionById } from '../utils/versions'
+import { changesAddress, versionById } from '../utils/versions'
 
 // Playground: the real component file on the stage, beside DialKit dials
 // built from its props and seeded from its Default example, so it opens
@@ -620,6 +620,15 @@ const editorWidth = useLocalStorage('design-studio:lab-editor-width', 0)
                 icon="i-lucide-arrow-left"
                 :label="t('lab.versions.original')"
                 @click="openOriginal"
+              />
+              <UButton
+                v-if="version"
+                size="xs"
+                color="neutral"
+                variant="ghost"
+                icon="i-lucide-file-diff"
+                :label="t('lab.changes.view')"
+                :to="changesAddress(system.id, component.slug, version.id)"
               />
             </template>
             <template v-if="original && !version" #notice>
