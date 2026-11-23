@@ -8,7 +8,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { parse } from 'yaml'
-import { posix } from '../manifest/build.ts'
+import { posix, treeFiles } from '../manifest/build.ts'
 import type { InstalledSystem } from './registry.ts'
 
 /** The copy's record, beside the files: its README's frontmatter. */
@@ -115,6 +115,33 @@ export function appFile(
       appPath: copy.root ? `${copy.root}/${inside}` : null,
     },
   }
+}
+
+/** Where the copy keeps its components, inside the copy. */
+export const APP_COMPONENTS = 'components'
+
+/**
+ * Every `.vue` file in the copy's `components/` folder, in file-tree order:
+ * the app components the Lab lists, whether or not a page presents them.
+ */
+export function appFiles(
+  system: InstalledSystem,
+  copy: AppCopy | null,
+): AppFile[] {
+  if (!copy) return []
+  const dir = path.join(system.dir, copy.folder, APP_COMPONENTS)
+  if (!existsSync(dir)) return []
+  return treeFiles(dir)
+    .filter((file) => file.endsWith('.vue'))
+    .map((file) => {
+      const inside = `${APP_COMPONENTS}/${file}`
+      return {
+        path: inside,
+        file: `${system.folder}/${copy.folder}/${inside}`,
+        specifier: `~/${inside}`,
+        appPath: copy.root ? `${copy.root}/${inside}` : null,
+      }
+    })
 }
 
 /** The app file's text, with the copy's revision. */

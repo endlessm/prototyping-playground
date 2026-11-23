@@ -7,9 +7,11 @@ import { systemAddress } from '../../systems/utils/pages'
 import { useLabComponent } from '../composables/useLabComponent'
 
 // Overview: the component's guide, Source and Props as its Systems page
-// shows them, without the examples, and a link to that page. Files that
-// couldn't load are listed with Try again; whatever did load still shows.
-// It reads at the Systems page's width.
+// shows them, without the examples, and a link to that page. An app
+// component no page presents has no Systems page, and its hint names the
+// `app` field a page would need, since its copied file is never edited.
+// Files that couldn't load are listed with Try again; whatever did load
+// still shows. It reads at the Systems page's width.
 const { system, component, stem, data, reload } = useLabComponent()
 const { t } = useI18n()
 
@@ -28,6 +30,7 @@ const systemsPage = computed(() =>
 <template>
   <div class="max-w-3xl">
     <ULink
+      v-if="!component.generic"
       :to="systemsPage"
       class="mb-2 inline-flex items-center gap-1.5 text-sm font-medium text-highlighted hover:underline"
     >
@@ -46,6 +49,17 @@ const systemsPage = computed(() =>
       :source="data.page"
       :file="component.doc!"
     />
+    <i18n-t
+      v-else-if="component.generic"
+      keypath="lab.nav.appNoPage"
+      tag="p"
+      class="text-sm text-muted"
+      scope="global"
+    >
+      <template #field>
+        <code class="font-mono">app: {{ component.app?.path }}</code>
+      </template>
+    </i18n-t>
     <i18n-t
       v-else-if="!component.doc"
       keypath="systems.component.noPage"

@@ -5,7 +5,7 @@
 // prefetch them, and a build under a sub-path would fail on those links.
 import { useManifest } from '../../../../app/composables/useManifest'
 import { useSystemCatalog } from '../../systems/composables/useSystemCatalog'
-import { labAddress, labLanding } from './lab'
+import { labAddress, labComponents, labLanding } from './lab'
 
 /** The default system's first component, or none to stay on `/lab`. */
 export async function labLandingAddress() {
@@ -20,6 +20,6 @@ export async function labLandingAddress() {
 export async function systemLandingAddress(systemId: string) {
   const { systemOf } = await useSystemCatalog()
   const system = systemOf(systemId)
-  const first = system?.status === 'active' && system.components[0]
+  const first = system?.status === 'active' && labComponents(system)[0]
   return first ? labAddress(systemId, first.slug) : null
 }
