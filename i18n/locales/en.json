@@ -1072,7 +1072,8 @@
       "label": "Component tabs",
       "overview": "Overview",
       "variants": "Variants",
-      "playground": "Playground"
+      "playground": "Playground",
+      "versions": "Versions"
     },
     "overview": {
       "openInSystems": "Open in Systems"
@@ -1145,7 +1146,40 @@
       "created": "{name} created",
       "createFailed": "The version wasn’t created",
       "missing": "This version no longer exists. The app’s original is shown instead.",
-      "readOnlyDeployed": "Versions are read-only here. Run the studio locally to make your own."
+      "readOnlyDeployed": "Versions are read-only here. Run the studio locally to make your own.",
+      "saveAsMine": "Save as my version",
+      "copyFailed": "The version wasn’t copied",
+      "older": "Made from the app at {revision}. The original has changed since (now {current}), so its changes are compared with the current original.",
+      "rename": {
+        "title": "Rename version",
+        "description": "A new name for the version’s file. Links to it keep working.",
+        "label": "Name",
+        "empty": "Add a name",
+        "save": "Rename",
+        "cancel": "Cancel"
+      },
+      "list": {
+        "intro": "{count} version, everyone’s. Open one to try it in the Playground; you can change only your own. | {count} versions, everyone’s. Open one to try it in the Playground; you can change only your own.",
+        "introDeployed": "{count} version, everyone’s, read-only on this site. | {count} versions, everyone’s, read-only on this site.",
+        "notApp": "Only the app’s own components have versions. {name} isn’t one of them.",
+        "empty": "No versions of {name} yet.",
+        "emptyHint": "Make one with New version beside the original’s code in the Playground.",
+        "emptyDeployed": "Versions are made in the studio running locally.",
+        "openPlayground": "Open Playground",
+        "by": "By {name}",
+        "someone": "someone unknown",
+        "changed": "changed {date}",
+        "yours": "Yours",
+        "readOnly": "Read-only",
+        "more": "More actions for {name}",
+        "openPrototype": "Open in Prototypes",
+        "rename": "Rename",
+        "duplicate": "Duplicate",
+        "delete": "Delete",
+        "preview": "{name} preview",
+        "open": "Open in Playground",
+        "changes": "Changes"
+      }
     }
   }
 }

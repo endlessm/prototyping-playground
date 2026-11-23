@@ -68,7 +68,11 @@ useHead({
         {{ component.description }}
       </p>
     </header>
-    <LabTabBar :system-id="system.id" :slug="component.slug" />
+    <LabTabBar
+      :system-id="system.id"
+      :slug="component.slug"
+      :app="Boolean(component.app)"
+    />
     <div class="pt-6">
       <NuxtPage />
     </div>

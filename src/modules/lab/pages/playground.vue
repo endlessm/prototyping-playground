@@ -11,6 +11,7 @@ import { useOriginalSource } from '../composables/useOriginalSource'
 import type { PlaygroundCode } from '../composables/usePlaygroundDraft'
 import { useStageInspector } from '../composables/useStageInspector'
 import { useVersionDraft } from '../composables/useVersionDraft'
+import { useVersionCopy } from '../composables/useVersionCopy'
 import { useVersionText } from '../composables/useVersionText'
 import { refreshManifest } from '../../../../app/composables/useManifest'
 import { requestJson } from '../../../../app/utils/studioRequest'
@@ -49,7 +50,7 @@ import {
   writeQuery,
   type ControlValue,
 } from '../utils/playground'
-import { versionById } from '../utils/versions'
+import { isMine, olderRevision, versionById } from '../utils/versions'
 
 // Playground: the real component file on the stage, beside DialKit dials
 // built from its props and seeded from its Default example, so it opens
@@ -220,6 +221,25 @@ async function newVersion() {
     creating.value = false
   }
 }
+// Someone else's version, locally: Save as my version copies it into your
+// own versions and opens the copy.
+const offersCopy = computed(
+  () =>
+    local &&
+    Boolean(me.value.key) &&
+    Boolean(version.value) &&
+    !isMine(version.value!, me.value),
+)
+const { copy, copying } = useVersionCopy()
+async function saveAsMine() {
+  const created = version.value ? await copy(version.value) : null
+  if (created) await router.push({ query: { version: created.artifact } })
+}
+const older = computed(() =>
+  version.value
+    ? olderRevision(version.value, original.value?.revision ?? null)
+    : false,
+)
 function openOriginal() {
   void router.push({ query: writeQuery(controls.value, values.value) })
 }
@@ -582,6 +602,22 @@ const editorWidth = useLocalStorage('design-studio:lab-editor-width', 0)
     >
       {{ t('lab.versions.missing') }}
     </p>
+    <p
+      v-if="older"
+      role="note"
+      class="flex gap-2 rounded-3xl border border-default p-4 text-sm text-default"
+    >
+      <UIcon
+        name="i-lucide-triangle-alert"
+        class="mt-0.5 size-4 shrink-0 text-warning"
+      />
+      {{
+        t('lab.versions.older', {
+          revision: version?.revision,
+          current: original?.revision,
+        })
+      }}
+    </p>
     <p role="status" class="sr-only">{{ announced }}</p>
     <div
       class="grid items-start gap-6"
@@ -615,15 +651,24 @@ const editorWidth = useLocalStorage('design-studio:lab-editor-width', 0)
                 :loading="creating"
                 @click="newVersion"
               />
-              <UButton
-                v-else-if="version"
-                size="xs"
-                color="neutral"
-                variant="ghost"
-                icon="i-lucide-arrow-left"
-                :label="t('lab.versions.original')"
-                @click="openOriginal"
-              />
+              <template v-else-if="version">
+                <UButton
+                  v-if="offersCopy"
+                  size="xs"
+                  icon="i-lucide-git-branch-plus"
+                  :label="t('lab.versions.saveAsMine')"
+                  :loading="Boolean(copying)"
+                  @click="saveAsMine"
+                />
+                <UButton
+                  size="xs"
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-lucide-arrow-left"
+                  :label="t('lab.versions.original')"
+                  @click="openOriginal"
+                />
+              </template>
             </template>
             <template v-if="original && !version" #notice>
               <span class="mt-1 block truncate font-mono">

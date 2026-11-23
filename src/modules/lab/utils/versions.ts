@@ -108,3 +108,32 @@ export async function versionText(
   if (!response.ok) throw new Error('This version failed to load.')
   return response.text()
 }
+
+/** Whether a version is yours: its prototype's owner is you. */
+export const isMine = (
+  version: Pick<LabVersion, 'home'>,
+  me: { key: string | null; studioId?: string },
+) =>
+  version.home.owner
+    ? version.home.owner === me.studioId
+    : Boolean(me.key) && version.home.contributor === me.key
+
+/**
+ * Whether you may rename, duplicate into its prototype or delete a version
+ * as far as the page knows: yours, or any as an Admin, while the studio runs
+ * locally. The file service checks again.
+ */
+export const mayChangeVersion = (
+  version: Pick<LabVersion, 'home'>,
+  me: { key: string | null; studioId?: string; role?: string | null },
+) =>
+  import.meta.dev &&
+  Boolean(me.key) &&
+  (me.role === 'admin' || isMine(version, me))
+
+/** A version's Changes page, beside its component's Versions tab. */
+export const changesAddress = (
+  system: string,
+  component: string,
+  version: string,
+) => `/lab/${system}/${component}/versions/${version}/changes`

@@ -2,12 +2,16 @@
 import { LAB_TABS, labAddress, tabAt } from '../utils/lab'
 
 // The bench's tabs, as links: each tab is its own address, so the back
-// button and shared links follow them. The current one is announced.
-const props = defineProps<{ systemId: string; slug: string }>()
+// button and shared links follow them. The current one is announced. Only an
+// app component has Versions.
+const props = defineProps<{ systemId: string; slug: string; app: boolean }>()
 const { t } = useI18n()
 const route = useRoute()
 
 const current = computed(() => tabAt(route.path, props.systemId, props.slug))
+const tabs = computed(() =>
+  LAB_TABS.filter((tab) => props.app || !('app' in tab)),
+)
 </script>
 
 <template>
@@ -16,7 +20,7 @@ const current = computed(() => tabAt(route.path, props.systemId, props.slug))
     class="flex gap-1 border-b border-default"
   >
     <ULink
-      v-for="tab in LAB_TABS"
+      v-for="tab in tabs"
       :key="tab.id"
       :to="labAddress(systemId, slug, tab.path)"
       :aria-current="current === tab ? 'page' : undefined"

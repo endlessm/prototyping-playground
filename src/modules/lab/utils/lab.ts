@@ -9,12 +9,13 @@ import { inSystemOrder } from '../../systems/utils/pages'
 /**
  * A component's tabs, in the tab bar's order. Each is a child page of the
  * component's address; its `path` continues that address, and `label` is
- * its i18n key.
+ * its i18n key. The bar shows an `app` tab only for an app component.
  */
 export const LAB_TABS = [
   { id: 'overview', label: 'lab.tabs.overview', path: '' },
   { id: 'variants', label: 'lab.tabs.variants', path: 'variants' },
   { id: 'playground', label: 'lab.tabs.playground', path: 'playground' },
+  { id: 'versions', label: 'lab.tabs.versions', path: 'versions', app: true },
 ] as const
 
 export type LabTab = (typeof LAB_TABS)[number]
