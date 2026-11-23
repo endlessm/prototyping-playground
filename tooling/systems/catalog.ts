@@ -9,6 +9,14 @@ import path from 'node:path'
 import { parse } from 'yaml'
 import { directories, posix, treeFiles } from '../manifest/build.ts'
 import {
+  appCopy,
+  appFile,
+  appOriginal,
+  type AppCopy,
+  type AppFile,
+  type AppOriginal,
+} from './app-copy.ts'
+import {
   componentProblems,
   discoverComponents,
   docsWarning,
@@ -33,6 +41,7 @@ import { isBinaryFile, isTextContent } from './text-files.ts'
 import { stylesheetTokens, type ThemeToken, type TokenGroup } from './tokens.ts'
 
 export type { ColorSection, ThemeToken, TokenGroup } from './tokens.ts'
+export type { AppCopy, AppFile, AppOriginal } from './app-copy.ts'
 export {
   SKILL_DESCRIPTION_MAX,
   SKILL_FILE,
@@ -97,6 +106,12 @@ export interface CatalogComponent {
    * component file.
    */
   playground: string | null
+  /**
+   * The copied app file it presents, named by its page's `app` field: an
+   * app component. Null for the others, such as Nuxt UI wrappers, whose only
+   * file is the system's own.
+   */
+  app: AppFile | null
 }
 
 export interface CatalogDocument {
@@ -161,6 +176,8 @@ export interface SystemCatalog {
   renameReview: string[]
   /** An agent saved a setup record: the Overview offers no setup. */
   setupRecorded: boolean
+  /** The copy of the app's own source and its record, or null without one. */
+  appCopy: AppCopy | null
 }
 
 /** A system's own content for its Overview, in its own look. */
@@ -312,6 +329,7 @@ export function systemCatalog(
   const componentsDir = path.join(dir, 'components')
   const componentsAt = `${folder}/components`
   const contextDir = path.join(dir, 'context')
+  const copy = appCopy(system)
   return {
     id: system.id,
     key: system.key,
@@ -351,6 +369,7 @@ export function systemCatalog(
       const folderOf = (file: string) =>
         file.includes('/') ? file.slice(0, file.lastIndexOf('/') + 1) : null
       const home = folderOf(own[0]!)
+      const app = appFile(system, copy, data.app)
       const rest = home
         ? filesIn(componentsDir).filter(
             (file) => file.startsWith(home) && !own.includes(file),
@@ -373,6 +392,7 @@ export function systemCatalog(
           id: exampleId(system.id, component.slug, name),
         })),
         playground: source ? playgroundId(system.id, component.slug) : null,
+        app: app && 'file' in app ? app.file : null,
       }
     }),
     overview: existsSync(path.join(dir, OVERVIEW_FILE))
@@ -391,6 +411,7 @@ export function systemCatalog(
       })),
     contextFolders: existsSync(contextDir) ? folders(contextDir) : [],
     skills: skillsOf(system),
+    appCopy: copy,
   }
 }
 
@@ -585,6 +606,11 @@ export interface ComponentPageData {
   seeds: ExampleSeeds
   /** Read from the component's code; null without a component file. */
   props: ComponentPropsDoc | null
+  /**
+   * An app component's copied app file, with its text and the copy's
+   * revision; null for other components or when it can't be read.
+   */
+  original: AppOriginal | null
   /** Files that couldn't be read, each with why. */
   errors: string[]
 }
@@ -600,6 +626,7 @@ export async function componentPages(systems: InstalledSystem[]) {
   const sources = new Map<string, ComponentPageData>()
   for (const system of systems) {
     const componentsDir = path.join(system.dir, 'components')
+    const copy = appCopy(system)
     for (const component of discoverComponents(filesIn(componentsDir))) {
       const errors: string[] = []
       const read = (file: string | null) => {
@@ -614,12 +641,23 @@ export async function componentPages(systems: InstalledSystem[]) {
       const { doc, examples, source } = component.files
       const page = read(doc)
       const text = read(examples)
+      const declared = appFile(system, copy, frontmatter(page ?? '')?.app)
+      let original: AppOriginal | null = null
+      if (declared && 'problem' in declared)
+        errors.push(`${doc}: ${declared.problem}`)
+      else if (declared && copy)
+        try {
+          original = appOriginal(system, copy, declared.file)
+        } catch (error) {
+          errors.push(`${declared.file.file}: ${(error as Error).message}`)
+        }
       const data: ComponentPageData = {
         page,
         examples: text,
         snippets: text ? exampleSnippets(text, exampleNames(text)) : {},
         seeds: text ? exampleSeeds(text, component.slug) : {},
         props: null,
+        original,
         errors,
       }
       pages[`${system.id}/${component.slug}`] = data

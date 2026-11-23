@@ -7,7 +7,7 @@ import LabPlaygroundCodeProps from '../components/LabPlaygroundCodeProps.vue'
 import LabPlaygroundEditor from '../components/LabPlaygroundEditor.vue'
 import LabPlaygroundStage from '../components/LabPlaygroundStage.vue'
 import { useLabComponent } from '../composables/useLabComponent'
-import { usePlaygroundDraft } from '../composables/usePlaygroundDraft'
+import { useOriginalSource } from '../composables/useOriginalSource'
 import { useStageInspector } from '../composables/useStageInspector'
 import {
   areaBoxes,
@@ -55,10 +55,12 @@ import {
 // back to the dials.
 // Hovering a dial shows on the stage what it changes. Inspect (on by
 // default) selects an element on the stage: its box model, and the prop
-// dials that change it. Locally the component's code sits beside the stage
-// in a draft only the stage renders: Inspect jumps to the selected element's
-// code, its own spacing, radius and size classes become dials that rewrite
-// the draft, and Save writes the draft to the file.
+// dials that change it. Locally an app component's code sits beside the
+// stage: the app's original, read-only, where Inspect jumps to the selected
+// element's code. Other components, such as Nuxt UI's, have no code there:
+// their only file is the system's catalog page around them. The code is a
+// `PlaygroundCode`, so an editable draft can take the original's place, and
+// with it the selected element's class dials that rewrite the draft.
 const { component, system, stem, data, reload } = useLabComponent()
 const { t } = useI18n()
 const route = useRoute()
@@ -114,18 +116,11 @@ watch(
   { immediate: true },
 )
 
-// --- The draft, locally ---
+// --- The code, locally ---
 
-const sourcePath = computed(() => {
-  const file = component.value.source
-  return file ? file.slice(system.value.folder.length + 1) : ''
-})
-const draft = local
-  ? usePlaygroundDraft(
-      () => system.value.id,
-      () => (component.value.playground ? sourcePath.value : ''),
-    )
-  : null
+const original = computed(() => data.value?.original ?? null)
+const draft = local ? useOriginalSource(() => original.value) : null
+const showsCode = computed(() => Boolean(draft && original.value))
 
 // --- Inspect: the selected element in the code ---
 
@@ -161,7 +156,7 @@ if (draft)
 const source = computed(() => {
   void inspector.version.value
   const element = inspector.selected.value
-  const code = draft?.code.value
+  const code = showsCode.value ? draft?.code.value : ''
   if (!element || !code) return null
   if (pinned.value !== null) {
     const attribute = attributeAt(code, pinned.value)
@@ -463,7 +458,7 @@ const editorWidth = useLocalStorage('design-studio:lab-editor-width', 0)
         :label="t('lab.inspect.toggle')"
       />
       <p class="min-w-0 flex-1 text-xs text-muted">
-        {{ t('lab.inspect.hint') }}
+        {{ t(showsCode ? 'lab.inspect.hint' : 'lab.inspect.hintNoCode') }}
       </p>
       <UButton
         v-if="inspector.selected.value"
@@ -479,22 +474,34 @@ const editorWidth = useLocalStorage('design-studio:lab-editor-width', 0)
     <div
       class="grid items-start gap-6"
       :class="
-        draft
+        showsCode
           ? 'lg:grid-cols-[minmax(0,1fr)_18rem] xl:grid-cols-[var(--editor-width)_auto_minmax(0,1fr)_18rem] xl:gap-x-3'
           : 'lg:grid-cols-[minmax(0,1fr)_18rem]'
       "
       :style="
-        draft
+        showsCode
           ? { '--editor-width': editorWidth ? `${editorWidth}px` : '40%' }
           : undefined
       "
     >
-      <template v-if="draft">
+      <template v-if="draft && showsCode">
         <!-- Beside the stage on wide screens; under it otherwise. -->
         <div
           class="order-last h-[28rem] min-w-0 lg:col-span-2 xl:sticky xl:top-4 xl:order-none xl:col-span-1 xl:h-[min(75vh,48rem)]"
         >
-          <LabPlaygroundEditor :draft="draft" :highlight="editorHighlight" />
+          <LabPlaygroundEditor :draft="draft" :highlight="editorHighlight">
+            <!-- The original's actions go in #actions (New version). -->
+            <template v-if="original" #notice>
+              <span class="mt-1 block truncate font-mono">
+                {{
+                  t('lab.original.from', {
+                    path: original.appPath ?? original.file,
+                    revision: original.revision ?? '?',
+                  })
+                }}
+              </span>
+            </template>
+          </LabPlaygroundEditor>
         </div>
         <LabEditorDivider
           v-model="editorWidth"
@@ -583,7 +590,12 @@ const editorWidth = useLocalStorage('design-studio:lab-editor-width', 0)
           @hover="hover"
         />
         <p
-          v-if="draft && inspector.selected.value && !elementDials.length"
+          v-if="
+            draft &&
+            showsCode &&
+            inspector.selected.value &&
+            !elementDials.length
+          "
           class="px-1 text-xs text-muted"
         >
           {{
@@ -591,7 +603,9 @@ const editorWidth = useLocalStorage('design-studio:lab-editor-width', 0)
               ? t('lab.playground.noClassDials', {
                   element: selection?.label.split(' · ')[0] ?? '',
                 })
-              : t('lab.playground.elementReadOnly')
+              : original
+                ? t('lab.original.classDials')
+                : t('lab.playground.elementReadOnly')
           }}
         </p>
         <LabPlaygroundCodeProps :controls="controls" />

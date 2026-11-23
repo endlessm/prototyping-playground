@@ -1108,6 +1108,7 @@
     "inspect": {
       "toggle": "Inspect",
       "hint": "Click an element on the stage to see its box, its code and the dials that change it. Press Escape to clear.",
+      "hintNoCode": "Click an element on the stage to see its box and the dials that change it. Press Escape to clear.",
       "clear": "Clear selection"
     },
     "editor": {
@@ -1128,6 +1129,11 @@
       "changed": "This file changed on disk since you opened it. Save would replace that version.",
       "keepMine": "Keep my changes",
       "resize": "Resize the code editor"
+    },
+    "original": {
+      "readOnly": "This is the app’s original. Make a new version to change it.",
+      "from": "{path} at {revision}",
+      "classDials": "Class dials change a version. Make a new version to change this element’s classes."
     }
   }
 }

@@ -23,6 +23,7 @@ const harbor: SystemCatalog = {
   code: null,
   renameReview: [],
   setupRecorded: false,
+  appCopy: null,
   icons: null,
   stylesheet: 'src/systems/harbor/styles/theme.css',
   libraries: [],

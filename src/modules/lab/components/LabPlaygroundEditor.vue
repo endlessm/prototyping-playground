@@ -3,15 +3,16 @@ import { useEventListener } from '@vueuse/core'
 import SourceCode from '../../../../app/components/source/SourceCode.vue'
 import SourceDiscardModal from '../../../../app/components/source/SourceDiscardModal.vue'
 import { saveShortcut, shortcutLabel } from '../../../../app/utils/shortcuts'
-import type { PlaygroundDraft } from '../composables/usePlaygroundDraft'
+import type { PlaygroundCode } from '../composables/usePlaygroundDraft'
 
-// The component file beside the stage, locally: its draft in the studio's
-// code editor, which says whether it is saved and offers Save (also ⌘S or
-// Ctrl+S) and Discard. The stage renders the draft as it changes. Someone
-// who may not change the system reads it, with the reason. Inspect marks
-// the selected element's lines (`highlight`).
+// The code beside the stage, locally, in the studio's code editor: a draft,
+// which says whether it is saved and offers Save (also ⌘S or Ctrl+S) and
+// Discard while the stage renders it, or a read-only text with the reason,
+// such as an app component's original. Inspect marks the selected element's
+// lines (`highlight`). The `actions` slot sits in the header, before Save and
+// Discard (an original's New version); `notice` sits under the reason.
 const props = defineProps<{
-  draft: PlaygroundDraft
+  draft: PlaygroundCode
   highlight?: { from: number; to: number } | null
 }>()
 const { t } = useI18n()
@@ -63,6 +64,7 @@ useEventListener(
       <span role="status" class="ml-auto shrink-0 text-muted">{{
         status
       }}</span>
+      <slot name="actions" />
       <template v-if="draft.editable.value">
         <UButton
           size="xs"
@@ -92,6 +94,7 @@ useEventListener(
       class="shrink-0 border-b border-default px-4 py-2 text-xs text-muted"
     >
       {{ draft.file.value.reason }}
+      <slot name="notice" />
     </p>
     <div
       v-if="draft.conflict.value"

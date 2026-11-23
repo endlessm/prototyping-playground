@@ -1,3 +1,4 @@
+import type { Ref } from 'vue'
 import type { SourceFile } from '../../../../app/components/source/sourceAccess'
 import {
   requestJson,
@@ -197,3 +198,21 @@ export function usePlaygroundDraft(
 }
 
 export type PlaygroundDraft = ReturnType<typeof usePlaygroundDraft>
+
+/**
+ * What the code beside the stage needs, whether a draft or a read-only text
+ * such as an app component's original (`useOriginalSource`).
+ */
+export interface PlaygroundCode {
+  file: Readonly<Ref<SourceFile | undefined>>
+  code: Ref<string>
+  failure: Readonly<Ref<string | undefined>>
+  saving: Readonly<Ref<boolean>>
+  conflict: Readonly<Ref<boolean>>
+  editable: Readonly<Ref<boolean>>
+  unsaved: Readonly<Ref<boolean>>
+  save: () => Promise<void>
+  discard: () => Promise<void>
+  keepMine: () => Promise<void>
+  fileName: () => string
+}
