@@ -1134,6 +1134,13 @@
       "readOnly": "This is the app’s original. Make a new version to change it.",
       "from": "{path} at {revision}",
       "classDials": "Class dials change a version. Make a new version to change this element’s classes."
+    },
+    "versions": {
+      "new": "New version",
+      "original": "Show original",
+      "created": "{name} created",
+      "createFailed": "The version wasn’t created",
+      "missing": "This version no longer exists. The app’s original is shown instead."
     }
   }
 }
