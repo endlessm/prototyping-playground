@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
 import { useResizeObserver } from '@vueuse/core'
-import type { ManifestArtifact } from '../../../../app/composables/useManifest'
+import {
+  refreshManifest,
+  type ManifestArtifact,
+} from '../../../../app/composables/useManifest'
 import { formatDate } from '../../../../app/utils/dates'
 import { afterMenuCloses, menuGroups } from '../../../../app/utils/menus'
 import { requestJson } from '../../../../app/utils/studioRequest'
@@ -42,8 +45,8 @@ const { t } = useI18n()
 const toast = useStudioToast()
 const { me } = useMe()
 // Only the dev server has the route; the static build never names it.
-const treeUrl = import.meta.dev
-  ? `${useRuntimeConfig().app.baseURL}_studio/files/tree`
+const versionsUrl = import.meta.dev
+  ? `${useRuntimeConfig().app.baseURL}_studio/modules/lab/versions`
   : ''
 
 const name = computed(
@@ -111,18 +114,21 @@ async function remove() {
     trash: trash(),
   }).result
   if (!confirmed) return focusMore()
-  const reply = await requestJson<{ trashedTo: 'recycle-bin' | 'trash' }>(
-    treeUrl,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        prototype: props.version.prototype,
-        op: 'delete',
-        path: file.value,
-      }),
-    },
-  )
+  // The Lab's own delete also takes the "<Component> versions" prototype
+  // when this was the last version in it.
+  const reply = await requestJson<{
+    trashedTo: 'recycle-bin' | 'trash'
+    prototypeRemoved: boolean
+  }>(versionsUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'delete',
+      prototype: props.version.prototype,
+      artifact: props.version.id,
+    }),
+  })
+  await refreshManifest()
   toast.success(
     t('files.deleted', {
       name: name.value,
