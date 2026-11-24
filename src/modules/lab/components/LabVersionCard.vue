@@ -26,7 +26,7 @@ import { GHOST_FOCUS, labAddress, shortRevision } from '../utils/lab'
 // revision of the app than its original's says so. The preview is a picture,
 // scaled to fit its box: it takes no keyboard focus and opens the version
 // when clicked. After Rename the keyboard comes back to the card's "…"; after
-// Delete the list decides where it goes (`removed`).
+// Delete the list decides where it goes (`removing`).
 const props = defineProps<{
   systemId: string
   slug: string
@@ -40,7 +40,10 @@ const props = defineProps<{
   /** A copy of this version is being made. */
   copying: boolean
 }>()
-const emit = defineEmits<{ copy: [mine: boolean]; removed: [] }>()
+const emit = defineEmits<{
+  copy: [mine: boolean]
+  removing: [deleted: Promise<unknown>]
+}>()
 const { t } = useI18n()
 const toast = useStudioToast()
 const { me } = useMe()
@@ -118,7 +121,7 @@ async function remove() {
   if (!confirmed) return focusMore()
   // The Lab's own delete also takes the "<Component> versions" prototype
   // when this was the last version in it.
-  const reply = await requestJson<{
+  const deleted = requestJson<{
     trashedTo: 'recycle-bin' | 'trash'
     prototypeRemoved: boolean
   }>(versionsUrl, {
@@ -130,7 +133,10 @@ async function remove() {
       artifact: props.version.id,
     }),
   })
-  emit('removed')
+  // Told before the reply: the manifest can drop this card first, and an
+  // unmounted card's events never arrive.
+  emit('removing', deleted)
+  const reply = await deleted
   await refreshManifest()
   toast.success(
     t('files.deleted', {
@@ -230,6 +236,7 @@ const menu = computed<DropdownMenuItem[][]>(() =>
       <UDropdownMenu :items="menu">
         <UButton
           ref="more"
+          data-lab-version-more
           size="xs"
           color="neutral"
           variant="ghost"

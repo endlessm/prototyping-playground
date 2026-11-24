@@ -68,32 +68,31 @@ watch(
   { immediate: true },
 )
 
-// After a delete the keyboard goes to the card that took its place (the
-// next, or the last when it was the last), or to Open Playground when none
-// is left, once the list no longer shows it.
+// After a delete the keyboard goes to the "…" of the card that took its
+// place (the next, or the last when it was the last), or to Open Playground
+// when none is left, once the list no longer shows it.
 const list = useTemplateRef('list')
 const emptyAction = useTemplateRef('emptyAction')
 const ids = computed(() => versions.value.map(({ id }) => id))
-// The list as it was before its last change, in case the deleted version
-// left it before the card said so.
-let before: string[] = []
 const removing = shallowRef<{ id: string; index: number } | null>(null)
 async function focusAt(index: number) {
   await nextTick()
   const cards = list.value?.querySelectorAll<HTMLElement>('[data-lab-version]')
   const card = cards?.[Math.min(index, cards.length - 1)]
   const target =
-    card?.querySelector<HTMLElement>('h3 a') ??
+    card?.querySelector<HTMLElement>('[data-lab-version-more]') ??
     (emptyAction.value?.$el as HTMLElement | undefined)
   target?.focus()
 }
-function removed(version: LabVersion) {
+function remove(version: LabVersion, deleted: Promise<unknown>) {
   const index = ids.value.indexOf(version.id)
-  if (index < 0) return focusAt(Math.max(0, before.indexOf(version.id)))
+  if (index < 0) return
   removing.value = { id: version.id, index }
+  deleted.catch(() => {
+    if (removing.value?.id === version.id) removing.value = null
+  })
 }
-watch(ids, (now, old) => {
-  before = old ?? []
+watch(ids, (now) => {
   const gone = removing.value
   if (!gone || now.includes(gone.id)) return
   removing.value = null
@@ -164,7 +163,7 @@ async function copied(version: LabVersion, mine: boolean) {
         :revision="revision"
         :copying="copying === version.id"
         @copy="(mine) => copied(version, mine)"
-        @removed="removed(version)"
+        @removing="(deleted) => remove(version, deleted)"
       />
     </div>
   </div>
