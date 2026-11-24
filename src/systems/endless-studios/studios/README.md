@@ -2,6 +2,8 @@
 
 Copied unchanged from `Endless-Game-Making-Studio/studio` at `4a5087452`, under `frontend/app/`, keeping that folder layout so `~/` imports resolve here. The app's locale files, `frontend/i18n/locales/en.json` and `es.json`, are copied unchanged at the same revision to `../i18n/locales/`, mirroring `frontend/i18n/` beside `frontend/app/`. Every image under `assets/images/` is copied unchanged, except `bg-threadbare.png` (2.1 MB) and `banner-img.png` (1.1 MB), which are over the studio's 750 KB asset limit and used only by `Dashboard/LauncherBanner*.vue`.
 
+Replaced ahead of the app: the three logos, `logo-endless-navbar.svg` (sidebar), `logo-endless-studios-orange.svg` (footer, white text) and `logo-endless.svg` (mobile top bar, the mark alone), hold the new Endless Studios logo before the app ships it. Each keeps its old file's name and display size. When the app's own new logos arrive, the next refresh copies them over these, and this paragraph goes.
+
 Adapted: `assets/css/main.css` drops the floating-vue stylesheet, imports Tailwind with `source(none)` and scans only this system's sources (`components/`, `../runtime/`, `../nuxt-ui.config.ts`; the studio's preview build adds the prototypes' views), and names the Fontsource variable fonts (`'Inter Variable'`, `'Figtree Variable'`) before the app's own names. `base.css` and `modals.css` are unchanged: the preview document is the screen's own page, so the app's `html` and `body` rules apply as they do in the app. The page colour the app's layout (`layouts/new.vue`) gives `<body>`, `bg-slate-50`, is set in the system's own `../styles/studios.css`. `nuxt-shims.ts` is not an app file: it registers the stand-ins below for auto-import.
 
 ## Images and asset URLs
