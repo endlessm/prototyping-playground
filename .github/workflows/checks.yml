@@ -5,6 +5,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    # `labeled` lets the browser-tests label start them without a new push.
+    types: [opened, synchronize, reopened, labeled]
   workflow_dispatch:
   workflow_call:
 
@@ -20,6 +22,8 @@ jobs:
   scope:
     name: scope
     runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.changes.outputs.code }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -42,9 +46,28 @@ jobs:
           export STUDIO_REPOSITORY_ROLE=$(gh api repos/$GITHUB_REPOSITORY/collaborators/$GITHUB_ACTOR/permission --jq .role_name)
           node tooling/checks/run.ts scope --ci "$BEFORE" "$AFTER" $REVIEW
           node tooling/checks/run.ts assets --ci "$BEFORE" "$AFTER"
+      # A change made only of guidance (Markdown outside the content the build
+      # validates, or files in a skills folder) can't break the build or the
+      # tests, so it skips them; lint, format and the module checks still run.
+      # Prototypes, systems and test fixtures are content, never guidance.
+      - name: Tell whether the change touches code
+        id: changes
+        env:
+          BEFORE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          AFTER: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          code=true
+          if [ -n "$BEFORE" ] && [ "$BEFORE" != 0000000000000000000000000000000000000000 ] &&
+            files=$(git diff --name-only "$BEFORE...$AFTER") && [ -n "$files" ] &&
+            ! printf '%s\n' "$files" | grep -Ev '(^|/)skills/|\.md$' | grep -q . &&
+            ! printf '%s\n' "$files" | grep -Eq '^(src/prototypes|src/systems|tests)/'
+          then code=false; fi
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "Touches code: $code"
 
   bundle:
     name: Lint, types and production build
+    needs: scope
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -58,13 +81,18 @@ jobs:
       - run: yarn lint
       - run: yarn format:check
       - run: yarn typecheck
+        if: needs.scope.outputs.code == 'true'
       - run: yarn check
       - run: yarn studio sync --check
       - run: yarn build
+        if: needs.scope.outputs.code == 'true'
       - run: yarn build:inspect
+        if: needs.scope.outputs.code == 'true'
 
   tests:
     name: Unit and integration tests
+    needs: scope
+    if: needs.scope.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -76,11 +104,21 @@ jobs:
       - run: yarn install --immutable
       - run: yarn test
 
-  # The browser scenarios run one file at a time and take most of the suite's
-  # time, so their files are split across runners. Together with the job above,
-  # the shards run every test `yarn test:full` runs.
+  # The browser scenarios cost about nine tenths of the run's minutes, so they
+  # run only on demand: from "Run workflow", from a caller, or on a pull
+  # request labelled `run-browser-tests` (add it once the change is ready; every
+  # later push runs them again until it is removed). Otherwise they run locally
+  # with `yarn test:e2e` before pushing. They run one file at a time, so their
+  # files are split across runners; together with the job above, the shards run
+  # every test `yarn test:full` runs.
   e2e:
     name: Browser tests (${{ matrix.shard }}/${{ strategy.job-total }})
+    needs: scope
+    if: >-
+      needs.scope.outputs.code == 'true' && (
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'workflow_call' ||
+      contains(github.event.pull_request.labels.*.name, 'run-browser-tests'))
     runs-on: ubuntu-latest
     strategy:
       # Every shard finishes, so one run reports all the failing scenarios.
@@ -100,8 +138,10 @@ jobs:
       - run: yarn playwright install --with-deps chromium
       - run: yarn test:e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
 
-  # The required check. A failed, cancelled or skipped job fails it; the
-  # browser tests succeed only when every shard did.
+  # The required check. A failed, cancelled or skipped job fails it, except the
+  # tests, which are skipped for guidance-only changes and, for the browser
+  # tests, when not asked for; when they run, they succeed only when every
+  # shard did.
   build:
     name: build
     runs-on: ubuntu-latest
@@ -110,6 +150,6 @@ jobs:
     steps:
       - run: |
           test "${{ needs.bundle.result }}" = success
-          test "${{ needs.tests.result }}" = success
-          test "${{ needs.e2e.result }}" = success
+          case "${{ needs.tests.result }}" in success|skipped) ;; *) exit 1 ;; esac
+          case "${{ needs.e2e.result }}" in success|skipped) ;; *) exit 1 ;; esac
           test "${{ needs.scope.result }}" = success
