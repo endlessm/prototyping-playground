@@ -130,6 +130,7 @@ async function remove() {
       artifact: props.version.id,
     }),
   })
+  emit('removed')
   await refreshManifest()
   toast.success(
     t('files.deleted', {
@@ -137,7 +138,6 @@ async function remove() {
       place: t(`files.trash.${reply.trashedTo}`),
     }),
   )
-  emit('removed')
 }
 
 // The preview renders at the width that fits its content into the box's

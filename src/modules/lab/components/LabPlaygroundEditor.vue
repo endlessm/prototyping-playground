@@ -68,8 +68,10 @@ useEventListener(
     <div class="shrink-0 space-y-2 border-b border-default px-4 py-2">
       <div class="flex min-h-7 items-center gap-3">
         <p
-          class="min-w-0 flex-1 truncate text-sm text-default"
-          :class="{ 'font-mono text-xs text-muted': !heading }"
+          class="min-w-0 flex-1 truncate"
+          :class="
+            heading ? 'text-sm text-default' : 'font-mono text-xs text-muted'
+          "
           :title="heading ?? name"
         >
           {{ heading ?? name }}

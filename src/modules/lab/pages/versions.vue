@@ -73,29 +73,32 @@ watch(
 // is left, once the list no longer shows it.
 const list = useTemplateRef('list')
 const emptyAction = useTemplateRef('emptyAction')
+const ids = computed(() => versions.value.map(({ id }) => id))
+// The list as it was before its last change, in case the deleted version
+// left it before the card said so.
+let before: string[] = []
 const removing = shallowRef<{ id: string; index: number } | null>(null)
-function removed(version: LabVersion) {
-  removing.value = {
-    id: version.id,
-    index: versions.value.findIndex(({ id }) => id === version.id),
-  }
+async function focusAt(index: number) {
+  await nextTick()
+  const cards = list.value?.querySelectorAll<HTMLElement>('[data-lab-version]')
+  const card = cards?.[Math.min(index, cards.length - 1)]
+  const target =
+    card?.querySelector<HTMLElement>('h3 a') ??
+    (emptyAction.value?.$el as HTMLElement | undefined)
+  target?.focus()
 }
-watch(
-  () => versions.value.map(({ id }) => id),
-  async (ids) => {
-    const gone = removing.value
-    if (!gone || ids.includes(gone.id)) return
-    removing.value = null
-    await nextTick()
-    const cards =
-      list.value?.querySelectorAll<HTMLElement>('[data-lab-version]')
-    const card = cards?.[Math.min(gone.index, cards.length - 1)]
-    const target =
-      card?.querySelector<HTMLElement>('h3 a') ??
-      (emptyAction.value?.$el as HTMLElement | undefined)
-    target?.focus()
-  },
-)
+function removed(version: LabVersion) {
+  const index = ids.value.indexOf(version.id)
+  if (index < 0) return focusAt(Math.max(0, before.indexOf(version.id)))
+  removing.value = { id: version.id, index }
+}
+watch(ids, (now, old) => {
+  before = old ?? []
+  const gone = removing.value
+  if (!gone || now.includes(gone.id)) return
+  removing.value = null
+  void focusAt(gone.index)
+})
 
 // Save as my version opens the copy; Duplicate stays on the list.
 async function copied(version: LabVersion, mine: boolean) {
