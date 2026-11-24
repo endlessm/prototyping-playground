@@ -34,6 +34,7 @@ import {
   withFolderOrder,
 } from '../manifest/order.ts'
 import { artifactTitle } from '../manifest/titles.ts'
+import { followDrafts } from './drafts-folder.ts'
 import {
   movesOf,
   repairReferences,
@@ -211,6 +212,7 @@ export function createFileTree(options: TreeOptions) {
         `Nothing moved: the references to it couldn’t be updated. ${(error as Error).message}`,
       )
     }
+    followDrafts(root, realpathSync(access.prototypesDir), source, target)
     return { from, to, relinked: relinked.length }
   }
 
@@ -452,6 +454,7 @@ export function createFileTree(options: TreeOptions) {
       const { dir } = changeable(request.prototype)
       const file = movable(dir, request.path)
       await trash(file)
+      followDrafts(root, realpathSync(access.prototypesDir), file, null)
       keepOrder(dir, relativeTo(dir, file), null)
       const trashedTo: TrashPlace =
         platform === 'win32' ? 'recycle-bin' : 'trash'

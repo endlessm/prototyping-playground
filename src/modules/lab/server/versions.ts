@@ -20,6 +20,11 @@
 //        whoever may change the prototype → { draft: boolean }
 //   POST { action: "discard-draft", prototype, artifact }
 //        removes the draft; anyone may → { draft: false }
+//   POST { action: "delete", prototype, artifact }
+//        moves the version to the computer's trash with its draft, for
+//        whoever may change the prototype, and the prototype too when
+//        nothing but its metadata is left in it → { trashedTo,
+//        prototypeRemoved }
 //   POST { action: "props", prototype, artifact }
 //        the props the version (or its draft) declares → { props } or
 //        { error }
@@ -46,6 +51,7 @@ import {
   draftsDir,
   versionDraftsDir,
 } from '../../../../tooling/files/drafts-folder.ts'
+import { createOrganizer } from '../../../../tooling/files/organize.ts'
 import {
   createPrototype,
   STARTING_VIEW,
@@ -56,6 +62,7 @@ import {
   FileServiceError,
   MAX_SOURCE_BYTES,
 } from '../../../../tooling/files/source.ts'
+import { createFileTree } from '../../../../tooling/files/tree.ts'
 import { systemAccess } from '../../../../tooling/files/system-source.ts'
 import { identityLock } from '../../../../tooling/identity/assign.ts'
 import {
@@ -80,6 +87,7 @@ const fail = (status: number, message: string) =>
   Object.assign(new Error(message), { status })
 
 const VIEW = 'view'
+const META = 'meta.json'
 /** A new version's file name: "Version 1.vue", "Version 2.vue"… */
 const NAME = /^Version (\d+)\.vue$/
 /** How many numbered titles New version tries for its prototype. */
@@ -139,6 +147,8 @@ export default (async ({ root, contributorsFolder, method, body }) => {
       rmSync(draft, { force: true })
       return { draft: false }
     }
+
+    if (request.action === 'delete') return await remove(found, file, context)
 
     if (request.action === 'write-draft') {
       const refusal = access.refusalFor(found.contributor, found.meta)
@@ -391,4 +401,47 @@ async function addVersion(
   } finally {
     release()
   }
+}
+
+/** Whether a prototype's folder holds no file but its metadata. */
+function onlyMeta(dir: string) {
+  return readdirSync(dir, { recursive: true, withFileTypes: true }).every(
+    (entry) =>
+      !entry.isFile() ||
+      (entry.name === META && path.resolve(entry.parentPath) === dir),
+  )
+}
+
+/**
+ * Deletes a version: its file to the computer's trash through the file
+ * tree, which checks who may and takes its draft along. Your last version
+ * takes its now empty "<Component> versions" prototype with it; if another
+ * program holds that folder, the prototype stays.
+ */
+async function remove(
+  home: ReturnType<CreateContext['access']['prototypeOf']>,
+  file: string,
+  context: CreateContext,
+) {
+  const options = {
+    root: context.root,
+    prototypesFolder: context.prototypesFolder,
+    contributorsFolder: context.contributorsFolder,
+    configFile: context.configFile,
+    fileTypes: context.fileTypes,
+  }
+  const prototype = String(home.meta.studioId)
+  const { trashedTo } = await createFileTree(options).remove({
+    prototype,
+    path: path.relative(home.dir, file).split(path.sep).join('/'),
+  })
+  let prototypeRemoved = false
+  if (onlyMeta(home.dir))
+    try {
+      await createOrganizer(options).remove({ prototype })
+      prototypeRemoved = true
+    } catch {
+      // Left as it is: the version itself is gone.
+    }
+  return { trashedTo, prototypeRemoved }
 }

@@ -5,7 +5,13 @@
 // renders, until Save writes it over the file. `STUDIO_DRAFTS_DIR` moves the
 // folder, for test servers. Plain Node, so the preview pipeline, the file
 // service and the Lab's handler share it.
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import {
+  existsSync,
+  mkdirSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
 import path from 'node:path'
 
 export const DRAFTS_ENV = 'STUDIO_DRAFTS_DIR'
@@ -57,5 +63,38 @@ export function draftMap(filesDir: string, draftDir: string) {
       within(file, draftDir) && file !== draftDir
         ? path.join(filesDir, path.relative(draftDir, file))
         : null,
+  }
+}
+
+/**
+ * Carries the versions' drafts along when a file or folder inside the
+ * prototypes folder moves from `from` to `to`, or discards them when `to` is
+ * null (deleted), so no draft is left behind for a path that is gone. A
+ * draft that can't follow is left where it was: the move itself stands.
+ */
+export function followDrafts(
+  root: string,
+  prototypesDir: string,
+  from: string,
+  to: string | null,
+) {
+  const { draftOf } = draftMap(
+    prototypesDir,
+    versionDraftsPath(draftsDir(root)),
+  )
+  const draft = draftOf(from)
+  if (!draft || !existsSync(draft)) return
+  try {
+    if (to === null) {
+      rmSync(draft, { recursive: true, force: true })
+      return
+    }
+    const next = draftOf(to)
+    if (!next) return
+    mkdirSync(path.dirname(next), { recursive: true })
+    rmSync(next, { recursive: true, force: true })
+    renameSync(draft, next)
+  } catch {
+    // The draft stays; nothing depends on it but its own stage.
   }
 }
