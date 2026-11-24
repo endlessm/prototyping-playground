@@ -13,11 +13,10 @@
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import type { Plugin, ViteDevServer } from 'vite'
-import { appCopy, appFile, type AppFile } from '../systems/app-copy.ts'
-import { frontmatter, genericAppComponents } from '../systems/catalog.ts'
-import { discoverComponents } from '../systems/components.ts'
+import { appCopy, type AppFile } from '../systems/app-copy.ts'
+import { genericAppComponents, presentedApps } from '../systems/catalog.ts'
 import type { InstalledSystem } from '../systems/registry.ts'
-import { posix, treeFiles } from '../manifest/build.ts'
+import { posix } from '../manifest/build.ts'
 
 /** A version's stage: whose frame, which import it swaps, for what. */
 export interface VersionStage {
@@ -50,26 +49,14 @@ export function appComponents(system: InstalledSystem) {
   const copy = appCopy(system)
   if (!copy) return found
   const dir = path.join(system.dir, 'components')
-  const documented: { slug: string; app: AppFile | null }[] = []
-  const pages = existsSync(dir) ? discoverComponents(treeFiles(dir)) : []
-  for (const component of pages) {
-    const { doc, source } = component.files
-    let declared: unknown
-    try {
-      declared = doc
-        ? frontmatter(readFileSync(path.join(dir, doc), 'utf8'))?.app
-        : undefined
-    } catch {
-      declared = undefined
-    }
-    const app = appFile(system, copy, declared)
-    const file = app && 'file' in app ? app.file : null
-    documented.push({ slug: component.slug, app: file })
-    if (file && doc && source)
+  const documented = presentedApps(system, copy)
+  for (const { component, app } of documented) {
+    const { source } = component.files
+    if (app && source)
       found.set(component.slug, {
         frame: path.join(dir, source),
-        app: file,
-        original: path.join(system.dir, copy.folder, file.path),
+        app,
+        original: path.join(system.dir, copy.folder, app.path),
       })
   }
   for (const { slug, app } of genericAppComponents(system, copy, documented)) {

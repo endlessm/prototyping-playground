@@ -27,6 +27,7 @@ import {
   exampleTitle,
   kebab,
   type DocsProblem,
+  type SystemComponent,
 } from './components.ts'
 import { exampleSeeds, type ExampleSeeds } from './example-seeds.ts'
 import { exampleSnippets } from './example-snippets.ts'
@@ -369,15 +370,55 @@ export function genericAppComponents(
     })
 }
 
-// Each page's slug and the app file its `app` names, if any.
-function presentedApps(system: InstalledSystem, copy: AppCopy | null) {
+/** A system's component page, with the app file it presents. */
+export interface PresentedPage {
+  /** The component as its files declare it. */
+  component: SystemComponent
+  slug: string
+  /** The page's Markdown, or null without one or when it can't be read. */
+  page: string | null
+  /** Its frontmatter; empty without one. */
+  data: Record<string, unknown>
+  /** What its `app` field names: the file, a problem, or null for none. */
+  declared: ReturnType<typeof appFile>
+  /** The app file it presents, or null. */
+  app: AppFile | null
+  /** Why the page couldn't be read, as `<file>: <message>`. */
+  error: string | null
+}
+
+/**
+ * Each of a system's component pages and the app file it presents, in
+ * file-tree order: the one reading of which app file a page presents, so
+ * the catalog, the previews, the page data and the Lab's version stages
+ * (and the generic app components' slugs that follow from it) agree.
+ */
+export function presentedApps(
+  system: InstalledSystem,
+  copy: AppCopy | null,
+): PresentedPage[] {
   const componentsDir = path.join(system.dir, 'components')
-  return discoverComponents(filesIn(componentsDir)).map(({ slug, files }) => {
-    const page = files.doc
-      ? readFileSync(path.join(componentsDir, files.doc), 'utf8')
-      : ''
-    const found = appFile(system, copy, frontmatter(page)?.app)
-    return { slug, app: found && 'file' in found ? found.file : null }
+  return discoverComponents(filesIn(componentsDir)).map((component) => {
+    const { doc } = component.files
+    let page: string | null = null
+    let error: string | null = null
+    if (doc)
+      try {
+        page = readFileSync(path.join(componentsDir, doc), 'utf8')
+      } catch (failure) {
+        error = `${doc}: ${(failure as Error).message}`
+      }
+    const data = frontmatter(page ?? '') ?? {}
+    const declared = appFile(system, copy, data.app)
+    return {
+      component,
+      slug: component.slug,
+      page,
+      data,
+      declared,
+      app: declared && 'file' in declared ? declared.file : null,
+      error,
+    }
   })
 }
 
@@ -400,12 +441,11 @@ export function systemCatalog(
   const componentsAt = `${folder}/components`
   const contextDir = path.join(dir, 'context')
   const copy = appCopy(system)
-  const components = discoverComponents(filesIn(componentsDir)).map(
-    (component): CatalogComponent => {
+  const components = presentedApps(system, copy).map(
+    ({ component, data, app }): CatalogComponent => {
       const { doc, examples, source } = component.files
       const read = (file: string | null) =>
         file ? readFileSync(path.join(componentsDir, file), 'utf8') : null
-      const data = frontmatter(read(doc) ?? '') ?? {}
       const at = (file: string | null) =>
         file ? `${componentsAt}/${file}` : null
       const own = [doc, examples, source].filter(
@@ -414,7 +454,6 @@ export function systemCatalog(
       const folderOf = (file: string) =>
         file.includes('/') ? file.slice(0, file.lastIndexOf('/') + 1) : null
       const home = folderOf(own[0]!)
-      const app = appFile(system, copy, data.app)
       const rest = home
         ? filesIn(componentsDir).filter(
             (file) => file.startsWith(home) && !own.includes(file),
@@ -437,7 +476,7 @@ export function systemCatalog(
           id: exampleId(system.id, component.slug, name),
         })),
         playground: source ? playgroundId(system.id, component.slug) : null,
-        app: app && 'file' in app ? app.file : null,
+        app,
       }
     },
   )
@@ -731,9 +770,9 @@ export async function componentPages(systems: InstalledSystem[]) {
   for (const system of systems) {
     const componentsDir = path.join(system.dir, 'components')
     const copy = appCopy(system)
-    const presented: { slug: string; app: AppFile | null }[] = []
-    for (const component of discoverComponents(filesIn(componentsDir))) {
-      const errors: string[] = []
+    const presented = presentedApps(system, copy)
+    for (const { component, page, declared, error } of presented) {
+      const errors: string[] = error ? [error] : []
       const read = (file: string | null) => {
         if (!file) return null
         try {
@@ -744,9 +783,7 @@ export async function componentPages(systems: InstalledSystem[]) {
         }
       }
       const { doc, examples, source } = component.files
-      const page = read(doc)
       const text = read(examples)
-      const declared = appFile(system, copy, frontmatter(page ?? '')?.app)
       let original: AppOriginal | null = null
       if (declared && 'problem' in declared)
         errors.push(`${doc}: ${declared.problem}`)
@@ -767,10 +804,6 @@ export async function componentPages(systems: InstalledSystem[]) {
       }
       pages[`${system.id}/${component.slug}`] = data
       if (source) sources.set(path.join(componentsDir, source), data)
-      presented.push({
-        slug: component.slug,
-        app: declared && 'file' in declared ? declared.file : null,
-      })
     }
     // The copy's other app components: the app file is their component.
     for (const { slug, app } of genericAppComponents(system, copy, presented)) {
