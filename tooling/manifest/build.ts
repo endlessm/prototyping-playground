@@ -14,6 +14,8 @@ import type {
 } from '../modules/contract.ts'
 import { PLAIN_TEXT } from '../modules/registry.ts'
 import type { InstalledSystem } from '../systems/registry.ts'
+import { systemVersion, thumbnailStatus } from '../thumbnails/fingerprint.ts'
+import { thumbnailVersion } from '../thumbnails/record.ts'
 
 export const PROTOTYPES_FOLDER = 'src/prototypes'
 
@@ -42,7 +44,20 @@ export interface ManifestPrototype {
    * it with another system.
    */
   systemMissing?: { label: string }
+  /**
+   * Its picture (`.thumbnail.jpg`), when it has one: where to load it and
+   * whether its files changed since it was taken.
+   */
+  thumbnail?: ManifestThumbnail
 }
+
+export interface ManifestThumbnail {
+  url: string
+  stale: boolean
+}
+
+/** Where the deployed site keeps prototypes' pictures, under its base. */
+export const THUMBNAILS_ROUTE = '_thumbnails/'
 
 export interface ManifestRebuild {
   targetSystemId: string | null
@@ -148,6 +163,11 @@ export interface ManifestOptions {
     string,
     { studioId: string; name: string; github?: string; avatar?: string }
   >
+  /**
+   * Lists each prototype's picture, at the address this gives for its ID
+   * and the picture's version. Left out, no pictures are listed.
+   */
+  thumbnailUrl?: (prototypeId: string, version: string) => string
 }
 
 export interface BuiltManifest {
@@ -322,6 +342,14 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
         continue
       }
       owners.set(id, relative)
+      const systemId = (meta.systemId as string | null) ?? null
+      const thumbnail =
+        options.thumbnailUrl &&
+        thumbnailStatus(
+          dir,
+          systemId,
+          systemVersion(systems.find((system) => system.id === systemId)),
+        )
       prototypes.push({
         id,
         title: meta.title as string,
@@ -332,10 +360,16 @@ export function buildManifest(options: ManifestOptions): BuiltManifest {
             ? meta.ownerContributorId
             : null,
         created: typeof meta.created === 'string' ? meta.created : null,
-        systemId: (meta.systemId as string | null) ?? null,
+        systemId,
         status: meta.status === 'archived' ? 'archived' : 'active',
         ...(rebuildOf(meta.rebuild) && { rebuild: rebuildOf(meta.rebuild) }),
         ...(orphaned && { systemMissing: { label: String(missing!.label) } }),
+        ...(thumbnail?.record && {
+          thumbnail: {
+            url: options.thumbnailUrl!(id, thumbnailVersion(thumbnail.record)),
+            stale: thumbnail.state === 'stale',
+          },
+        }),
       })
       artifacts[id] = []
       for (const file of arrangedFiles(dir, parseOrder(meta.order) ?? [])) {
