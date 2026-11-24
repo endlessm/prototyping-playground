@@ -1,9 +1,10 @@
-// Where unsaved drafts of systems' files live while the studio runs locally:
-// `.studio/drafts/<system id>/<path inside the system's folder>`, a folder
-// that keeps itself out of Git. The Lab's Playground edits a component in
-// its draft, which only the Playground's stage renders, until Save writes
-// it over the file. `STUDIO_DRAFTS_DIR` moves the folder, for test servers.
-// Plain Node, so the preview pipeline and the file service share it.
+// Where unsaved drafts of the Lab's versions live while the studio runs
+// locally: `.studio/drafts/lab-versions/<the view's path inside the
+// prototypes folder>`, a folder that keeps itself out of Git. The Lab's
+// Playground edits a version in its draft, which only the version's stage
+// renders, until Save writes it over the file. `STUDIO_DRAFTS_DIR` moves the
+// folder, for test servers. Plain Node, so the preview pipeline, the file
+// service and the Lab's handler share it.
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 
@@ -15,15 +16,9 @@ export const draftsDir = (root: string) =>
     ? path.resolve(process.env[DRAFTS_ENV])
     : path.join(root, '.studio/drafts')
 
-/** One system's drafts, made with the folder's `.gitignore` if missing. */
-export function systemDraftsDir(drafts: string, systemId: string) {
-  mkdirSync(drafts, { recursive: true })
-  const ignore = path.join(drafts, '.gitignore')
-  if (!existsSync(ignore)) writeFileSync(ignore, '*\n')
-  const dir = path.join(drafts, systemId)
-  mkdirSync(dir, { recursive: true })
-  return dir
-}
+/** The versions' drafts inside the drafts folder, without making it. */
+export const versionDraftsPath = (drafts: string) =>
+  path.join(drafts, 'lab-versions')
 
 /**
  * The drafts of the Lab's versions, which are views in prototypes: each at
@@ -31,7 +26,12 @@ export function systemDraftsDir(drafts: string, systemId: string) {
  * dir)`). Made with the folder's `.gitignore` if missing.
  */
 export function versionDraftsDir(drafts: string) {
-  return systemDraftsDir(drafts, 'lab-versions')
+  mkdirSync(drafts, { recursive: true })
+  const ignore = path.join(drafts, '.gitignore')
+  if (!existsSync(ignore)) writeFileSync(ignore, '*\n')
+  const dir = versionDraftsPath(drafts)
+  mkdirSync(dir, { recursive: true })
+  return dir
 }
 
 /** Whether `file` is `dir` or inside it. */
@@ -44,18 +44,18 @@ export function within(file: string, dir: string) {
 }
 
 /**
- * Maps between a system's files and their drafts: the draft standing in for
- * a file, and the file a draft stands in for (null outside them).
+ * Maps between files and their drafts: the draft standing in for a file
+ * inside `filesDir`, and the file a draft stands in for (null outside them).
  */
-export function draftMap(systemDir: string, draftDir: string) {
+export function draftMap(filesDir: string, draftDir: string) {
   return {
     draftOf: (file: string) =>
-      within(file, systemDir) && file !== systemDir
-        ? path.join(draftDir, path.relative(systemDir, file))
+      within(file, filesDir) && file !== filesDir
+        ? path.join(draftDir, path.relative(filesDir, file))
         : null,
     originOf: (file: string) =>
       within(file, draftDir) && file !== draftDir
-        ? path.join(systemDir, path.relative(draftDir, file))
+        ? path.join(filesDir, path.relative(draftDir, file))
         : null,
   }
 }

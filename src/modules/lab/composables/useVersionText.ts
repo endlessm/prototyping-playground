@@ -8,7 +8,7 @@ import {
   type LabVersion,
   type VersionText,
 } from '../utils/versions'
-import type { PlaygroundCode } from './usePlaygroundDraft'
+import type { PlaygroundCode } from './playgroundCode'
 import type { VersionAddress } from './useVersionDraft'
 
 export type { VersionText } from '../utils/versions'

@@ -5,7 +5,7 @@ import {
   requestJson,
   StudioRequestError,
 } from '../../../../app/utils/studioRequest'
-import type { PlaygroundCode } from './usePlaygroundDraft'
+import type { PlaygroundCode } from './playgroundCode'
 
 /** Which version: its prototype's and its view's permanent IDs. */
 export interface VersionAddress {
