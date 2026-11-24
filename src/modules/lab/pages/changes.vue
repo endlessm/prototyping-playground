@@ -4,7 +4,7 @@ import { useLabComponent } from '../composables/useLabComponent'
 import { useVersionText } from '../composables/useVersionText'
 import { usePrototypeArtifacts } from '../../../../app/composables/useManifest'
 import { changesBetween, fileNameOf, unifiedPatch } from '../utils/changes'
-import { labAddress } from '../utils/lab'
+import { labAddress, shortRevision } from '../utils/lab'
 import {
   olderRevision,
   versionById,
@@ -79,6 +79,12 @@ const playground = computed(
     }`,
 )
 
+const allVersions = computed(() =>
+  labAddress(system.value.id, component.value.slug, 'versions'),
+)
+const revisionLabel = (revision: string | null) =>
+  shortRevision(revision, t('lab.original.unknownRevision'))
+
 useHead({
   title: () =>
     [
@@ -129,8 +135,8 @@ function download() {
       color="neutral"
       variant="outline"
       icon="i-lucide-arrow-left"
-      :label="t('lab.changes.openPlayground')"
-      :to="playground"
+      :label="t('lab.changes.allVersions')"
+      :to="allVersions"
     />
   </div>
   <div v-else class="space-y-4">
@@ -143,7 +149,7 @@ function download() {
           {{
             t('lab.changes.compared', {
               path: appPath,
-              revision: original.revision ?? '?',
+              revision: revisionLabel(original.revision),
             })
           }}
         </p>
@@ -183,8 +189,8 @@ function download() {
       :title="t('lab.changes.olderTitle')"
       :description="
         t('lab.changes.older', {
-          made: version.revision ?? '?',
-          current: original.revision ?? '?',
+          made: revisionLabel(version.revision),
+          current: revisionLabel(original.revision),
         })
       "
     />
@@ -196,11 +202,11 @@ function download() {
     </p>
     <template v-else>
       <p class="text-sm text-muted">
-        <span class="text-success">{{
+        <span class="text-(--ui-color-success-700)">{{
           t('lab.changes.added', changes.added)
         }}</span>
         ·
-        <span class="text-error">{{
+        <span class="text-(--ui-color-error-700)">{{
           t('lab.changes.removed', changes.removed)
         }}</span>
         <template v-if="text?.unsaved">

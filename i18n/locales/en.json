@@ -1193,6 +1193,7 @@
       "heading": "Changes in {name}",
       "compared": "Compared with {path} at {revision}",
       "openPlayground": "Open in Playground",
+      "allVersions": "See all versions",
       "copy": "Copy changes",
       "copied": "Changes copied",
       "copyFailed": "The changes weren’t copied",

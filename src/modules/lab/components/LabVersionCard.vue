@@ -16,7 +16,7 @@ import {
   olderRevision,
   type LabVersion,
 } from '../utils/versions'
-import { GHOST_FOCUS, labAddress } from '../utils/lab'
+import { GHOST_FOCUS, labAddress, shortRevision } from '../utils/lab'
 
 // One version in the Versions tab: its name, whose it is and when it last
 // changed, a live preview of its stage, and links to open it in the
@@ -58,6 +58,8 @@ const offersCopy = computed(
   () => import.meta.dev && Boolean(me.value.key) && !mine.value,
 )
 const older = computed(() => olderRevision(props.version, props.revision))
+const revisionLabel = (revision: string | null) =>
+  shortRevision(revision, t('lab.original.unknownRevision'))
 const playground = computed(
   () =>
     `${labAddress(props.systemId, props.slug, 'playground')}?version=${props.version.id}`,
@@ -248,8 +250,8 @@ const menu = computed<DropdownMenuItem[][]>(() =>
       />
       {{
         t('lab.versions.older', {
-          revision: version.revision,
-          current: revision,
+          revision: revisionLabel(version.revision),
+          current: revisionLabel(revision),
         })
       }}
     </p>

@@ -56,8 +56,8 @@ const ROW = {
           <td
             class="w-px px-1 select-none"
             :class="{
-              'text-error': line.kind === 'removed',
-              'text-success': line.kind === 'added',
+              'text-(--ui-color-error-700)': line.kind === 'removed',
+              'text-(--ui-color-success-700)': line.kind === 'added',
             }"
           >
             {{ SIGN[line.kind] }}
