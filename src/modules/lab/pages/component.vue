@@ -7,7 +7,7 @@ import {
   type SystemCatalog,
 } from '../../systems/composables/useSystemCatalog'
 import { stemOf } from '../../../../tooling/systems/components'
-import { labComponents, tabAt } from '../utils/lab'
+import { labComponents, labTitle, tabAt } from '../utils/lab'
 
 // The bench: the open component's title, description and tab bar, kept on
 // screen while its tabs change. It gives the component to the tab pages
@@ -38,6 +38,10 @@ provideLabComponent({
   reload,
 })
 
+const title = computed(() =>
+  component.value ? labTitle(component.value.title) : '',
+)
+
 const tab = computed(() =>
   component.value
     ? tabAt(route.path, props.system.id, component.value.slug)
@@ -47,7 +51,7 @@ useHead({
   title: () =>
     [
       ...(component.value && tab.value
-        ? [t(tab.value.label), component.value.title]
+        ? [t(tab.value.label), title.value]
         : [t('notFound.title')]),
       t('lab.title'),
       studio.name,
@@ -62,7 +66,7 @@ useHead({
   <div v-else class="w-full px-4 py-6">
     <header class="mb-4">
       <h1 class="text-3xl font-semibold tracking-tight text-highlighted">
-        {{ component.title }}
+        {{ title }}
       </h1>
       <p v-if="component.description" class="mt-2 text-muted">
         {{ component.description }}

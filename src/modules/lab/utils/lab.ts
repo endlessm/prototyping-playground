@@ -33,6 +33,21 @@ export function tabAt(path: string, systemId: string, slug: string) {
 }
 
 /**
+ * The focus outline solid buttons have, for ghost ones, whose own focus is a
+ * light background that is hard to see. `outline-solid` undoes their
+ * `focus:outline-none`.
+ */
+export const GHOST_FOCUS =
+  'focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-primary'
+
+/**
+ * An app revision as people read it: its first seven characters, or the
+ * words given for an unknown one.
+ */
+export const shortRevision = (revision: string | null, unknown: string) =>
+  revision ? revision.slice(0, 7) : unknown
+
+/**
  * Every component the Lab lists for a system: its pages, in the Systems
  * navigation's order, then the app components no page presents.
  */
@@ -63,6 +78,51 @@ export function labGroups<T extends Pick<CatalogComponent, 'app'>>(
     },
   ]
   return groups.filter((group) => group.components.length > 0)
+}
+
+/** Words a title spells in capitals, whatever case its file name has. */
+const ACRONYMS = new Set([
+  'api',
+  'css',
+  'html',
+  'id',
+  'json',
+  'svg',
+  'ui',
+  'url',
+])
+
+/** A component's title as the Lab shows it: "Svg symbol" → "SVG symbol". */
+export const labTitle = (title: string) =>
+  title.replace(/[A-Za-z]+/g, (word) =>
+    ACRONYMS.has(word.toLowerCase()) ? word.toUpperCase() : word,
+  )
+
+/** "CommunityFeed" or "shared" → "Community feed", "Shared". */
+function folderTitle(folder: string) {
+  const words = folder
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/[-_]+/g, ' ')
+    .toLowerCase()
+  return labTitle(words.charAt(0).toUpperCase() + words.slice(1))
+}
+
+/**
+ * Where an app component sits in the list and what it is called there: its
+ * folder in the app copy's `components/` as the group, and its own name
+ * inside it, so a component a page presents (Studio sidebar) sits with the
+ * files around it and a folder's `index.vue` (Notifications) heads its own
+ * folder. `full` names both, for a hover or a heading.
+ */
+export function appPlace(component: Pick<CatalogComponent, 'title' | 'app'>) {
+  const parts = component.app!.path.split('/')
+  const group = parts.length > 2 ? folderTitle(parts[1]!) : ''
+  const title = labTitle(component.title)
+  const own = title.startsWith(`${group} / `)
+    ? title.slice(group.length + 3)
+    : title
+  const full = !group || own === group ? own : `${group} / ${own}`
+  return { group, name: own, full }
 }
 
 /**

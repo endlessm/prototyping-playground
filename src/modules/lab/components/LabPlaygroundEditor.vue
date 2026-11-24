@@ -9,12 +9,19 @@ import type { PlaygroundCode } from '../composables/playgroundCode'
 // which says whether it is saved and offers Save (also ⌘S or Ctrl+S) and
 // Discard while the stage renders it, or a read-only text with the reason,
 // such as an app component's original. Inspect marks the selected element's
-// lines (`highlight`). The `actions` slot sits in the header, before Save and
-// Discard (an original's New version); `notice` sits under the reason.
+// lines (`highlight`). Its header keeps one layout at every width: what is
+// open (`heading`, or the file's name) and whether it is saved, then the
+// `actions` slot (New version, Show original, Changes) with Discard and Save
+// together at the end. `notice` sits under the reason.
 const props = defineProps<{
   draft: PlaygroundCode
   highlight?: { from: number; to: number } | null
+  /** What is open, in words, such as "Version: Blue nav · by Ana". */
+  heading?: string
+  /** What the code is called, such as a version's name; its file's name otherwise. */
+  named?: string
 }>()
+defineSlots<{ actions?: () => unknown; notice?: () => unknown }>()
 const { t } = useI18n()
 const overlay = useOverlay()
 const discardModal = overlay.create(SourceDiscardModal)
@@ -26,14 +33,17 @@ const status = computed(() => {
   if (!draft.editable.value) return t('lab.editor.readOnly')
   if (draft.saving.value) return t('lab.editor.saving')
   return draft.unsaved.value
-    ? t('lab.editor.unsaved', { file: name.value })
+    ? t('lab.editor.unsaved')
     : t('lab.editor.allSaved')
 })
+const label = computed(() =>
+  t('lab.editor.label', { file: props.named ?? name.value }),
+)
 
 async function discard() {
   const confirmed = await discardModal.open({
     path: name.value,
-    description: t('lab.editor.discardDescription', { file: name.value }),
+    description: t('lab.editor.discardDescription'),
   }).result
   if (confirmed) await draft.discard()
 }
@@ -52,40 +62,56 @@ useEventListener(
 
 <template>
   <section
-    :aria-label="t('lab.editor.label', { file: name })"
+    :aria-label="label"
     class="flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-3xl border border-default bg-default"
   >
-    <div
-      class="flex min-h-12 shrink-0 flex-wrap items-center gap-2 border-b border-default px-4 py-2 text-xs"
-    >
-      <span class="min-w-0 truncate font-mono text-muted" :title="name">
-        {{ name }}
-      </span>
-      <span role="status" class="ml-auto shrink-0 text-muted">{{
-        status
-      }}</span>
-      <slot name="actions" />
-      <template v-if="draft.editable.value">
-        <UButton
-          size="xs"
-          color="neutral"
-          variant="outline"
-          :label="t('lab.editor.discard')"
-          :disabled="!draft.unsaved.value || draft.saving.value"
-          @click="discard"
-        />
-        <UTooltip
-          :text="t('lab.editor.saveHint', { shortcut: shortcutLabel('save') })"
+    <div class="shrink-0 space-y-2 border-b border-default px-4 py-2">
+      <div class="flex min-h-7 items-center gap-3">
+        <p
+          class="min-w-0 flex-1 truncate"
+          :class="
+            heading ? 'text-sm text-default' : 'font-mono text-xs text-muted'
+          "
+          :title="heading ?? name"
+        >
+          {{ heading ?? name }}
+        </p>
+        <span role="status" class="shrink-0 text-xs text-muted">{{
+          status
+        }}</span>
+      </div>
+      <div
+        v-if="$slots.actions || draft.editable.value"
+        class="flex flex-wrap items-center gap-2"
+      >
+        <slot name="actions" />
+        <div
+          v-if="draft.editable.value"
+          class="ms-auto flex shrink-0 items-center gap-2"
         >
           <UButton
             size="xs"
-            :label="t('lab.editor.save')"
-            :disabled="!draft.unsaved.value"
-            :loading="draft.saving.value"
-            @click="draft.save()"
+            color="neutral"
+            variant="outline"
+            :label="t('lab.editor.discard')"
+            :disabled="!draft.unsaved.value || draft.saving.value"
+            @click="discard"
           />
-        </UTooltip>
-      </template>
+          <UTooltip
+            :text="
+              t('lab.editor.saveHint', { shortcut: shortcutLabel('save') })
+            "
+          >
+            <UButton
+              size="xs"
+              :label="t('lab.editor.save')"
+              :disabled="!draft.unsaved.value"
+              :loading="draft.saving.value"
+              @click="draft.save()"
+            />
+          </UTooltip>
+        </div>
+      </div>
     </div>
     <p
       v-if="
@@ -124,7 +150,7 @@ useEventListener(
       :editable="draft.editable.value"
       :autofocus="false"
       :highlight="highlight"
-      :label="t('lab.editor.label', { file: name })"
+      :label="label"
     />
     <p v-else class="p-4 text-xs text-muted">{{ t('lab.editor.loading') }}</p>
   </section>

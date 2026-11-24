@@ -68,6 +68,38 @@ watch(
   { immediate: true },
 )
 
+// After a delete the keyboard goes to the card that took its place (the
+// next, or the last when it was the last), or to Open Playground when none
+// is left, once the list no longer shows it.
+const list = useTemplateRef('list')
+const emptyAction = useTemplateRef('emptyAction')
+const ids = computed(() => versions.value.map(({ id }) => id))
+// The list as it was before its last change, in case the deleted version
+// left it before the card said so.
+let before: string[] = []
+const removing = shallowRef<{ id: string; index: number } | null>(null)
+async function focusAt(index: number) {
+  await nextTick()
+  const cards = list.value?.querySelectorAll<HTMLElement>('[data-lab-version]')
+  const card = cards?.[Math.min(index, cards.length - 1)]
+  const target =
+    card?.querySelector<HTMLElement>('h3 a') ??
+    (emptyAction.value?.$el as HTMLElement | undefined)
+  target?.focus()
+}
+function removed(version: LabVersion) {
+  const index = ids.value.indexOf(version.id)
+  if (index < 0) return focusAt(Math.max(0, before.indexOf(version.id)))
+  removing.value = { id: version.id, index }
+}
+watch(ids, (now, old) => {
+  before = old ?? []
+  const gone = removing.value
+  if (!gone || now.includes(gone.id)) return
+  removing.value = null
+  void focusAt(gone.index)
+})
+
 // Save as my version opens the copy; Duplicate stays on the list.
 async function copied(version: LabVersion, mine: boolean) {
   const created = await copy(version)
@@ -100,6 +132,7 @@ async function copied(version: LabVersion, mine: boolean) {
     </p>
     <UButton
       v-if="local"
+      ref="emptyAction"
       class="mt-3"
       size="sm"
       color="neutral"
@@ -119,7 +152,7 @@ async function copied(version: LabVersion, mine: boolean) {
         )
       }}
     </p>
-    <div class="grid grid-cols-1 gap-5 @3xl:grid-cols-2">
+    <div ref="list" class="grid grid-cols-1 gap-5 @3xl:grid-cols-2">
       <LabVersionCard
         v-for="version in versions"
         :key="version.id"
@@ -131,6 +164,7 @@ async function copied(version: LabVersion, mine: boolean) {
         :revision="revision"
         :copying="copying === version.id"
         @copy="(mine) => copied(version, mine)"
+        @removed="removed(version)"
       />
     </div>
   </div>

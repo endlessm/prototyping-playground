@@ -19,7 +19,7 @@ With **Inspect** on, clicking the stage selects an element instead of using it: 
 
 ## Which components does it list?
 
-**App components** comes first: every component file in the system's copy of the real app, listed by its path in the app ("Dashboard / Hero", "Generic / User card"). Nobody keeps that list by hand: a file added to the copy shows up on its own. **Components** follows, with the components the system documents (for Endless Studios, its Nuxt UI components).
+**App components** comes first: every component file in the system's copy of the real app, grouped by its folder in the app (Hero under Dashboard, User card under Generic). Hover a name to see it in full ("Dashboard / Hero"). Nobody keeps that list by hand: a file added to the copy shows up on its own. **Components** follows, with the components the system documents (for Endless Studios, its Nuxt UI components).
 
 An app component without a page in Systems still opens. Its Overview says so, and the Playground shows the app's file on the stage on its own.
 
@@ -35,7 +35,7 @@ With an element selected, the **Selected element** panel offers dials for its sp
 
 ## How do I see everyone's versions?
 
-The **Versions** tab lists every version of the component, from everyone on the team. Each card has a live preview, its author, when it last changed, and **Yours** or **Read-only**.
+The **Versions** tab lists every version of the component, from everyone on the team. Each card has a preview, its author ("By you" for yours), when it last changed, and **Read-only** on one you can't change. Click the preview to open the version.
 
 - **Open in Playground** opens it on the stage, with its code.
 - **Save as my version** copies someone else's version into your own prototype, so you can carry on from it without changing theirs. It's also above the code when you open their version.

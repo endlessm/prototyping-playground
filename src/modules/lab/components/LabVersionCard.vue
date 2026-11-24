@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
-import type { ManifestArtifact } from '../../../../app/composables/useManifest'
+import { useResizeObserver } from '@vueuse/core'
+import {
+  refreshManifest,
+  type ManifestArtifact,
+} from '../../../../app/composables/useManifest'
 import { formatDate } from '../../../../app/utils/dates'
 import { afterMenuCloses, menuGroups } from '../../../../app/utils/menus'
 import { requestJson } from '../../../../app/utils/studioRequest'
@@ -12,14 +16,17 @@ import {
   olderRevision,
   type LabVersion,
 } from '../utils/versions'
-import { labAddress } from '../utils/lab'
+import { GHOST_FOCUS, labAddress, shortRevision } from '../utils/lab'
 
 // One version in the Versions tab: its name, whose it is and when it last
 // changed, a live preview of its stage, and links to open it in the
 // Playground and to its Changes. Locally, someone registered can Save as my
 // version on someone else's; whoever may change it can rename, duplicate
 // and delete it through the file service. A version made against an older
-// revision of the app than its original's says so.
+// revision of the app than its original's says so. The preview is a picture,
+// scaled to fit its box: it takes no keyboard focus and opens the version
+// when clicked. After Rename the keyboard comes back to the card's "…"; after
+// Delete the list decides where it goes (`removed`).
 const props = defineProps<{
   systemId: string
   slug: string
@@ -33,13 +40,13 @@ const props = defineProps<{
   /** A copy of this version is being made. */
   copying: boolean
 }>()
-const emit = defineEmits<{ copy: [mine: boolean] }>()
+const emit = defineEmits<{ copy: [mine: boolean]; removed: [] }>()
 const { t } = useI18n()
 const toast = useStudioToast()
 const { me } = useMe()
 // Only the dev server has the route; the static build never names it.
-const treeUrl = import.meta.dev
-  ? `${useRuntimeConfig().app.baseURL}_studio/files/tree`
+const versionsUrl = import.meta.dev
+  ? `${useRuntimeConfig().app.baseURL}_studio/modules/lab/versions`
   : ''
 
 const name = computed(
@@ -51,6 +58,8 @@ const offersCopy = computed(
   () => import.meta.dev && Boolean(me.value.key) && !mine.value,
 )
 const older = computed(() => olderRevision(props.version, props.revision))
+const revisionLabel = (revision: string | null) =>
+  shortRevision(revision, t('lab.original.unknownRevision'))
 const playground = computed(
   () =>
     `${labAddress(props.systemId, props.slug, 'playground')}?version=${props.version.id}`,
@@ -82,6 +91,12 @@ const trash = () =>
     ? ('recycle-bin' as const)
     : ('trash' as const)
 
+const more = useTemplateRef('more')
+// The dialog hands focus back to the menu item it came from, which is gone.
+function focusMore() {
+  setTimeout(() => (more.value?.$el as HTMLElement | undefined)?.focus(), 0)
+}
+
 async function rename() {
   if (!file.value) return
   await renameModal!.open({
@@ -89,6 +104,7 @@ async function rename() {
     path: file.value,
     name: props.artifact?.path.split('/').at(-1) ?? name.value,
   }).result
+  focusMore()
 }
 
 async function remove() {
@@ -99,19 +115,23 @@ async function remove() {
     hidden: [],
     trash: trash(),
   }).result
-  if (!confirmed) return
-  const reply = await requestJson<{ trashedTo: 'recycle-bin' | 'trash' }>(
-    treeUrl,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        prototype: props.version.prototype,
-        op: 'delete',
-        path: file.value,
-      }),
-    },
-  )
+  if (!confirmed) return focusMore()
+  // The Lab's own delete also takes the "<Component> versions" prototype
+  // when this was the last version in it.
+  const reply = await requestJson<{
+    trashedTo: 'recycle-bin' | 'trash'
+    prototypeRemoved: boolean
+  }>(versionsUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'delete',
+      prototype: props.version.prototype,
+      artifact: props.version.id,
+    }),
+  })
+  emit('removed')
+  await refreshManifest()
   toast.success(
     t('files.deleted', {
       name: name.value,
@@ -119,6 +139,20 @@ async function remove() {
     }),
   )
 }
+
+// The preview renders at the width that fits its content into the box's
+// height, then is scaled down to the box. It only ever shrinks, so a
+// component whose height follows its width can't make it flip back and forth.
+const PREVIEW_HEIGHT = 384
+const picture = useTemplateRef('picture')
+const scale = ref(1)
+const natural = ref(0)
+useResizeObserver(picture, ([entry]) => {
+  const height = (entry!.target as HTMLElement).offsetHeight
+  natural.value = height
+  if (height * scale.value > PREVIEW_HEIGHT)
+    scale.value = Math.max(0.25, PREVIEW_HEIGHT / height)
+})
 
 const menu = computed<DropdownMenuItem[][]>(() =>
   menuGroups<DropdownMenuItem>([
@@ -172,9 +206,11 @@ const menu = computed<DropdownMenuItem[][]>(() =>
         <p class="mt-0.5 text-xs text-muted">
           {{
             [
-              t('lab.versions.list.by', {
-                name: version.owner?.name ?? t('lab.versions.list.someone'),
-              }),
+              mine
+                ? t('lab.versions.list.byYou')
+                : t('lab.versions.list.by', {
+                    name: version.owner?.name ?? t('lab.versions.list.someone'),
+                  }),
               changed
                 ? t('lab.versions.list.changed', { date: formatDate(changed) })
                 : '',
@@ -185,14 +221,7 @@ const menu = computed<DropdownMenuItem[][]>(() =>
         </p>
       </div>
       <UBadge
-        v-if="mine"
-        size="sm"
-        color="primary"
-        variant="subtle"
-        :label="t('lab.versions.list.yours')"
-      />
-      <UBadge
-        v-else-if="!changeable"
+        v-if="!changeable"
         size="sm"
         color="neutral"
         variant="subtle"
@@ -200,10 +229,12 @@ const menu = computed<DropdownMenuItem[][]>(() =>
       />
       <UDropdownMenu :items="menu">
         <UButton
+          ref="more"
           size="xs"
           color="neutral"
           variant="ghost"
           icon="i-lucide-ellipsis"
+          :class="GHOST_FOCUS"
           :aria-label="t('lab.versions.list.more', { name })"
         />
       </UDropdownMenu>
@@ -219,16 +250,35 @@ const menu = computed<DropdownMenuItem[][]>(() =>
       />
       {{
         t('lab.versions.older', {
-          revision: version.revision,
-          current: revision,
+          revision: revisionLabel(version.revision),
+          current: revisionLabel(revision),
         })
       }}
     </p>
-    <div class="max-h-96 overflow-hidden rounded-2xl">
-      <SystemPreview
-        :system-id="systemId"
-        :artifact="version.stage"
-        :title="t('lab.versions.list.preview', { name })"
+    <div
+      class="relative overflow-hidden rounded-2xl"
+      :style="{
+        height: natural ? `${Math.ceil(natural * scale)}px` : undefined,
+      }"
+    >
+      <div
+        ref="picture"
+        inert
+        class="origin-top-left"
+        :style="{ width: `${100 / scale}%`, transform: `scale(${scale})` }"
+      >
+        <SystemPreview
+          :system-id="systemId"
+          :artifact="version.stage"
+          :title="t('lab.versions.list.preview', { name })"
+        />
+      </div>
+      <!-- The whole picture opens the version; the keyboard has the links. -->
+      <ULink
+        :to="playground"
+        tabindex="-1"
+        aria-hidden="true"
+        class="absolute inset-0 rounded-2xl ring-primary/40 ring-inset hover:ring-2"
       />
     </div>
     <footer class="flex flex-wrap items-center gap-2">

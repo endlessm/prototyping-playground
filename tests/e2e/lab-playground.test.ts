@@ -718,7 +718,9 @@ function scenarios(
       const editor = page.getByRole('region', { name: 'Code of DockPill.vue' })
       await visible(editor.getByText('Read-only'))
       await visible(
-        editor.getByText('web/app/components/Dock/DockPill.vue at 0a1b2c3'),
+        editor.getByText(
+          'web/app/components/Dock/DockPill.vue, copied from the app at 0a1b2c3',
+        ),
       )
       expect(
         await editor.getByRole('button', { name: 'New version' }).count(),
@@ -747,7 +749,9 @@ function scenarios(
         ),
       )
       await visible(
-        editor.getByText('web/app/components/Dock/DockPill.vue at 0a1b2c3'),
+        editor.getByText(
+          'web/app/components/Dock/DockPill.vue, copied from the app at 0a1b2c3',
+        ),
       )
       await visible(stage(page).getByText('Label'))
       expect(
