@@ -11,6 +11,7 @@ import type {
 export type { VersionMarker } from '../../../../tooling/systems/app-versions'
 export {
   readVersionMarker,
+  splitStudioMarkers,
   withoutStudioMarkers,
 } from '../../../../tooling/systems/app-versions'
 
@@ -67,6 +68,23 @@ export const olderRevision = (
   current: string | null,
 ) => Boolean(version.revision && current && version.revision !== current)
 
+/** Why a version's text couldn't be read on the deployed site. */
+export type VersionReadProblem = 'missing' | 'failed'
+
+/**
+ * A version that couldn't be read: `missing` when the site doesn't ship its
+ * text, `failed` when loading it failed. Pages show
+ * `lab.versions.errors.<problem>`.
+ */
+export class VersionReadError extends Error {
+  readonly problem: VersionReadProblem
+  constructor(problem: VersionReadProblem) {
+    super(problem)
+    this.name = 'VersionReadError'
+    this.problem = problem
+  }
+}
+
 /**
  * A version's view as its prototype's artifact list has it (its title, its
  * path, and on the deployed site where its text is), or null when the list
@@ -80,10 +98,18 @@ export async function versionArtifact(
   const listed = manifest.artifacts[version.prototype]
   if (!listed) return null
   const response = await fetch(manifestFile(listed))
-  if (!response.ok) throw new Error('This version failed to load.')
+  if (!response.ok) throw new VersionReadError('failed')
   const list = (await response.json()) as ManifestArtifact[]
   return list.find(({ id }) => id === version.id) ?? null
 }
+
+/**
+ * The Lab's versions handler on the dev server (`server/versions.ts`), or
+ * '' on the deployed site, whose bundle never names it. `base` is the site's
+ * base address.
+ */
+export const labVersionsUrl = (base: string) =>
+  import.meta.dev ? `${base}_studio/modules/lab/versions` : ''
 
 /** A version's text, and whether it holds edits not saved yet. */
 export interface VersionText {
@@ -97,8 +123,9 @@ export interface VersionText {
  * from the dev server's file service, or with `draft` its unsaved draft when
  * the Playground left one (what its stage shows); nothing is written. On the
  * deployed site from the text the build ships beside the manifest for every
- * view holding a version marker. `base` is the site's base address. Throws a
- * message a person can read.
+ * view holding a version marker. `base` is the site's base address. On the
+ * deployed site it throws a `VersionReadError`; locally, the file service's
+ * message.
  */
 export async function versionText(
   manifest: { artifacts: Record<string, string> },
@@ -112,14 +139,11 @@ export async function versionText(
         `${base}_studio/files/source?${new URLSearchParams(at)}`,
       ),
       draft
-        ? requestJson<{ draft: string | null }>(
-            `${base}_studio/modules/lab/versions`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'read-draft', ...at }),
-            },
-          ).catch(() => ({ draft: null }))
+        ? requestJson<{ draft: string | null }>(labVersionsUrl(base), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'read-draft', ...at }),
+          }).catch(() => ({ draft: null }))
         : { draft: null },
     ])
     return saved.draft === null || saved.draft === file.content
@@ -127,9 +151,9 @@ export async function versionText(
       : { text: saved.draft, unsaved: true }
   }
   const artifact = await versionArtifact(manifest, version)
-  if (!artifact?.text) throw new Error('This version is not on this site.')
+  if (!artifact?.text) throw new VersionReadError('missing')
   const response = await fetch(manifestFile(artifact.text))
-  if (!response.ok) throw new Error('This version failed to load.')
+  if (!response.ok) throw new VersionReadError('failed')
   return { text: await response.text(), unsaved: false }
 }
 
@@ -143,9 +167,10 @@ export const isMine = (
     : Boolean(me.key) && version.home.contributor === me.key
 
 /**
- * Whether you may rename, duplicate into its prototype or delete a version
- * as far as the page knows: yours, or any as an Admin, while the studio runs
- * locally. The file service checks again.
+ * Whether you may rename, duplicate or delete a version as far as the page
+ * knows: yours, or any as an Admin, while the studio runs locally. A
+ * duplicate always goes into your own versions prototype, as Save as my
+ * version does. The file service checks again.
  */
 export const mayChangeVersion = (
   version: Pick<LabVersion, 'home'>,

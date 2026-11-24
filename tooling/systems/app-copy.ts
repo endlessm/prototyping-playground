@@ -7,8 +7,8 @@
 // `app`, inside the copy.
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
-import { parse } from 'yaml'
 import { posix, treeFiles } from '../manifest/build.ts'
+import { frontmatter } from './frontmatter.ts'
 import type { InstalledSystem } from './registry.ts'
 
 /** The copy's record, beside the files: its README's frontmatter. */
@@ -49,20 +49,8 @@ export interface AppOriginal extends AppFile {
 const text = (value: unknown) =>
   typeof value === 'string' && value.trim() ? value.trim() : null
 
-function recordOf(file: string): Record<string, unknown> {
-  if (!existsSync(file)) return {}
-  const match = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(
-    readFileSync(file, 'utf8'),
-  )
-  try {
-    const data: unknown = match ? parse(match[1]!) : null
-    return data && typeof data === 'object' && !Array.isArray(data)
-      ? (data as Record<string, unknown>)
-      : {}
-  } catch {
-    return {}
-  }
-}
+const recordOf = (file: string) =>
+  (existsSync(file) ? frontmatter(readFileSync(file, 'utf8')) : null) ?? {}
 
 /** The system's app copy and what its record says, or null without one. */
 export function appCopy(system: InstalledSystem): AppCopy | null {

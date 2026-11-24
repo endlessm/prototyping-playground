@@ -25,7 +25,7 @@ export const PROTOTYPE_FORMAT = 1
 
 /** The file type of the starting view, and its file. */
 const STARTING_TYPE = 'view'
-const STARTING_VIEW = 'Prototype.vue'
+export const STARTING_VIEW = 'Prototype.vue'
 
 export interface CreateOptions {
   root: string

@@ -1,7 +1,6 @@
 // The file service: while the dev server runs, Nitro routes read and save
 // artifacts' source (`server/source.ts`) and systems' own source files
-// (`server/system-source.ts`) with their drafts (`server/system-draft.ts`,
-// for the Lab's Playground) and shared guidance with the Manual's
+// (`server/system-source.ts`) and shared guidance with the Manual's
 // chapters (`server/guidance-source.ts`), list and change a prototype's files for its
 // file tree (`server/tree.ts`) and create prototypes
 // (`server/prototypes.ts`), and create and change design systems
@@ -40,7 +39,6 @@ import {
 
 export const SOURCE_ROUTE = '_studio/files/source'
 export const SYSTEM_SOURCE_ROUTE = '_studio/files/system-source'
-export const SYSTEM_DRAFT_ROUTE = '_studio/files/system-draft'
 export const GUIDANCE_SOURCE_ROUTE = '_studio/files/guidance-source'
 export const PROTOTYPES_ROUTE = '_studio/files/prototypes'
 export const TREE_ROUTE = '_studio/files/tree'
@@ -128,10 +126,6 @@ export default defineNuxtModule({
     addServerHandler({
       route: `/${SYSTEM_SOURCE_ROUTE}`,
       handler: resolve('./server/system-source.ts'),
-    })
-    addServerHandler({
-      route: `/${SYSTEM_DRAFT_ROUTE}`,
-      handler: resolve('./server/system-draft.ts'),
     })
     addServerHandler({
       route: `/${GUIDANCE_SOURCE_ROUTE}`,

@@ -8,11 +8,11 @@ import LabPlaygroundEditor from '../components/LabPlaygroundEditor.vue'
 import LabPlaygroundStage from '../components/LabPlaygroundStage.vue'
 import { useLabComponent } from '../composables/useLabComponent'
 import { useOriginalSource } from '../composables/useOriginalSource'
-import type { PlaygroundCode } from '../composables/usePlaygroundDraft'
+import type { PlaygroundCode } from '../composables/playgroundCode'
 import { useStageInspector } from '../composables/useStageInspector'
 import { useVersionDraft } from '../composables/useVersionDraft'
 import { useVersionCopy } from '../composables/useVersionCopy'
-import { useVersionCode } from '../composables/useVersionText'
+import { useVersionCode } from '../composables/useVersionCode'
 import { refreshManifest } from '../../../../app/composables/useManifest'
 import { requestJson } from '../../../../app/utils/studioRequest'
 import {
@@ -53,6 +53,7 @@ import {
 import {
   changesAddress,
   isMine,
+  labVersionsUrl,
   olderRevision,
   versionById,
 } from '../utils/versions'
@@ -85,7 +86,7 @@ const local = import.meta.dev
 const manifest = await useManifest()
 const { me } = useMe()
 const toast = useStudioToast()
-const versionsUrl = `${useRuntimeConfig().app.baseURL}_studio/modules/lab/versions`
+const versionsUrl = labVersionsUrl(useRuntimeConfig().app.baseURL)
 
 // --- The version open ---
 
@@ -192,7 +193,7 @@ watch(
 const original = computed(() => data.value?.original ?? null)
 const originalCode = useOriginalSource(() => original.value)
 const draft = computed<PlaygroundCode>(() =>
-  version.value && versionCode ? versionCode : originalCode,
+  version.value ? versionCode : originalCode,
 )
 const showsCode = computed(() => Boolean(original.value))
 

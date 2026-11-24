@@ -1,6 +1,6 @@
 import type { SourceFile } from '../../../../app/components/source/sourceAccess'
 import type { ComponentPageData } from '../../systems/composables/useSystemCatalog'
-import type { PlaygroundCode } from './usePlaygroundDraft'
+import type { PlaygroundCode } from './playgroundCode'
 
 // An app component's original beside the stage: the copied app file as its
 // page data carries it, read-only, with the line saying how to change it

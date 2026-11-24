@@ -3,7 +3,7 @@ import { useEventListener } from '@vueuse/core'
 import SourceCode from '../../../../app/components/source/SourceCode.vue'
 import SourceDiscardModal from '../../../../app/components/source/SourceDiscardModal.vue'
 import { saveShortcut, shortcutLabel } from '../../../../app/utils/shortcuts'
-import type { PlaygroundCode } from '../composables/usePlaygroundDraft'
+import type { PlaygroundCode } from '../composables/playgroundCode'
 
 // The code beside the stage, locally, in the studio's code editor: a draft,
 // which says whether it is saved and offers Save (also ⌘S or Ctrl+S) and

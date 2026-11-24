@@ -5,6 +5,7 @@ import { parse } from 'vue/compiler-sfc'
 import type { Plugin } from 'vite'
 import type { InstalledSystem } from '../systems/registry.ts'
 import { readVersionMarker } from '../systems/app-versions.ts'
+import { within } from '../files/drafts-folder.ts'
 
 export interface ImportPolicy {
   root: string
@@ -18,13 +19,6 @@ export interface ImportPolicy {
   origin?: (file: string) => string | null
 }
 
-const within = (file: string, dir: string) => {
-  const relative = path.relative(dir, file)
-  return (
-    relative === '' ||
-    (!relative.startsWith('..') && !path.isAbsolute(relative))
-  )
-}
 const canonical = (file: string): string => {
   try {
     return realpathSync(file)

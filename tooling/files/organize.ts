@@ -27,6 +27,7 @@ import type { ModulePrototypeFolder } from '../modules/contract.ts'
 import { CONFIG_FILE } from '../modules/registry.ts'
 import { registeredSystems } from '../studio/systems.ts'
 import { heldFiles } from './deletion.ts'
+import { followDrafts } from './drafts-folder.ts'
 import { localDate, slugify, systemFor, titleProblem } from './prototypes.ts'
 import {
   movesOf,
@@ -274,6 +275,7 @@ export function createOrganizer(options: OrganizeOptions) {
             `Nothing was renamed: the references to it couldn’t be updated. ${(error as Error).message}`,
           )
         }
+        followDrafts(root, prototypesDir, dir, target)
       }
       return {
         id: meta.studioId as string,
@@ -454,6 +456,7 @@ export function createOrganizer(options: OrganizeOptions) {
         // Whatever appears at its path later is watched again.
         await watchAgain()
       }
+      followDrafts(root, prototypesDir, dir, null)
       const trashedTo: TrashPlace =
         (options.platform ?? process.platform) === 'win32'
           ? 'recycle-bin'

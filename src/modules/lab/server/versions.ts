@@ -20,6 +20,11 @@
 //        whoever may change the prototype → { draft: boolean }
 //   POST { action: "discard-draft", prototype, artifact }
 //        removes the draft; anyone may → { draft: false }
+//   POST { action: "delete", prototype, artifact }
+//        moves the version to the computer's trash with its draft, for
+//        whoever may change the prototype, and the prototype too when
+//        nothing but its metadata is left in it → { trashedTo,
+//        prototypeRemoved }
 //   POST { action: "props", prototype, artifact }
 //        the props the version (or its draft) declares → { props } or
 //        { error }
@@ -32,6 +37,7 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
+  renameSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -45,13 +51,18 @@ import {
   draftsDir,
   versionDraftsDir,
 } from '../../../../tooling/files/drafts-folder.ts'
-import { createPrototype } from '../../../../tooling/files/prototypes.ts'
+import { createOrganizer } from '../../../../tooling/files/organize.ts'
+import {
+  createPrototype,
+  STARTING_VIEW,
+} from '../../../../tooling/files/prototypes.ts'
 import {
   defaultIdentify,
   fileAccess,
   FileServiceError,
   MAX_SOURCE_BYTES,
 } from '../../../../tooling/files/source.ts'
+import { createFileTree } from '../../../../tooling/files/tree.ts'
 import { systemAccess } from '../../../../tooling/files/system-source.ts'
 import { identityLock } from '../../../../tooling/identity/assign.ts'
 import {
@@ -65,6 +76,7 @@ import { appComponents } from '../../../../tooling/preview/lab-versions.ts'
 import { appCopy, appOriginal } from '../../../../tooling/systems/app-copy.ts'
 import {
   readVersionMarker,
+  sameVersionMarker,
   versionMarker,
   withoutStudioMarkers,
   type VersionMarker,
@@ -76,8 +88,11 @@ const fail = (status: number, message: string) =>
   Object.assign(new Error(message), { status })
 
 const VIEW = 'view'
+const META = 'meta.json'
 /** A new version's file name: "Version 1.vue", "Version 2.vue"… */
 const NAME = /^Version (\d+)\.vue$/
+/** How many numbered titles New version tries for its prototype. */
+const MAX_TITLES = 50
 
 export default (async ({ root, contributorsFolder, method, body }) => {
   const request = (body ?? {}) as Record<string, unknown>
@@ -114,7 +129,7 @@ export default (async ({ root, contributorsFolder, method, body }) => {
 
     // The other actions are about one version.
     const found = access.prototypeOf(String(request.prototype ?? ''))
-    const { file } = access.artifactOf(
+    const { file, type } = access.artifactOf(
       found.dir,
       String(request.artifact ?? ''),
     )
@@ -134,6 +149,8 @@ export default (async ({ root, contributorsFolder, method, body }) => {
       return { draft: false }
     }
 
+    if (request.action === 'delete') return await remove(found, file, context)
+
     if (request.action === 'write-draft') {
       const refusal = access.refusalFor(found.contributor, found.meta)
       if (refusal) throw fail(403, refusal.message)
@@ -146,10 +163,22 @@ export default (async ({ root, contributorsFolder, method, body }) => {
           413,
           'This file is too large to edit here. Keep files under 750 KB.',
         )
-      if (content === readFileSync(file, 'utf8')) {
+      const saved = readFileSync(file, 'utf8')
+      if (content === saved) {
         rmSync(draft, { force: true })
         return { draft: false }
       }
+      let keepsId = false
+      try {
+        keepsId = type.identity.read(content) === request.artifact
+      } catch {
+        // An unreadable ID is a lost one.
+      }
+      if (!keepsId || !sameVersionMarker(saved, content))
+        throw fail(
+          409,
+          'Keep the version’s permanent studio ID and its @lab-version marker at the top of its file.',
+        )
       // Rewriting the same text would send the stage a needless update.
       if (existsSync(draft) && readFileSync(draft, 'utf8') === content)
         return { draft: true }
@@ -299,26 +328,49 @@ async function addVersion(
     )
 
   // Your own "<Component> versions" prototype for this system, or a new one.
+  // Its title is numbered ("… versions 2") when an archived prototype or one
+  // of another system already has the name.
   const name = `${version.title} versions`
-  let home = [...access.prototypes()].find(
-    ({ contributor, meta }) =>
-      contributor === me.key &&
-      meta.title === name &&
-      meta.systemId === system &&
-      meta.status !== 'archived',
-  )
-  let firstView: string | null = null
-  if (!home) {
-    const created = createPrototype(
-      {
-        root,
-        prototypesFolder: context.prototypesFolder,
-        contributorsFolder: context.contributorsFolder,
-        configFile: context.configFile,
-        fileTypes,
-      },
-      { title: name, system },
+  const numberOf = (title: unknown) => {
+    if (title === name) return 1
+    const match =
+      typeof title === 'string' && title.startsWith(`${name} `)
+        ? /^(\d+)$/.exec(title.slice(name.length + 1))
+        : null
+    return match ? Number(match[1]) : null
+  }
+  let home = [...access.prototypes()]
+    .filter(
+      ({ contributor, meta }) =>
+        contributor === me.key &&
+        numberOf(meta.title) !== null &&
+        meta.systemId === system &&
+        meta.status !== 'archived',
     )
+    .sort((a, b) => numberOf(a.meta.title)! - numberOf(b.meta.title)!)[0]
+  let firstView: string | null = null
+  for (let count = 1; !home; count++) {
+    let created
+    try {
+      created = createPrototype(
+        {
+          root,
+          prototypesFolder: context.prototypesFolder,
+          contributorsFolder: context.contributorsFolder,
+          configFile: context.configFile,
+          fileTypes,
+        },
+        { title: count === 1 ? name : `${name} ${count}`, system },
+      )
+    } catch (error) {
+      if (
+        error instanceof FileServiceError &&
+        error.code === 'exists' &&
+        count < MAX_TITLES
+      )
+        continue
+      throw error
+    }
     home = access.prototypeOf(created.id)
     firstView = created.artifact
   }
@@ -331,7 +383,7 @@ async function addVersion(
   const release = identityLock(root)
   try {
     // A new prototype's empty starting view becomes the first version.
-    const starting = firstView ? path.join(home.dir, 'Prototype.vue') : null
+    const starting = firstView ? path.join(home.dir, STARTING_VIEW) : null
     const artifact =
       firstView ??
       newStudioId(
@@ -343,12 +395,15 @@ async function addVersion(
         ),
       )
     const file = path.join(home.dir, nextName(home.dir))
-    writeFileSync(
-      file,
-      view.identity.write(`${marker}\n${version.source}`, artifact),
-      { flag: 'wx' },
+    const content = view.identity.write(
+      `${marker}\n${version.source}`,
+      artifact,
     )
-    if (starting && existsSync(starting)) rmSync(starting)
+    if (starting && existsSync(starting)) {
+      // Moved, then written over: only one file ever holds its permanent ID.
+      renameSync(starting, file)
+      writeFileSync(file, content)
+    } else writeFileSync(file, content, { flag: 'wx' })
     const prototype = String(home.meta.studioId)
     return {
       prototype,
@@ -359,4 +414,47 @@ async function addVersion(
   } finally {
     release()
   }
+}
+
+/** Whether a prototype's folder holds no file but its metadata. */
+function onlyMeta(dir: string) {
+  return readdirSync(dir, { recursive: true, withFileTypes: true }).every(
+    (entry) =>
+      !entry.isFile() ||
+      (entry.name === META && path.resolve(entry.parentPath) === dir),
+  )
+}
+
+/**
+ * Deletes a version: its file to the computer's trash through the file
+ * tree, which checks who may and takes its draft along. Your last version
+ * takes its now empty "<Component> versions" prototype with it; if another
+ * program holds that folder, the prototype stays.
+ */
+async function remove(
+  home: ReturnType<CreateContext['access']['prototypeOf']>,
+  file: string,
+  context: CreateContext,
+) {
+  const options = {
+    root: context.root,
+    prototypesFolder: context.prototypesFolder,
+    contributorsFolder: context.contributorsFolder,
+    configFile: context.configFile,
+    fileTypes: context.fileTypes,
+  }
+  const prototype = String(home.meta.studioId)
+  const { trashedTo } = await createFileTree(options).remove({
+    prototype,
+    path: path.relative(home.dir, file).split(path.sep).join('/'),
+  })
+  let prototypeRemoved = false
+  if (onlyMeta(home.dir))
+    try {
+      await createOrganizer(options).remove({ prototype })
+      prototypeRemoved = true
+    } catch {
+      // Left as it is: the version itself is gone.
+    }
+  return { trashedTo, prototypeRemoved }
 }

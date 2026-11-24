@@ -131,7 +131,7 @@ export function systemAccess(options: SystemSourceOptions) {
 /**
  * A system's source file by its address, when the source route may reach
  * it: an ordinary file inside the system's folder. Throws `not_found`
- * otherwise. Shared with the drafts of `./system-drafts.ts`.
+ * otherwise.
  */
 export function systemFiles(options: SystemSourceOptions) {
   const { systemOf, refusalFor } = systemAccess(options)
