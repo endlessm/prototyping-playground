@@ -1,6 +1,6 @@
 import { refreshManifest } from '../../../../app/composables/useManifest'
 import { requestJson } from '../../../../app/utils/studioRequest'
-import type { LabVersion } from '../utils/versions'
+import { labVersionsUrl, type LabVersion } from '../utils/versions'
 
 /** What the Lab's handler answers for a new version. */
 export interface CreatedVersion {
@@ -17,7 +17,7 @@ export interface CreatedVersion {
 export function useVersionCopy() {
   const { t } = useI18n()
   const toast = useStudioToast()
-  const url = `${useRuntimeConfig().app.baseURL}_studio/modules/lab/versions`
+  const url = labVersionsUrl(useRuntimeConfig().app.baseURL)
   const copying = ref<string | null>(null)
 
   async function copy(version: Pick<LabVersion, 'prototype' | 'id'>) {

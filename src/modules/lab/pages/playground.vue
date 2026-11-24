@@ -53,6 +53,7 @@ import {
 import {
   changesAddress,
   isMine,
+  labVersionsUrl,
   olderRevision,
   versionById,
 } from '../utils/versions'
@@ -85,7 +86,7 @@ const local = import.meta.dev
 const manifest = await useManifest()
 const { me } = useMe()
 const toast = useStudioToast()
-const versionsUrl = `${useRuntimeConfig().app.baseURL}_studio/modules/lab/versions`
+const versionsUrl = labVersionsUrl(useRuntimeConfig().app.baseURL)
 
 // --- The version open ---
 
@@ -192,7 +193,7 @@ watch(
 const original = computed(() => data.value?.original ?? null)
 const originalCode = useOriginalSource(() => original.value)
 const draft = computed<PlaygroundCode>(() =>
-  version.value && versionCode ? versionCode : originalCode,
+  version.value ? versionCode : originalCode,
 )
 const showsCode = computed(() => Boolean(original.value))
 

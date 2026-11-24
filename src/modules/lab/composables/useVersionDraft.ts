@@ -5,7 +5,7 @@ import {
   requestJson,
   StudioRequestError,
 } from '../../../../app/utils/studioRequest'
-import { splitStudioMarkers } from '../utils/versions'
+import { labVersionsUrl, splitStudioMarkers } from '../utils/versions'
 import type { PlaygroundCode } from './playgroundCode'
 
 /** Which version: its prototype's and its view's permanent IDs. */
@@ -36,7 +36,7 @@ export function useVersionDraft(
   const toast = useStudioToast()
   const base = useRuntimeConfig().app.baseURL
   const sourceUrl = `${base}_studio/files/source`
-  const versionsUrl = `${base}_studio/modules/lab/versions`
+  const versionsUrl = labVersionsUrl(base)
 
   const file = shallowRef<SourceFile>()
   const code = ref('')

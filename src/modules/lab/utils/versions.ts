@@ -103,6 +103,14 @@ export async function versionArtifact(
   return list.find(({ id }) => id === version.id) ?? null
 }
 
+/**
+ * The Lab's versions handler on the dev server (`server/versions.ts`), or
+ * '' on the deployed site, whose bundle never names it. `base` is the site's
+ * base address.
+ */
+export const labVersionsUrl = (base: string) =>
+  import.meta.dev ? `${base}_studio/modules/lab/versions` : ''
+
 /** A version's text, and whether it holds edits not saved yet. */
 export interface VersionText {
   text: string
@@ -131,14 +139,11 @@ export async function versionText(
         `${base}_studio/files/source?${new URLSearchParams(at)}`,
       ),
       draft
-        ? requestJson<{ draft: string | null }>(
-            `${base}_studio/modules/lab/versions`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'read-draft', ...at }),
-            },
-          ).catch(() => ({ draft: null }))
+        ? requestJson<{ draft: string | null }>(labVersionsUrl(base), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'read-draft', ...at }),
+          }).catch(() => ({ draft: null }))
         : { draft: null },
     ])
     return saved.draft === null || saved.draft === file.content
@@ -162,9 +167,10 @@ export const isMine = (
     : Boolean(me.key) && version.home.contributor === me.key
 
 /**
- * Whether you may rename, duplicate into its prototype or delete a version
- * as far as the page knows: yours, or any as an Admin, while the studio runs
- * locally. The file service checks again.
+ * Whether you may rename, duplicate or delete a version as far as the page
+ * knows: yours, or any as an Admin, while the studio runs locally. A
+ * duplicate always goes into your own versions prototype, as Save as my
+ * version does. The file service checks again.
  */
 export const mayChangeVersion = (
   version: Pick<LabVersion, 'home'>,
