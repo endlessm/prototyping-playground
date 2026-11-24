@@ -33,6 +33,21 @@ export function tabAt(path: string, systemId: string, slug: string) {
 }
 
 /**
+ * The focus outline solid buttons have, for ghost ones, whose own focus is a
+ * light background that is hard to see. `outline-solid` undoes their
+ * `focus:outline-none`.
+ */
+export const GHOST_FOCUS =
+  'focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-primary'
+
+/**
+ * An app revision as people read it: its first seven characters, or the
+ * words given for an unknown one.
+ */
+export const shortRevision = (revision: string | null, unknown: string) =>
+  revision ? revision.slice(0, 7) : unknown
+
+/**
  * Every component the Lab lists for a system: its pages, in the Systems
  * navigation's order, then the app components no page presents.
  */

@@ -41,6 +41,7 @@ import {
   propsConfig,
   shownValue,
 } from '../utils/dials'
+import { GHOST_FOCUS, shortRevision } from '../utils/lab'
 import {
   blockingProp,
   changeValue,
@@ -218,7 +219,14 @@ async function newVersion() {
       },
     )
     await refreshManifest()
-    toast.success(t('lab.versions.created', { name: created.path }))
+    toast.success(
+      t('lab.versions.created', {
+        name: created.path
+          .split('/')
+          .at(-1)!
+          .replace(/\.vue$/, ''),
+      }),
+    )
     await router.push({ query: { version: created.artifact } })
   } catch (error) {
     toast.error(t('lab.versions.createFailed'), (error as Error).message)
@@ -245,6 +253,25 @@ const older = computed(() =>
     ? olderRevision(version.value, original.value?.revision ?? null)
     : false,
 )
+// What the editor holds, in words: the version's name (its file's, without
+// the extension) and whose it is, or the app's original file.
+const versionName = computed(() =>
+  version.value ? draft.value.fileName().replace(/\.vue$/, '') : '',
+)
+const editorHeading = computed(() => {
+  if (!version.value)
+    return t('lab.editor.original', { file: draft.value.fileName() })
+  if (!versionName.value) return undefined
+  return t('lab.editor.version', {
+    name: versionName.value,
+    author: isMine(version.value, me.value)
+      ? t('lab.editor.you')
+      : (version.value.owner?.name ?? t('lab.versions.list.someone')),
+  })
+})
+const revisionLabel = (revision: string | null) =>
+  shortRevision(revision, t('lab.original.unknownRevision'))
+
 function openOriginal() {
   void router.push({ query: writeQuery(controls.value, values.value) })
 }
@@ -623,8 +650,8 @@ const editorWidth = useLocalStorage('design-studio:lab-editor-width', 0)
       />
       {{
         t('lab.versions.older', {
-          revision: version?.revision,
-          current: original?.revision,
+          revision: revisionLabel(version?.revision ?? null),
+          current: revisionLabel(original?.revision ?? null),
         })
       }}
     </p>
@@ -651,13 +678,17 @@ const editorWidth = useLocalStorage('design-studio:lab-editor-width', 0)
             :key="version?.id ?? 'original'"
             :draft="draft"
             :highlight="editorHighlight"
+            :heading="editorHeading"
+            :named="versionName || undefined"
           >
-            <template #actions>
+            <template v-if="offersVersion || version" #actions>
               <UButton
                 v-if="offersVersion"
                 size="xs"
                 icon="i-lucide-git-branch-plus"
-                :label="t('lab.versions.new')"
+                :label="
+                  t(creating ? 'lab.versions.creating' : 'lab.versions.new')
+                "
                 :loading="creating"
                 @click="newVersion"
               />
@@ -675,6 +706,7 @@ const editorWidth = useLocalStorage('design-studio:lab-editor-width', 0)
                   color="neutral"
                   variant="ghost"
                   icon="i-lucide-arrow-left"
+                  :class="GHOST_FOCUS"
                   :label="t('lab.versions.original')"
                   @click="openOriginal"
                 />
@@ -683,17 +715,18 @@ const editorWidth = useLocalStorage('design-studio:lab-editor-width', 0)
                   color="neutral"
                   variant="ghost"
                   icon="i-lucide-file-diff"
+                  :class="GHOST_FOCUS"
                   :label="t('lab.changes.view')"
                   :to="changesAddress(system.id, component.slug, version.id)"
                 />
               </template>
             </template>
             <template v-if="original && !version" #notice>
-              <span class="mt-1 block truncate font-mono">
+              <span class="mt-1 block font-mono break-all">
                 {{
                   t('lab.original.from', {
                     path: original.appPath ?? original.file,
-                    revision: original.revision ?? '?',
+                    revision: revisionLabel(original.revision),
                   })
                 }}
               </span>
