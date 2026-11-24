@@ -126,11 +126,13 @@ export function versionStages(dir: string, drafts: Drafts | null) {
       if (!importer) return
       const stage = stageAt(importer)
       if (stage) {
-        // The one import that changes, before or after the system's `~/`
-        // alias has turned it into the original's path.
+        // The one import that changes: its `~/` specifier, the original's
+        // path once the system's alias has turned it into one, or a path
+        // relative to the frame.
         if (
           source === stage.specifier ||
-          posix(path.resolve(clean(source))) === posix(stage.original)
+          posix(path.resolve(path.dirname(stage.frame), clean(source))) ===
+            posix(stage.original)
         )
           return `${WRAPPER}${stage.artifact}`
         // The frame's own relative imports, from where the frame is.
