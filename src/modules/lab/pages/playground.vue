@@ -12,7 +12,7 @@ import type { PlaygroundCode } from '../composables/playgroundCode'
 import { useStageInspector } from '../composables/useStageInspector'
 import { useVersionDraft } from '../composables/useVersionDraft'
 import { useVersionCopy } from '../composables/useVersionCopy'
-import { useVersionCode } from '../composables/useVersionText'
+import { useVersionCode } from '../composables/useVersionCode'
 import { refreshManifest } from '../../../../app/composables/useManifest'
 import { requestJson } from '../../../../app/utils/studioRequest'
 import {

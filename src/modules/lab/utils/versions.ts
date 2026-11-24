@@ -67,6 +67,23 @@ export const olderRevision = (
   current: string | null,
 ) => Boolean(version.revision && current && version.revision !== current)
 
+/** Why a version's text couldn't be read on the deployed site. */
+export type VersionReadProblem = 'missing' | 'failed'
+
+/**
+ * A version that couldn't be read: `missing` when the site doesn't ship its
+ * text, `failed` when loading it failed. Pages show
+ * `lab.versions.errors.<problem>`.
+ */
+export class VersionReadError extends Error {
+  readonly problem: VersionReadProblem
+  constructor(problem: VersionReadProblem) {
+    super(problem)
+    this.name = 'VersionReadError'
+    this.problem = problem
+  }
+}
+
 /**
  * A version's view as its prototype's artifact list has it (its title, its
  * path, and on the deployed site where its text is), or null when the list
@@ -80,7 +97,7 @@ export async function versionArtifact(
   const listed = manifest.artifacts[version.prototype]
   if (!listed) return null
   const response = await fetch(manifestFile(listed))
-  if (!response.ok) throw new Error('This version failed to load.')
+  if (!response.ok) throw new VersionReadError('failed')
   const list = (await response.json()) as ManifestArtifact[]
   return list.find(({ id }) => id === version.id) ?? null
 }
@@ -97,8 +114,9 @@ export interface VersionText {
  * from the dev server's file service, or with `draft` its unsaved draft when
  * the Playground left one (what its stage shows); nothing is written. On the
  * deployed site from the text the build ships beside the manifest for every
- * view holding a version marker. `base` is the site's base address. Throws a
- * message a person can read.
+ * view holding a version marker. `base` is the site's base address. On the
+ * deployed site it throws a `VersionReadError`; locally, the file service's
+ * message.
  */
 export async function versionText(
   manifest: { artifacts: Record<string, string> },
@@ -127,9 +145,9 @@ export async function versionText(
       : { text: saved.draft, unsaved: true }
   }
   const artifact = await versionArtifact(manifest, version)
-  if (!artifact?.text) throw new Error('This version is not on this site.')
+  if (!artifact?.text) throw new VersionReadError('missing')
   const response = await fetch(manifestFile(artifact.text))
-  if (!response.ok) throw new Error('This version failed to load.')
+  if (!response.ok) throw new VersionReadError('failed')
   return { text: await response.text(), unsaved: false }
 }
 

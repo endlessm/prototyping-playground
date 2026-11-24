@@ -1151,6 +1151,10 @@
       "saveAsMine": "Save as my version",
       "copyFailed": "The version wasn’t copied",
       "older": "Made from the app at {revision}. The original has changed since (now {current}), so its changes are compared with the current original.",
+      "errors": {
+        "missing": "This version isn’t on this site.",
+        "failed": "This version couldn’t be loaded. Reload the page to try again."
+      },
       "rename": {
         "title": "Rename version",
         "description": "A new name for the version’s file. Links to it keep working.",
