@@ -142,7 +142,7 @@ describe('shared context documents', () => {
       'checks',
       'Pre-commit',
       'Pre-push',
-      'CI runs the full suite and production build',
+      'the e2e files run there only on demand',
       'yarn studio sync --check',
       'diagnose failures instead of suppressing them',
       'tooling/checks/README.md owns their implementations and remedies',

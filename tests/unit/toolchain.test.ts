@@ -230,14 +230,42 @@ describe('CI workflow', () => {
     ])
   })
 
-  test('[CL-150] the required "build" check passes only when the bundle and test jobs succeeded', () => {
+  test('[CL-150] the required "build" check passes only when the bundle and scope jobs succeeded and the test jobs succeeded or were skipped', () => {
     const build = workflow.jobs.build
     expect(build.needs).toEqual(['bundle', 'tests', 'e2e', 'scope'])
     expect(build.if).toBe('always()')
     const check = build.steps.at(-1).run
     expect(check).toContain('needs.bundle.result }}" = success')
-    expect(check).toContain('needs.tests.result }}" = success')
-    expect(check).toContain('needs.e2e.result }}" = success')
+    expect(check).toContain('needs.scope.result }}" = success')
+    expect(check).toContain(
+      'case "${{ needs.tests.result }}" in success|skipped) ;; *) exit 1 ;; esac',
+    )
+    expect(check).toContain(
+      'case "${{ needs.e2e.result }}" in success|skipped) ;; *) exit 1 ;; esac',
+    )
+  })
+
+  test('the browser tests run only on demand, and guidance-only changes skip the type check, the build and the tests', () => {
+    expect(workflow.on.pull_request.types).toContain('labeled')
+    const e2e = workflow.jobs.e2e.if
+    expect(e2e).toContain("needs.scope.outputs.code == 'true'")
+    expect(e2e).toContain("github.event_name == 'workflow_dispatch'")
+    expect(e2e).toContain("github.event_name == 'workflow_call'")
+    expect(e2e).toContain(
+      "contains(github.event.pull_request.labels.*.name, 'run-browser-tests')",
+    )
+    expect(workflow.jobs.tests.if).toBe("needs.scope.outputs.code == 'true'")
+    expect(workflow.jobs.scope.outputs.code).toBe(
+      '${{ steps.changes.outputs.code }}',
+    )
+    const gated = workflow.jobs.bundle.steps
+      .filter((step: { if?: string }) => step.if)
+      .map((step: { run: string }) => step.run)
+    expect(gated).toEqual([
+      'yarn typecheck',
+      'yarn build',
+      'yarn build:inspect',
+    ])
   })
 
   test('[CL-151] [CL-152] [CL-153] no upstream-only steps, upgrade rehearsal or publishing', () => {
