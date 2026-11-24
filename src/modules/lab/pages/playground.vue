@@ -722,7 +722,7 @@ const editorWidth = useLocalStorage('design-studio:lab-editor-width', 0)
               </template>
             </template>
             <template v-if="original && !version" #notice>
-              <span class="mt-1 block font-mono break-all">
+              <span class="mt-1 block font-mono wrap-anywhere">
                 {{
                   t('lab.original.from', {
                     path: original.appPath ?? original.file,

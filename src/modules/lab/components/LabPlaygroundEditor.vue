@@ -21,7 +21,7 @@ const props = defineProps<{
   /** What the code is called, such as a version's name; its file's name otherwise. */
   named?: string
 }>()
-const slots = defineSlots<{ actions?: () => unknown; notice?: () => unknown }>()
+defineSlots<{ actions?: () => unknown; notice?: () => unknown }>()
 const { t } = useI18n()
 const overlay = useOverlay()
 const discardModal = overlay.create(SourceDiscardModal)
@@ -38,9 +38,6 @@ const status = computed(() => {
 })
 const label = computed(() =>
   t('lab.editor.label', { file: props.named ?? name.value }),
-)
-const hasActions = computed(
-  () => Boolean(slots.actions) || draft.editable.value,
 )
 
 async function discard() {
@@ -81,7 +78,10 @@ useEventListener(
           status
         }}</span>
       </div>
-      <div v-if="hasActions" class="flex flex-wrap items-center gap-2">
+      <div
+        v-if="$slots.actions || draft.editable.value"
+        class="flex flex-wrap items-center gap-2"
+      >
         <slot name="actions" />
         <div
           v-if="draft.editable.value"
