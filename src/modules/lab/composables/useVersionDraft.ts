@@ -5,6 +5,7 @@ import {
   requestJson,
   StudioRequestError,
 } from '../../../../app/utils/studioRequest'
+import { splitStudioMarkers } from '../utils/versions'
 import type { PlaygroundCode } from './playgroundCode'
 
 /** Which version: its prototype's and its view's permanent IDs. */
@@ -21,7 +22,11 @@ export interface VersionAddress {
 // service's permission messages, then drops the draft; Discard drops it. A
 // draft left from before opens again. Someone else's version is read-only,
 // with the reason. The version's own props (`props`) are read again after
-// each change, so props it adds reach the dials.
+// each change, so props it adds reach the dials. The editor shows the text
+// without the studio's marker lines (its permanent ID and version marker),
+// so its line numbers match Changes; drafts and Save put them back as the
+// file has them, and the handler and the file service refuse a text that
+// drops or changes them.
 export function useVersionDraft(
   address: () => VersionAddress | null,
 ): PlaygroundCode & {
@@ -43,6 +48,16 @@ export function useVersionDraft(
   const unsaved = computed(
     () => Boolean(file.value) && code.value !== file.value!.content,
   )
+
+  // The file's marker lines, as last read: what the editor's text goes under.
+  let markers = ''
+  const whole = (text: string) => `${markers}${text}`
+  /** The file as read, its text without the markers. */
+  const shown = (read: SourceFile): SourceFile => {
+    const split = splitStudioMarkers(read.content)
+    markers = split.markers
+    return { ...read, content: split.body }
+  }
 
   const ask = <T>(action: string, extra: Record<string, unknown> = {}) =>
     requestJson<T>(versionsUrl, {
@@ -82,8 +97,9 @@ export function useVersionDraft(
         readFile(),
         ask<{ draft: string | null }>('read-draft'),
       ])
-      file.value = read
-      written = draft ?? read.content
+      file.value = shown(read)
+      written =
+        draft === null ? file.value.content : splitStudioMarkers(draft).body
       code.value = written
       conflict.value = false
       readProps()
@@ -101,7 +117,7 @@ export function useVersionDraft(
     const content = code.value
     written = content
     writing = writing
-      .then(() => ask('write-draft', { content }))
+      .then(() => ask('write-draft', { content: whole(content) }))
       .then(readProps)
       .catch((error: Error) => {
         written = ''
@@ -130,7 +146,11 @@ export function useVersionDraft(
       const { version } = await requestJson<{ version: string }>(sourceUrl, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...at, content, base: current.version }),
+        body: JSON.stringify({
+          ...at,
+          content: whole(content),
+          base: current.version,
+        }),
       })
       file.value = { ...current, content, version }
       await ask('discard-draft')
@@ -153,10 +173,9 @@ export function useVersionDraft(
       await writing
       await ask('discard-draft')
       // The file as it is on disk now, which may have moved on.
-      const read = await readFile()
-      file.value = read
-      written = read.content
-      code.value = read.content
+      file.value = shown(await readFile())
+      written = file.value.content
+      code.value = written
       conflict.value = false
       readProps()
     } catch (error) {
@@ -168,7 +187,7 @@ export function useVersionDraft(
   async function keepMine() {
     const read = await readFile().catch(() => undefined)
     if (!read || !file.value) return
-    file.value = { ...read, content: file.value.content }
+    file.value = { ...shown(read), content: file.value.content }
     conflict.value = false
   }
 

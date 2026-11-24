@@ -6,6 +6,7 @@ import {
   versionArtifact,
   versionText,
   VersionReadError,
+  withoutStudioMarkers,
 } from '../utils/versions'
 import type { PlaygroundCode } from './playgroundCode'
 import type { VersionAddress } from './useVersionDraft'
@@ -46,14 +47,16 @@ export function useVersionCode(
           versionArtifact(current, version),
         ])
         if (read !== reads) return
+        // Without the studio's markers, as the editor shows it locally.
+        const content = withoutStudioMarkers(text)
         file.value = {
           path: artifact ? `${artifact.path}.vue` : at.artifact,
-          content: text,
+          content,
           version: '',
           editable: false,
           reason: t('lab.versions.readOnlyDeployed'),
         }
-        code.value = text
+        code.value = content
       } catch (error) {
         if (read === reads)
           failure.value =

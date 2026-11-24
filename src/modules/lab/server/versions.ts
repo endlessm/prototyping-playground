@@ -76,6 +76,7 @@ import { appComponents } from '../../../../tooling/preview/lab-versions.ts'
 import { appCopy, appOriginal } from '../../../../tooling/systems/app-copy.ts'
 import {
   readVersionMarker,
+  sameVersionMarker,
   versionMarker,
   withoutStudioMarkers,
   type VersionMarker,
@@ -128,7 +129,7 @@ export default (async ({ root, contributorsFolder, method, body }) => {
 
     // The other actions are about one version.
     const found = access.prototypeOf(String(request.prototype ?? ''))
-    const { file } = access.artifactOf(
+    const { file, type } = access.artifactOf(
       found.dir,
       String(request.artifact ?? ''),
     )
@@ -162,10 +163,22 @@ export default (async ({ root, contributorsFolder, method, body }) => {
           413,
           'This file is too large to edit here. Keep files under 750 KB.',
         )
-      if (content === readFileSync(file, 'utf8')) {
+      const saved = readFileSync(file, 'utf8')
+      if (content === saved) {
         rmSync(draft, { force: true })
         return { draft: false }
       }
+      let keepsId = false
+      try {
+        keepsId = type.identity.read(content) === request.artifact
+      } catch {
+        // An unreadable ID is a lost one.
+      }
+      if (!keepsId || !sameVersionMarker(saved, content))
+        throw fail(
+          409,
+          'Keep the version’s permanent studio ID and its @lab-version marker at the top of its file.',
+        )
       // Rewriting the same text would send the stage a needless update.
       if (existsSync(draft) && readFileSync(draft, 'utf8') === content)
         return { draft: true }

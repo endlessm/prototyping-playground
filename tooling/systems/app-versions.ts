@@ -41,16 +41,42 @@ export function readVersionMarker(source: string): VersionMarker | null {
 export const versionMarker = ({ system, component, revision }: VersionMarker) =>
   `<!-- @lab-version ${system} ${component} ${revision || UNKNOWN} -->`
 
+const STUDIO_MARKER = /<!--\s*@(?:studio-id|lab-version)\b[^>]*?-->[ \t]*\n?/g
+
+const unix = (source: string) =>
+  source.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n')
+
 /**
  * A version's text without the studio's own lines (its permanent ID, its
  * version marker), with Unix line endings: what the app's file would hold.
  */
 export function withoutStudioMarkers(source: string) {
-  const text = source.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n')
+  const text = unix(source)
   const header = HEADER.exec(text)?.[0] ?? ''
-  const kept = header.replace(
-    /<!--\s*@(?:studio-id|lab-version)\b[^>]*?-->[ \t]*\n?/g,
-    '',
+  return header.replace(STUDIO_MARKER, '') + text.slice(header.length)
+}
+
+/**
+ * A version's text in two: the studio's marker lines from its leading
+ * comments, each ending in a Unix line end, and the rest as
+ * `withoutStudioMarkers` gives it, which is what the Lab's editor shows, so
+ * its line numbers match Changes. `markers + body` is the file to write.
+ */
+export function splitStudioMarkers(source: string) {
+  const header = HEADER.exec(unix(source))?.[0] ?? ''
+  const markers = (header.match(STUDIO_MARKER) ?? [])
+    .map((line) => `${line.trim()}\n`)
+    .join('')
+  return { markers, body: withoutStudioMarkers(source) }
+}
+
+/** Whether two texts hold the same version marker, or both none. */
+export function sameVersionMarker(before: string, after: string) {
+  const a = readVersionMarker(before)
+  const b = readVersionMarker(after)
+  return (
+    a?.system === b?.system &&
+    a?.component === b?.component &&
+    a?.revision === b?.revision
   )
-  return kept + text.slice(header.length)
 }

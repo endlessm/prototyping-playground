@@ -11,6 +11,7 @@ import type {
 export type { VersionMarker } from '../../../../tooling/systems/app-versions'
 export {
   readVersionMarker,
+  splitStudioMarkers,
   withoutStudioMarkers,
 } from '../../../../tooling/systems/app-versions'
 
