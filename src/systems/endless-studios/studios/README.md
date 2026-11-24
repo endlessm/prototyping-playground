@@ -10,6 +10,10 @@ Copied unchanged from `Endless-Game-Making-Studio/studio` at `4a5087452`, under 
 
 Adapted: `assets/css/main.css` drops the floating-vue stylesheet, imports Tailwind with `source(none)` and scans only this system's sources (`components/`, `../runtime/`, `../nuxt-ui.config.ts`; the studio's preview build adds the prototypes' views), and names the Fontsource variable fonts (`'Inter Variable'`, `'Figtree Variable'`) before the app's own names. `base.css` and `modals.css` are unchanged: the preview document is the screen's own page, so the app's `html` and `body` rules apply as they do in the app. The page colour the app's layout (`layouts/new.vue`) gives `<body>`, `bg-slate-50`, is set in the system's own `../styles/studios.css`. `nuxt-shims.ts` is not an app file: it registers the stand-ins below for auto-import.
 
+## Trying changes in the Lab
+
+The Lab lists every `.vue` file in `components/` under **App components**, with no list kept by hand: the ones a component page presents (Studio sidebar) and every other file, named from its path ("Dashboard / Hero"). A file copied in later shows up there on its own. To change one, don't edit the copy: **New version** in the Lab's Playground makes a copy of it in your own prototype, where you edit it and see it in the original's place. **Changes** then shows what the version changed against the file here and gives it back as a patch the app repository takes (`git apply` from its root) or as the whole file. See `src/modules/lab/README.md`.
+
 ## Images and asset URLs
 
 The preview build answers Nuxt's own aliases at this folder: `~/` and, for templates, `assets/`. A template's `src="~/assets/images/logo.svg"` compiles to an import of `assets/images/logo.svg`, and a script's `import logo from '~/assets/images/logo.svg'` goes through `~/`; both reach the copied file, so a newly copied component needs no list of the images it names.

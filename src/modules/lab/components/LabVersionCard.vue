@@ -37,7 +37,10 @@ const emit = defineEmits<{ copy: [mine: boolean] }>()
 const { t } = useI18n()
 const toast = useStudioToast()
 const { me } = useMe()
-const base = useRuntimeConfig().app.baseURL
+// Only the dev server has the route; the static build never names it.
+const treeUrl = import.meta.dev
+  ? `${useRuntimeConfig().app.baseURL}_studio/files/tree`
+  : ''
 
 const name = computed(
   () => props.artifact?.title ?? props.artifact?.path ?? props.version.id,
@@ -98,7 +101,7 @@ async function remove() {
   }).result
   if (!confirmed) return
   const reply = await requestJson<{ trashedTo: 'recycle-bin' | 'trash' }>(
-    `${base}_studio/files/tree`,
+    treeUrl,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

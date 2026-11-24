@@ -545,6 +545,11 @@ function focusDials() {
   target?.focus()
 }
 
+// The deployed site can't make a version.
+const originalClassDials = import.meta.dev
+  ? 'lab.original.classDials'
+  : 'lab.original.classDialsDeployed'
+
 // The editor's width beside the stage, remembered by this browser.
 const editorWidth = useLocalStorage('design-studio:lab-editor-width', 0)
 </script>
@@ -791,7 +796,7 @@ const editorWidth = useLocalStorage('design-studio:lab-editor-width', 0)
                   element: selection?.label.split(' · ')[0] ?? '',
                 })
               : original
-                ? t('lab.original.classDials')
+                ? t(originalClassDials)
                 : t('lab.playground.elementReadOnly')
           }}
         </p>
