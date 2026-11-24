@@ -6,7 +6,6 @@
 // Framework-neutral; the systems module's build data serves it.
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
-import { parse } from 'yaml'
 import { directories, posix, treeFiles } from '../manifest/build.ts'
 import {
   APP_COMPONENTS,
@@ -30,6 +29,7 @@ import {
   type SystemComponent,
 } from './components.ts'
 import { exampleSeeds, type ExampleSeeds } from './example-seeds.ts'
+import { frontmatter } from './frontmatter.ts'
 import { exampleSnippets } from './example-snippets.ts'
 import {
   SKILL_FILE,
@@ -202,19 +202,7 @@ const FONTS = ['.woff', '.woff2', '.ttf', '.otf']
 const text = (value: unknown) =>
   typeof value === 'string' && value.trim() ? value.trim() : null
 
-/** A Markdown file's frontmatter, or null when it has none. */
-export function frontmatter(source: string): Record<string, unknown> | null {
-  const match = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(source)
-  if (!match) return null
-  try {
-    const data = parse(match[1]!)
-    return data && typeof data === 'object' && !Array.isArray(data)
-      ? (data as Record<string, unknown>)
-      : {}
-  } catch {
-    return {}
-  }
-}
+export { frontmatter }
 
 /** A document's title: its frontmatter's, its first heading, or its name. */
 export function documentTitle(source: string, file: string) {
