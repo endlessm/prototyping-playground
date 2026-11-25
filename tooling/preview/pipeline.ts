@@ -13,6 +13,8 @@ import type { InlineConfig, Plugin, PluginOption, ViteDevServer } from 'vite'
 import type { InstalledSystem } from '../systems/registry.ts'
 import { importGuard } from '../checks/imports.ts'
 import { loadRegistry } from '../modules/registry.ts'
+import { draftMap, versionDraftsDir } from '../files/drafts-folder.ts'
+import { versionStages, type VersionStage } from './lab-versions.ts'
 import { standInNames } from './stand-ins.ts'
 
 import {
@@ -53,6 +55,11 @@ export interface PreviewView {
   example?: string
   /** A component's playground: the component file, given the host's props. */
   playground?: boolean
+  /**
+   * A version's stage in the Lab: `file` is its component's frame, whose
+   * import of the original shows this version (`./lab-versions.ts`).
+   */
+  labVersion?: VersionStage
 }
 
 // A view that holds nothing but comments (a new view, before the agent
@@ -94,6 +101,20 @@ export interface PreviewOptions {
   hmrPort?: number
   /** The views this document renders, read when its views module loads. */
   views: () => PreviewView[]
+  /**
+   * Development only: the drafts folder (`../files/drafts-folder.ts`). A
+   * Lab version's stage renders its draft while there is one.
+   */
+  draftsDir?: string
+}
+
+// The Lab's versions' drafts in development: their folder, the draft
+// standing in for a file and the file a draft stands in for. A version is a
+// view, so its draft sits at its path inside the prototypes folder.
+function versionDrafts(document: PreviewDocument, options: PreviewOptions) {
+  if (!document.system || !options.draftsDir) return null
+  const dir = versionDraftsDir(options.draftsDir)
+  return { dir, ...draftMap(options.prototypesDir, dir) }
 }
 
 export function previewDocuments(systems: InstalledSystem[]) {
@@ -118,6 +139,7 @@ async function importDefault(file: string) {
 // Writes the document's page, entry module and stylesheet. Paths in them are
 // relative, so they work from the work folder in development and the build.
 function writeEntry(document: PreviewDocument, options: PreviewOptions) {
+  const versions = versionDrafts(document, options)
   const dir = path.join(options.workDir, document.key)
   mkdirSync(dir, { recursive: true })
   const relative = (file: string) => {
@@ -136,7 +158,10 @@ function writeEntry(document: PreviewDocument, options: PreviewOptions) {
       writeFileSync(
         path.join(dir, 'preview.css'),
         // The system's own files (its examples and overview), and the views.
-        `@import '${systemFile(app.stylesheet)}';\n@source '${relative(document.system!.dir)}';\n@source '${relative(options.prototypesDir)}';\n`,
+        `@import '${systemFile(app.stylesheet)}';\n@source '${relative(document.system!.dir)}';\n@source '${relative(options.prototypesDir)}';\n${
+          // Drafts are Git-ignored, which Tailwind skips unless it is told.
+          versions ? `@source '${relative(versions.dir)}';\n` : ''
+        }`,
       )
       lines.push(`import './preview.css'`)
     }
@@ -184,7 +209,10 @@ export const VIEWS_RESOLVED = `\0${VIEWS_MODULE}`
 // development the module accepts its own updates: it changes the one object
 // the runtime holds and tells it, so new, renamed and emptied views reach an
 // open document without a reload.
-function viewsPlugin(options: PreviewOptions): Plugin {
+function viewsPlugin(
+  options: PreviewOptions,
+  stages: ReturnType<typeof versionStages>,
+): Plugin {
   return {
     name: 'studio-preview-views',
     resolveId(id) {
@@ -195,9 +223,13 @@ function viewsPlugin(options: PreviewOptions): Plugin {
       const entries = options.views().map((view) => {
         const { id, file } = view
         const title = path.basename(file, path.extname(file))
+        // A version's stage loads its frame under an address of its own.
+        const loaded = view.labVersion
+          ? stages.frameOf(view.labVersion, file)
+          : posix(file)
         const load = emptyFile(file)
           ? 'null'
-          : `() => import(${JSON.stringify(posix(file))})`
+          : `() => import(${JSON.stringify(loaded)})`
         const data = JSON.stringify({
           file: posix(file),
           title,
@@ -229,7 +261,10 @@ export default views
 
 // Development only: the compiler's message and location for a view that
 // failed to load, which the browser reports only as a failed import.
-function compilePlugin(options: PreviewOptions): Plugin {
+function compilePlugin(
+  options: PreviewOptions,
+  stages: ReturnType<typeof versionStages>,
+): Plugin {
   return {
     name: 'studio-preview-compile',
     apply: 'serve',
@@ -246,7 +281,12 @@ function compilePlugin(options: PreviewOptions): Plugin {
         const found = view
           ? {
               view: posix(view.file),
-              ...(await compileError(server, view, options.root)),
+              ...(await compileError(
+                server,
+                // A version's stage fails on the version, not its frame.
+                view.labVersion ? stages.shownFile(view.labVersion) : view.file,
+                options.root,
+              )),
             }
           : {}
         res.setHeader('Content-Type', 'application/json')
@@ -259,11 +299,11 @@ function compilePlugin(options: PreviewOptions): Plugin {
 
 async function compileError(
   server: ViteDevServer,
-  view: PreviewView,
+  shown: string,
   root: string,
 ) {
   try {
-    await server.transformRequest(`/@fs/${posix(view.file)}`)
+    await server.transformRequest(`/@fs/${posix(shown)}`)
     return {}
   } catch (failure) {
     const error = failure as Error & {
@@ -271,7 +311,7 @@ async function compileError(
       loc?: { file?: string; line: number; column: number }
       frame?: string
     }
-    const file = error.loc?.file ?? error.id?.split('?')[0] ?? view.file
+    const file = error.loc?.file ?? error.id?.split('?')[0] ?? shown
     return {
       message: error.message,
       file: posix(path.relative(root, file)),
@@ -394,6 +434,8 @@ export async function previewConfig(
   mode: 'serve' | 'build',
 ): Promise<InlineConfig> {
   const dir = writeEntry(document, options)
+  const versions = mode === 'serve' ? versionDrafts(document, options) : null
+  const stages = versionStages(dir, versions)
   const registry = await loadRegistry(options.root, {
     modulesFolder: process.env.STUDIO_MODULES || undefined,
     configFile: process.env.STUDIO_CONFIG || undefined,
@@ -402,6 +444,7 @@ export async function previewConfig(
     importGuard({
       root: options.root,
       prototypesDir: options.prototypesDir,
+      origin: (file) => versions?.originOf(file) ?? null,
       system: document.system,
       modules: registry.enabled
         .filter(({ spec }) => spec.library)
@@ -409,9 +452,10 @@ export async function previewConfig(
     }),
     vue({ include: [/\.vue$/] }),
     vueUpdatesFromOwnModules(),
-    viewsPlugin(options),
-    compilePlugin(options),
+    viewsPlugin(options, stages),
+    compilePlugin(options, stages),
     statesPlugin(options),
+    stages.plugin,
   ]
   if (document.system)
     plugins.push(...(await systemPlugins(document.system, options.root)))

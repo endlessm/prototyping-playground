@@ -3,6 +3,7 @@ title: Studio sidebar
 description: The platform's main navigation, down the left of every page in Endless Studios, the same one the home page shows. Home, Play and Learning, Admin for staff, then notifications and the profile menu.
 source: The app's own components/App/StudioSidebar.vue, copied unchanged from Endless-Game-Making-Studio/studio 11517cbee and still the same on dev (44f2225). Built from Nuxt UI's USidebar and UNavigationMenu.
 docs: https://ui.nuxt.com/docs/components/sidebar
+app: components/App/StudioSidebar.vue
 ---
 
 ## When to use
@@ -28,6 +29,10 @@ To place only the sidebar beside a layout of your own, import the copied file: `
 - **Learner and mentor**: Home, Play (Explore Games, My Games) and Learning (My Programs, Resources), then Notifications and the profile menu (Profile, Settings, Support, About us, Log out).
 - **Admin and other staff roles**: the same, plus an **Admin** group, open by default, listing the leader pages their roles allow (Games, Programs, Dashboard, Resources, Feed Console, Users, Institutions, Events, Analytics).
 - **Signed out**: the same links, with **Log in** and **Sign up** in place of Notifications and the profile.
+
+## Unread notifications
+
+Beside Notifications, the sidebar shows how many are unread, from the `NOTIFICATIONS_COUNT` query, and nothing when there are none. A view answers it with a sample: `sample: { queries: { NOTIFICATIONS_COUNT: { getUnreadNotificationsCount: { unread_notifications_count: 3 } } } }`.
 
 ## Active link
 

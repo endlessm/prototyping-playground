@@ -18,11 +18,25 @@ const props = withDefaults(
     collapsed?: boolean;
     /** Classes for each part, as Nuxt UI's `ui` prop, such as `{ link: 'no-underline' }`. */
     ui?: Record<string, string>;
+    /** The Lab's switch for the empty state: with no `items`, shows a menu without links instead of the sample tabs. */
+    empty?: boolean;
   }>(),
-  { color: 'primary', variant: 'pill', orientation: 'horizontal' },
+  { color: 'primary', variant: 'pill', orientation: 'horizontal', empty: false },
 );
+
+const sampleItems = [
+  { label: 'Overview', to: '/profile/ana.learner/', active: true },
+  { label: 'Skills', to: '/profile/ana.learner/skills/' },
+  { label: 'Certificates', to: '/profile/ana.learner/certificates/' },
+  { label: 'Games', to: '/profile/ana.learner/games/' },
+];
+
+const forwarded = computed(() => {
+  const { empty: _empty, items: _items, ...rest } = props;
+  return rest;
+});
 </script>
 
 <template>
-  <UNavigationMenu v-bind="props" />
+  <UNavigationMenu v-bind="forwarded" :items="items ?? (empty ? [] : sampleItems)" />
 </template>

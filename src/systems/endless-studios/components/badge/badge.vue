@@ -6,7 +6,7 @@
 const props = withDefaults(
   defineProps<{
     /** The badge's text. Content in the default slot does the same. */
-    label?: string | number;
+    label?: string;
     /** A semantic role from the theme. */
     color?: 'primary' | 'secondary' | 'kids' | 'info' | 'success' | 'warning' | 'error' | 'neutral';
     /** Secondary soft uses the cornflower 50 tint with 700 text. */

@@ -15,5 +15,11 @@ const props = withDefaults(
 </script>
 
 <template>
-  <UContainer v-bind="props"><slot /></UContainer>
+  <UContainer v-bind="props">
+    <slot>
+      <div class="rounded-2xl border border-dashed border-accented bg-default p-6 text-sm text-muted">
+        Game Design Foundations · Spring 2027 · 24 learners
+      </div>
+    </slot>
+  </UContainer>
 </template>

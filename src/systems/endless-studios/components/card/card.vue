@@ -10,8 +10,8 @@ const props = withDefaults(
     title?: string;
     /** Header line under the title. */
     description?: string;
-    /** A white card with the soft wide shadow and no border by default. */
-    variant?: 'outline' | 'bordered' | 'soft' | 'subtle' | 'solid' | 'flat' | 'ghost';
+    /** Nuxt UI's outline card (white, hairline ring) by default; `shaded` swaps the ring for a soft wide shadow. */
+    variant?: 'outline' | 'shaded' | 'bordered' | 'soft' | 'subtle' | 'solid' | 'flat' | 'ghost';
     /** Classes for each part, as Nuxt UI's `ui` prop: root, header, title, description, body, footer. */
     ui?: Partial<Record<'root' | 'header' | 'title' | 'description' | 'body' | 'footer', string>>;
     /** The root element. */

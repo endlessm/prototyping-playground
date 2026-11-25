@@ -16,6 +16,15 @@ export interface ExampleChoice {
 
 export const EXAMPLE: InjectionKey<ExampleChoice> = Symbol('studio-example')
 
+/**
+ * A component's playground: the props the studio sent, for a version on its
+ * stage (`../lab-versions.ts`) to take the ones it declares and its frame
+ * doesn't.
+ */
+export const PLAYGROUND_PROPS: InjectionKey<Record<string, unknown>> = Symbol(
+  'studio-playground-props',
+)
+
 // Inline, since the system's Tailwind doesn't scan the studio's files.
 export const EXAMPLE_ROW =
   'display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 24px;'

@@ -29,11 +29,22 @@ const props = withDefaults(
   }>(),
   { mode: 'click', dismissible: true, openDelay: 0, closeDelay: 0 },
 );
+
+defineOptions({ inheritAttrs: false });
 </script>
 
 <template>
-  <UPopover v-bind="props">
-    <slot />
-    <template #content><slot name="content" /></template>
-  </UPopover>
+  <!-- The open panel floats outside the layout, so this keeps room for it on the Lab's stage, as the examples do. -->
+  <div class="flex h-[26rem] items-start justify-center">
+    <UPopover v-bind="{ ...$attrs, ...props }">
+      <slot>
+        <UButton color="neutral" variant="outline" icon="i-lucide-calendar">Choose Dates</UButton>
+      </slot>
+      <template #content>
+        <slot name="content">
+          <UCalendar range class="p-3" />
+        </slot>
+      </template>
+    </UPopover>
+  </div>
 </template>

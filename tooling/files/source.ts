@@ -23,6 +23,10 @@ import {
 } from '../manifest/build.ts'
 import type { FidelityAdapter, IdentityAdapter } from '../modules/contract.ts'
 import { CONFIG_FILE } from '../modules/registry.ts'
+import {
+  readVersionMarker,
+  sameVersionMarker,
+} from '../systems/app-versions.ts'
 
 /** The same limit as any committed file. */
 export const MAX_SOURCE_BYTES = 750 * 1024
@@ -271,6 +275,12 @@ export function createFileService(options: FileServiceOptions) {
           409,
           'identity',
           'Keep the artifact’s permanent studio ID when editing its source.',
+        )
+      if (readVersionMarker(previous) && !sameVersionMarker(previous, content))
+        throw new FileServiceError(
+          409,
+          'identity',
+          'Keep the version’s @lab-version marker at the top of its file: it makes the view a version in the Lab.',
         )
       const lost = lostChild(type.identity, previous, content)
       if (lost)

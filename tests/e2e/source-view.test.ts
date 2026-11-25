@@ -527,7 +527,7 @@ describe('the deployed site', () => {
     await site?.stop()
   })
 
-  test('[CL-123] [PR-136] the static build has no file service and no source editor', async () => {
+  test('[CL-123] [PR-136] the static build has no file service and no editable source editor', async () => {
     const files = (dir: string): string[] =>
       readdirSync(dir).flatMap((name) => {
         const file = path.join(dir, name)
@@ -538,10 +538,19 @@ describe('the deployed site', () => {
       // Context & Skills ships the modules' READMEs, whose prose names the
       // dev route; that text is documentation, not the service.
       if (/studio-guidance-documents\.[^\\/]*\.json$/.test(file)) return false
-      const text = readFileSync(file, 'utf8')
-      return text.includes('_studio/files') || text.includes('cm-gutters')
+      return readFileSync(file, 'utf8').includes('_studio/files')
     })
     expect(leaks).toEqual([])
+    // The Lab shows an app component's original on the deployed site, so the
+    // code editor ships, but only read-only ([LAB-07] covers the rest).
+    const page = await newPage()
+    await page.goto(`${site.url}lab/8x5spen6xtvp96a9/studio-sidebar/playground`)
+    const code = page.locator('.cm-content')
+    await visible(code)
+    expect(await code.getAttribute('contenteditable')).toBe('false')
+    expect(
+      await page.getByRole('button', { name: 'Save', exact: true }).count(),
+    ).toBe(0)
     const response = await fetch(
       `${site.url}_studio/files/source?prototype=${DEMO}&artifact=${HOME}`,
     )

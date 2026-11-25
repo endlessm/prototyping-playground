@@ -28,5 +28,7 @@ const props = withDefaults(
 </script>
 
 <template>
-  <ULink v-bind="props"><slot /></ULink>
+  <ULink v-bind="props">
+    <slot>Program guide</slot>
+  </ULink>
 </template>

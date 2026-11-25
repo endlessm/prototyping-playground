@@ -30,5 +30,13 @@ export const exampleId = (system: string, slug: string, name: string) =>
 export const playgroundId = (system: string, slug: string) =>
   idOf(`playground:${system}:${slug}`)
 
+/**
+ * The preview document's ID for a version's stage in the Lab: its
+ * component's frame, with the frame's import of the original pointing at
+ * the version (view) `artifact`.
+ */
+export const versionStageId = (artifact: string) =>
+  idOf(`lab-version:${artifact}`)
+
 /** The preview document's ID for a system's own Overview content. */
 export const overviewId = (system: string) => idOf(`overview:${system}`)

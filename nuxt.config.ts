@@ -251,6 +251,8 @@ export default defineNuxtConfig({
           '@codemirror/view',
           '@lezer/highlight',
           'codemirror-lang-mermaid',
+          // The Lab's Playground dials.
+          'dialkit/vanilla',
           'mermaid',
           'yaml',
         ],

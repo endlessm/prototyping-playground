@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import { Example } from '#studio/examples';
 
-const variants = ['outline', 'bordered', 'soft', 'subtle', 'ghost', 'flat', 'solid'] as const;
+const variants = ['outline', 'shaded', 'bordered', 'soft', 'subtle', 'ghost', 'flat', 'solid'] as const;
 const members = ['Ana Souza', 'João Lima', 'Carla Reis'];
 </script>
 

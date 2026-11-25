@@ -57,11 +57,14 @@ describe('the Systems area’s dropped parts', () => {
 
   test('[SY-72] there is no example-system alert', () => {
     expect(strings).not.toContain('is an example system')
-    // A system's own components may name what they wrap, such as Tiptap's
-    // `starterKit`; the example system's starter lived outside them.
+    // A system's own components and its copy of the app may name what they
+    // wrap, such as Tiptap's `starterKit`; the example system's starter
+    // lived outside them.
     expect(
       containing('starter').filter(
-        (file) => !file.startsWith('src/systems/endless-studios/components/'),
+        (file) =>
+          !file.startsWith('src/systems/endless-studios/components/') &&
+          !file.startsWith('src/systems/endless-studios/studios/'),
       ),
     ).toEqual([])
   }, 30_000)

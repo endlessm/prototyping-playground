@@ -27,7 +27,12 @@ import {
   type PreviewState,
 } from '../protocol.ts'
 import { COMPILE_ROUTE, PREVIEW_ROUTE } from '../constants.ts'
-import { EXAMPLE, PLAYGROUND_STAGE, type ExampleChoice } from './example.ts'
+import {
+  EXAMPLE,
+  PLAYGROUND_PROPS,
+  PLAYGROUND_STAGE,
+  type ExampleChoice,
+} from './example.ts'
 import { THEME_QUERY } from '../theme.ts'
 import { PROTOTYPE_SCOPE, type PrototypeScope } from './navigation.ts'
 
@@ -392,6 +397,7 @@ export function mountPreview({ create, views }: MountOptions) {
     const example: ExampleChoice | null =
       view.example === null ? null : { name: view.example, found: false }
     if (example) app.provide(EXAMPLE, example)
+    if (view.playground) app.provide(PLAYGROUND_PROPS, props)
     const ownError = app.config.errorHandler
     app.config.errorHandler = (error, instance, info) => {
       // Props that break a playground are its result, not a stale render:

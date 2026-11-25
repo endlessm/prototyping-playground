@@ -257,6 +257,7 @@ describe('a system’s catalog', () => {
           },
         ],
         playground: playgroundId('hrbr000000000001', 'button'),
+        app: null,
       },
       {
         slug: 'card',
@@ -271,6 +272,7 @@ describe('a system’s catalog', () => {
         source: null,
         examples: [],
         playground: null,
+        app: null,
       },
       {
         slug: 'icon-button',
@@ -285,6 +287,7 @@ describe('a system’s catalog', () => {
         source: at('IconButton.vue'),
         examples: [],
         playground: playgroundId('hrbr000000000001', 'icon-button'),
+        app: null,
       },
     ])
     expect(catalog.overview).toBeNull()

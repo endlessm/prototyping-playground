@@ -5,13 +5,25 @@ import { useLabComponent } from '../composables/useLabComponent'
 // Variants: every example of the component's examples file side by side,
 // two columns when the bench is wide and one when it's narrow, each with
 // its own code. A component without examples says which file to add, as
-// its Systems page does.
+// its Systems page does; an app component no page presents says a page
+// comes first.
 const { system, component, stem, data } = useLabComponent()
 </script>
 
 <template>
   <i18n-t
-    v-if="!component.examplesFile"
+    v-if="component.generic"
+    keypath="lab.nav.appNoExamples"
+    tag="p"
+    class="text-sm text-muted"
+    scope="global"
+  >
+    <template #field>
+      <code class="font-mono">app: {{ component.app?.path }}</code>
+    </template>
+  </i18n-t>
+  <i18n-t
+    v-else-if="!component.examplesFile"
     keypath="systems.component.noExamples"
     tag="p"
     class="text-sm text-muted"

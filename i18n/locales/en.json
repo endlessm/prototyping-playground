@@ -1060,16 +1060,20 @@
     },
     "nav": {
       "components": "Components",
+      "appComponents": "App components",
       "system": "System",
       "search": "Search components",
       "empty": "No components yet.",
-      "noMatches": "No matching components."
+      "noMatches": "No matching components.",
+      "appNoPage": "No page yet. To describe it, add a page to the system’s components with {field} in its frontmatter.",
+      "appNoExamples": "No examples yet. Add a page to the system’s components with {field} in its frontmatter, then an examples file beside it."
     },
     "tabs": {
       "label": "Component tabs",
       "overview": "Overview",
       "variants": "Variants",
-      "playground": "Playground"
+      "playground": "Playground",
+      "versions": "Versions"
     },
     "overview": {
       "openInSystems": "Open in Systems"
@@ -1095,7 +1099,125 @@
       "unreadable": "Playground can’t read the props of {name}.",
       "tryAgain": "Try again",
       "chooseFirst": "Choose a value for {prop} to start {name}.",
-      "codeOnly": "Playground can’t start {name}. Its required prop {prop} can only be set in code."
+      "codeOnly": "Playground can’t start {name}. Its required prop {prop} can only be set in code.",
+      "element": "Selected element",
+      "spacing": "Spacing",
+      "radius": "Radius",
+      "size": "Size",
+      "noClassDials": "{element} has no spacing, radius or size classes to change here.",
+      "elementReadOnly": "Class dials change the draft, so they need permission to change this system.",
+      "selected": "Selected {element}",
+      "selectionCleared": "Selection cleared"
+    },
+    "inspect": {
+      "toggle": "Inspect",
+      "hint": "Click an element on the stage to see its box, its code and the dials that change it. Press Escape to clear.",
+      "hintNoCode": "Click an element on the stage to see its box and the dials that change it. Press Escape to clear.",
+      "clear": "Clear selection"
+    },
+    "editor": {
+      "label": "Code of {file}",
+      "loading": "Loading code",
+      "version": "Version: {name} · by {author}",
+      "you": "you",
+      "original": "Original: {file}",
+      "readOnly": "Read-only",
+      "saving": "Saving",
+      "unsaved": "Unsaved changes",
+      "allSaved": "All changes saved",
+      "save": "Save",
+      "saveHint": "Save the version ({shortcut})",
+      "discard": "Discard",
+      "discardDescription": "Your unsaved changes to this version will be lost, and the playground goes back to the saved version.",
+      "saved": "Version saved",
+      "saveFailed": "The version wasn’t saved",
+      "discardFailed": "The changes weren’t discarded",
+      "draftFailed": "The playground couldn’t show your latest change",
+      "changed": "This version changed on disk since you opened it. Save would replace what’s there now.",
+      "keepMine": "Keep my changes",
+      "resize": "Resize the code editor"
+    },
+    "original": {
+      "readOnly": "This is the app’s original. Make a new version to change it.",
+      "readOnlyDeployed": "This is the app’s original. Run the studio locally to make a new version.",
+      "from": "{path}, copied from the app at {revision}",
+      "unknownRevision": "an unknown revision",
+      "classDials": "Class dials change a version. Make a new version to change this element’s classes.",
+      "classDialsDeployed": "Class dials change a version. Run the studio locally to make a new version."
+    },
+    "versions": {
+      "new": "New version",
+      "creating": "Creating",
+      "original": "Show original",
+      "created": "{name} created",
+      "createFailed": "The version wasn’t created",
+      "missing": "This version no longer exists. The app’s original is shown instead.",
+      "readOnlyDeployed": "Versions are read-only here. Run the studio locally to make your own.",
+      "saveAsMine": "Save as my version",
+      "copyFailed": "The version wasn’t copied",
+      "older": "Made from the app at {revision}. The original has changed since (now {current}), so its changes are compared with the current original.",
+      "errors": {
+        "missing": "This version isn’t on this site.",
+        "failed": "This version couldn’t be loaded. Reload the page to try again."
+      },
+      "rename": {
+        "title": "Rename version",
+        "description": "A new name for the version. Links to it keep working.",
+        "label": "Name",
+        "empty": "Add a name",
+        "save": "Rename",
+        "cancel": "Cancel"
+      },
+      "list": {
+        "intro": "{count} version by the team. Open one to try it in the Playground. You can change only your own. | {count} versions by the team. Open one to try it in the Playground. You can change only your own.",
+        "introDeployed": "{count} version by the team, read-only on this site. | {count} versions by the team, read-only on this site.",
+        "notApp": "Only the app’s own components have versions. {name} isn’t one of them.",
+        "empty": "No versions of {name} yet.",
+        "emptyHint": "Make one with New version beside the original’s code in the Playground.",
+        "emptyDeployed": "Versions are made in the studio running locally.",
+        "openPlayground": "Open Playground",
+        "by": "By {name}",
+        "byYou": "By you",
+        "someone": "someone unknown",
+        "changed": "changed {date}",
+        "readOnly": "Read-only",
+        "more": "More actions for {name}",
+        "openPrototype": "Open in Prototypes",
+        "rename": "Rename",
+        "duplicate": "Duplicate",
+        "delete": "Delete",
+        "preview": "{name} preview",
+        "open": "Open in Playground",
+        "changes": "Changes"
+      }
+    },
+    "changes": {
+      "tab": "Changes",
+      "view": "Changes",
+      "heading": "Changes in {name}",
+      "compared": "Compared with {path} at {revision}",
+      "openPlayground": "Open in Playground",
+      "allVersions": "See all versions",
+      "copy": "Copy changes",
+      "copied": "Changes copied",
+      "copyFailed": "The changes weren’t copied",
+      "copyBlocked": "Your browser blocked the clipboard. Use Download file instead.",
+      "download": "Download file",
+      "added": "{n} line added | {n} lines added",
+      "removed": "{n} line removed | {n} lines removed",
+      "unsaved": "Includes changes not saved yet",
+      "none": "No changes yet. This version matches the original.",
+      "loading": "Loading changes",
+      "failed": "This version’s file couldn’t be read. Open it in the Playground to check that it still exists.",
+      "missing": "This version no longer exists.",
+      "noOriginal": "{name} isn’t an app component, so it has no versions to compare.",
+      "olderTitle": "Made from an older original",
+      "older": "This version was made from the original at {made}. The studio’s copy has been refreshed to {current} since, so these changes also undo what changed in the app meanwhile.",
+      "label": "Changes in {file}",
+      "originalLine": "Original line",
+      "versionLine": "Version line",
+      "change": "Change",
+      "code": "Code"
     }
   }
 }

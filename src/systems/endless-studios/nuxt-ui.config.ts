@@ -79,8 +79,8 @@ export default {
           flat: {
             root: 'ring-0 bg-default',
           },
-          outline: {
-            root: 'ring-0 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.08)]',
+          shaded: {
+            root: 'bg-default divide-y divide-default shadow-[0_25px_50px_-12px_rgba(0,0,0,0.08)]',
           },
           soft: {
             root: 'bg-elevated',

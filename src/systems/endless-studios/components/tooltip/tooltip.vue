@@ -3,7 +3,10 @@
   the element it describes, with these props; this file gives the component page its props table.
 -->
 <script setup lang="ts">
-const props = defineProps<{
+const props = withDefaults(
+  defineProps<{
+    /** Whether it shows, bound with `v-model:open`. Left out, it opens on hover and focus. */
+    open?: boolean;
     /** The tooltip's text. */
     text?: string;
     /** Keyboard shortcut keys shown after the text, such as `['meta', 'k']`, from the `lg` breakpoint up. */
@@ -18,9 +21,16 @@ const props = defineProps<{
     disabled?: boolean;
     /** Classes for each part, as Nuxt UI's `ui` prop: content, arrow, text, kbds. */
     ui?: Record<string, string>;
-  }>();
+  }>(),
+  // Undefined rather than Vue's false for a missing boolean, so the tooltip stays uncontrolled.
+  { open: undefined },
+);
 </script>
 
 <template>
-  <UTooltip v-bind="props"><slot /></UTooltip>
+  <UTooltip v-bind="props">
+    <slot>
+      <UButton color="neutral" variant="ghost" icon="i-lucide-trash-2" aria-label="Delete this comment" />
+    </slot>
+  </UTooltip>
 </template>

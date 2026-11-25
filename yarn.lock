@@ -8303,6 +8303,36 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dialkit@npm:^2.2.1":
+  version: 2.2.1
+  resolution: "dialkit@npm:2.2.1"
+  peerDependencies:
+    motion: ">=11.0.0"
+    motion-v: ">=2.0.0"
+    react: ">=18.0.0"
+    react-dom: ">=18.0.0"
+    solid-js: ">=1.6.0"
+    svelte: ">=5.8.0"
+    vue: ">=3.3.0"
+  peerDependenciesMeta:
+    motion:
+      optional: true
+    motion-v:
+      optional: true
+    react:
+      optional: true
+    react-dom:
+      optional: true
+    solid-js:
+      optional: true
+    svelte:
+      optional: true
+    vue:
+      optional: true
+  checksum: 10c0/aae00d2d5dcf3ebbbfaff9f2d0b83a7e1568588c49393c87640d543a8ae2994dfeaf275957e795d2f1eade833b728937ee755057e82ef47106cee8bfd729689f
+  languageName: node
+  linkType: hard
+
 "diff@npm:^9.0.0":
   version: 9.0.0
   resolution: "diff@npm:9.0.0"
@@ -13847,6 +13877,7 @@ __metadata:
     "@vueuse/core": "npm:^14.2.1"
     "@vueuse/nuxt": "npm:^14.2.1"
     codemirror-lang-mermaid: "npm:^0.5.0"
+    dialkit: "npm:^2.2.1"
     eslint: "npm:^10.4.0"
     eslint-config-prettier: "npm:^10.1.5"
     eslint-plugin-prettier: "npm:^5.4.1"

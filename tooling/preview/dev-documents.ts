@@ -13,6 +13,7 @@ import { registerWatcher } from '../files/watchers.ts'
 import type { BuiltManifest } from '../manifest/build.ts'
 import { systemPreviews } from '../systems/catalog.ts'
 import { fileCompileProblem } from '../systems/compile.ts'
+import { appComponents } from './lab-versions.ts'
 import {
   NO_SYSTEM,
   PREVIEW_ROUTE,
@@ -33,7 +34,7 @@ export interface ChangedFile {
 /**
  * What one document renders: each view of its prototypes, then each of its
  * named states; then the system's own examples, components' playgrounds
- * and Overview content. The build leaves out the playground of a component
+ * and Overview content, and the Lab's versions of app components. The build leaves out the playground of a component
  * file that doesn't compile, so one broken file can't stop the site; its
  * Playground says why.
  */
@@ -80,7 +81,34 @@ export function documentViews(
           ]
         }),
     )
-  return [...views, ...own]
+  // Each version of an app component, on its component's frame.
+  const frames = document.system ? appComponents(document.system) : new Map()
+  const versions = (manifest.labVersions ?? [])
+    .filter(({ system }) => system === document.key)
+    .flatMap((version) => {
+      const component = frames.get(version.component)
+      const view = artifacts[version.prototype]?.find(
+        ({ id }) => id === version.id,
+      )
+      if (!component || !view) return []
+      return [
+        {
+          id: version.stage,
+          file: component.frame,
+          prototype: version.prototype,
+          path: view.path,
+          playground: true,
+          labVersion: {
+            artifact: version.id,
+            file: path.resolve(root, view.file),
+            specifier: component.app.specifier,
+            original: component.original,
+            ...(component.generic ? { generic: true } : {}),
+          },
+        },
+      ]
+    })
+  return [...views, ...own, ...versions]
 }
 
 export function freePort() {

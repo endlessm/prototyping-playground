@@ -5,6 +5,8 @@ import type {
   PreviewState,
 } from '../../../../tooling/preview/protocol'
 import SystemPreviewFrame from '../../systems/components/SystemPreviewFrame.vue'
+import type { Box } from '../utils/boxes'
+import LabStageOverlay from './LabStageOverlay.vue'
 
 // A component's playground: its component file, rendered alone in the
 // system's preview document with the given props. New props reach the
@@ -18,6 +20,8 @@ import SystemPreviewFrame from '../../systems/components/SystemPreviewFrame.vue'
 // `update`. Escape in the stage hands the keyboard back to the studio
 // (`escape`), once the component has closed what it had open, so an overlay
 // that holds the focus never traps it.
+// Over the frame, the studio draws what Inspect and the dials point at
+// (`boxes`); each newly loaded document goes to the inspector (`ready`).
 const props = defineProps<{
   systemId: string
   /** The playground's preview ID: the catalog component's `playground`. */
@@ -25,13 +29,22 @@ const props = defineProps<{
   title: string
   /** Plain JSON values; a key left out or undefined takes its default. */
   props: PreviewProps
+  boxes?: Box[]
+  label?: string | null
+  /** Changes whenever the boxes may have moved. */
+  version?: number
 }>()
 const emit = defineEmits<{
   update: [prop: string, value: unknown]
   escape: []
+  ready: [view: Window & typeof globalThis]
 }>()
 
 const { t } = useI18n()
+const wrapper = useTemplateRef('wrapper')
+const frame = shallowRef<HTMLIFrameElement | null>(null)
+// The frame's own size changes move the overlay too.
+const resized = ref(0)
 const state = ref<PreviewState>('loading')
 function heard(message: PreviewMessage) {
   if (message.kind === 'update') emit('update', message.prop, message.value)
@@ -41,8 +54,13 @@ const blank = ref(false)
 let watcher: MutationObserver | undefined
 function fit(view: Window & typeof globalThis) {
   blank.value = !showsSomething(view)
+  resized.value++
 }
 function loaded(view: Window & typeof globalThis) {
+  frame.value =
+    wrapper.value?.querySelector<HTMLIFrameElement>(
+      'iframe[data-preview-frame]',
+    ) ?? null
   // What the component moves to the page's body, such as an open overlay,
   // changes what shows without changing the stage's size.
   watcher?.disconnect()
@@ -69,6 +87,7 @@ function loaded(view: Window & typeof globalThis) {
     },
     true,
   )
+  emit('ready', view)
 }
 onBeforeUnmount(() => watcher?.disconnect())
 
@@ -112,21 +131,29 @@ function settled(view: Window) {
 
 <template>
   <div>
-    <SystemPreviewFrame
-      :system-id="systemId"
-      :artifact="artifact"
-      :title="title"
-      :props="props.props"
-      :min-height="160"
-      :error-height="200"
-      :loading-text="t('lab.stage.loading')"
-      :error-text="t('lab.stage.error')"
-      frame-class="h-[min(var(--frame-height),40vh)] lg:h-[min(var(--frame-height),70vh)]"
-      @fit="fit"
-      @load="loaded"
-      @state="state = $event"
-      @message="heard"
-    />
+    <div ref="wrapper" class="relative">
+      <SystemPreviewFrame
+        :system-id="systemId"
+        :artifact="artifact"
+        :title="title"
+        :props="props.props"
+        :min-height="160"
+        :error-height="200"
+        :loading-text="t('lab.stage.loading')"
+        :error-text="t('lab.stage.error')"
+        frame-class="h-[min(var(--frame-height),40vh)] lg:h-[min(var(--frame-height),70vh)]"
+        @fit="fit"
+        @load="loaded"
+        @state="state = $event"
+        @message="heard"
+      />
+      <LabStageOverlay
+        :frame="frame"
+        :boxes="boxes ?? []"
+        :label="label"
+        :version="(version ?? 0) + resized"
+      />
+    </div>
     <p role="status" class="mt-2 text-sm text-muted empty:hidden">
       <template v-if="state === 'ready' && blank">{{
         t('lab.stage.blank')
