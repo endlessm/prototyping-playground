@@ -78,6 +78,7 @@ export default {
       '~/utils/dashboardRoute': 'runtime/app-modules.ts',
       '~/graphql_schemas/notifications': 'runtime/app-modules.ts',
       'floating-vue': 'runtime/floating-vue.ts',
+      '#ui/types': 'runtime/ui-types.ts',
     },
   },
 } satisfies SystemSpec;

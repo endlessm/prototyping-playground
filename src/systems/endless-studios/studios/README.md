@@ -41,6 +41,7 @@ Implemented in `../runtime/`, installed by `createStudiosApp`, never copied:
 | `useSvgSymbolsContainer` (`composables/useSvgSymbolsContainer.ts`) | `runtime/svg-symbols.ts`: the same symbol sharing, reading the element without `@vueuse/core` |
 | `~/assets/images/loader/endless-loader.svg?component` (nuxt-svgo) | `runtime/endless-loader-svg.ts`: the copied SVG file rendered as one `<svg>` component, for `Generic/CircularLoading` |
 | `floating-vue` (the `Dropdown` and `options` vue-mention imports) | `runtime/floating-vue.ts`: a theme registry and a dropdown that shows its `popper` slot above its anchor while `shown`, for PostCard's @mention list |
+| `#ui/types` (Nuxt UI's types through Nuxt's alias) | `runtime/ui-types.ts`: the same types from `@nuxt/ui`, for `KID/KIDEmailOption` |
 | `StudioLayout.vue` (`components/App/`) | `runtime/AppShell.vue`, used by the `shell` option: the same frame around the copied sidebar, top bar and footer, without the global modals and onboarding |
 
 A stand-in is registered in one place:
