@@ -197,9 +197,10 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
 
-  // The source editor, Mermaid, the Markdown parser and the canvas editor
-  // load on first use; bundled ahead, so opening them doesn't make Vite
-  // reload the page.
+  // The source editor, Mermaid, the Markdown parser, the code highlighter,
+  // the canvas editor and Nuxt DevTools load on first use; bundled ahead, so
+  // opening them doesn't make Vite bundle every dependency again and reload
+  // the page. The highlighter's languages follow `mdc.highlight.langs`.
   $development: {
     app: {
       head: {
@@ -255,6 +256,24 @@ export default defineNuxtConfig({
           'dialkit/vanilla',
           'mermaid',
           'yaml',
+          '@shikijs/core',
+          '@shikijs/engine-javascript',
+          '@shikijs/engine-oniguruma',
+          '@shikijs/transformers',
+          'shiki/wasm',
+          '@shikijs/langs/css',
+          '@shikijs/langs/diff',
+          '@shikijs/langs/html',
+          '@shikijs/langs/javascript',
+          '@shikijs/langs/json',
+          '@shikijs/langs/jsx',
+          '@shikijs/langs/markdown',
+          '@shikijs/langs/shellscript',
+          '@shikijs/langs/tsx',
+          '@shikijs/langs/typescript',
+          '@shikijs/langs/vue',
+          '@shikijs/langs/yaml',
+          '@vue/devtools-core',
         ],
       },
     },

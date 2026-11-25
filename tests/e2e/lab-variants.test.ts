@@ -19,7 +19,7 @@ import {
 import path from 'node:path'
 import type { FrameLocator, Locator, Page } from 'playwright'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
-import { useBrowser } from './setup/browser'
+import { firstOf, useBrowser } from './setup/browser'
 import {
   startDevServer,
   startStaticSite,
@@ -150,12 +150,14 @@ async function showCode(page: Page, title: string) {
   await visible(code(page, title))
   return ((await code(page, title).textContent()) ?? '').trim()
 }
-// The first code block makes Vite optimize Shiki and reload the page.
+// The first code block loads the highlighter. Should Vite still find a
+// dependency to bundle and reload the page, the reload ends the wait.
 async function warmUpCode(page: Page) {
   await card(page, 'Default').getByRole('button', { name: 'Show code' }).click()
-  await code(page, 'Default')
-    .waitFor({ timeout: 120_000 })
-    .catch(() => undefined)
+  await firstOf(
+    code(page, 'Default').waitFor({ timeout: 120_000 }),
+    page.waitForEvent('load', { timeout: 120_000 }),
+  )
   await page.reload()
   await heading(page, 'Default').waitFor({ timeout: 120_000 })
 }
