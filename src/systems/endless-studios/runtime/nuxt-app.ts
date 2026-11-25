@@ -73,12 +73,15 @@ export function createDayjs(locale: () => string) {
     const api = {
       format: (pattern = 'YYYY-MM-DDTHH:mm') =>
         pattern.replace(/\[([^\]]*)]|YYYY|YY|MMMM|MMM|MM|M|Do|DD|D|HH|hh|h|mm|A|LL|ll/g, (token, literal) => literal ?? tokens[token]()),
-      // Always a number, as dayjs says it ("2 days ago", never "the day before yesterday").
-      fromNow: () => {
+      // Always a number, as dayjs says it ("2 days ago", never "the day before yesterday"). `withoutSuffix` drops the
+      // "ago"/"in" ("2 days"), as dayjs's `fromNow(true)` does, for strings that add their own.
+      fromNow: (withoutSuffix = false) => {
         const seconds = (date.getTime() - Date.now()) / 1000;
         const units: [Intl.RelativeTimeFormatUnit, number][] = [['year', 31536000], ['month', 2592000], ['day', 86400], ['hour', 3600], ['minute', 60]];
         const [unit, size] = units.find(([, length]) => Math.abs(seconds) >= length) ?? ['second', 1];
-        return new Intl.RelativeTimeFormat(locale(), { numeric: 'always' }).format(Math.round(seconds / size), unit);
+        const amount = Math.round(seconds / size);
+        if (withoutSuffix) return new Intl.NumberFormat(locale(), { style: 'unit', unit, unitDisplay: 'long' }).format(Math.abs(amount));
+        return new Intl.RelativeTimeFormat(locale(), { numeric: 'always' }).format(amount, unit);
       },
       diff: (other: string | number | Date) => date.getTime() - new Date(other).getTime(),
       isBefore: (other: string | number | Date) => date.getTime() < new Date(other).getTime(),

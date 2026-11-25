@@ -164,6 +164,20 @@ export function versionStages(dir: string, drafts: Drafts | null) {
     },
     configureServer(dev) {
       server = dev
+      // A version's frame is a copy under its own address, so Vite never
+      // ties it to the frame's file: an edit to the frame reloads each copy.
+      const frameChanged = (file: string) => {
+        const changed = posix(path.resolve(file))
+        for (const [address, stage] of stages)
+          if (posix(path.resolve(stage.frame)) === changed && !stage.generic) {
+            const module = dev.moduleGraph.getModuleById(address)
+            if (module) void dev.reloadModule(module)
+          }
+      }
+      dev.watcher.on('change', frameChanged)
+      dev.httpServer?.once('close', () =>
+        dev.watcher.off('change', frameChanged),
+      )
       if (!drafts) return
       dev.watcher.add(drafts.dir)
       // A draft appearing or going away switches the stage to it or back.

@@ -30,6 +30,10 @@ To place only the sidebar beside a layout of your own, import the copied file: `
 - **Admin and other staff roles**: the same, plus an **Admin** group, open by default, listing the leader pages their roles allow (Games, Programs, Dashboard, Resources, Feed Console, Users, Institutions, Events, Analytics).
 - **Signed out**: the same links, with **Log in** and **Sign up** in place of Notifications and the profile.
 
+## Unread notifications
+
+Beside Notifications, the sidebar shows how many are unread, from the `NOTIFICATIONS_COUNT` query, and nothing when there are none. A view answers it with a sample: `sample: { queries: { NOTIFICATIONS_COUNT: { getUnreadNotificationsCount: { unread_notifications_count: 3 } } } }`.
+
 ## Active link
 
 The sidebar lights the link whose address matches the page: Home in orange, Play's links in purple, Learning's in blue. Screens here don't change address, so the preview shows the home page's state.
