@@ -3,6 +3,7 @@ import { PrototypeLink } from '#studio/prototype'
 import { computed, ref } from 'vue'
 import { cohorts, firstSteps, optionalSteps, ORG, people, roleBriefs, roles, TEAM, teams, type Person, type RoleKey } from '../../_wire/world'
 import { buildDistrict, type Place, type Position } from '../Explorations/Org Chart/_chart/district'
+import FaceStack from '../Explorations/Org Chart/_chart/FaceStack.vue'
 import StructureList from '../Explorations/Org Chart/_chart/StructureList.vue'
 import AppFrame from './AppFrame.vue'
 import AwardModal from './AwardModal.vue'
@@ -34,6 +35,10 @@ const props = defineProps<{
   teamsEmpty?: 'crew' | 'huddle' | 'orbit' | 'preview' | 'path'
   /** Art for the Crew exploration's middle tile, in place of the Team's own. */
   teamsEmptyHub?: string
+  /** Leaves the Structure tab out, for explorations where Teams & Cohorts shows the structure itself. */
+  noStructure?: boolean
+  /** Shows the Organization's own people at the right of its title, the Org Chart's face stack. */
+  members?: boolean
 }>()
 
 const teamsEmptyArt = {
@@ -53,7 +58,9 @@ const teamReport = reviewer && props.step === 4
 const created = manager && props.step === 7
 
 type Tab = 'Teams & Cohorts' | 'People' | 'Reports' | 'Structure'
-const tabs: Tab[] = reviewer ? ['Reports', 'Structure'] : ['Teams & Cohorts', 'People', 'Structure']
+const tabs: Tab[] = (reviewer ? ['Reports', 'Structure'] : ['Teams & Cohorts', 'People', 'Structure']).filter(
+  (t) => !(props.noStructure && t === 'Structure'),
+) as Tab[]
 // Teams & Cohorts opens the page on every step; a step's task modal opens over it. The Org Reviewer opens on Reports.
 const tab = ref<Tab>(reviewer ? 'Reports' : 'Teams & Cohorts')
 const tabItems = computed(() =>
@@ -230,29 +237,50 @@ const subtitle = teamReport
           <li aria-current="page" class="font-medium text-dimmed">{{ TEAM }}</li>
         </ol>
       </nav>
-      <div class="flex items-center gap-2">
-        <h1 class="text-3xl font-semibold text-highlighted">{{ title }}</h1>
-        <UTooltip v-if="owner" text="Rename" :delay-duration="150">
-          <UButton icon="i-lucide-pencil" color="neutral" variant="ghost" aria-label="Rename" />
-        </UTooltip>
-        <UBadge v-if="reviewer" color="neutral" variant="outline" icon="i-lucide-eye" class="ms-1">View only</UBadge>
-        <Marker v-if="teamReport" :flow="flow" :n="4" />
+      <div class="flex items-center gap-4">
+        <div class="flex min-w-0 flex-col gap-1">
+        <div class="flex items-center gap-2">
+          <h1 class="text-3xl font-semibold text-highlighted">{{ title }}</h1>
+          <UTooltip v-if="owner" text="Rename" :delay-duration="150">
+            <UButton icon="i-lucide-pencil" color="neutral" variant="ghost" aria-label="Rename" />
+          </UTooltip>
+          <UBadge v-if="reviewer" color="neutral" variant="outline" icon="i-lucide-eye" class="ms-1">View only</UBadge>
+          <Marker v-if="teamReport" :flow="flow" :n="4" />
+        </div>
+        <p class="text-sm text-muted">{{ subtitle }}</p>
+        </div>
+        <FaceStack v-if="members && !teamReport" :place="structure" align="end" size="3xl" class="ms-auto" />
       </div>
-      <p class="text-sm text-muted">{{ subtitle }}</p>
     </div>
 
-    <WelcomeCard
+    <!-- An exploration can draw the welcome its own way; every flow screen keeps the card. One object, since a slot's own name is taken. -->
+    <slot
       v-if="!teamReport"
-      :name="role.person.name"
-      :lead="welcome.lead"
-      :steps="firstSteps[viewer]"
-      :done="welcome.done"
-      :to="welcome.to"
-      :flow="flow"
-      :note="step === 3 ? 3 : undefined"
-      :optional="optionalSteps[viewer]"
-      :actions="welcomeActions"
-    />
+      name="welcome"
+      :card="{
+        name: role.person.name,
+        lead: welcome.lead,
+        steps: firstSteps[viewer],
+        done: welcome.done,
+        to: welcome.to,
+        flow,
+        note: step === 3 ? 3 : undefined,
+        optional: optionalSteps[viewer],
+        actions: welcomeActions,
+      }"
+    >
+      <WelcomeCard
+        :name="role.person.name"
+        :lead="welcome.lead"
+        :steps="firstSteps[viewer]"
+        :done="welcome.done"
+        :to="welcome.to"
+        :flow="flow"
+        :note="step === 3 ? 3 : undefined"
+        :optional="optionalSteps[viewer]"
+        :actions="welcomeActions"
+      />
+    </slot>
 
     <div class="flex flex-col gap-6">
       <div v-if="!teamReport">
@@ -323,6 +351,11 @@ const subtitle = teamReport
       </div>
 
       <section v-else-if="tab === 'Teams & Cohorts'" class="flex flex-col gap-3">
+        <!-- An exploration can draw the tab its own way; it gets the empty state's words and the first task with people. -->
+        <slot
+          name="teams"
+          :tab="{ empty, owner, firstRoles, addFirst: () => (adding = firstRole) }"
+        >
         <template v-if="created">
           <div class="flex items-center justify-between gap-4">
             <div class="flex items-center gap-2">
@@ -368,6 +401,7 @@ const subtitle = teamReport
             </UButton>
           </component>
         </UCard>
+        </slot>
       </section>
 
       <PeopleDirectory

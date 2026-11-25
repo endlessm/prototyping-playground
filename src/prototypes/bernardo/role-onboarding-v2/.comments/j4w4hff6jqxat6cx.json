@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "j4w4hff6jqxat6cx",
+  "artifact": "p337ma56hqfffb9z",
+  "artifactTitle": "Teams Transition",
+  "anchor": {
+    "kind": "paragraph",
+    "label": "Paragraph \"No Cohorts yet\"",
+    "at": {
+      "x": 0.371,
+      "y": 0.2909
+    },
+    "selector": "p.rounded-lg.border:nth-of-type(2)",
+    "tag": "p",
+    "path": ".tt-morph > div > .flex > .flex > .rounded-lg",
+    "text": "No Cohorts yet",
+    "box": {
+      "left": 1136,
+      "top": 782,
+      "width": 758,
+      "height": 70,
+      "viewport": 2525
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-23T22:58:30.451Z",
+  "messages": [
+    {
+      "id": "7j8wbf207d09zmhs",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "vamos colocar o empty state de cohorts que criamos com as animaçõ,es.",
+      "createdAt": "2026-11-23T22:43:49.783Z"
+    },
+    {
+      "id": "hyw1njpk8jnvcrt3",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "A Team with no Cohorts now shows the animated classroom huddle from the empty-state kit (No Cohorts yet, Create a Cohort for each class this Team runs, Create a Cohort button), on the same gray surface.",
+      "createdAt": "2026-11-23T22:53:52.317Z"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "dmsjacmshh885q49",
+  "artifact": "p337ma56hqfffb9z",
+  "artifactTitle": "Teams Transition",
+  "anchor": {
+    "kind": "heading",
+    "label": "Heading \"team\"",
+    "at": {
+      "x": 0.0609,
+      "y": 0.5117
+    },
+    "selector": "h3.text-lg.font-semibold",
+    "tag": "h3",
+    "path": ".tt-morph > div > .flex > .flex > .text-lg",
+    "text": "team",
+    "box": {
+      "left": 1136,
+      "top": 560,
+      "width": 758,
+      "height": 28,
+      "viewport": 2525
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-23T22:58:27.464Z",
+  "messages": [
+    {
+      "id": "cq13dsmw3kyrpvjw",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Os títulos dentro dos cards tem que aumentar. aumente recursivamente até os empty states.",
+      "createdAt": "2026-11-23T22:44:27.084Z"
+    },
+    {
+      "id": "3fq614at6kx73922",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Titles went up a level all the way down: Team name and Create a Team 2xl, section headings (Team Owners, Team Managers, Cohorts) base semibold in the main text color instead of small gray labels, Cohort card names base semibold, and the empty-state titles xl (shared huddle, so every empty state in the prototype grows too).",
+      "createdAt": "2026-11-23T22:53:54.719Z"
+    }
+  ]
+}

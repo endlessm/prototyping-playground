@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "yf15xpeyskhfn0xa",
+  "artifact": "vb8trj3fnfy1k97g",
+  "artifactTitle": "Org Chart",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Brightwater Unified School District2 Te…\"",
+    "at": {
+      "x": 0,
+      "y": 0.139
+    },
+    "selector": "div.overflow-hidden.rounded-xl:nth-of-type(2)",
+    "tag": "div",
+    "path": ".flex > .mx-auto > .flex > .flex > .overflow-hidden",
+    "text": "Brightwater Unified School District2 TeamsGHMBLPTeam NameCohort StatusCollapse allBrightwater High Game Design2 Cohorts…",
+    "box": {
+      "left": 686,
+      "top": 357,
+      "width": 1088,
+      "height": 403,
+      "viewport": 2236
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-23T19:13:17.610Z",
+  "messages": [
+    {
+      "id": "7axxvpkbdk4bpv1q",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "vamos fazer alternativas com emil-prototype",
+      "createdAt": "2026-11-23T18:50:02.157Z"
+    },
+    {
+      "id": "16svv9fy59gtqe83",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Alternatives are in the new view Org Chart/Structure Alternatives, on the real Org page with the picker at the bottom (1-4, arrows, R replays): List (today), Board (a wall of Team cards with their Cohorts and run bars inside, nothing folds), Focus (Teams down the left, the picked Team in full on the right with staff by name and Cohort cards) and Phases (Cohorts sorted into Upcoming / Under way / Finished, with Team chips to narrow). Each has a named state for canvases, plus Large district. OrgChartPage got a structure slot with today's list as its fallback, so Org Chart itself is unchanged.",
+      "createdAt": "2026-11-23T18:56:14.753Z"
+    }
+  ]
+}

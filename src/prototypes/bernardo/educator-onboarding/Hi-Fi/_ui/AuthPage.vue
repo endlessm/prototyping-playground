@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import brushKids from '~/assets/images/backgrounds/27CEA6.png'
-import logo from '~/assets/images/logo-endless-studios-orange.svg'
+import AuthTopBar from './AuthTopBar.vue'
 import s from './ui.module.css'
 import banner from './threadbare-banner.jpg'
 
-// Account pages: the brand panel beside one 400px column. The panel is the live sign-up's Threadbare banner
-// (account.endlessstudios.com/static/img/threadbare_banner_1.png), image only. `kids` keeps the teal panel, the
-// colour reserved for youth-gated surfaces.
+// Account pages: the brand panel beside the form panel, whose top corners hold the logo and languages. The brand
+// panel is the live sign-up's Threadbare banner (account.endlessstudios.com/static/img/threadbare_banner_1.png),
+// image only. `kids` keeps the teal panel, the colour reserved for youth-gated surfaces.
 withDefaults(defineProps<{ header?: boolean; centered?: boolean; kids?: boolean }>(), {
   header: true,
   centered: false,
@@ -37,12 +37,11 @@ withDefaults(defineProps<{ header?: boolean; centered?: boolean; kids?: boolean 
           Youth protection keeps some features off until a parent or trusted adult says yes.
         </p>
       </div>
-      <div :class="[s.authColumn, centered && s.centered]">
-        <div v-if="header" :class="s.authHeader">
-          <img :src="logo" alt="Endless Studios" :class="s.logo" />
-          <span :class="s.languages"><b>English</b> · Español</span>
+      <div :class="s.authPanel">
+        <AuthTopBar v-if="header" />
+        <div :class="[s.authColumn, centered && s.centered]">
+          <div :class="s.stack"><slot /></div>
         </div>
-        <div :class="s.stack"><slot /></div>
       </div>
     </div>
   </div>

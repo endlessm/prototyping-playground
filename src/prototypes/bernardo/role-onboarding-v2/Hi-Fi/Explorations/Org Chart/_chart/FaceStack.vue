@@ -4,18 +4,29 @@ import { occupantsOf, type Occupant, type Place } from './district'
 
 // The faces of a place's people, each once with every position they hold there. The stack spreads apart when the
 // pointer or focus enters it, and the face under the pointer lifts, with its name and positions in a tooltip. Past five
-// faces a count lists the rest. `align` says which side the stack and the list of the rest hang from.
-const props = withDefaults(defineProps<{ place: Place; align?: 'start' | 'end' }>(), { align: 'start' })
+// faces a count lists the rest. `align` says which side the stack and the list of the rest hang from; `size` is `3xl`
+// beside a page's title and subtitle, `md` beside a title alone, `xs` on cards and lines.
+const props = withDefaults(defineProps<{ place: Place; align?: 'start' | 'end'; size?: 'xs' | 'md' | '3xl' }>(), {
+  align: 'start',
+  size: 'xs',
+})
+
+const sizes = {
+  xs: { px: 24, count: 'size-6 text-[10px]', fallback: 'text-[10px]' },
+  md: { px: 32, count: 'size-8 text-xs', fallback: 'text-xs' },
+  '3xl': { px: 48, count: 'size-12 text-sm', fallback: 'text-sm' },
+}
+const dims = computed(() => sizes[props.size])
 
 const MAX = 5
 const occupants = computed(() => occupantsOf(props.place))
 const shown = computed(() => occupants.value.slice(0, MAX))
 const rest = computed(() => occupants.value.slice(MAX))
 
-// The stack keeps room for its spread width (24px faces, 4px apart), so spreading never resizes what holds it.
+// The stack keeps room for its spread width (faces 4px apart), so spreading never resizes what holds it.
 const spreadWidth = computed(() => {
   const items = shown.value.length + (rest.value.length ? 1 : 0)
-  return items ? items * 24 + (items - 1) * 4 : 0
+  return items ? items * dims.value.px + (items - 1) * 4 : 0
 })
 
 const roles = (o: Occupant) => o.roles.join(', ')
@@ -45,10 +56,11 @@ const spring = 'ease-[cubic-bezier(0.34,1.56,0.64,1)]'
         >
           <UAvatar
             :text="o.initials"
+            :src="o.photo"
             :alt="o.name"
-            size="xs"
+            :size="size"
             class="ring-2 ring-bg"
-            :ui="{ fallback: 'text-[10px]' }"
+            :ui="{ fallback: dims.fallback }"
             :class="o.invited ? 'bg-info-50 text-info-700 outline-1 outline-info-300 outline-dashed' : 'bg-secondary-50 text-secondary-700'"
           />
         </span>
@@ -70,8 +82,8 @@ const spring = 'ease-[cubic-bezier(0.34,1.56,0.64,1)]'
         <button
           type="button"
           :aria-label="`${rest.length} more people`"
-          class="flex size-6 cursor-pointer items-center justify-center rounded-full bg-elevated text-[10px] font-medium text-muted ring-2 ring-bg transition-[transform,background-color] duration-300 hover:scale-110 hover:bg-accented focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary data-[state=open]:bg-accented motion-reduce:transition-none"
-          :class="spring"
+          class="flex cursor-pointer items-center justify-center rounded-full bg-elevated font-medium text-muted ring-2 ring-bg transition-[transform,background-color] duration-300 hover:scale-110 hover:bg-accented focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary data-[state=open]:bg-accented motion-reduce:transition-none"
+          :class="[spring, dims.count]"
         >
           +{{ rest.length }}
         </button>
@@ -80,6 +92,7 @@ const spring = 'ease-[cubic-bezier(0.34,1.56,0.64,1)]'
             <li v-for="o in rest" :key="o.email" class="flex items-center gap-2.5 rounded-md px-2 py-1.5">
               <UAvatar
                 :text="o.initials"
+                :src="o.photo"
                 :alt="o.name"
                 size="sm"
                 :class="o.invited ? 'bg-info-50 text-info-700' : 'bg-secondary-50 text-secondary-700'"

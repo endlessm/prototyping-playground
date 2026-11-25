@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import CircularLoading from '~/components/Generic/CircularLoading.vue'
 import { useId } from 'vue'
 import type { MapRoleKey } from '../../_map/story'
 import { roleIllustrations } from './illustrations'
@@ -7,7 +8,8 @@ import { roleIllustrations } from './illustrations'
 // says which kind of place is waiting, `hub`: for a Team, hands come in from every side and stack, the way a team
 // does before it starts, and every few seconds they press together and spring apart; for a Cohort, a classroom with
 // its board and three empty seats, where the lesson is wiped and written again. Around the tile stand the people who
-// will fill the place, `crew`, nearest first; the spots left over are open seats. The art is decorative.
+// will fill the place, `crew`, nearest first; the spots left over are open seats. The art is decorative. `loader` puts
+// the Endless Loader in the tile instead, for the moment a place is being created in front of the same crew.
 //
 // The page gives the title, the line under it (the `lead` slot) and its own buttons (the default slot). A page with
 // nothing to offer, such as a view-only one, leaves the buttons out. It sits flush inside a card with no padding.
@@ -19,8 +21,8 @@ const {
   title: string
   /** Up to six roles whose figures stand around the tile, the first two nearest to it. */
   crew?: MapRoleKey[]
-  /** The art in the middle tile: hands stacking for a Team, a classroom for a Cohort. */
-  hub?: 'hands' | 'classroom'
+  /** The art in the middle tile: hands stacking for a Team, a classroom for a Cohort, the loader while creating. */
+  hub?: 'hands' | 'classroom' | 'loader'
 }>()
 
 // The figures stand on the rings drawn behind them, two to a ring: a ring's radius is its figures' distance from the
@@ -121,7 +123,8 @@ const clip = `eh-clip-${useId()}`
         <span class="eh-hub-body">
           <span class="eh-hub-pulse" />
           <span class="eh-hub-tile">
-            <svg class="eh-hands" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg">
+            <span v-if="hub === 'loader'" class="eh-loader"><CircularLoading :size="64" /></span>
+            <svg v-else class="eh-hands" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg">
               <clipPath :id="clip"><rect width="96" height="96" rx="28" /></clipPath>
               <g v-if="hub === 'classroom'" :clip-path="`url(#${clip})`">
                 <rect y="79" width="96" height="17" fill="#fce7f3" />
@@ -204,7 +207,7 @@ const clip = `eh-clip-${useId()}`
     </div>
 
     <div class="eh-copy">
-      <p class="text-base font-semibold text-highlighted">{{ title }}</p>
+      <p class="text-xl font-semibold text-highlighted">{{ title }}</p>
       <p v-if="$slots.lead" class="text-sm text-muted"><slot name="lead" /></p>
       <div v-if="$slots.default" class="eh-action"><slot /></div>
     </div>
@@ -332,6 +335,14 @@ const clip = `eh-clip-${useId()}`
     0 1px 2px rgb(15 12 36 / 0.06),
     0 12px 28px -10px rgb(101 86 240 / 0.35);
   transition: scale 240ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.eh-loader {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
 }
 
 .eh-hands {

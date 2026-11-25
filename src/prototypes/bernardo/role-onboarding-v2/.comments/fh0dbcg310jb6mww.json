@@ -1,0 +1,67 @@
+{
+  "formatVersion": 1,
+  "id": "fh0dbcg310jb6mww",
+  "artifact": "p337ma56hqfffb9z",
+  "artifactTitle": "Teams Transition",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Brightwater Unified School District\"",
+    "at": {
+      "x": 0.6838,
+      "y": 0.6111
+    },
+    "selector": "div.flex.flex-col:nth-of-type(1) > div.flex.items-center",
+    "tag": "div",
+    "path": ".flex > .flex > .mx-auto > .flex > .flex",
+    "text": "Brightwater Unified School District",
+    "box": {
+      "left": 649,
+      "top": 96,
+      "width": 1088,
+      "height": 36,
+      "viewport": 2162
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-23T19:49:00.271Z",
+  "messages": [
+    {
+      "id": "xp08a300zq6s4bwx",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "vamos colocar, alinhados à direita, os membros que estão no nível de organização. pode usar a mesma animação de hover que estavamos usando no org chart",
+      "createdAt": "2026-11-23T19:40:25.479Z"
+    },
+    {
+      "id": "zqq9fe0463wv4c78",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done. The Organization's own people (Org Owners, Org Managers, Org Reviewers) now sit at the right of the title row, using the Org Chart's FaceStack: same spread and lift on hover, name and role in the tooltip, +N past five. It's opt-in via a new members prop on _ui/OrgPage.vue, turned on only in Teams Transition.vue, so the flow screens are unchanged.",
+      "createdAt": "2026-11-23T19:44:36.620Z"
+    },
+    {
+      "id": "mxpjxnbgremc2n8x",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Avatars beside the title are now 32px (were 24px). FaceStack.vue got a size prop (xs by default, md here); the Org Chart cards and lines keep 24px.",
+      "createdAt": "2026-11-23T19:47:05.676Z"
+    },
+    {
+      "id": "1daecafqjt10a18a",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Added real photos from Unsplash: 9 of the 11 sample people now have one (Sam Rivera and Kevin Moore keep their initials). The photos live on each person in _wire/world.ts and FaceStack.vue shows them, so the Org Chart's stacks get them too. Invited people keep the dashed outline.",
+      "createdAt": "2026-11-23T19:50:55.763Z"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "xs5sfhqpr54k3e9m",
+  "artifact": "p337ma56hqfffb9z",
+  "artifactTitle": "Teams Transition",
+  "anchor": {
+    "kind": "button",
+    "label": "Button \"Ben Carterben.carter@brightwaterschools…\"",
+    "at": {
+      "x": 0.0707,
+      "y": 0.5334
+    },
+    "selector": "button.ap-row-item:nth-of-type(3)",
+    "tag": "button",
+    "path": "div > div#reka-popover-content-v-15 > .max-h-72 > .ap-row-item",
+    "text": "Ben Carterben.carter@brightwaterschools.org",
+    "box": {
+      "left": 1136,
+      "top": 866,
+      "width": 303,
+      "height": 56,
+      "viewport": 2525
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-23T22:58:34.425Z",
+  "messages": [
+    {
+      "id": "ehef4bhza81m21cg",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "todas as imagens tem que ser coloridas. fica dificil de ver quem é quem com ela preto e branca. e vamos adicionar uma animação para quando se seleciona alguém. aqui está o link de um vídeo de referencia. https://x.com/desdivj/status/2123350429035872573?a=4TVWeFzCym_o7cmY6w4&s=20",
+      "createdAt": "2026-11-23T22:43:04.613Z"
+    },
+    {
+      "id": "f0kzhdk7vynn91hq",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Every face in the lists is in full color now (the grayscale for people not yet picked is gone). Picking someone plays a flight modeled on the reference: the face lifts out of its row on an arc, grows to its new size and lands with a small bounce in the row of faces (Team Owners and Team Managers) or in the Team Owner card of the Create a Team form. Shared in _teams/flyFace.ts; off with reduced motion.",
+      "createdAt": "2026-11-23T22:53:50.102Z"
+    }
+  ]
+}

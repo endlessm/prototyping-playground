@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "9k2jqg5t6keh9e2x",
+  "artifact": "vb8trj3fnfy1k97g",
+  "artifactTitle": "Org Chart",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"2 Teams\"",
+    "at": {
+      "x": 0.5968,
+      "y": 0.25
+    },
+    "selector": "span.text-xs.font-medium",
+    "tag": "span",
+    "path": ".flex > .flex > .overflow-hidden > .flex > .text-xs",
+    "text": "2 Teams",
+    "box": {
+      "left": 703,
+      "top": 429,
+      "width": 49,
+      "height": 16,
+      "viewport": 2236
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-23T18:48:10.184Z",
+  "messages": [
+    {
+      "id": "x7q5cnsf802b9s8q",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Mude o label para \"Team Name\" e alinhe com o nome do team na linha de baixo.",
+      "createdAt": "2026-11-23T18:33:14.752Z"
+    },
+    {
+      "id": "md2qpqjn2a9cpa6w",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in Hi-Fi/Explorations/Org Chart/_chart/StructureList.vue: the bar above the Teams now reads Team Name instead of the count, and it is built like a Team row (same rail and padding), so the label starts exactly where each Team's name does. Collapse all stays at the right end. Also applies to the Org page's Structure tab, which renders the same list.",
+      "createdAt": "2026-11-23T18:36:54.971Z"
+    }
+  ]
+}

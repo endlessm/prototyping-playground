@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "x71w8tz9jrkvkqmw",
+  "artifact": "p337ma56hqfffb9z",
+  "artifactTitle": "Teams Transition",
+  "anchor": {
+    "kind": "paragraph",
+    "label": "Paragraph \"Pick someone below, or type an email to…\"",
+    "at": {
+      "x": 0.1205,
+      "y": 0.8634
+    },
+    "selector": "p.flex.items-start",
+    "tag": "p",
+    "path": "div > div#reka-popover-content-v-11 > .flex > .flex",
+    "text": "Pick someone below, or type an email to invite someone new.",
+    "box": {
+      "left": 875,
+      "top": 906,
+      "width": 296,
+      "height": 32,
+      "viewport": 2525
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-23T22:58:24.467Z",
+  "messages": [
+    {
+      "id": "7gsycefptvfrbw35",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Essa parte não precisa existir mais",
+      "createdAt": "2026-11-23T22:45:27.552Z"
+    },
+    {
+      "id": "gyzj1fvgvrqbas03",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Removed the 'Pick someone below, or type an email to invite someone new.' hint from both pickers (avatars and the Team Owner card). The search placeholder still says 'Search a name or type an email'.",
+      "createdAt": "2026-11-23T22:53:57.489Z"
+    }
+  ]
+}

@@ -15,6 +15,8 @@ export interface Person {
   name: string
   initials: string
   email: string
+  /** A face from Unsplash, for the Hi-Fi's avatars; someone without one shows their initials. */
+  photo?: string
 }
 
 export const ORG = 'Brightwater Unified School District'
@@ -36,26 +38,29 @@ export const FALL_COHORT = 'Fall Godot Club'
 export const LAB_TEAM = 'Weekend Game Lab'
 export const LAB_COHORT = 'Saturday Godot Jam'
 
-const person = (name: string, email: string): Person => ({
+const unsplash = (id: string) => `https://images.unsplash.com/photo-${id}?w=96&h=96&fit=crop&crop=faces&q=80`
+
+const person = (name: string, email: string, photo?: string): Person => ({
   name,
   initials: name
     .split(' ')
     .map((part) => part[0])
     .join(''),
   email,
+  ...(photo ? { photo: unsplash(photo) } : {}),
 })
 
 export const people = {
-  alex: person('Alex Kim', 'alex.kim@endlessaccess.org'),
-  grace: person('Grace Holloway', 'grace.holloway@brightwaterschools.org'),
-  marcus: person('Marcus Bell', 'marcus.bell@brightwaterschools.org'),
-  linda: person('Linda Park', 'linda.park@brightwaterschools.org'),
-  daniel: person('Daniel Reyes', 'daniel.reyes@brightwaterschools.org'),
-  aisha: person('Aisha Rahman', 'aisha.rahman@brightwaterschools.org'),
-  ben: person('Ben Carter', 'ben.carter@brightwaterschools.org'),
-  sofia: person('Sofia Lopez', 'sofia.lopez@brightwaterschools.org'),
+  alex: person('Alex Kim', 'alex.kim@endlessaccess.org', '1507003211169-0a1dd7228f2d'),
+  grace: person('Grace Holloway', 'grace.holloway@brightwaterschools.org', '1508214751196-bcfd4ca60f91'),
+  marcus: person('Marcus Bell', 'marcus.bell@brightwaterschools.org', '1566492031773-4f4e44671857'),
+  linda: person('Linda Park', 'linda.park@brightwaterschools.org', '1534528741775-53994a69daeb'),
+  daniel: person('Daniel Reyes', 'daniel.reyes@brightwaterschools.org', '1557862921-37829c790f19'),
+  aisha: person('Aisha Rahman', 'aisha.rahman@brightwaterschools.org', '1531123897727-8f129e1688ce'),
+  ben: person('Ben Carter', 'ben.carter@brightwaterschools.org', '1599566150163-29194dcaad36'),
+  sofia: person('Sofia Lopez', 'sofia.lopez@brightwaterschools.org', '1544725176-7c40e5a71c5e'),
   sam: person('Sam Rivera', 'sam.rivera@gmail.com'),
-  priya: person('Priya Nair', 'priya.nair@brightwaterschools.org'),
+  priya: person('Priya Nair', 'priya.nair@brightwaterschools.org', '1607746882042-944635dfe10e'),
   kevin: person('Kevin Moore', 'kevin.moore@brightwaterschools.org'),
 }
 

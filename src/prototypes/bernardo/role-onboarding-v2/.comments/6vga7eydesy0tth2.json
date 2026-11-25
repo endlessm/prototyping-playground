@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "6vga7eydesy0tth2",
+  "artifact": "gkq8mwzd23vzywh6",
+  "artifactTitle": "Teams Transition · Created, no one invited",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Brightwater Unified School DistrictOrga…\"",
+    "at": {
+      "x": 0.9129,
+      "y": 0.6172
+    },
+    "selector": "main.mx-auto.flex > div.flex.flex-col:nth-of-type(1)",
+    "tag": "div",
+    "path": "div > .flex > .flex > .mx-auto > .flex",
+    "text": "Brightwater Unified School DistrictOrganization · 0 Teams",
+    "box": {
+      "left": 831,
+      "top": 96,
+      "width": 1088,
+      "height": 60,
+      "viewport": 2525
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-23T23:00:41.189Z",
+  "messages": [
+    {
+      "id": "v58z7cbjxgqg93yh",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Os avatares podem ser 3xl aqui e se alinhar com o titulo +subtitulo ao invés de se alinhar somente com o título.",
+      "createdAt": "2026-11-23T22:58:14.963Z"
+    },
+    {
+      "id": "pzxe3gq13dza7def",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "The faces beside the Organization name are 3xl now (48px), and the stack sits beside the title and subtitle together, centered on that two-line block instead of the title line. Same hover spread and lift as before.",
+      "createdAt": "2026-11-23T23:01:48.998Z"
+    }
+  ]
+}

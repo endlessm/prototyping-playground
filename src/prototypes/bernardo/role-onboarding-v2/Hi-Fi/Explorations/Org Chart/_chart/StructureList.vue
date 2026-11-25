@@ -153,11 +153,19 @@ const toggleAll = () =>
       </div>
 
       <template v-if="shown.length">
-        <div class="flex items-center justify-between border-b border-default bg-elevated/50 px-4 py-1.5">
-          <span class="text-xs font-medium text-muted">{{ shown.length }} Teams</span>
-          <UButton color="neutral" variant="link" size="xs" class="-me-2" @click="toggleAll">
-            {{ allFolded() ? 'Expand all' : 'Collapse all' }}
-          </UButton>
+        <!-- Column heads, built like a row so each label starts where its column does: the Team's name, the Cohort's status badge. -->
+        <div class="place heads border-b border-default bg-elevated/50 text-xs font-medium text-muted">
+          <span class="rail" aria-hidden="true" />
+          <span class="place-text">Team Name</span>
+          <span class="place-run">
+            <span class="run-gap" aria-hidden="true" />
+            <span class="w-24 text-center">Cohort Status</span>
+          </span>
+          <span class="place-faces">
+            <UButton color="neutral" variant="link" size="xs" class="-me-2" @click="toggleAll">
+              {{ allFolded() ? 'Expand all' : 'Collapse all' }}
+            </UButton>
+          </span>
         </div>
 
         <ul class="divide-y divide-default">
@@ -290,6 +298,17 @@ const toggleAll = () =>
   display: flex;
   flex: none;
   align-items: center;
+}
+
+/* The heads row: no branch to draw, so its own short padding. The gap stands in for the run's progress ring and the
+   space after it (w-14 plus gap-3 in CohortRun), so Cohort Status sits over the badge. */
+.heads {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  align-items: center;
+}
+.run-gap {
+  width: 68px;
 }
 
 /* The branch going on down to the next Cohort. */

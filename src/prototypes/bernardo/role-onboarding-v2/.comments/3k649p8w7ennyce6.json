@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "3k649p8w7ennyce6",
+  "artifact": "vb8trj3fnfy1k97g",
+  "artifactTitle": "Org Chart",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"2 TeamsCollapse all\"",
+    "at": {
+      "x": 0.5064,
+      "y": 0.5676
+    },
+    "selector": "div.overflow-hidden.rounded-xl:nth-of-type(2) > div.flex.items-center:nth-of-type(2)",
+    "tag": "div",
+    "path": ".mx-auto > .flex > .flex > .overflow-hidden > .flex",
+    "text": "2 TeamsCollapse all",
+    "box": {
+      "left": 687,
+      "top": 419,
+      "width": 1086,
+      "height": 37,
+      "viewport": 2236
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-23T18:48:12.964Z",
+  "messages": [
+    {
+      "id": "xw1wqp0922mg70wx",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "Adicione um label de \"Cohort Status\" alinhado com o status do cohort",
+      "createdAt": "2026-11-23T18:33:44.641Z"
+    },
+    {
+      "id": "5s95qm6a4t8t8tr5",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in the same file: the bar now has a Cohort Status label over the Cohorts' status badges, centred on them (same 96px column, measured in the browser). It sits over the badge only, not the progress ring beside it; say if it should span both.",
+      "createdAt": "2026-11-23T18:36:56.793Z"
+    }
+  ]
+}

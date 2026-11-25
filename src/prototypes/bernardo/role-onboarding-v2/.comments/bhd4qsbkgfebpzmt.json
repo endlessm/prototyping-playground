@@ -1,0 +1,33 @@
+{
+  "formatVersion": 1,
+  "id": "bhd4qsbkgfebpzmt",
+  "artifact": "qvwsvg87jcp55ywq",
+  "artifactTitle": "Structure Alternatives · Focus",
+  "anchor": {
+    "kind": "artifact"
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-23T19:40:34.818Z",
+  "messages": [
+    {
+      "id": "1x2ghgwwvxr9dpe4",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "gostei muito dessa alternativa. acho que ela pode ser a view da aba \"Teams\" quando ela estiver populada. fazendo isso, a aba structure não existe mais. Agora vamos criar um plano de transição que envolve, quando a pessoa estiver vendo o empty state de teams e clica para criar uma equipe nova, a própria view se transforma em um card de adicionar o time. a animação deve mostrar o empty state saindo da tela e os campos de criar o time entrando.",
+      "createdAt": "2026-11-23T19:13:12.076Z"
+    },
+    {
+      "id": "c2sfd6cgh3qpnb6r",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Built as a new exploration, Explorations/Teams Transition, on the real Org page (Grace, Org Owner), with no Structure tab. Empty Teams & Cohorts: Create a Team turns the empty state into the form in place (the empty state rises and fades out, the card grows, the fields rise in one by one). Create Team holds for a beat, then the form turns into the Focus layout with the new Team picked, landing on the list with a pop and a green wash. Team Owners and Team Managers nobody was invited to show their own empty state with an Add button that works. With Teams, Create a Team turns only the right side into the form, and the Team being written shows on the list as a dashed 'Not created yet' item with its name live. States: Form, Created no one invited, With Teams. Flow screens are unchanged: OrgPage got a teams slot and a noStructure prop, both off by default.",
+      "createdAt": "2026-11-23T19:31:25.323Z"
+    }
+  ]
+}

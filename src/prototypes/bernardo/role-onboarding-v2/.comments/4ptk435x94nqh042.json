@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "id": "4ptk435x94nqh042",
+  "artifact": "p337ma56hqfffb9z",
+  "artifactTitle": "Teams Transition",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Belongs toBrightwater Unified School Di…\"",
+    "at": {
+      "x": 0.5,
+      "y": 0.1209
+    },
+    "selector": "div.text-sm:nth-of-type(3)",
+    "tag": "div",
+    "path": ".tt-card > .tt-morph > div > form#v-62 > .text-sm",
+    "text": "Belongs toBrightwater Unified School DistrictPrograms open to everyone, plus the district's custom ProgramsIndependentP…",
+    "box": {
+      "left": 897,
+      "top": 670,
+      "width": 592,
+      "height": 174,
+      "viewport": 2162
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-23T22:46:00.705Z",
+  "messages": [
+    {
+      "id": "hsvjhpdzxjrnjaxj",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "ja estamos dentro da org. precisamos de achar uma nova maneira de criar teams de uma maneira independente para quem faz parte de uma organização, mas não vai ser agora. coloca um pin nesse assunto e vamos otimizar para quem faz parte da organização.",
+      "createdAt": "2026-11-23T19:50:57.479Z"
+    },
+    {
+      "id": "t93bezkxchbade6x",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in _teams/TeamForm.vue: Belongs to is gone, so a Team created here always belongs to the Organization. Pinned the open question (how someone in an Organization creates an Independent Team) under Open questions in Roles and Onboarding Review.md.",
+      "createdAt": "2026-11-23T20:06:11.636Z"
+    }
+  ]
+}
