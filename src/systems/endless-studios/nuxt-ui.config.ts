@@ -34,6 +34,28 @@ export default {
       success: 'lime',
       error: 'red',
     },
+    // UAvatar. These are Nuxt UI's default classes, copied here so they can be changed. Not yet in the frontend.
+    avatar: {
+      slots: {
+        root: 'inline-flex items-center justify-center shrink-0 select-none rounded-full align-middle bg-elevated',
+        image: 'h-full w-full rounded-[inherit] object-cover',
+        fallback: 'font-medium truncate text-muted',
+        icon: 'shrink-0 text-muted',
+      },
+      variants: {
+        size: {
+          '3xs': { root: 'size-4 text-[8px]' },
+          '2xs': { root: 'size-5 text-[10px]' },
+          xs: { root: 'size-6 text-xs' },
+          sm: { root: 'size-7 text-sm' },
+          md: { root: 'size-8 text-base' },
+          lg: { root: 'size-9 text-lg' },
+          xl: { root: 'size-10 text-xl' },
+          '2xl': { root: 'size-11 text-[22px]' },
+          '3xl': { root: 'size-12 text-2xl' },
+        },
+      },
+    },
     alert: {
       slots: {
         root: 'rounded-xl',

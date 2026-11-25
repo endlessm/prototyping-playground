@@ -39,6 +39,11 @@ export function useState<T>(key: string, init?: () => T): Ref<T> {
   return map.get(key) as Ref<T>;
 }
 
+// dayjs-nuxt's auto-imported `useDayjs()`: the same `$dayjs`.
+export function useDayjs() {
+  return useNuxtApp().$dayjs;
+}
+
 export function useGraphQLQuery(query: MaybeRefOrGetter<unknown>, options?: Parameters<typeof sampleQuery>[2]) {
   const app = useNuxtApp();
   return sampleQuery({ graphql: app.graphql, loggedIn: () => app.$auth.loggedIn }, query, options);
@@ -74,8 +79,10 @@ export function createDayjs(locale: () => string) {
       format: (pattern = 'YYYY-MM-DDTHH:mm') =>
         pattern.replace(/\[([^\]]*)]|YYYY|YY|MMMM|MMM|MM|M|Do|DD|D|HH|hh|h|mm|A|LL|ll/g, (token, literal) => literal ?? tokens[token]()),
       // Always a number, as dayjs says it ("2 days ago", never "the day before yesterday").
-      fromNow: () => {
-        const seconds = (date.getTime() - Date.now()) / 1000;
+      fromNow: (): string => api.from(Date.now()),
+      // Relative to another date or `$dayjs()` (whose valueOf is its time), as feed posts and comments use it.
+      from: (other: string | number | Date | { valueOf(): number }) => {
+        const seconds = (date.getTime() - new Date(other.valueOf()).getTime()) / 1000;
         const units: [Intl.RelativeTimeFormatUnit, number][] = [['year', 31536000], ['month', 2592000], ['day', 86400], ['hour', 3600], ['minute', 60]];
         const [unit, size] = units.find(([, length]) => Math.abs(seconds) >= length) ?? ['second', 1];
         return new Intl.RelativeTimeFormat(locale(), { numeric: 'always' }).format(Math.round(seconds / size), unit);
