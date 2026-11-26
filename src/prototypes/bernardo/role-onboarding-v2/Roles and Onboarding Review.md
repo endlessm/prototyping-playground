@@ -271,5 +271,6 @@ Every flow has the same four beats: the invite, accepting it, a welcome on the p
 - What does a Facilitator see of a learner under 18: the first name only, as the app does today?
 - What gate applies when an Independent Team adds learners under 18?
 - Can an Independent Team move into an Organization, and what happens to its learners' data?
+- Pinned: how does someone who belongs to an Organization create an Independent Team of their own? Create a Team inside the Organization no longer offers Independent (Teams Transition, 23 November 2026).
 - Can an invite be accepted by an account with a different email?
 - Who is the Org Owner in each kind of partner: a district, a delivery partner, a university?

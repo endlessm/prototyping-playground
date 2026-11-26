@@ -19,15 +19,15 @@ const sections = [
 </script>
 
 <template>
+  <Example name="WithContent">
+    <UTabs :items="sections" class="w-full" />
+  </Example>
+
   <Example name="Switcher">
     <div class="flex w-full items-center justify-between gap-4">
       <h3 class="text-base font-semibold text-highlighted">Active users</h3>
       <UTabs v-model="granularity" :items="granularityTabs" :content="false" size="sm" class="w-48" />
     </div>
-  </Example>
-
-  <Example name="WithContent">
-    <UTabs :items="sections" class="w-full" />
   </Example>
 
   <Example name="Link">

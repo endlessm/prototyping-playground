@@ -9,6 +9,17 @@
     "@iconify/vue": "^5.0.3",
     "@nuxt/ui": "~4.8.2",
     "@tailwindcss/typography": "^0.5.16",
-    "vue": "^3.5.44"
+    "@tiptap/extension-image": "^3.32.0",
+    "@tiptap/extension-link": "^3.32.0",
+    "@vueuse/core": "^14.3.0",
+    "axios": "0.21.4",
+    "dompurify": "^3.3.0",
+    "linkify-html": "~4.2",
+    "linkifyjs": "~4.2",
+    "lodash": "^4.17.21",
+    "qrcode.vue": "^3.9.1",
+    "vue": "^3.5.44",
+    "vue-mention": "^2.0.0-alpha.3",
+    "zod": "^4.3.6"
   }
 }

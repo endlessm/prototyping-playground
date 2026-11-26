@@ -8,18 +8,38 @@
 import { provide } from 'vue';
 import StudioSidebar from '~/components/App/StudioSidebar.vue';
 import { createAuth, type UserOption } from '../../runtime/auth';
+import { createGraphQL } from '../../runtime/graphql';
 import { NUXT_APP_KEY, useNuxtApp } from '../../runtime/nuxt-app';
 
-const props = defineProps<{
-  /**
-   * Who is signed in: `learner`, `mentor`, `admin`, a user object, or `null` for signed out. Leave it out to use the
-   * screen's own `system.user`. A view chooses this with `system.user`, not with this prop.
-   */
-  user?: UserOption;
-}>();
+const props = withDefaults(
+  defineProps<{
+    /**
+     * Who is signed in: `learner`, `mentor`, `admin`, a user object, or `null` for signed out. Leave it out to use the
+     * screen's own `system.user`. A view chooses this with `system.user`, not with this prop.
+     */
+    user?: UserOption;
+    /**
+     * How many notifications are unread, the `NOTIFICATIONS_COUNT` query's answer, shown beside Notifications. Zero
+     * hides it. A view answers that query with `system.sample.queries`, not with this prop.
+     */
+    notificationsCount?: number;
+  }>(),
+  { user: undefined, notificationsCount: 3 },
+);
 
-// The copied sidebar reads `$auth` from useNuxtApp(), so a nearer app with its own sample user changes only this sidebar.
-if (props.user !== undefined) provide(NUXT_APP_KEY, { ...useNuxtApp(), $auth: createAuth(props.user) });
+// The copied sidebar reads `$auth` and its queries from useNuxtApp(), so a nearer app with its own sample user and
+// unread count changes only this sidebar. The screen's other samples stay.
+const app = useNuxtApp();
+const graphql = createGraphQL({
+  ...app.graphql.samples,
+  NOTIFICATIONS_COUNT: () => ({ getUnreadNotificationsCount: { unread_notifications_count: props.notificationsCount } }),
+});
+provide(NUXT_APP_KEY, {
+  ...app,
+  ...(props.user !== undefined && { $auth: createAuth(props.user) }),
+  graphql,
+  $graphqlRequest: graphql.request,
+});
 
 // The component page's frames are narrower than the app's 1024px breakpoint, where USidebar turns into the mobile
 // menu. Each example is a document of its own, so answering that one media query "not narrow" there shows the
@@ -31,7 +51,8 @@ window.matchMedia = (query: string) => matchMedia(query === MOBILE ? 'not all' :
 
 <template>
   <div class="studio-sidebar-page">
-    <StudioSidebar />
+    <!-- The count is read once per mount, so the sidebar remounts when it changes. -->
+    <StudioSidebar :key="notificationsCount" />
   </div>
 </template>
 

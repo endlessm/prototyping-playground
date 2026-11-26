@@ -155,8 +155,9 @@ describe('the declaration', () => {
     expect(ui.alert.slots.root).toBe('rounded-xl')
     expect(ui.card.slots.root).toBe('rounded-2xl')
     expect(Object.keys(ui.card.variants.variant)).toEqual(
-      expect.arrayContaining(['flat', 'outline', 'soft', 'ghost', 'bordered']),
+      expect.arrayContaining(['flat', 'shaded', 'soft', 'ghost', 'bordered']),
     )
+    expect(ui.card.variants.variant).not.toHaveProperty('outline')
     for (const key of [
       'badge',
       'breadcrumb',

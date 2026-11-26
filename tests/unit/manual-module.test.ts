@@ -57,6 +57,7 @@ test('[PR-140] the palette’s Manual group lists the chapters by title, in orde
     ['Working environment', '/documentation/manual/environment', 'Manual'],
     ['Working with your agent', '/documentation/manual/agent', 'Manual'],
     ['Prototypes & systems', '/documentation/manual/prototypes', 'Manual'],
+    ['The Lab', '/documentation/manual/lab', 'Manual'],
     ['Working as a team', '/documentation/manual/team', 'Manual'],
     ['Publishing & Home', '/documentation/manual/share', 'Manual'],
     ['Modules & settings', '/documentation/manual/customize', 'Manual'],

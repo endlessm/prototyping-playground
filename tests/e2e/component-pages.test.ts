@@ -18,7 +18,7 @@ import {
 import path from 'node:path'
 import type { FrameLocator, Page } from 'playwright'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
-import { useBrowser } from './setup/browser'
+import { firstOf, useBrowser } from './setup/browser'
 import {
   startDevServer,
   startStaticSite,
@@ -154,12 +154,15 @@ describe('in the studio running locally', { timeout: 180_000 }, () => {
     const page = await newPage()
     await page.goto(`${studio.url}${button}`)
     await heading(page, 'Examples').waitFor({ timeout: 300_000 })
-    // The first code block makes Vite optimize Shiki and reload the page.
+    // The first code block loads the highlighter. Should Vite still find a
+    // dependency to bundle and reload the page, the reload ends the wait.
     await page.getByRole('button', { name: 'Show code' }).click()
-    await page
-      .getByText("import HarborButton from './button.vue'")
-      .waitFor({ timeout: 120_000 })
-      .catch(() => undefined)
+    await firstOf(
+      page
+        .getByText("import HarborButton from './button.vue'")
+        .waitFor({ timeout: 120_000 }),
+      page.waitForEvent('load', { timeout: 120_000 }),
+    )
     await page.reload()
     await heading(page, 'Examples').waitFor({ timeout: 120_000 })
     await page.close()

@@ -4547,7 +4547,18 @@ __metadata:
     "@iconify/vue": "npm:^5.0.3"
     "@nuxt/ui": "npm:~4.8.2"
     "@tailwindcss/typography": "npm:^0.5.16"
+    "@tiptap/extension-image": "npm:^3.32.0"
+    "@tiptap/extension-link": "npm:^3.32.0"
+    "@vueuse/core": "npm:^14.3.0"
+    axios: "npm:0.21.4"
+    dompurify: "npm:^3.3.0"
+    linkify-html: "npm:~4.2"
+    linkifyjs: "npm:~4.2"
+    lodash: "npm:^4.17.21"
+    qrcode.vue: "npm:^3.9.1"
     vue: "npm:^3.5.44"
+    vue-mention: "npm:^2.0.0-alpha.3"
+    zod: "npm:^4.3.6"
   languageName: unknown
   linkType: soft
 
@@ -4982,6 +4993,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tiptap/extension-image@npm:^3.32.0":
+  version: 3.35.0
+  resolution: "@tiptap/extension-image@npm:3.35.0"
+  peerDependencies:
+    "@tiptap/core": 3.35.0
+  checksum: 10c0/22a4b4ec13bd8e8d47c2ff967e535890119b037475d7be228381e6a059545f3d94b0d3319037b7b79ca80ee87854b3928c0e389f05dc849331b0f7661ce20f4c
+  languageName: node
+  linkType: hard
+
 "@tiptap/extension-italic@npm:3.32.0":
   version: 3.32.0
   resolution: "@tiptap/extension-italic@npm:3.32.0"
@@ -5000,6 +5020,18 @@ __metadata:
     "@tiptap/core": 3.32.0
     "@tiptap/pm": 3.32.0
   checksum: 10c0/3062876b79b6e974ec183f4036aa161ad455ed9f558a5b11525548a637d62b1cd66e1194eeb7360b18f6c443e6fc29eb9027f823c258f5a7b6b34075a10e9d47
+  languageName: node
+  linkType: hard
+
+"@tiptap/extension-link@npm:^3.32.0":
+  version: 3.35.0
+  resolution: "@tiptap/extension-link@npm:3.35.0"
+  dependencies:
+    linkifyjs: "npm:^4.3.3"
+  peerDependencies:
+    "@tiptap/core": 3.35.0
+    "@tiptap/pm": 3.35.0
+  checksum: 10c0/993d9d8093421da0b3846f4f08fd6d79c7bae574eeddcc7e28115df5b1474c1345f9500e013137e54154ff30c99845f676d91f7eb347c4ef155638f1549311df
   languageName: node
   linkType: hard
 
@@ -6792,6 +6824,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"axios@npm:0.21.4":
+  version: 0.21.4
+  resolution: "axios@npm:0.21.4"
+  dependencies:
+    follow-redirects: "npm:^1.14.0"
+  checksum: 10c0/fbcff55ec68f71f02d3773d467db2fcecdf04e749826c82c2427a232f9eba63242150a05f15af9ef15818352b814257541155de0281f8fb2b7e8a5b79f7f2142
+  languageName: node
+  linkType: hard
+
 "b4a@npm:^1.6.4, b4a@npm:^1.8.1, b4a@npm:^1.9.0":
   version: 1.9.0
   resolution: "b4a@npm:1.9.0"
@@ -8262,10 +8303,52 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dialkit@npm:^2.2.1":
+  version: 2.2.1
+  resolution: "dialkit@npm:2.2.1"
+  peerDependencies:
+    motion: ">=11.0.0"
+    motion-v: ">=2.0.0"
+    react: ">=18.0.0"
+    react-dom: ">=18.0.0"
+    solid-js: ">=1.6.0"
+    svelte: ">=5.8.0"
+    vue: ">=3.3.0"
+  peerDependenciesMeta:
+    motion:
+      optional: true
+    motion-v:
+      optional: true
+    react:
+      optional: true
+    react-dom:
+      optional: true
+    solid-js:
+      optional: true
+    svelte:
+      optional: true
+    vue:
+      optional: true
+  checksum: 10c0/aae00d2d5dcf3ebbbfaff9f2d0b83a7e1568588c49393c87640d543a8ae2994dfeaf275957e795d2f1eade833b728937ee755057e82ef47106cee8bfd729689f
+  languageName: node
+  linkType: hard
+
 "diff@npm:^9.0.0":
   version: 9.0.0
   resolution: "diff@npm:9.0.0"
   checksum: 10c0/a971cc88f66071a33bd3942db2f51b57d484e9856265ae45cf44fb28ab2fde91f132d9c26d8be0fb6082d2be94d29e1295c1adb251b7461935d6a2dd304cd161
+  languageName: node
+  linkType: hard
+
+"dompurify@npm:^3.3.0":
+  version: 3.4.18
+  resolution: "dompurify@npm:3.4.18"
+  dependencies:
+    "@types/trusted-types": "npm:^2.0.7"
+  dependenciesMeta:
+    "@types/trusted-types":
+      optional: true
+  checksum: 10c0/03c96d4e04ce6588014d008c09bb80e97dc1f905acc28d0be0cf14ea6974f788f5706cac409a5b7b7a73831dbce15ac7ca68c6fe08b2e1522254f06ce6647e87
   languageName: node
   linkType: hard
 
@@ -9597,6 +9680,16 @@ __metadata:
   version: 0.1.2
   resolution: "fnv1a-64@npm:0.1.2"
   checksum: 10c0/79ee9c602499690db515cca271e3ac170fcaac9179f420ef15fd8a0e9f12fcae8a16284391b9021d92d7311344e4125dda599dae2251c581ea63d56b8e3d3fac
+  languageName: node
+  linkType: hard
+
+"follow-redirects@npm:^1.14.0":
+  version: 1.16.3
+  resolution: "follow-redirects@npm:1.16.3"
+  peerDependenciesMeta:
+    debug:
+      optional: true
+  checksum: 10c0/0ad440d1d921ce8d7e8cbb3a2f25a15e682086209eb49a84cf2f1d5960d0f238b697d5613893f72e7deb9c915f0bc4c7924f04a0e0c5544b8b7d3b797af5121d
   languageName: node
   linkType: hard
 
@@ -11236,10 +11329,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"linkify-html@npm:~4.2":
+  version: 4.2.0
+  resolution: "linkify-html@npm:4.2.0"
+  peerDependencies:
+    linkifyjs: ^4.0.0
+  checksum: 10c0/445a48fa16783f6984e8aa59a9309c2bb4d15f37dc1d4252382e590a265ce25ed964d1c61d3ff7e95c8ed644da453eed478fd39ed22d37fbb7c1ed897fc352e9
+  languageName: node
+  linkType: hard
+
 "linkifyjs@npm:^4.3.3":
   version: 4.4.0
   resolution: "linkifyjs@npm:4.4.0"
   checksum: 10c0/0ddef5f2468194640746162dea069770fc7e052e6bb91a81586110c7aaeda66c350f47e27a3b10d953c8922ca3eaf68f291f0a8a0f63d7d79b95a369975c6618
+  languageName: node
+  linkType: hard
+
+"linkifyjs@npm:~4.2":
+  version: 4.2.0
+  resolution: "linkifyjs@npm:4.2.0"
+  checksum: 10c0/fda4fe3e98df94400fbc70ba38798094c6852e7f41e8cc9b8a2fcd3cb122daa20502aedfd1ecb996cf9d829f6fdddd9813858ca070f9cb246389a5b161c6ac8d
   languageName: node
   linkType: hard
 
@@ -11369,7 +11478,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:^4.17.15":
+"lodash@npm:^4.17.15, lodash@npm:^4.17.21":
   version: 4.18.1
   resolution: "lodash@npm:4.18.1"
   checksum: 10c0/757228fc68805c59789e82185135cf85f05d0b2d3d54631d680ca79ec21944ec8314d4533639a14b8bcfbd97a517e78960933041a5af17ecb693ec6eecb99a27
@@ -13768,6 +13877,7 @@ __metadata:
     "@vueuse/core": "npm:^14.2.1"
     "@vueuse/nuxt": "npm:^14.2.1"
     codemirror-lang-mermaid: "npm:^0.5.0"
+    dialkit: "npm:^2.2.1"
     eslint: "npm:^10.4.0"
     eslint-config-prettier: "npm:^10.1.5"
     eslint-plugin-prettier: "npm:^5.4.1"
@@ -13822,6 +13932,15 @@ __metadata:
   dependencies:
     hookified: "npm:^2.1.1"
   checksum: 10c0/4a39d45492c65a4b9795381acede1bd566028ce9764ead5b41d776b391a898bf0855dd2b59d724a6711fe253ba3cacf7c9a8832887cf9dc6d48a2c5e4997c82d
+  languageName: node
+  linkType: hard
+
+"qrcode.vue@npm:^3.9.1":
+  version: 3.11.1
+  resolution: "qrcode.vue@npm:3.11.1"
+  peerDependencies:
+    vue: ^3.0.0
+  checksum: 10c0/9bb6986f93a806b526145abf9e886c662793d4c17c2bc31a1d0507ab82de78779fd3c33cf8f62c5c4e5e9c5349c39aa980d6226eb2dd7c02a2bc924110690e08
   languageName: node
   linkType: hard
 
@@ -15312,6 +15431,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"textarea-caret@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "textarea-caret@npm:3.1.0"
+  checksum: 10c0/ae6a9d31eb337d0e5925642718484a56664cd94d88adeb7e68498a0149a0d3359bba8a21790f286f95843407ba9622dad10c092a429165587427270792071709
+  languageName: node
+  linkType: hard
+
 "time-span@npm:^5.1.0":
   version: 5.1.0
   resolution: "time-span@npm:5.1.0"
@@ -16670,6 +16796,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"vue-mention@npm:^2.0.0-alpha.3":
+  version: 2.0.0-alpha.3
+  resolution: "vue-mention@npm:2.0.0-alpha.3"
+  dependencies:
+    textarea-caret: "npm:^3.1.0"
+  peerDependencies:
+    floating-vue: ^2.0.0-beta.1
+    vue: ^3.2
+  checksum: 10c0/76f988678f9faa0db8c7b72fb1e962c19eefdca8422bb5b97ad085212164eae3587b3bf42459bf7f16283a4c0e5195b580aa25cc89bda7108b3343822dffda79
+  languageName: node
+  linkType: hard
+
 "vue-router@npm:^5.2.0, vue-router@npm:^5.4.0":
   version: 5.4.0
   resolution: "vue-router@npm:5.4.0"
@@ -17062,7 +17200,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^4.2.0, zod@npm:^4.6.7":
+"zod@npm:^4.2.0, zod@npm:^4.3.6, zod@npm:^4.6.7":
   version: 4.6.7
   resolution: "zod@npm:4.6.7"
   checksum: 10c0/4ce2eb14034317b7254e347ca37b5ad591cf8333147030cf05b9b5d31692d45073f7f2747aa50cf8c6b29012194d2b22978cecc89969cf34a0d18e89d0ee7d7b

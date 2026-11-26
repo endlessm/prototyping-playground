@@ -11,7 +11,8 @@ Use a card to hold one piece of content on the page: a list, a form, a summary. 
 
 Pick the variant by how the card relates to its surroundings:
 
-- **Outline**, the default: no border and a soft wide shadow. For content on the page background.
+- **Outline**, the default: Nuxt UI's own outline, a white card with a hairline ring.
+- **Shaded**: no ring and a soft wide shadow, as the app's own outline card looks. For content on the page background; choose it per card.
 - **Bordered**: a hairline border and no shadow. For cards in a row or a grid, where shadows would pile up.
 - **Soft**: an inset panel on `bg-elevated` with tight padding, for grouping inside another card.
 - **Ghost** and **flat**: no border or shadow, for purely structural grouping.

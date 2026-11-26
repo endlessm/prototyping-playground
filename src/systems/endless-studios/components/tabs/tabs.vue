@@ -19,11 +19,24 @@ const props = withDefaults(
     content?: boolean;
     /** Classes for each part, as Nuxt UI's `ui` prop: root, list, indicator, trigger, content… */
     ui?: Record<string, string>;
+    /** The Lab's switch for the empty state: with no `items`, shows tabs without any tab instead of the sample ones. */
+    empty?: boolean;
   }>(),
-  { variant: 'pill', color: 'primary', size: 'md', orientation: 'horizontal', content: true },
+  { variant: 'pill', color: 'primary', size: 'md', orientation: 'horizontal', content: true, empty: false },
 );
+
+const sampleItems = [
+  { label: 'About', icon: 'i-lucide-info', content: 'Learners build a small platformer over eight weeks, one mechanic at a time.' },
+  { label: 'Schedule', icon: 'i-lucide-calendar', content: 'Weekly sessions on Tuesdays, 4–5:30 pm, starting March 3.' },
+  { label: 'Mentors', icon: 'i-lucide-users', content: 'Marco Lima and Ana Souza mentor this cohort.' },
+];
+
+const forwarded = computed(() => {
+  const { empty: _empty, items: _items, ...rest } = props;
+  return rest;
+});
 </script>
 
 <template>
-  <UTabs v-bind="props" />
+  <UTabs v-bind="forwarded" :items="items ?? (empty ? [] : sampleItems)" />
 </template>

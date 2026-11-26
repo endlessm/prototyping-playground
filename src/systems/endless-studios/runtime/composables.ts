@@ -30,3 +30,13 @@ export function useBackendError() {
   const showBackendErrorToast = (message?: string) => console.info('[Endless Studios] error toast:', backendErrorMessage(message));
   return { backendErrorMessage, showBackendErrorToast };
 }
+
+// composables/useParentalConsentPolling.ts: a preview has no parent to answer a k-ID challenge, so nothing is polled
+// and the modal stays on its challenge. The original calls useNuxtApp without importing it.
+export function useParentalConsentPolling(_options: {
+  enabled: unknown;
+  challengeId?: unknown;
+  onGranted?: () => void;
+  onDenied?: () => void;
+  intervalMs?: number;
+}): void {}

@@ -117,14 +117,38 @@ const assets = computed<SystemNavLink[]>(() =>
     source: kind === 'icons',
   })),
 )
-const components = computed<SystemNavLink[]>(() =>
+const components = computed<(SystemNavLink & { slug: string })[]>(() =>
   props.system.components.map((component) => ({
     label: component.title,
     to: page(`components/${component.slug}`),
     icon: 'i-lucide-blocks',
     path: component.files[0]!,
+    slug: component.slug,
   })),
 )
+// Components grouped by where they come from: each library that declares
+// some (such as Nuxt UI), then the system's own. Headings show only when
+// there is more than one group, so a single-source system stays flat.
+const componentGroups = computed(() => {
+  const claimed = new Set<string>()
+  const groups = props.system.libraries
+    .filter((library) => library.components.length)
+    .map((library) => {
+      library.components.forEach((slug) => claimed.add(slug))
+      return {
+        id: library.id,
+        label: library.label,
+        items: components.value.filter((item) =>
+          library.components.includes(item.slug),
+        ),
+      }
+    })
+  const own = components.value.filter((item) => !claimed.has(item.slug))
+  if (own.length)
+    groups.push({ id: 'system', label: props.system.label, items: own })
+  return groups.filter((group) => group.items.length)
+})
+const groupHeadings = computed(() => componentGroups.value.length > 1)
 
 // Search.
 const searchOpen = ref(false)
@@ -390,9 +414,25 @@ watch(
           :open="branchOpen('components')"
           @update:open="(open) => setBranch('components', open)"
         >
-          <template v-for="item in components" :key="item.to">
-            <SystemNavItem v-if="showsIn('components')(item)" :item="item" />
-          </template>
+          <div
+            v-for="group in componentGroups"
+            v-show="group.items.some(showsIn('components'))"
+            :key="group.id"
+            role="group"
+            :aria-label="groupHeadings ? group.label : undefined"
+            class="space-y-0.5"
+          >
+            <p
+              v-if="groupHeadings"
+              aria-hidden="true"
+              class="px-2 pt-2 pb-0.5 text-[11px] font-medium text-muted"
+            >
+              {{ group.label }}
+            </p>
+            <template v-for="item in group.items" :key="item.to">
+              <SystemNavItem v-if="showsIn('components')(item)" :item="item" />
+            </template>
+          </div>
           <p v-if="!components.length" class="px-2 py-1 text-xs text-muted">
             {{ t('systems.nav.emptyFolder') }}
           </p>

@@ -69,7 +69,9 @@ const teamCount = computed(() => count('Team'))
       </p>
 
       <PeopleGrid v-if="!earlier && tab === 'people'" />
-      <StructureList v-else-if="!earlier" :root="root" />
+      <slot v-else-if="!earlier" name="structure" :root="root">
+        <StructureList :root="root" />
+      </slot>
       <div v-else class="overflow-x-auto pb-2" tabindex="0" role="group" aria-label="Organization chart">
         <ul class="tree">
           <TreeBranch :place="root" root :cards="cards" />

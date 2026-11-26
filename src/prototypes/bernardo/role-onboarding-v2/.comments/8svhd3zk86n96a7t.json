@@ -1,0 +1,58 @@
+{
+  "formatVersion": 1,
+  "id": "8svhd3zk86n96a7t",
+  "artifact": "p337ma56hqfffb9z",
+  "artifactTitle": "Teams Transition",
+  "anchor": {
+    "kind": "element",
+    "label": "Element \"Team OwnersOptionalTeam ManagersOptional\"",
+    "at": {
+      "x": 0.5068,
+      "y": 0.2719
+    },
+    "selector": "div.tt-form-people:nth-of-type(4)",
+    "tag": "div",
+    "path": ".tt-card > .tt-morph > div > form#v-88 > .tt-form-people",
+    "text": "Team OwnersOptionalTeam ManagersOptional",
+    "box": {
+      "left": 897,
+      "top": 868,
+      "width": 592,
+      "height": 60,
+      "viewport": 2162
+    }
+  },
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-23T22:45:57.526Z",
+  "messages": [
+    {
+      "id": "j4xry5za1qegsm0d",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24"
+      },
+      "body": "vamos achar uma maneira visual de adicionar pessoas. vamos brincar com os cards que utilizamos na aba \"people\". quero algo bonito e interativo. Talvez um stack de cartas. Quem cria um time sempre nomeia o Team Owner primenro. Team Managers vem depois então eles podem ficar fora desse fluxo.",
+      "createdAt": "2026-11-23T19:52:33.431Z"
+    },
+    {
+      "id": "f4qz5th10qnh2f1c",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Done in the new _teams/OwnerDeck.vue: the form now asks only for the Team Owner, as a hand of small People-tab cards. They rest in a pile that fans out on hover or focus; picking a card flies it into the Team Owner seat (picking another swaps them, the x sends it back). The last card, Someone else, flips over into an email field, and the invited person is seated as a card. Team Managers left the form and are added later from the Team.",
+      "createdAt": "2026-11-23T20:06:16.013Z"
+    },
+    {
+      "id": "amesj41evb7sqem1",
+      "author": {
+        "contributor": "ma1xykkc2j3d2x24",
+        "agent": true
+      },
+      "body": "Replaced the hand of cards with the card picker settled in Figma (new _teams/OwnerPicker.vue). One card, Add someone, opens a list of the Organization's people with a search that also takes an email (Invite for someone not in the Organization yet). Choosing closes the list and the person's card takes Add's place; removing it with the x brings Add back, since a Team has one Team Owner.",
+      "createdAt": "2026-11-23T21:44:08.854Z"
+    }
+  ]
+}

@@ -228,7 +228,7 @@ describe('in the studio running locally', { timeout: 150_000 }, () => {
     await toc(page).getByRole('link', { name: 'Details' }).click()
     // No animation: the heading is in place right away.
     expect(Math.abs(await offset(page, 'details'))).toBeLessThan(4)
-    expect(new URL(page.url()).hash).toBe('#details')
+    await expect.poll(() => new URL(page.url()).hash).toBe('#details')
     await expect
       .poll(() =>
         toc(page)

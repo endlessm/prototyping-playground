@@ -54,6 +54,8 @@ const CONTENT = new Set([
   'placeholder',
   'text',
 ])
+// The prop an overlay shows with, bound with `v-model:open`.
+const OPEN = 'open'
 
 // `"a" | "b"`, as the metadata tooling prints a union of string literals.
 function literalUnion(type: string) {
@@ -139,6 +141,12 @@ export function controlFor(
       (prop.required || CONTENT.has(prop.name))
     ) {
       control.start = sampleText(prop.name)
+      control.seeded = true
+    }
+    // An overlay (a modal, a slideover) shows nothing while it is closed,
+    // and its examples open it from a trigger the stage doesn't have.
+    if (control.kind === 'switch' && prop.name === OPEN && !control.start) {
+      control.start = true
       control.seeded = true
     }
   }

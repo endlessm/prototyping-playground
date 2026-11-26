@@ -6,8 +6,17 @@
 // Framework-neutral; the systems module's build data serves it.
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
-import { parse } from 'yaml'
 import { directories, posix, treeFiles } from '../manifest/build.ts'
+import {
+  APP_COMPONENTS,
+  appCopy,
+  appFile,
+  appFiles,
+  appOriginal,
+  type AppCopy,
+  type AppFile,
+  type AppOriginal,
+} from './app-copy.ts'
 import {
   componentProblems,
   discoverComponents,
@@ -17,8 +26,10 @@ import {
   exampleTitle,
   kebab,
   type DocsProblem,
+  type SystemComponent,
 } from './components.ts'
 import { exampleSeeds, type ExampleSeeds } from './example-seeds.ts'
+import { frontmatter } from './frontmatter.ts'
 import { exampleSnippets } from './example-snippets.ts'
 import {
   SKILL_FILE,
@@ -33,6 +44,7 @@ import { isBinaryFile, isTextContent } from './text-files.ts'
 import { stylesheetTokens, type ThemeToken, type TokenGroup } from './tokens.ts'
 
 export type { ColorSection, ThemeToken, TokenGroup } from './tokens.ts'
+export type { AppCopy, AppFile, AppOriginal } from './app-copy.ts'
 export {
   SKILL_DESCRIPTION_MAX,
   SKILL_FILE,
@@ -97,6 +109,18 @@ export interface CatalogComponent {
    * component file.
    */
   playground: string | null
+  /**
+   * The copied app file it presents, named by its page's `app` field: an
+   * app component. Null for the others, such as Nuxt UI wrappers, whose only
+   * file is the system's own.
+   */
+  app: AppFile | null
+  /**
+   * Listed only because the system's app copy holds it: an app component
+   * with no page, examples or component file of its own, whose playground
+   * mounts the app file alone (`appComponents`).
+   */
+  generic?: true
 }
 
 export interface CatalogDocument {
@@ -161,6 +185,13 @@ export interface SystemCatalog {
   renameReview: string[]
   /** An agent saved a setup record: the Overview offers no setup. */
   setupRecorded: boolean
+  /** The copy of the app's own source and its record, or null without one. */
+  appCopy: AppCopy | null
+  /**
+   * The copy's other app components: each `.vue` file in its `components/`
+   * that no page's `app` names, named from its path, for the Lab only.
+   */
+  appComponents: CatalogComponent[]
 }
 
 /** A system's own content for its Overview, in its own look. */
@@ -171,19 +202,7 @@ const FONTS = ['.woff', '.woff2', '.ttf', '.otf']
 const text = (value: unknown) =>
   typeof value === 'string' && value.trim() ? value.trim() : null
 
-/** A Markdown file's frontmatter, or null when it has none. */
-export function frontmatter(source: string): Record<string, unknown> | null {
-  const match = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(source)
-  if (!match) return null
-  try {
-    const data = parse(match[1]!)
-    return data && typeof data === 'object' && !Array.isArray(data)
-      ? (data as Record<string, unknown>)
-      : {}
-  } catch {
-    return {}
-  }
-}
+export { frontmatter }
 
 /** A document's title: its frontmatter's, its first heading, or its name. */
 export function documentTitle(source: string, file: string) {
@@ -294,6 +313,103 @@ export function systemAssets(system: InstalledSystem): CatalogAsset[] {
   return [...local, ...app]
 }
 
+/** An app file no page presents: its address and name in the Lab. */
+export interface GenericAppComponent {
+  slug: string
+  /** Its file's name, or its folder's for an `index.vue`. */
+  name: string
+  /** From its path: "Community feed / Post card". */
+  title: string
+  app: AppFile
+}
+
+/**
+ * The copy's app components that no page presents, in file-tree order. Each
+ * is named from its path inside `components/` (`CommunityFeed/PostCard.vue`
+ * is "Community feed / Post card", a folder's `index.vue` takes the folder's
+ * name), and its slug is that path in kebab case, numbered when a page or an
+ * earlier file already has it.
+ */
+export function genericAppComponents(
+  system: InstalledSystem,
+  copy: AppCopy | null,
+  documented: { slug: string; app: AppFile | null }[],
+): GenericAppComponent[] {
+  const presented = new Set(documented.map(({ app }) => app?.path))
+  const taken = new Set(documented.map(({ slug }) => slug))
+  return appFiles(system, copy)
+    .filter((app) => !presented.has(app.path))
+    .map((app) => {
+      const parts = app.path
+        .slice(APP_COMPONENTS.length + 1)
+        .replace(/\.vue$/, '')
+        .split('/')
+      if (parts.length > 1 && parts.at(-1) === 'index') parts.pop()
+      const base = parts.map(kebab).join('-')
+      let slug = base
+      for (let count = 2; taken.has(slug); count++) slug = `${base}-${count}`
+      taken.add(slug)
+      return {
+        slug,
+        name: parts.at(-1)!,
+        title: parts.map((part) => skillTitle(kebab(part))).join(' / '),
+        app,
+      }
+    })
+}
+
+/** A system's component page, with the app file it presents. */
+export interface PresentedPage {
+  /** The component as its files declare it. */
+  component: SystemComponent
+  slug: string
+  /** The page's Markdown, or null without one or when it can't be read. */
+  page: string | null
+  /** Its frontmatter; empty without one. */
+  data: Record<string, unknown>
+  /** What its `app` field names: the file, a problem, or null for none. */
+  declared: ReturnType<typeof appFile>
+  /** The app file it presents, or null. */
+  app: AppFile | null
+  /** Why the page couldn't be read, as `<file>: <message>`. */
+  error: string | null
+}
+
+/**
+ * Each of a system's component pages and the app file it presents, in
+ * file-tree order: the one reading of which app file a page presents, so
+ * the catalog, the previews, the page data and the Lab's version stages
+ * (and the generic app components' slugs that follow from it) agree.
+ */
+export function presentedApps(
+  system: InstalledSystem,
+  copy: AppCopy | null,
+): PresentedPage[] {
+  const componentsDir = path.join(system.dir, 'components')
+  return discoverComponents(filesIn(componentsDir)).map((component) => {
+    const { doc } = component.files
+    let page: string | null = null
+    let error: string | null = null
+    if (doc)
+      try {
+        page = readFileSync(path.join(componentsDir, doc), 'utf8')
+      } catch (failure) {
+        error = `${doc}: ${(failure as Error).message}`
+      }
+    const data = frontmatter(page ?? '') ?? {}
+    const declared = appFile(system, copy, data.app)
+    return {
+      component,
+      slug: component.slug,
+      page,
+      data,
+      declared,
+      app: declared && 'file' in declared ? declared.file : null,
+      error,
+    }
+  })
+}
+
 export function systemCatalog(
   system: InstalledSystem,
   root: string,
@@ -312,37 +428,12 @@ export function systemCatalog(
   const componentsDir = path.join(dir, 'components')
   const componentsAt = `${folder}/components`
   const contextDir = path.join(dir, 'context')
-  return {
-    id: system.id,
-    key: system.key,
-    label: spec.label,
-    status: spec.status,
-    folder,
-    colorModes: spec.colorModes,
-    summary: text(spec.overview?.summary),
-    guidance: text(spec.overview?.guidance),
-    code: text(spec.overview?.code),
-    renameReview: spec.renameReview ?? [],
-    setupRecorded: Boolean(spec.setup),
-    icons: spec.icons ?? null,
-    stylesheet:
-      stylesheet && existsSync(stylesheet)
-        ? posix(path.relative(root, stylesheet))
-        : null,
-    libraries: spec.libraries.map(({ components, assets, ...library }) => ({
-      ...library,
-      version: installedVersion(dir, root, library.package),
-      components: components ?? [],
-      assets: assets ?? [],
-    })),
-    tokens: TOKEN_GROUPS.flatMap((group) =>
-      tokens.filter((token) => token.group === group),
-    ),
-    components: discoverComponents(filesIn(componentsDir)).map((component) => {
+  const copy = appCopy(system)
+  const components = presentedApps(system, copy).map(
+    ({ component, data, app }): CatalogComponent => {
       const { doc, examples, source } = component.files
       const read = (file: string | null) =>
         file ? readFileSync(path.join(componentsDir, file), 'utf8') : null
-      const data = frontmatter(read(doc) ?? '') ?? {}
       const at = (file: string | null) =>
         file ? `${componentsAt}/${file}` : null
       const own = [doc, examples, source].filter(
@@ -373,8 +464,37 @@ export function systemCatalog(
           id: exampleId(system.id, component.slug, name),
         })),
         playground: source ? playgroundId(system.id, component.slug) : null,
+        app,
       }
-    }),
+    },
+  )
+  return {
+    id: system.id,
+    key: system.key,
+    label: spec.label,
+    status: spec.status,
+    folder,
+    colorModes: spec.colorModes,
+    summary: text(spec.overview?.summary),
+    guidance: text(spec.overview?.guidance),
+    code: text(spec.overview?.code),
+    renameReview: spec.renameReview ?? [],
+    setupRecorded: Boolean(spec.setup),
+    icons: spec.icons ?? null,
+    stylesheet:
+      stylesheet && existsSync(stylesheet)
+        ? posix(path.relative(root, stylesheet))
+        : null,
+    libraries: spec.libraries.map(({ components, assets, ...library }) => ({
+      ...library,
+      version: installedVersion(dir, root, library.package),
+      components: components ?? [],
+      assets: assets ?? [],
+    })),
+    tokens: TOKEN_GROUPS.flatMap((group) =>
+      tokens.filter((token) => token.group === group),
+    ),
+    components,
     overview: existsSync(path.join(dir, OVERVIEW_FILE))
       ? overviewId(system.id)
       : null,
@@ -391,6 +511,25 @@ export function systemCatalog(
       })),
     contextFolders: existsSync(contextDir) ? folders(contextDir) : [],
     skills: skillsOf(system),
+    appCopy: copy,
+    appComponents: genericAppComponents(system, copy, components).map(
+      ({ slug, name, title, app }) => ({
+        slug,
+        name,
+        title,
+        description: null,
+        sourceNote: null,
+        docsUrl: null,
+        files: [app.file],
+        doc: null,
+        examplesFile: null,
+        source: app.file,
+        examples: [],
+        playground: playgroundId(system.id, slug),
+        app,
+        generic: true,
+      }),
+    ),
   }
 }
 
@@ -499,8 +638,9 @@ export function skillProblems(
 /**
  * What a system's preview document shows besides views: each example of
  * its component pages, each component's playground (its component file,
- * after its examples) and its own Overview content, by preview ID, with the
- * absolute path of the file it comes from.
+ * after its examples), the playground of each app component no page
+ * presents (the app file alone) and its own Overview content, by preview
+ * ID, with the absolute path of the file it comes from.
  */
 export function systemPreviews(system: InstalledSystem) {
   const componentsDir = path.join(system.dir, 'components')
@@ -528,6 +668,18 @@ export function systemPreviews(system: InstalledSystem) {
         playground: true,
       })
   }
+  // The copy's other app components: each app file alone.
+  const copy = appCopy(system)
+  for (const { slug, app } of genericAppComponents(
+    system,
+    copy,
+    presentedApps(system, copy),
+  ))
+    entries.push({
+      id: playgroundId(system.id, slug),
+      file: path.join(system.dir, copy!.folder, app.path),
+      playground: true,
+    })
   const overview = path.join(system.dir, OVERVIEW_FILE)
   if (existsSync(overview))
     entries.push({ id: overviewId(system.id), file: overview })
@@ -585,6 +737,11 @@ export interface ComponentPageData {
   seeds: ExampleSeeds
   /** Read from the component's code; null without a component file. */
   props: ComponentPropsDoc | null
+  /**
+   * An app component's copied app file, with its text and the copy's
+   * revision; null for other components or when it can't be read.
+   */
+  original: AppOriginal | null
   /** Files that couldn't be read, each with why. */
   errors: string[]
 }
@@ -600,8 +757,10 @@ export async function componentPages(systems: InstalledSystem[]) {
   const sources = new Map<string, ComponentPageData>()
   for (const system of systems) {
     const componentsDir = path.join(system.dir, 'components')
-    for (const component of discoverComponents(filesIn(componentsDir))) {
-      const errors: string[] = []
+    const copy = appCopy(system)
+    const presented = presentedApps(system, copy)
+    for (const { component, page, declared, error } of presented) {
+      const errors: string[] = error ? [error] : []
       const read = (file: string | null) => {
         if (!file) return null
         try {
@@ -612,18 +771,48 @@ export async function componentPages(systems: InstalledSystem[]) {
         }
       }
       const { doc, examples, source } = component.files
-      const page = read(doc)
       const text = read(examples)
+      let original: AppOriginal | null = null
+      if (declared && 'problem' in declared)
+        errors.push(`${doc}: ${declared.problem}`)
+      else if (declared && copy)
+        try {
+          original = appOriginal(system, copy, declared.file)
+        } catch (error) {
+          errors.push(`${declared.file.file}: ${(error as Error).message}`)
+        }
       const data: ComponentPageData = {
         page,
         examples: text,
         snippets: text ? exampleSnippets(text, exampleNames(text)) : {},
         seeds: text ? exampleSeeds(text, component.slug) : {},
         props: null,
+        original,
         errors,
       }
       pages[`${system.id}/${component.slug}`] = data
       if (source) sources.set(path.join(componentsDir, source), data)
+    }
+    // The copy's other app components: the app file is their component.
+    for (const { slug, app } of genericAppComponents(system, copy, presented)) {
+      const errors: string[] = []
+      let original: AppOriginal | null = null
+      try {
+        original = appOriginal(system, copy!, app)
+      } catch (error) {
+        errors.push(`${app.file}: ${(error as Error).message}`)
+      }
+      const data: ComponentPageData = {
+        page: null,
+        examples: null,
+        snippets: {},
+        seeds: {},
+        props: null,
+        original,
+        errors,
+      }
+      pages[`${system.id}/${slug}`] = data
+      sources.set(path.join(system.dir, copy!.folder, app.path), data)
     }
   }
   if (sources.size) {

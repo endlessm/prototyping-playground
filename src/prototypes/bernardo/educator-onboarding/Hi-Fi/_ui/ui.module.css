@@ -44,7 +44,40 @@
   line-height: 20px;
 }
 
-/* Account pages fill the window: the illustration panel on the left half, the form centred in the right half. */
+/* Account pages fill the window: the illustration panel on the left half, the form panel on the right half with
+   the logo and languages in its top corners and the form centred below. */
+.authShell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #fff;
+}
+.authPanel {
+  display: flex;
+  flex-direction: column;
+}
+.authPanel > .authColumn {
+  flex: 1;
+  padding-top: 0;
+}
+.authTopBar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  height: 76px;
+  padding-inline: 20px;
+}
+.languages {
+  display: flex;
+  gap: 24px;
+  color: var(--es-text);
+  font-size: 14px;
+}
+.languageActive {
+  color: var(--es-orange-500);
+  font-weight: 600;
+}
 .auth {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -96,24 +129,10 @@
   max-width: 400px;
   margin-inline: auto;
 }
-.authHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 40px;
-  font-size: 12px;
-}
 .logo {
   display: block;
   height: 28px;
   width: auto;
-}
-.languages {
-  color: var(--es-dimmed);
-}
-.languages b {
-  color: var(--es-text);
-  font-weight: 600;
 }
 .centered {
   align-items: center;
@@ -994,15 +1013,7 @@ a.navItem:hover {
   display: flex;
   flex-direction: column;
   gap: 32px;
-  min-height: 100vh;
-  padding: 32px 48px 48px;
-  background: #fff;
-}
-.chooseHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 12px;
+  padding: 16px 48px 48px;
 }
 .chooseIntro {
   display: flex;

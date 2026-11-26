@@ -47,6 +47,7 @@ import { moduleChecks } from '../checks/module-checks.ts'
 import { serveSystemAssets } from '../systems/serve-assets.ts'
 import { createAutoCapture } from '../thumbnails/auto.ts'
 import { thumbnailImage } from '../thumbnails/record.ts'
+import { draftsDir } from '../files/drafts-folder.ts'
 import {
   buildManifest,
   forDeploy,
@@ -233,6 +234,8 @@ declare module '${MANIFEST_MODULE}' {
       workDir,
       baseURL: base,
       prototypesDir: path.resolve(root, prototypesFolder),
+      // A component's playground shows its unsaved draft, locally.
+      draftsDir: nuxt.options.dev ? draftsDir(root) : undefined,
       views: () =>
         documentViews(document, read(), root, Boolean(nuxt.options.dev)),
     })
@@ -398,9 +401,13 @@ function manifestPlugin(
       const built = read()
       const names: Record<string, string> = {}
       for (const [prototype, artifacts] of Object.entries(built.artifacts)) {
-        // The text of the files a page reads (documents) ships beside them.
+        // The text of the files a page reads (documents, and the Lab's
+        // versions of app components) ships beside them.
         const list = artifacts.map((artifact) => {
-          if (artifact.unavailable || !live.textTypes.has(artifact.type))
+          if (
+            artifact.unavailable ||
+            !(live.textTypes.has(artifact.type) || artifact.labVersion)
+          )
             return artifact
           const text = readFileSync(path.resolve(live.root, artifact.file))
           const name = `text/${artifact.id}.${hash(text.toString('utf8'))}.txt`

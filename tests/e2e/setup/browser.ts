@@ -32,3 +32,11 @@ export function useBrowser({ welcome = false } = {}) {
     return context.newPage()
   }
 }
+
+/**
+ * Waits until the first of several waits ends, however it ends. The others
+ * may still time out or fail later; that is ignored.
+ */
+export async function firstOf(...waits: Promise<unknown>[]) {
+  await Promise.race(waits.map((wait) => wait.catch(() => undefined)))
+}

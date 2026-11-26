@@ -61,11 +61,22 @@ describe('a prop maps to one control', () => {
     ).toMatchObject({ kind: 'select', start: undefined, unset: false })
   })
 
-  test('boolean is a switch, off unless its default says otherwise', () => {
+  test('boolean is a switch, off unless its default says otherwise; an overlay’s open starts on', () => {
     expect(BUTTON[3]).toMatchObject({ kind: 'switch', start: false })
     expect(
       controlFor(prop({ name: 'open', type: 'boolean', default: 'true' })),
     ).toMatchObject({ kind: 'switch', start: true })
+    expect(controlFor(prop({ name: 'open', type: 'boolean' }))).toMatchObject({
+      kind: 'switch',
+      start: true,
+      seeded: true,
+    })
+    expect(
+      controlFor(prop({ name: 'open', type: 'boolean' }), false),
+    ).toMatchObject({
+      start: false,
+      seeded: true,
+    })
   })
 
   test('string is a text field, number a number field', () => {

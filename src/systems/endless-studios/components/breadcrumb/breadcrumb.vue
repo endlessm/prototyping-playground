@@ -13,11 +13,24 @@ const props = withDefaults(
     separatorIcon?: string;
     /** Classes for each part, as Nuxt UI's `ui` prop: root, list, item, link, separator, separatorIcon. */
     ui?: Record<string, string>;
+    /** The Lab's switch for the empty state: with no `items`, shows an empty trail instead of the sample one. */
+    empty?: boolean;
   }>(),
-  { color: 'primary', separatorIcon: 'i-lucide-chevron-right' },
+  { color: 'primary', separatorIcon: 'i-lucide-chevron-right', empty: false },
 );
+
+const sampleItems = [
+  { label: 'Programs', icon: 'i-lucide-graduation-cap', to: '/leader/programs/' },
+  { label: 'Game Design Foundations', to: '/leader/programs/12/' },
+  { label: 'Cohorts' },
+];
+
+const forwarded = computed(() => {
+  const { empty: _empty, items: _items, ...rest } = props;
+  return rest;
+});
 </script>
 
 <template>
-  <UBreadcrumb v-bind="props" />
+  <UBreadcrumb v-bind="forwarded" :items="items ?? (empty ? [] : sampleItems)" />
 </template>

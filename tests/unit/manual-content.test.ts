@@ -10,7 +10,7 @@ import { parseDocument } from '../../app/markdown/parse'
 import { manualChapters } from '../../src/modules/documentation/manual'
 
 const DIR = 'src/modules/documentation/pages'
-const ALL = ['prototypes', 'canvas', 'document', 'diagrams', 'text']
+const ALL = ['prototypes', 'canvas', 'document', 'diagrams', 'text', 'lab']
 const read = (slug: string) =>
   readFileSync(path.join(DIR, `${slug}.md`), 'utf8')
 const { chapters, problems } = manualChapters(DIR, 'pages', ALL)
@@ -23,6 +23,7 @@ test('[PR-147] [PR-148] [PR-149] [PR-150] [PR-152] [PR-153] [PR-154] [PR-156] ev
     ['environment', 'Working environment'],
     ['agent', 'Working with your agent'],
     ['prototypes', 'Prototypes & systems'],
+    ['lab', 'The Lab'],
     ['team', 'Working as a team'],
     ['share', 'Publishing & Home'],
     ['customize', 'Modules & settings'],

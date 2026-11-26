@@ -22,7 +22,11 @@
       "viewport": 1381
     }
   },
-  "status": "open",
+  "status": "resolved",
+  "resolvedBy": {
+    "contributor": "ma1xykkc2j3d2x24"
+  },
+  "resolvedAt": "2026-11-23T18:33:56.874Z",
   "messages": [
     {
       "id": "3jgcvrs10ff0r35h",
