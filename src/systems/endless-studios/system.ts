@@ -79,6 +79,7 @@ export default {
       '~/graphql_schemas/notifications': 'runtime/app-modules.ts',
       'floating-vue': 'runtime/floating-vue.ts',
       '#ui/types': 'runtime/ui-types.ts',
+      axios: 'runtime/axios.ts',
     },
   },
 } satisfies SystemSpec;

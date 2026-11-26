@@ -42,6 +42,7 @@ Implemented in `../runtime/`, installed by `createStudiosApp`, never copied:
 | `~/assets/images/loader/endless-loader.svg?component` (nuxt-svgo) | `runtime/endless-loader-svg.ts`: the copied SVG file rendered as one `<svg>` component, for `Generic/CircularLoading` |
 | `floating-vue` (the `Dropdown` and `options` vue-mention imports) | `runtime/floating-vue.ts`: a theme registry and a dropdown that shows its `popper` slot above its anchor while `shown`, for PostCard's @mention list |
 | `#ui/types` (Nuxt UI's types through Nuxt's alias) | `runtime/ui-types.ts`: the same types from `@nuxt/ui`, for `KID/KIDEmailOption` |
+| `axios` (`plugins/custom/fileUpload.js`, `Task/FileUploadStates/FileCard`) | `runtime/axios.ts`: a cancel token and a POST that reports progress and answers 204, as S3 does. The real package bundles its `package.json`, whose `dist/` paths the build's file check reports as missing |
 | `StudioLayout.vue` (`components/App/`) | `runtime/AppShell.vue`, used by the `shell` option: the same frame around the copied sidebar, top bar and footer, without the global modals and onboarding |
 
 A stand-in is registered in one place:
