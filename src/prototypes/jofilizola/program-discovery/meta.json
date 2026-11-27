@@ -1,0 +1,23 @@
+{
+  "formatVersion": 1,
+  "title": "Program Discovery",
+  "created": "2026-11-24",
+  "studioId": "c53n7eeh1a3gqchk",
+  "ownerContributorId": "ajpsmg2v100zstt4",
+  "systemId": "8x5spen6xtvp96a9",
+  "order": [
+    "Overview.vue",
+    "1 Guest",
+    "2 Independent learner",
+    "3 Learner in an organization",
+    "4 Educator",
+    "1 Guest/Workshop.vue",
+    "1 Guest/Catalogue.vue",
+    "2 Independent learner/Workshop.vue",
+    "2 Independent learner/Catalogue.vue",
+    "3 Learner in an organization/Workshop.vue",
+    "3 Learner in an organization/Catalogue.vue",
+    "4 Educator/Workshop.vue",
+    "4 Educator/Catalogue.vue"
+  ]
+}
