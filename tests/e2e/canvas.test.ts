@@ -805,6 +805,9 @@ describe('a canvas in the studio running locally', () => {
     await page.reload()
     await opened(page)
     expect(await zoom(page)).toBe(left)
+    // Opening saves the restored camera after a delay, which would overwrite
+    // the damaged position written below.
+    await new Promise((resolve) => setTimeout(resolve, 600))
     // A damaged position is ignored: the canvas fits again.
     await page.evaluate(
       (name) => localStorage.setItem(name, '{"scrollX":null,"zoom":0}'),
