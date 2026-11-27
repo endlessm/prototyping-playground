@@ -59,9 +59,12 @@ describe('the Systems area’s dropped parts', () => {
     expect(strings).not.toContain('is an example system')
     // A system's own components may name what they wrap, such as Tiptap's
     // `starterKit`; the example system's starter lived outside them.
+    // Prototypes are people's content, free to use the word.
     expect(
       containing('starter').filter(
-        (file) => !file.startsWith('src/systems/endless-studios/components/'),
+        (file) =>
+          !file.startsWith('src/systems/endless-studios/components/') &&
+          !file.startsWith('src/prototypes/'),
       ),
     ).toEqual([])
   }, 30_000)
